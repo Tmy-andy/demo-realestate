@@ -1,0 +1,685 @@
+/* ============================================
+   AURORA HEIGHTS — I18N (vi / en / zh / ko / ja)
+   ============================================ */
+window.I18n = (() => {
+  const LANGS = [
+    { code: "vi", label: "Tiếng Việt", flag: "🇻🇳" },
+    { code: "en", label: "English",    flag: "🇬🇧" },
+    { code: "zh", label: "中文",        flag: "🇨🇳" },
+    { code: "ko", label: "한국어",      flag: "🇰🇷" },
+    { code: "ja", label: "日本語",      flag: "🇯🇵" },
+  ];
+
+  // UI keys + dynamic content keyed by Vietnamese source string
+  const DICT = {
+    vi: {
+      "ui.loaderSub": "Đang khởi tạo không gian 360°",
+      "ui.sitemap": "Bản đồ 2D",
+      "ui.sitemapTitle": "Bản đồ 2D",
+      "ui.gallery": "Thư viện",
+      "ui.galleryTitle": "Thư viện ảnh",
+      "ui.book": "Đặt lịch",
+      "ui.priceFrom": "Giá từ",
+      "ui.viewPricePromo": "Xem bảng giá & ưu đãi",
+      "ui.downloadBrochure": "Tải brochure PDF",
+      "ui.dragTip": "Kéo để xoay · Cuộn để zoom",
+      "ui.search": "Tìm kiếm…",
+      "ui.collapse": "Thu gọn",
+      "ui.expandNav": "Mở bảng điều hướng",
+      "ui.showUI": "Hiện giao diện",
+      "ui.aiChat": "Chat với trợ lý AI",
+      "ui.skip": "Bỏ qua",
+      "ui.continueHint": "Click bất kỳ đâu để tiếp tục →",
+      "ui.step": "Bước {n} / {total}",
+      "ui.viewIn360": "Xem 360°",
+      "ui.nearbyAmenity": "Tiện ích lân cận",
+      "ui.noResults": "Không tìm thấy mục phù hợp",
+      "ui.units": "căn",
+      "ui.rotate": "Tự xoay",
+      "ui.zoomIn": "Phóng to",
+      "ui.zoomOut": "Thu nhỏ",
+      "ui.fullscreen": "Toàn màn hình",
+      "ui.help": "Hướng dẫn sử dụng",
+      "ui.language": "Ngôn ngữ",
+
+      "modal.eyebrow": "BẢNG GIÁ & CĂN HỘ CÒN TRỐNG",
+      "modal.title": "Tháp A — Mở bán giai đoạn 2",
+      "modal.desc": "Quỹ căn hiện hữu cập nhật theo thời gian thực. Ưu đãi giai đoạn 2: chiết khấu 8% cho thanh toán sớm, cam kết thuê lại 7%/năm trong 24 tháng đầu tiên.",
+      "modal.col.code": "Mã căn",
+      "modal.col.type": "Loại",
+      "modal.col.area": "Diện tích",
+      "modal.col.price": "Giá từ",
+      "modal.col.avail": "Còn lại",
+      "modal.contactTitle": "Để chúng tôi liên hệ lại",
+      "modal.name": "Họ & tên",
+      "modal.namePh": "Nguyễn Văn A",
+      "modal.phone": "Số điện thoại",
+      "modal.phonePh": "09xx xxx xxx",
+      "modal.interest": "Loại căn quan tâm",
+      "modal.opt.2br": "2 phòng ngủ",
+      "modal.opt.2br1": "2 phòng ngủ +1",
+      "modal.opt.3br": "3 phòng ngủ",
+      "modal.opt.duplex": "Duplex / Penthouse",
+      "modal.note": "Ghi chú",
+      "modal.notePh": "Tôi muốn được tư vấn vào cuối tuần…",
+      "modal.submit": "Gửi yêu cầu tư vấn",
+      "modal.timeline": "Tiến độ dự án",
+
+      "sitemap.eyebrow": "Mặt bằng tổng thể",
+      "sitemap.title": "Bản đồ thiết kế 2D",
+      "sitemap.desc": "Bấm vào các điểm trên bản đồ để vào không gian 360° tương ứng",
+      "gallery.eyebrow": "Thư viện hình ảnh",
+      "gallery.title": "Khám phá Aurora Heights",
+
+      "ai.title": "Trợ lý Aurora Heights",
+      "ai.active": "Đang hoạt động",
+      "ai.listening": "Đang lắng nghe…",
+      "ai.thinking": "Đang suy nghĩ…",
+      "ai.speaking": "Đang trả lời…",
+      "ai.placeholder": "Nhập câu hỏi…",
+      "ai.close": "Đóng",
+      "ai.noSR": "Trình duyệt chưa hỗ trợ nhận dạng giọng nói. Vui lòng dùng Chrome hoặc Edge.",
+      "ai.micDenied": "Bạn cần cho phép truy cập micro để dùng tính năng trò chuyện bằng giọng nói.",
+      "ai.networkErr": "Không thể kết nối dịch vụ nhận dạng giọng nói. Vui lòng thử lại sau.",
+      "ai.replyStub": 'Cảm ơn câu hỏi của bạn: "{q}". Đây là phản hồi mẫu — tích hợp LLM thật sẽ thay thế hàm generateReply().',
+
+      "tour.brand": "Logo dự án — quay về tổng quan.",
+      "tour.sitemap": "Bản đồ thiết kế 2D — các điểm chạm dẫn vào không gian 360°.",
+      "tour.gallery": "Thư viện ảnh dự án.",
+      "tour.book": "Đặt lịch tham quan và xem bảng giá chi tiết.",
+      "tour.ctrlgroup": "Cụm điều khiển — tự xoay, zoom, toàn màn hình, chọn ngôn ngữ và mở lại hướng dẫn.",
+      "tour.rotate": "Bật/tắt tự xoay panorama 360°.",
+      "tour.zoomIn": "Phóng to góc nhìn.",
+      "tour.zoomOut": "Thu nhỏ góc nhìn.",
+      "tour.fullscreen": "Bật chế độ toàn màn hình.",
+      "tour.lang": "Đa ngôn ngữ — chọn ngôn ngữ hiển thị (Việt, Anh, Trung, Hàn, Nhật).",
+      "tour.help": "Mở lại hướng dẫn này bất cứ lúc nào.",
+      "tour.nav": "Bảng điều hướng trái — chứa thông tin scene và danh sách các nhóm.",
+      "tour.search": "Tìm kiếm nhanh trong toàn bộ danh sách.",
+      "tour.list": "Các nhóm: Tổng quan, Tiện ích nội/ngoại khu, Mặt bằng, Căn hộ. Click vào tiêu đề để mở/đóng nhóm, click vào mục con để chuyển không gian 360°.",
+      "tour.project": "Thông tin dự án: giá, trạng thái, các chỉ số chính.",
+      "tour.bot": "Trợ lý AI — chat text hoặc trò chuyện bằng giọng nói.",
+      "tour.restore": "Khi giao diện bị ẩn (do kéo xoay 360°), bấm nút này để hiện lại.",
+      "tour.hotspot": "Hotspot trong khung 360° — click để vào không gian khác hoặc xem mô tả.",
+    },
+
+    en: {
+      "ui.loaderSub": "Initializing 360° space",
+      "ui.sitemap": "2D Map",
+      "ui.sitemapTitle": "2D Map",
+      "ui.gallery": "Gallery",
+      "ui.galleryTitle": "Photo gallery",
+      "ui.book": "Book a visit",
+      "ui.priceFrom": "From",
+      "ui.viewPricePromo": "View pricing & offers",
+      "ui.downloadBrochure": "Download PDF brochure",
+      "ui.dragTip": "Drag to rotate · Scroll to zoom",
+      "ui.search": "Search…",
+      "ui.collapse": "Collapse",
+      "ui.expandNav": "Open navigation panel",
+      "ui.showUI": "Show interface",
+      "ui.aiChat": "Chat with AI assistant",
+      "ui.skip": "Skip",
+      "ui.continueHint": "Click anywhere to continue →",
+      "ui.step": "Step {n} / {total}",
+      "ui.viewIn360": "View in 360°",
+      "ui.nearbyAmenity": "Nearby amenity",
+      "ui.noResults": "No matching items",
+      "ui.units": "units",
+      "ui.rotate": "Auto-rotate",
+      "ui.zoomIn": "Zoom in",
+      "ui.zoomOut": "Zoom out",
+      "ui.fullscreen": "Fullscreen",
+      "ui.help": "User guide",
+      "ui.language": "Language",
+
+      "modal.eyebrow": "PRICING & AVAILABLE UNITS",
+      "modal.title": "Tower A — Phase 2 launch",
+      "modal.desc": "Available inventory updated in real time. Phase 2 offers: 8% early-payment discount and 7%/year guaranteed leaseback for the first 24 months.",
+      "modal.col.code": "Code",
+      "modal.col.type": "Type",
+      "modal.col.area": "Area",
+      "modal.col.price": "From",
+      "modal.col.avail": "Available",
+      "modal.contactTitle": "Have us call you back",
+      "modal.name": "Full name",
+      "modal.namePh": "John Doe",
+      "modal.phone": "Phone number",
+      "modal.phonePh": "09xx xxx xxx",
+      "modal.interest": "Unit type of interest",
+      "modal.opt.2br": "2 bedrooms",
+      "modal.opt.2br1": "2 bedrooms +1",
+      "modal.opt.3br": "3 bedrooms",
+      "modal.opt.duplex": "Duplex / Penthouse",
+      "modal.note": "Note",
+      "modal.notePh": "I'd like a consultation on the weekend…",
+      "modal.submit": "Submit consultation request",
+      "modal.timeline": "Project timeline",
+
+      "sitemap.eyebrow": "Master plan",
+      "sitemap.title": "2D design map",
+      "sitemap.desc": "Click points on the map to enter the corresponding 360° space",
+      "gallery.eyebrow": "Image gallery",
+      "gallery.title": "Explore Aurora Heights",
+
+      "ai.title": "Aurora Heights Assistant",
+      "ai.active": "Online",
+      "ai.listening": "Listening…",
+      "ai.thinking": "Thinking…",
+      "ai.speaking": "Replying…",
+      "ai.placeholder": "Type your question…",
+      "ai.close": "Close",
+      "ai.noSR": "Your browser does not support speech recognition. Please use Chrome or Edge.",
+      "ai.micDenied": "You need to allow microphone access to use voice chat.",
+      "ai.networkErr": "Cannot connect to speech recognition service. Please try again later.",
+      "ai.replyStub": 'Thanks for your question: "{q}". This is a sample reply — real LLM integration will replace generateReply().',
+
+      "tour.brand": "Project logo — return to overview.",
+      "tour.sitemap": "2D design map — touch points lead into 360° spaces.",
+      "tour.gallery": "Project photo gallery.",
+      "tour.book": "Book a tour and view detailed pricing.",
+      "tour.ctrlgroup": "Controls — auto-rotate, zoom, fullscreen, language and reopen the guide.",
+      "tour.rotate": "Toggle 360° panorama auto-rotate.",
+      "tour.zoomIn": "Zoom in.",
+      "tour.zoomOut": "Zoom out.",
+      "tour.fullscreen": "Enter fullscreen mode.",
+      "tour.lang": "Multi-language — choose the display language (Vietnamese, English, Chinese, Korean, Japanese).",
+      "tour.help": "Reopen this guide anytime.",
+      "tour.nav": "Left navigation — scene info and group list.",
+      "tour.search": "Quickly search the entire list.",
+      "tour.list": "Groups: Overview, Internal/External amenities, Floor plans, Units. Click headers to expand/collapse, click items to switch the 360° space.",
+      "tour.project": "Project info: price, status, key stats.",
+      "tour.bot": "AI assistant — text chat or voice conversation.",
+      "tour.restore": "When the UI auto-hides (while dragging the 360° view), click this to bring it back.",
+      "tour.hotspot": "Hotspot inside the 360° view — click to navigate or view a description.",
+    },
+
+    zh: {
+      "ui.loaderSub": "正在初始化 360° 空间",
+      "ui.sitemap": "2D 地图",
+      "ui.sitemapTitle": "2D 地图",
+      "ui.gallery": "图库",
+      "ui.galleryTitle": "图片库",
+      "ui.book": "预约参观",
+      "ui.priceFrom": "起价",
+      "ui.viewPricePromo": "查看价格及优惠",
+      "ui.downloadBrochure": "下载 PDF 手册",
+      "ui.dragTip": "拖动旋转 · 滚动缩放",
+      "ui.search": "搜索…",
+      "ui.collapse": "收起",
+      "ui.expandNav": "打开导航面板",
+      "ui.showUI": "显示界面",
+      "ui.aiChat": "与 AI 助理对话",
+      "ui.skip": "跳过",
+      "ui.continueHint": "点击任意位置继续 →",
+      "ui.step": "第 {n} / {total} 步",
+      "ui.viewIn360": "查看 360°",
+      "ui.nearbyAmenity": "周边配套",
+      "ui.noResults": "未找到匹配项",
+      "ui.units": "套",
+      "ui.rotate": "自动旋转",
+      "ui.zoomIn": "放大",
+      "ui.zoomOut": "缩小",
+      "ui.fullscreen": "全屏",
+      "ui.help": "使用指南",
+      "ui.language": "语言",
+
+      "modal.eyebrow": "价格及在售单元",
+      "modal.title": "A 塔 — 第二期开盘",
+      "modal.desc": "现有房源实时更新。第二期优惠:提前付款 8% 折扣,前 24 个月保证 7%/年回租收益。",
+      "modal.col.code": "编号",
+      "modal.col.type": "户型",
+      "modal.col.area": "面积",
+      "modal.col.price": "起价",
+      "modal.col.avail": "剩余",
+      "modal.contactTitle": "请回电给我",
+      "modal.name": "姓名",
+      "modal.namePh": "张三",
+      "modal.phone": "电话",
+      "modal.phonePh": "09xx xxx xxx",
+      "modal.interest": "感兴趣的户型",
+      "modal.opt.2br": "两居室",
+      "modal.opt.2br1": "两居室 +1",
+      "modal.opt.3br": "三居室",
+      "modal.opt.duplex": "复式 / 顶层公寓",
+      "modal.note": "备注",
+      "modal.notePh": "希望在周末获得咨询…",
+      "modal.submit": "提交咨询请求",
+      "modal.timeline": "项目进度",
+
+      "sitemap.eyebrow": "总体规划",
+      "sitemap.title": "2D 设计图",
+      "sitemap.desc": "点击地图上的点进入相应的 360° 空间",
+      "gallery.eyebrow": "图片库",
+      "gallery.title": "探索 Aurora Heights",
+
+      "ai.title": "Aurora Heights 助理",
+      "ai.active": "在线",
+      "ai.listening": "正在聆听…",
+      "ai.thinking": "思考中…",
+      "ai.speaking": "回复中…",
+      "ai.placeholder": "请输入问题…",
+      "ai.close": "关闭",
+      "ai.noSR": "您的浏览器不支持语音识别。请使用 Chrome 或 Edge。",
+      "ai.micDenied": "需要允许麦克风权限才能使用语音对话。",
+      "ai.networkErr": "无法连接语音识别服务,请稍后再试。",
+      "ai.replyStub": '感谢您的提问:"{q}"。这是示例回复 — 真实 LLM 集成将替换 generateReply()。',
+
+      "tour.brand": "项目标志 — 返回总览。",
+      "tour.sitemap": "2D 设计图 — 触点进入 360° 空间。",
+      "tour.gallery": "项目图片库。",
+      "tour.book": "预约参观并查看详细价格。",
+      "tour.ctrlgroup": "控制组 — 自动旋转、缩放、全屏、语言和重新打开指南。",
+      "tour.rotate": "开关 360° 全景自动旋转。",
+      "tour.zoomIn": "放大视角。",
+      "tour.zoomOut": "缩小视角。",
+      "tour.fullscreen": "进入全屏模式。",
+      "tour.lang": "多语言 — 选择显示语言(越南语、英语、中文、韩语、日语)。",
+      "tour.help": "随时重新打开此指南。",
+      "tour.nav": "左侧导航 — 包含场景信息和分组列表。",
+      "tour.search": "快速搜索整个列表。",
+      "tour.list": "分组:总览、内部/外部配套、平面图、单元。点击标题展开/收起,点击子项切换 360° 空间。",
+      "tour.project": "项目信息:价格、状态、关键指标。",
+      "tour.bot": "AI 助理 — 文本聊天或语音对话。",
+      "tour.restore": "当界面隐藏(拖动 360° 视角时),点击此按钮重新显示。",
+      "tour.hotspot": "360° 视图中的热点 — 点击导航或查看说明。",
+    },
+
+    ko: {
+      "ui.loaderSub": "360° 공간 초기화 중",
+      "ui.sitemap": "2D 지도",
+      "ui.sitemapTitle": "2D 지도",
+      "ui.gallery": "갤러리",
+      "ui.galleryTitle": "사진 갤러리",
+      "ui.book": "방문 예약",
+      "ui.priceFrom": "시작가",
+      "ui.viewPricePromo": "가격표 & 혜택 보기",
+      "ui.downloadBrochure": "PDF 브로슈어 다운로드",
+      "ui.dragTip": "드래그하여 회전 · 스크롤하여 확대",
+      "ui.search": "검색…",
+      "ui.collapse": "접기",
+      "ui.expandNav": "내비게이션 패널 열기",
+      "ui.showUI": "인터페이스 표시",
+      "ui.aiChat": "AI 어시스턴트와 채팅",
+      "ui.skip": "건너뛰기",
+      "ui.continueHint": "아무 곳이나 클릭하여 계속 →",
+      "ui.step": "{n} / {total} 단계",
+      "ui.viewIn360": "360° 보기",
+      "ui.nearbyAmenity": "주변 시설",
+      "ui.noResults": "일치하는 항목이 없습니다",
+      "ui.units": "세대",
+      "ui.rotate": "자동 회전",
+      "ui.zoomIn": "확대",
+      "ui.zoomOut": "축소",
+      "ui.fullscreen": "전체 화면",
+      "ui.help": "사용 안내",
+      "ui.language": "언어",
+
+      "modal.eyebrow": "가격 & 분양 가능 세대",
+      "modal.title": "A 동 — 2단계 분양",
+      "modal.desc": "실시간으로 업데이트되는 재고. 2단계 혜택: 조기 납부 8% 할인, 첫 24개월 동안 7%/년 임대 보장.",
+      "modal.col.code": "코드",
+      "modal.col.type": "유형",
+      "modal.col.area": "면적",
+      "modal.col.price": "시작가",
+      "modal.col.avail": "잔여",
+      "modal.contactTitle": "전화 상담 요청",
+      "modal.name": "성명",
+      "modal.namePh": "홍길동",
+      "modal.phone": "전화번호",
+      "modal.phonePh": "09xx xxx xxx",
+      "modal.interest": "관심 유형",
+      "modal.opt.2br": "2개 침실",
+      "modal.opt.2br1": "2개 침실 +1",
+      "modal.opt.3br": "3개 침실",
+      "modal.opt.duplex": "복층 / 펜트하우스",
+      "modal.note": "메모",
+      "modal.notePh": "주말에 상담을 받고 싶습니다…",
+      "modal.submit": "상담 요청 보내기",
+      "modal.timeline": "프로젝트 일정",
+
+      "sitemap.eyebrow": "마스터 플랜",
+      "sitemap.title": "2D 설계 지도",
+      "sitemap.desc": "지도의 지점을 클릭하여 해당 360° 공간으로 이동",
+      "gallery.eyebrow": "이미지 갤러리",
+      "gallery.title": "Aurora Heights 둘러보기",
+
+      "ai.title": "Aurora Heights 어시스턴트",
+      "ai.active": "온라인",
+      "ai.listening": "듣는 중…",
+      "ai.thinking": "생각 중…",
+      "ai.speaking": "응답 중…",
+      "ai.placeholder": "질문을 입력하세요…",
+      "ai.close": "닫기",
+      "ai.noSR": "브라우저가 음성 인식을 지원하지 않습니다. Chrome 또는 Edge를 사용하세요.",
+      "ai.micDenied": "음성 채팅을 사용하려면 마이크 권한을 허용해야 합니다.",
+      "ai.networkErr": "음성 인식 서비스에 연결할 수 없습니다. 나중에 다시 시도하세요.",
+      "ai.replyStub": '질문 감사합니다: "{q}". 샘플 응답입니다 — 실제 LLM 통합이 generateReply()를 대체합니다.',
+
+      "tour.brand": "프로젝트 로고 — 개요로 돌아갑니다.",
+      "tour.sitemap": "2D 설계 지도 — 터치 포인트로 360° 공간 진입.",
+      "tour.gallery": "프로젝트 사진 갤러리.",
+      "tour.book": "투어 예약 및 상세 가격표 보기.",
+      "tour.ctrlgroup": "컨트롤 — 자동 회전, 확대, 전체화면, 언어, 가이드 재열기.",
+      "tour.rotate": "360° 파노라마 자동 회전 켜기/끄기.",
+      "tour.zoomIn": "시점 확대.",
+      "tour.zoomOut": "시점 축소.",
+      "tour.fullscreen": "전체 화면 모드 시작.",
+      "tour.lang": "다국어 — 표시 언어 선택 (베트남어, 영어, 중국어, 한국어, 일본어).",
+      "tour.help": "언제든지 이 가이드 다시 열기.",
+      "tour.nav": "왼쪽 내비게이션 — 장면 정보와 그룹 목록.",
+      "tour.search": "전체 목록 빠른 검색.",
+      "tour.list": "그룹: 개요, 내부/외부 시설, 평면도, 세대. 헤더 클릭으로 펼치기/접기, 항목 클릭으로 360° 공간 전환.",
+      "tour.project": "프로젝트 정보: 가격, 상태, 주요 지표.",
+      "tour.bot": "AI 어시스턴트 — 텍스트 채팅 또는 음성 대화.",
+      "tour.restore": "UI가 숨겨질 때(360° 드래그 시) 이 버튼을 눌러 다시 표시.",
+      "tour.hotspot": "360° 뷰의 핫스팟 — 클릭하여 이동하거나 설명 보기.",
+    },
+
+    ja: {
+      "ui.loaderSub": "360° 空間を初期化中",
+      "ui.sitemap": "2Dマップ",
+      "ui.sitemapTitle": "2Dマップ",
+      "ui.gallery": "ギャラリー",
+      "ui.galleryTitle": "フォトギャラリー",
+      "ui.book": "見学予約",
+      "ui.priceFrom": "価格",
+      "ui.viewPricePromo": "価格表と特典を見る",
+      "ui.downloadBrochure": "PDFパンフレットをダウンロード",
+      "ui.dragTip": "ドラッグで回転 · スクロールでズーム",
+      "ui.search": "検索…",
+      "ui.collapse": "折りたたむ",
+      "ui.expandNav": "ナビゲーションパネルを開く",
+      "ui.showUI": "UIを表示",
+      "ui.aiChat": "AIアシスタントとチャット",
+      "ui.skip": "スキップ",
+      "ui.continueHint": "どこかをクリックして続行 →",
+      "ui.step": "ステップ {n} / {total}",
+      "ui.viewIn360": "360°で見る",
+      "ui.nearbyAmenity": "周辺施設",
+      "ui.noResults": "該当する項目はありません",
+      "ui.units": "戸",
+      "ui.rotate": "自動回転",
+      "ui.zoomIn": "拡大",
+      "ui.zoomOut": "縮小",
+      "ui.fullscreen": "フルスクリーン",
+      "ui.help": "使い方ガイド",
+      "ui.language": "言語",
+
+      "modal.eyebrow": "価格と販売中の住戸",
+      "modal.title": "Aタワー — 第2期販売",
+      "modal.desc": "在庫はリアルタイムで更新されます。第2期特典:早期支払い8%割引、最初の24か月間7%/年の家賃保証。",
+      "modal.col.code": "コード",
+      "modal.col.type": "タイプ",
+      "modal.col.area": "面積",
+      "modal.col.price": "価格",
+      "modal.col.avail": "残り",
+      "modal.contactTitle": "折り返しご連絡します",
+      "modal.name": "氏名",
+      "modal.namePh": "山田 太郎",
+      "modal.phone": "電話番号",
+      "modal.phonePh": "09xx xxx xxx",
+      "modal.interest": "希望タイプ",
+      "modal.opt.2br": "2ベッドルーム",
+      "modal.opt.2br1": "2ベッドルーム +1",
+      "modal.opt.3br": "3ベッドルーム",
+      "modal.opt.duplex": "デュプレックス / ペントハウス",
+      "modal.note": "備考",
+      "modal.notePh": "週末に相談を希望します…",
+      "modal.submit": "相談を申し込む",
+      "modal.timeline": "プロジェクトの進捗",
+
+      "sitemap.eyebrow": "全体計画",
+      "sitemap.title": "2D設計マップ",
+      "sitemap.desc": "マップ上のポイントをクリックして対応する360°空間に入ります",
+      "gallery.eyebrow": "画像ギャラリー",
+      "gallery.title": "Aurora Heightsを探索",
+
+      "ai.title": "Aurora Heights アシスタント",
+      "ai.active": "オンライン",
+      "ai.listening": "聞いています…",
+      "ai.thinking": "考え中…",
+      "ai.speaking": "応答中…",
+      "ai.placeholder": "質問を入力…",
+      "ai.close": "閉じる",
+      "ai.noSR": "ブラウザが音声認識に対応していません。ChromeまたはEdgeをお使いください。",
+      "ai.micDenied": "音声チャットを使うにはマイクの許可が必要です。",
+      "ai.networkErr": "音声認識サービスに接続できません。後でもう一度お試しください。",
+      "ai.replyStub": 'ご質問ありがとうございます:"{q}"。これはサンプル応答です — 実際のLLM統合がgenerateReply()を置き換えます。',
+
+      "tour.brand": "プロジェクトロゴ — 概要に戻る。",
+      "tour.sitemap": "2D設計マップ — タッチポイントから360°空間へ。",
+      "tour.gallery": "プロジェクト写真ギャラリー。",
+      "tour.book": "見学予約と詳細な価格表の確認。",
+      "tour.ctrlgroup": "コントロール — 自動回転、ズーム、フルスクリーン、言語、ガイド再表示。",
+      "tour.rotate": "360°パノラマの自動回転をオン/オフ。",
+      "tour.zoomIn": "視点を拡大。",
+      "tour.zoomOut": "視点を縮小。",
+      "tour.fullscreen": "フルスクリーンモードに入る。",
+      "tour.lang": "多言語 — 表示言語を選択(ベトナム語、英語、中国語、韓国語、日本語)。",
+      "tour.help": "いつでもこのガイドを再表示。",
+      "tour.nav": "左ナビゲーション — シーン情報とグループ一覧。",
+      "tour.search": "リスト全体を素早く検索。",
+      "tour.list": "グループ:概要、敷地内/外設備、フロアプラン、住戸。ヘッダークリックで展開/折りたたみ、項目クリックで360°空間を切り替え。",
+      "tour.project": "プロジェクト情報:価格、ステータス、主要指標。",
+      "tour.bot": "AIアシスタント — テキストチャットまたは音声会話。",
+      "tour.restore": "UIが非表示(360°ドラッグ時)になったら、このボタンで再表示。",
+      "tour.hotspot": "360°ビューのホットスポット — クリックして移動または説明を表示。",
+    },
+  };
+
+  // Translation map keyed by Vietnamese source string for dynamic content from project.json
+  const DYNAMIC = {
+    // Project meta
+    "Khu Tây Hồ Tây, Hà Nội": { en: "Tay Ho Tay District, Hanoi", zh: "河内市西湖西区", ko: "하노이 떠이호떠이 지구", ja: "ハノイ・タイホータイ地区" },
+    "Đang mở bán giai đoạn 2": { en: "Phase 2 selling now", zh: "第二期热销中", ko: "2단계 분양 중", ja: "第2期販売中" },
+    "Từ 4.9 tỷ": { en: "From 4.9B VND", zh: "490亿越南盾起", ko: "49억 VND부터", ja: "49億VNDから" },
+
+    // Amenities
+    "Bể bơi vô cực": { en: "Infinity pool", zh: "无边泳池", ko: "인피니티 풀", ja: "インフィニティプール" },
+    "Gym & Yoga 1200m²": { en: "Gym & Yoga 1200m²", zh: "健身房&瑜伽 1200㎡", ko: "헬스 & 요가 1200㎡", ja: "ジム&ヨガ 1200㎡" },
+    "Spa & Onsen": { en: "Spa & Onsen", zh: "水疗 & 温泉", ko: "스파 & 온천", ja: "スパ&温泉" },
+    "Trường liên cấp song ngữ": { en: "Bilingual K-12 school", zh: "双语一贯制学校", ko: "이중언어 K-12 학교", ja: "バイリンガル一貫校" },
+    "TTTM 18.000 m²": { en: "Mall 18,000 m²", zh: "购物中心 18,000㎡", ko: "쇼핑몰 18,000㎡", ja: "ショッピングモール18,000㎡" },
+    "Công viên trung tâm": { en: "Central park", zh: "中央公园", ko: "센트럴 파크", ja: "セントラルパーク" },
+    "Sky lounge tầng 42": { en: "Sky lounge — 42F", zh: "42层空中酒廊", ko: "42층 스카이 라운지", ja: "42階スカイラウンジ" },
+    "Khu vui chơi trẻ em": { en: "Kids' playground", zh: "儿童游乐区", ko: "어린이 놀이터", ja: "キッズ遊び場" },
+
+    // Stats labels
+    "Cây xanh nội khu": { en: "Internal greenery", zh: "内部绿化", ko: "내부 녹지", ja: "敷地内緑地" },
+    "Mật độ xây dựng": { en: "Building density", zh: "建筑密度", ko: "건축 밀도", ja: "建ぺい率" },
+    "Tới hồ Tây": { en: "To West Lake", zh: "至西湖", ko: "서호까지", ja: "タイ湖まで" },
+    "Tầm view panorama": { en: "Panorama view floors", zh: "全景视野楼层", ko: "파노라마 뷰 층", ja: "パノラマビュー階" },
+    "ha": { en: "ha", zh: "公顷", ko: "ha", ja: "ha" },
+    "phút": { en: "min", zh: "分钟", ko: "분", ja: "分" },
+    "tầng": { en: "F", zh: "层", ko: "층", ja: "階" },
+
+    // Menu groups
+    "Tổng quan": { en: "Overview", zh: "总览", ko: "개요", ja: "概要" },
+    "Tiện ích nội khu": { en: "Internal amenities", zh: "内部配套", ko: "내부 시설", ja: "敷地内設備" },
+    "Tiện ích ngoại khu": { en: "External amenities", zh: "外部配套", ko: "외부 시설", ja: "敷地外設備" },
+    "Mặt bằng tầng": { en: "Floor plans", zh: "楼层平面", ko: "층 평면도", ja: "フロアプラン" },
+    "View 360 căn hộ": { en: "Unit 360° views", zh: "户型360°视图", ko: "세대 360° 뷰", ja: "住戸360°ビュー" },
+
+    // Menu items
+    "Tổng quan (Top View)": { en: "Overview (Top View)", zh: "总览(俯视)", ko: "개요(탑뷰)", ja: "概要(トップビュー)" },
+    "Tổng quan (View 1)": { en: "Overview (View 1)", zh: "总览(视角1)", ko: "개요(뷰 1)", ja: "概要(ビュー1)" },
+    "Tổng quan (View 2)": { en: "Overview (View 2)", zh: "总览(视角2)", ko: "개요(뷰 2)", ja: "概要(ビュー2)" },
+    "Tổng quan (View 3)": { en: "Overview (View 3)", zh: "总览(视角3)", ko: "개요(뷰 3)", ja: "概要(ビュー3)" },
+    "Tổng quan (View 4)": { en: "Overview (View 4)", zh: "总览(视角4)", ko: "개요(뷰 4)", ja: "概要(ビュー4)" },
+    "Tổng quan (View 5)": { en: "Overview (View 5)", zh: "总览(视角5)", ko: "개요(뷰 5)", ja: "概要(ビュー5)" },
+
+    "Bể bơi": { en: "Pool", zh: "泳池", ko: "수영장", ja: "プール" },
+    "Đường dạo bộ": { en: "Walking path", zh: "步道", ko: "산책로", ja: "散策路" },
+    "Sân chơi trẻ em": { en: "Kids playground", zh: "儿童乐园", ko: "어린이 놀이터", ja: "キッズ遊び場" },
+    "Sân thể thao": { en: "Sports court", zh: "运动场", ko: "스포츠 코트", ja: "スポーツコート" },
+    "Sky Lounge": { en: "Sky Lounge", zh: "空中酒廊", ko: "스카이 라운지", ja: "スカイラウンジ" },
+
+    "Tuyến Metro 6": { en: "Metro Line 6", zh: "6号地铁线", ko: "메트로 6호선", ja: "メトロ6号線" },
+    "Tuyến đường Ánh Sáng": { en: "Anh Sang Avenue", zh: "光明大道", ko: "안상 대로", ja: "アンサン通り" },
+    "Bệnh viện Quốc tế Vinmec": { en: "Vinmec Int'l Hospital", zh: "Vinmec 国际医院", ko: "빈멕 국제 병원", ja: "Vinmec国際病院" },
+    "Zen Park": { en: "Zen Park", zh: "Zen 公园", ko: "젠 파크", ja: "ゼンパーク" },
+    "Đại lộ Thăng Long": { en: "Thang Long Boulevard", zh: "升龙大道", ko: "탕롱 대로", ja: "タンロン大通り" },
+    "Vincom Mega Mall": { en: "Vincom Mega Mall", zh: "Vincom Mega Mall", ko: "빈컴 메가몰", ja: "Vincom Mega Mall" },
+    "TTTM & nhà để xe 10 tầng": { en: "Mall & 10F parking", zh: "购物中心&10层停车楼", ko: "쇼핑몰 & 10층 주차장", ja: "モール&10階駐車場" },
+    "Central Park 10.2ha": { en: "Central Park 10.2ha", zh: "中央公园 10.2公顷", ko: "센트럴 파크 10.2ha", ja: "セントラルパーク10.2ha" },
+    "Đường Lê Trọng Tấn": { en: "Le Trong Tan Street", zh: "黎仲晋路", ko: "레쫑떤 거리", ja: "レチョンタン通り" },
+    "Trường THCS Nguyễn Quý Đức": { en: "Nguyen Quy Duc Secondary", zh: "阮贵德中学", ko: "응우옌꾸이득 중학교", ja: "グエン・クイ・ドゥック中学校" },
+
+    "Tòa Thảo Mộc (I5)": { en: "Thao Moc Tower (I5)", zh: "草木塔 (I5)", ko: "타오목 타워 (I5)", ja: "タオモック棟 (I5)" },
+    "Tòa Nguyệt Quế (I4)": { en: "Nguyet Que Tower (I4)", zh: "月桂塔 (I4)", ko: "응우옛꾸에 타워 (I4)", ja: "ニョットクエ棟 (I4)" },
+    "Tòa The Central (I3)": { en: "The Central Tower (I3)", zh: "中央塔 (I3)", ko: "더 센트럴 (I3)", ja: "ザ・セントラル (I3)" },
+    "Tòa The Park (I2)": { en: "The Park Tower (I2)", zh: "公园塔 (I2)", ko: "더 파크 (I2)", ja: "ザ・パーク (I2)" },
+    "Tòa The Lake Premium (I1)": { en: "The Lake Premium Tower (I1)", zh: "湖景豪华塔 (I1)", ko: "더 레이크 프리미엄 (I1)", ja: "ザ・レイク・プレミアム (I1)" },
+
+    "Studio - 34m²": { en: "Studio – 34m²", zh: "开间 – 34㎡", ko: "스튜디오 – 34㎡", ja: "スタジオ – 34㎡" },
+    "Studio - 35.1m²": { en: "Studio – 35.1m²", zh: "开间 – 35.1㎡", ko: "스튜디오 – 35.1㎡", ja: "スタジオ – 35.1㎡" },
+    "1 phòng ngủ + 1 - 43m²": { en: "1BR +1 – 43m²", zh: "1卧+1 – 43㎡", ko: "1BR +1 – 43㎡", ja: "1BR +1 – 43㎡" },
+    "2 phòng ngủ + 1 - 46.4m²": { en: "2BR +1 – 46.4m²", zh: "2卧+1 – 46.4㎡", ko: "2BR +1 – 46.4㎡", ja: "2BR +1 – 46.4㎡" },
+    "2 phòng ngủ + 1 - 54.6m²": { en: "2BR +1 – 54.6m²", zh: "2卧+1 – 54.6㎡", ko: "2BR +1 – 54.6㎡", ja: "2BR +1 – 54.6㎡" },
+    "2 phòng ngủ + 1 - 54.7m²": { en: "2BR +1 – 54.7m²", zh: "2卧+1 – 54.7㎡", ko: "2BR +1 – 54.7㎡", ja: "2BR +1 – 54.7㎡" },
+    "2 phòng ngủ + 1 - 59.2m²": { en: "2BR +1 – 59.2m²", zh: "2卧+1 – 59.2㎡", ko: "2BR +1 – 59.2㎡", ja: "2BR +1 – 59.2㎡" },
+    "2 phòng ngủ + 1 - 62.2m²": { en: "2BR +1 – 62.2m²", zh: "2卧+1 – 62.2㎡", ko: "2BR +1 – 62.2㎡", ja: "2BR +1 – 62.2㎡" },
+    "3 phòng ngủ - 74.5m²": { en: "3BR – 74.5m²", zh: "3卧 – 74.5㎡", ko: "3BR – 74.5㎡", ja: "3BR – 74.5㎡" },
+    "3 phòng ngủ - 75.6m²": { en: "3BR – 75.6m²", zh: "3卧 – 75.6㎡", ko: "3BR – 75.6㎡", ja: "3BR – 75.6㎡" },
+
+    // Scene info
+    "Sky Lounge — Tầng 42": { en: "Sky Lounge — 42F", zh: "空中酒廊 — 42层", ko: "스카이 라운지 — 42층", ja: "スカイラウンジ — 42階" },
+    "Tầm nhìn 360° toàn cảnh thành phố": { en: "360° city panorama", zh: "360°城市全景", ko: "360° 도시 파노라마", ja: "360°都市パノラマ" },
+    "Tiện ích": { en: "Amenity", zh: "配套", ko: "시설", ja: "設備" },
+    "Penthouse mẫu — Tháp A": { en: "Showcase penthouse — Tower A", zh: "样板顶层公寓 — A塔", ko: "샘플 펜트하우스 — A동", ja: "モデルペントハウス — Aタワー" },
+    "Căn 3PN duplex 142m² — tầng 41": { en: "3BR duplex 142m² — 41F", zh: "3卧复式 142㎡ — 41层", ko: "3BR 듀플렉스 142㎡ — 41층", ja: "3BRデュプレックス142㎡ — 41階" },
+    "Căn hộ": { en: "Apartment", zh: "公寓", ko: "아파트", ja: "アパート" },
+    "Phòng ngủ Master": { en: "Master Bedroom", zh: "主卧", ko: "마스터 베드룸", ja: "マスターベッドルーム" },
+    "Suite riêng — 24m² + walk-in closet": { en: "Private suite — 24m² + walk-in closet", zh: "独立套间 — 24㎡ + 衣帽间", ko: "프라이빗 스위트 — 24㎡ + 워크인 클로젯", ja: "プライベートスイート — 24㎡ + ウォークインクローゼット" },
+    "Bể bơi vô cực — Tầng 8": { en: "Infinity pool — 8F", zh: "无边泳池 — 8层", ko: "인피니티 풀 — 8층", ja: "インフィニティプール — 8階" },
+    "50m × 25m, hệ nước muối thẩm thấu": { en: "50m × 25m, saltwater system", zh: "50m × 25m,盐水循环系统", ko: "50m × 25m, 염수 시스템", ja: "50m × 25m、塩水システム" },
+    "Công viên trung tâm — 12.4ha": { en: "Central park — 12.4ha", zh: "中央公园 — 12.4公顷", ko: "센트럴 파크 — 12.4ha", ja: "セントラルパーク — 12.4ha" },
+    "Vườn Nhật, hồ điều hòa, sân chạy 2.4km": { en: "Japanese garden, lake, 2.4km running track", zh: "日式庭院、调节湖、2.4公里跑道", ko: "일본 정원, 호수, 2.4km 러닝 트랙", ja: "日本庭園、調整池、2.4kmランニングトラック" },
+    "Toàn cảnh dự án": { en: "Project panorama", zh: "项目全景", ko: "프로젝트 파노라마", ja: "プロジェクト全景" },
+    "Phối cảnh tổng thể 6 tháp": { en: "Overall view — 6 towers", zh: "6座塔楼整体效果", ko: "6개 동 전체 조감", ja: "6棟全体パース" },
+    "Tổng thể": { en: "Overall", zh: "整体", ko: "전체", ja: "全体" },
+
+    // Hotspots labels & desc
+    "Vào penthouse mẫu": { en: "Enter showcase penthouse", zh: "进入样板顶层公寓", ko: "샘플 펜트하우스 진입", ja: "モデルペントハウスへ" },
+    "Khu BBQ ngoài trời": { en: "Outdoor BBQ area", zh: "户外烧烤区", ko: "야외 BBQ 구역", ja: "屋外BBQエリア" },
+    "Bể bơi tràn 50m hướng tây nhìn hoàng hôn hồ Tây.": { en: "50m infinity pool facing west — sunset over West Lake.", zh: "50米无边泳池朝西,可观赏西湖落日。", ko: "서쪽을 향한 50m 인피니티 풀 — 서호 일몰 전망.", ja: "西向きの50mインフィニティプール — タイ湖の夕日。" },
+    "Khu BBQ 24 bàn riêng tư có mái che.": { en: "24 private BBQ tables under cover.", zh: "24张私密带顶棚烧烤桌。", ko: "지붕이 있는 24개의 프라이빗 BBQ 테이블.", ja: "屋根付きプライベートBBQテーブル24卓。" },
+
+    "Phòng khách 38m²": { en: "Living room 38m²", zh: "客厅 38㎡", ko: "거실 38㎡", ja: "リビング38㎡" },
+    "Sang phòng ngủ master": { en: "To master bedroom", zh: "前往主卧", ko: "마스터 베드룸으로", ja: "マスターベッドルームへ" },
+    "Bếp đảo Bosch": { en: "Bosch island kitchen", zh: "Bosch 中岛厨房", ko: "보쉬 아일랜드 키친", ja: "Boschアイランドキッチン" },
+    "Cửa kính từ trần đến sàn, view trực diện hồ Tây.": { en: "Floor-to-ceiling glass, direct West Lake view.", zh: "落地玻璃窗,正面西湖景。", ko: "바닥부터 천장까지 유리, 서호 정면 뷰.", ja: "床から天井までのガラス、タイ湖正面ビュー。" },
+    "Trang bị full Bosch, đá Dekton, lò hấp & cảm ứng từ.": { en: "Full Bosch, Dekton stone, steam oven & induction.", zh: "全Bosch配置、Dekton石材、蒸箱与电磁炉。", ko: "보쉬 풀세트, 덱톤 스톤, 스팀 오븐 & 인덕션.", ja: "Boschフル装備、Dektonストーン、スチームオーブン&IH。" },
+
+    "Tủ âm tường": { en: "Built-in wardrobe", zh: "嵌入式衣柜", ko: "빌트인 옷장", ja: "造作クローゼット" },
+    "Cửa kính lùa toàn cảnh": { en: "Panoramic sliding glass", zh: "全景推拉玻璃门", ko: "파노라마 슬라이딩 도어", ja: "パノラマスライドガラス" },
+    "Quay lại Sky Lounge": { en: "Back to Sky Lounge", zh: "返回空中酒廊", ko: "스카이 라운지로 복귀", ja: "スカイラウンジへ戻る" },
+    "Tủ walk-in closet 6m² thiết kế riêng.": { en: "Custom 6m² walk-in closet.", zh: "定制6㎡步入式衣帽间。", ko: "맞춤 6㎡ 워크인 클로젯.", ja: "オーダーメイド6㎡ウォークインクローゼット。" },
+    "Cửa kính cách âm Low-E 3 lớp.": { en: "Triple-pane Low-E soundproof glass.", zh: "三层Low-E隔音玻璃。", ko: "3중 Low-E 방음 유리.", ja: "3層Low-E防音ガラス。" },
+
+    "Bể trẻ em": { en: "Kids' pool", zh: "儿童池", ko: "어린이 풀", ja: "子供プール" },
+    "Cabana riêng tư": { en: "Private cabanas", zh: "私密凉亭", ko: "프라이빗 카바나", ja: "プライベートカバナ" },
+    "Đi cảnh quan": { en: "Go to landscape", zh: "前往景观", ko: "조경 구역으로", ja: "ランドスケープへ" },
+    "Bể nông 0.4m riêng biệt cho trẻ dưới 6 tuổi.": { en: "0.4m shallow pool for children under 6.", zh: "0.4米浅水区,适合6岁以下儿童。", ko: "6세 미만을 위한 0.4m 얕은 풀.", ja: "6歳未満向け0.4m浅瀬プール。" },
+    "12 cabana có thể đặt riêng.": { en: "12 cabanas available for private booking.", zh: "12个凉亭可单独预订。", ko: "12개 카바나 개별 예약 가능.", ja: "12のカバナを個別予約可能。" },
+
+    "Vườn thiền Zen": { en: "Zen garden", zh: "禅意花园", ko: "선 가든", ja: "禅庭園" },
+    "Sân chạy bộ 2.4km": { en: "2.4km running track", zh: "2.4公里跑道", ko: "2.4km 러닝 트랙", ja: "2.4kmランニングトラック" },
+    "Lên Sky Lounge": { en: "Up to Sky Lounge", zh: "上空中酒廊", ko: "스카이 라운지로 이동", ja: "スカイラウンジへ" },
+    "Vườn đá Karesansui phong cách Kyoto.": { en: "Kyoto-style Karesansui rock garden.", zh: "京都风格枯山水石庭。", ko: "교토 스타일 카레산스이 정원.", ja: "京都様式の枯山水庭園。" },
+    "Đường runway phủ EPDM giảm chấn.": { en: "EPDM shock-absorbing runway.", zh: "EPDM减震跑道。", ko: "EPDM 충격 흡수 트랙.", ja: "EPDMクッションランウェイ。" },
+
+    "Tháp A — đang bán": { en: "Tower A — on sale", zh: "A塔 — 在售", ko: "A동 — 분양 중", ja: "Aタワー — 販売中" },
+    "Tháp B & C": { en: "Towers B & C", zh: "B塔与C塔", ko: "B 및 C동", ja: "BタワーとCタワー" },
+    "Giai đoạn 1 — đã bàn giao 2026.": { en: "Phase 1 — handed over in 2026.", zh: "第一期 — 2026年已交付。", ko: "1단계 — 2026년 인도 완료.", ja: "第1期 — 2026年引き渡し済み。" },
+
+    // Floorplan unit types/prices
+    "2PN": { en: "2BR", zh: "2卧", ko: "2BR", ja: "2BR" },
+    "2PN+1": { en: "2BR +1", zh: "2卧+1", ko: "2BR +1", ja: "2BR +1" },
+    "3PN": { en: "3BR", zh: "3卧", ko: "3BR", ja: "3BR" },
+    "Duplex 3PN": { en: "Duplex 3BR", zh: "复式3卧", ko: "듀플렉스 3BR", ja: "デュプレックス3BR" },
+    "5.4 tỷ": { en: "5.4B VND", zh: "54亿越南盾", ko: "54억 VND", ja: "54億VND" },
+    "6.8 tỷ": { en: "6.8B VND", zh: "68亿越南盾", ko: "68억 VND", ja: "68億VND" },
+    "8.9 tỷ": { en: "8.9B VND", zh: "89亿越南盾", ko: "89억 VND", ja: "89億VND" },
+    "14.2 tỷ": { en: "14.2B VND", zh: "142亿越南盾", ko: "142억 VND", ja: "142億VND" },
+    "4.9 tỷ": { en: "4.9B VND", zh: "49亿越南盾", ko: "49억 VND", ja: "49億VND" },
+
+    // Timeline
+    "Khởi công": { en: "Groundbreaking", zh: "动工", ko: "착공", ja: "着工" },
+    "Cất nóc tháp A & B": { en: "Topping out Towers A & B", zh: "A塔与B塔封顶", ko: "A 및 B동 상량", ja: "A・Bタワー上棟" },
+    "Mở bán GĐ 2": { en: "Phase 2 launch", zh: "第二期开盘", ko: "2단계 분양", ja: "第2期販売" },
+    "Hoàn thiện ngoại thất": { en: "Façade completion", zh: "外立面完工", ko: "외장 마감", ja: "外装完成" },
+    "Bàn giao tháp A": { en: "Tower A handover", zh: "A塔交付", ko: "A동 인도", ja: "Aタワー引き渡し" },
+    "Q1 / 2024": { en: "Q1 / 2024", zh: "2024年Q1", ko: "2024년 1분기", ja: "2024年Q1" },
+    "Q2 / 2026": { en: "Q2 / 2026", zh: "2026年Q2", ko: "2026년 2분기", ja: "2026年Q2" },
+    "Q1 / 2027": { en: "Q1 / 2027", zh: "2027年Q1", ko: "2027년 1분기", ja: "2027年Q1" },
+    "Q4 / 2027": { en: "Q4 / 2027", zh: "2027年Q4", ko: "2027년 4분기", ja: "2027年Q4" },
+
+    // Sitemap labels (overlap with menu)
+  };
+
+  let current = localStorage.getItem("aurora_lang") || "vi";
+  if (!DICT[current]) current = "vi";
+
+  const subs = [];
+
+  function t(key, vars) {
+    const dict = DICT[current] || DICT.vi;
+    let str = dict[key] ?? DICT.vi[key] ?? key;
+    if (vars) Object.keys(vars).forEach(k => { str = str.replace("{" + k + "}", vars[k]); });
+    return str;
+  }
+
+  // Translate a dynamic Vietnamese string to current language; fallback returns the source
+  function tr(viString) {
+    if (current === "vi" || !viString) return viString;
+    const entry = DYNAMIC[viString];
+    if (entry && entry[current]) return entry[current];
+    return viString;
+  }
+
+  function get() { return current; }
+  function langs() { return LANGS.slice(); }
+
+  function set(code) {
+    if (!DICT[code]) return;
+    current = code;
+    try { localStorage.setItem("aurora_lang", code); } catch (e) {}
+    document.documentElement.setAttribute("lang", code);
+    applyStatic();
+    subs.forEach(fn => { try { fn(code); } catch (e) {} });
+    try { window.dispatchEvent(new CustomEvent("langchange", { detail: { code } })); } catch (e) {}
+  }
+
+  function onChange(fn) { subs.push(fn); }
+
+  function applyStatic() {
+    document.querySelectorAll("[data-i18n]").forEach(el => {
+      const key = el.getAttribute("data-i18n");
+      el.textContent = t(key);
+    });
+    document.querySelectorAll("[data-i18n-title]").forEach(el => {
+      const key = el.getAttribute("data-i18n-title");
+      el.setAttribute("title", t(key));
+    });
+    document.querySelectorAll("[data-i18n-placeholder]").forEach(el => {
+      const key = el.getAttribute("data-i18n-placeholder");
+      el.setAttribute("placeholder", t(key));
+    });
+    document.querySelectorAll("[data-i18n-aria]").forEach(el => {
+      const key = el.getAttribute("data-i18n-aria");
+      el.setAttribute("aria-label", t(key));
+    });
+  }
+
+  document.documentElement.setAttribute("lang", current);
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", applyStatic);
+  } else {
+    applyStatic();
+  }
+
+  return { t, tr, get, set, langs, onChange, applyStatic };
+})();

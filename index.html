@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Aurora Heights — VR360 Experience</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="css/style.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+<!-- Loading screen -->
+<div class="loader" id="loader">
+  <div class="loader-inner">
+    <div class="loader-mark"></div>
+    <div class="loader-text">AURORA HEIGHTS</div>
+    <div class="loader-sub" data-i18n="ui.loaderSub">Đang khởi tạo không gian 360°</div>
+    <div class="loader-bar"></div>
+  </div>
+</div>
+
+<!-- VR 360 stage -->
+<div id="vr-stage"></div>
+<div id="hotspot-layer"></div>
+
+<!-- Hotspot popup -->
+<div class="hotspot-popup" id="hotspot-popup">
+  <button class="close">×</button>
+  <h4></h4>
+  <p></p>
+</div>
+
+<!-- ============ UI LAYER (auto-hide on 360 drag) ============ -->
+<div class="ui" id="ui">
+
+  <!-- ─── TOP BAR ─── -->
+  <header class="top-bar">
+    <div class="brand">
+      <div class="brand-mark"><span>A</span></div>
+      <div class="brand-text">
+        <div class="name">AURORA</div>
+        <div class="sub">VR360 EXPERIENCE</div>
+      </div>
+    </div>
+
+    <div class="top-cta">
+      <button class="tb-btn" id="btn-sitemap" data-i18n-title="ui.sitemapTitle" title="Bản đồ 2D">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 4l-6 2v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>
+        <span data-i18n="ui.sitemap">Bản đồ 2D</span>
+      </button>
+      <button class="tb-btn" id="btn-gallery" data-i18n-title="ui.galleryTitle" title="Thư viện ảnh">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
+        <span data-i18n="ui.gallery">Thư viện</span>
+      </button>
+      <button class="tb-btn tb-btn-primary" id="open-modal">
+        <span data-i18n="ui.book">Đặt lịch</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </button>
+
+      <span class="tb-sep"></span>
+
+      <div class="tb-ctrlgroup" id="tb-ctrlgroup">
+        <button class="ctrl-btn" id="ctrl-rotate" data-i18n-title="ui.rotate" title="Tự xoay">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a9 9 0 11-3-6.7"/><path d="M21 4v5h-5"/></svg>
+        </button>
+        <button class="ctrl-btn" id="ctrl-zoom-in" data-i18n-title="ui.zoomIn" title="Phóng to">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-5-5M8 11h6M11 8v6"/></svg>
+        </button>
+        <button class="ctrl-btn" id="ctrl-zoom-out" data-i18n-title="ui.zoomOut" title="Thu nhỏ">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-5-5M8 11h6"/></svg>
+        </button>
+        <button class="ctrl-btn" id="ctrl-fullscreen" data-i18n-title="ui.fullscreen" title="Toàn màn hình">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+        </button>
+        <div class="ctrl-lang-wrap" id="ctrl-lang-wrap">
+          <button class="ctrl-btn" id="ctrl-lang" data-i18n-title="ui.language" title="Ngôn ngữ" type="button">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/></svg>
+            <span class="ctrl-lang-code" id="ctrl-lang-code">VI</span>
+          </button>
+          <div class="ctrl-lang-menu" id="ctrl-lang-menu" role="menu"></div>
+        </div>
+        <button class="ctrl-btn ctrl-btn-help" id="help-btn" data-i18n-title="ui.help" title="Hướng dẫn sử dụng">?</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ─── LEFT: NAV PANEL (header + search + accordion list) ─── -->
+  <aside class="nav-panel" id="nav-panel">
+    <div class="np-header">
+      <div class="np-head-top">
+        <div class="np-eyebrow" id="scene-type">Tiện ích</div>
+        <button class="np-collapse" id="np-collapse" data-i18n-title="ui.collapse" title="Thu gọn">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+      </div>
+      <h2 class="np-title" id="scene-title">Sky Lounge — Tầng 42</h2>
+      <p class="np-subtitle" id="scene-subtitle">Tầm nhìn 360° toàn cảnh thành phố</p>
+    </div>
+
+    <div class="np-search" id="np-search-wrap">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-5-5"/></svg>
+      <input type="text" id="np-search" data-i18n-placeholder="ui.search" placeholder="Tìm kiếm…" />
+    </div>
+
+    <div class="np-list" id="np-list"></div>
+  </aside>
+
+  <!-- Floating expand button khi panel collapsed -->
+  <button class="np-expand" id="np-expand" data-i18n-title="ui.expandNav" title="Mở bảng điều hướng">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+  </button>
+
+  <!-- ─── RIGHT: PROJECT CARD PANEL ─── -->
+  <aside class="project-card" id="project-card">
+    <div class="pc-head">
+      <div class="pc-head-top">
+        <div class="pc-status" id="pc-status"><span class="dot"></span> Đang mở bán</div>
+        <button class="pc-collapse" id="pc-collapse" data-i18n-title="ui.collapse" title="Thu gọn">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
+      </div>
+      <h3 id="pc-title">Aurora Heights</h3>
+      <div class="loc" id="pc-loc"></div>
+    </div>
+
+    <div class="pc-price">
+      <div class="label" data-i18n="ui.priceFrom">Giá từ</div>
+      <div class="amount" id="pc-price">4.9 tỷ</div>
+    </div>
+
+    <div class="pc-stats" id="pc-stats"></div>
+
+    <div class="pc-actions">
+      <button class="tb-btn tb-btn-primary tb-btn-block" id="open-modal-2" data-i18n="ui.viewPricePromo">Xem bảng giá &amp; ưu đãi</button>
+      <button class="tb-btn tb-btn-block" data-i18n="ui.downloadBrochure">Tải brochure PDF</button>
+    </div>
+  </aside>
+
+  <!-- ─── Drag hint ─── -->
+  <div class="tip" data-i18n="ui.dragTip">Kéo để xoay · Cuộn để zoom</div>
+
+
+</div>
+
+<!-- UI Restore (top-right, outside .ui so it stays visible) -->
+<button class="ui-restore" id="ui-restore" data-i18n-title="ui.showUI" title="Hiện giao diện">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+</button>
+
+<!-- Amenities overlay -->
+<div class="amenities-overlay" id="amenities-overlay">
+  <div class="amen-grid" id="amen-grid"></div>
+</div>
+
+<!-- ============ SITE MAP OVERLAY (2D top-down) ============ -->
+<div class="sitemap-overlay" id="sitemap-overlay">
+  <div class="sm-frame">
+    <button class="sm-close" id="sm-close">×</button>
+    <div class="sm-head">
+      <div class="sm-eyebrow" data-i18n="sitemap.eyebrow">Mặt bằng tổng thể</div>
+      <h2 data-i18n="sitemap.title">Bản đồ thiết kế 2D</h2>
+      <p data-i18n="sitemap.desc">Bấm vào các điểm trên bản đồ để vào không gian 360° tương ứng</p>
+    </div>
+    <div class="sm-canvas" id="sm-canvas">
+      <img src="img/thietke-matbangduan.jpg" alt="Mặt bằng dự án" id="sm-img" draggable="false"/>
+      <div class="sm-points" id="sm-points"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ GALLERY OVERLAY ============ -->
+<div class="gallery-overlay" id="gallery-overlay">
+  <div class="gal-frame">
+    <button class="gal-close" id="gal-close">×</button>
+    <div class="gal-head">
+      <div class="sm-eyebrow" data-i18n="gallery.eyebrow">Thư viện hình ảnh</div>
+      <h2 data-i18n="gallery.title">Khám phá Aurora Heights</h2>
+    </div>
+    <div class="gal-grid" id="gal-grid"></div>
+  </div>
+</div>
+
+<!-- ============ LIGHTBOX ============ -->
+<div class="lightbox" id="lightbox">
+  <button class="lb-close" id="lb-close">×</button>
+  <button class="lb-nav lb-prev" id="lb-prev">‹</button>
+  <button class="lb-nav lb-next" id="lb-next">›</button>
+  <figure class="lb-figure">
+    <img id="lb-img" src="" alt=""/>
+    <figcaption id="lb-cap"></figcaption>
+  </figure>
+</div>
+
+<!-- ============ HELP TOUR OVERLAY (HELPTOUR_SPEC) ============ -->
+<div id="tour-overlay">
+  <div id="tour-spot"></div>
+  <div id="tour-tip">
+    <div class="tt-arrow"></div>
+    <div class="tt-step"></div>
+    <div class="tt-label"></div>
+    <div class="tt-hint" data-i18n="ui.continueHint">Click bất kỳ đâu để tiếp tục →</div>
+    <button id="tour-skip" data-i18n-title="ui.skip" title="Bỏ qua">×</button>
+  </div>
+</div>
+
+<!-- ============ BOTCHAT FLOAT BUTTON ============ -->
+<button class="bb-float bb-chat-btn" id="bb-chat-btn" data-i18n-title="ui.aiChat" title="Chat với trợ lý AI">
+  <img src="img/1.png" alt="AI"/>
+  <span class="bb-mic-indicator">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg>
+  </span>
+</button>
+
+<!-- Modal (kept as-is per request) -->
+<div class="modal-backdrop" id="modal-backdrop">
+  <div class="modal">
+    <button class="modal-close" id="modal-close">×</button>
+    <div class="modal-left">
+      <div class="ml-eyebrow" data-i18n="modal.eyebrow">BẢNG GIÁ &amp; CĂN HỘ CÒN TRỐNG</div>
+      <h2 data-i18n="modal.title">Tháp A — Mở bán giai đoạn 2</h2>
+      <p class="ml-desc" data-i18n="modal.desc">
+        Quỹ căn hiện hữu cập nhật theo thời gian thực. Ưu đãi giai đoạn 2: chiết khấu 8% cho thanh toán sớm,
+        cam kết thuê lại 7%/năm trong 24 tháng đầu tiên.
+      </p>
+      <table class="unit-table">
+        <thead>
+          <tr><th data-i18n="modal.col.code">Mã căn</th><th data-i18n="modal.col.type">Loại</th><th data-i18n="modal.col.area">Diện tích</th><th data-i18n="modal.col.price">Giá từ</th><th data-i18n="modal.col.avail">Còn lại</th></tr>
+        </thead>
+        <tbody id="unit-rows"></tbody>
+      </table>
+    </div>
+    <div class="modal-right">
+      <h3 data-i18n="modal.contactTitle">Để chúng tôi liên hệ lại</h3>
+      <div class="form-grid">
+        <div>
+          <label data-i18n="modal.name">Họ &amp; tên</label>
+          <input type="text" data-i18n-placeholder="modal.namePh" placeholder="Nguyễn Văn A" />
+        </div>
+        <div>
+          <label data-i18n="modal.phone">Số điện thoại</label>
+          <input type="tel" data-i18n-placeholder="modal.phonePh" placeholder="09xx xxx xxx" />
+        </div>
+        <div>
+          <label data-i18n="modal.interest">Loại căn quan tâm</label>
+          <select>
+            <option data-i18n="modal.opt.2br">2 phòng ngủ</option>
+            <option data-i18n="modal.opt.2br1">2 phòng ngủ +1</option>
+            <option data-i18n="modal.opt.3br">3 phòng ngủ</option>
+            <option data-i18n="modal.opt.duplex">Duplex / Penthouse</option>
+          </select>
+        </div>
+        <div>
+          <label data-i18n="modal.note">Ghi chú</label>
+          <textarea data-i18n-placeholder="modal.notePh" placeholder="Tôi muốn được tư vấn vào cuối tuần…"></textarea>
+        </div>
+        <button class="btn btn-primary" style="justify-content:center;" data-i18n="modal.submit">Gửi yêu cầu tư vấn</button>
+      </div>
+      <div class="timeline">
+        <div style="font-size:10px; letter-spacing:0.2em; text-transform:uppercase; color: var(--dim); margin-bottom: 10px;" data-i18n="modal.timeline">Tiến độ dự án</div>
+        <div id="timeline-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="js/i18n.js"></script>
+<script src="js/vr360.js"></script>
+<script src="js/ai-panel.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
