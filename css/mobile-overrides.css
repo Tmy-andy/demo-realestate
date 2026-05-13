@@ -1,0 +1,474 @@
+/* ============================================================
+   AURORA HEIGHTS — MOBILE OVERRIDES
+   Targets: max-width 768px (portrait) + landscape
+   
+   Changes:
+   1. top-cta → burger button → slide-down drawer
+   2. project-card → pill FAB (info icon) → staggered panel
+      positioned top-left, below np-expand
+   ============================================================ */
+
+/* ─────────────────────────────────────────────────────────────
+   SHARED MOBILE TOKEN
+   ───────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  :root {
+    --pill-h: 36px;                   /* pill size = FAB size = np-expand size */
+    --top-bar-h: 56px;                /* height of the condensed top bar */
+    --np-expand-top: calc(var(--top-bar-h) + 8px);
+    --pc-fab-top: calc(var(--np-expand-top) + var(--pill-h) + 8px);
+    /* burger drawer */
+    --drawer-bg: rgba(10, 13, 18, 0.96);
+    --drawer-blur: blur(28px);
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   1. TOP BAR — compact + burger
+   ═══════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+
+  /* Slimmer top bar */
+  .top-bar {
+    padding: 0 14px;
+    height: var(--top-bar-h);
+    align-items: center;
+    background: linear-gradient(180deg, rgba(10,13,18,0.85) 0%, transparent 100%);
+  }
+
+  /* Brand stays but subtitle already hidden by existing rule */
+  .brand-text .name { font-size: 15px; }
+
+  /* Hide the full top-cta, show burger instead */
+  .top-cta { display: none !important; }
+
+  /* ─── Burger button (injected via JS below, or add to HTML) ─── */
+  #mobile-burger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--pill-h);
+    height: var(--pill-h);
+    border-radius: 10px;
+    border: 1px solid var(--hairline);
+    background: var(--panel);
+    backdrop-filter: blur(20px);
+    color: var(--fg);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: border-color 0.18s, background 0.18s;
+    position: relative;
+    z-index: 31;
+  }
+  #mobile-burger:hover,
+  #mobile-burger.open {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  /* ─── Burger icon → X morph ─── */
+  #mobile-burger .bur-line {
+    position: absolute;
+    width: 16px;
+    height: 1.5px;
+    background: currentColor;
+    border-radius: 2px;
+    transition: transform 0.28s cubic-bezier(.4,0,.2,1), opacity 0.18s ease;
+  }
+  #mobile-burger .bur-line:nth-child(1) { transform: translateY(-5px); }
+  #mobile-burger .bur-line:nth-child(2) { transform: translateY(0); }
+  #mobile-burger .bur-line:nth-child(3) { transform: translateY(5px); }
+
+  #mobile-burger.open .bur-line:nth-child(1) { transform: translateY(0) rotate(45deg); }
+  #mobile-burger.open .bur-line:nth-child(2) { opacity: 0; transform: scaleX(0); }
+  #mobile-burger.open .bur-line:nth-child(3) { transform: translateY(0) rotate(-45deg); }
+
+
+  /* ─── Slide-down drawer ─── */
+  #mobile-drawer {
+    position: fixed;
+    top: var(--top-bar-h);
+    left: 0;
+    right: 0;
+    z-index: 30;
+    background: var(--drawer-bg);
+    backdrop-filter: var(--drawer-blur);
+    -webkit-backdrop-filter: var(--drawer-blur);
+    border-bottom: 1px solid var(--hairline);
+    border-radius: 0 0 18px 18px;
+    overflow: hidden;
+    /* Closed state */
+    max-height: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      max-height 0.38s cubic-bezier(.4,0,.2,1),
+      opacity 0.22s ease;
+  }
+  #mobile-drawer.open {
+    max-height: 360px;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  #mobile-drawer-inner {
+    padding: 16px 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* Each row in drawer */
+  .mob-drawer-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  /* Primary CTA full-width */
+  .mob-drawer-cta-primary {
+    width: 100%;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: background 0.18s;
+  }
+  .mob-drawer-cta-primary:hover { background: #f3d29c; }
+
+  /* Icon buttons row */
+  .mob-drawer-btn {
+    flex: 1;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    background: rgba(245,241,232,0.06);
+    border: 1px solid var(--hairline);
+    border-radius: 10px;
+    color: var(--muted);
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: border-color 0.16s, color 0.16s, background 0.16s;
+  }
+  .mob-drawer-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  /* Divider */
+  .mob-drawer-divider {
+    height: 1px;
+    background: var(--hairline);
+    margin: 4px 0;
+  }
+
+  /* Controls row (zoom, rotate, fullscreen, lang, help) */
+  .mob-drawer-controls {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .mob-drawer-controls .ctrl-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    /* inherits .ctrl-btn base styles */
+  }
+  .mob-drawer-controls .ctrl-btn-help {
+    margin-left: auto;
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  /* Lang inside drawer */
+  .mob-drawer-controls .ctrl-lang-wrap { position: relative; }
+  .mob-drawer-controls .ctrl-lang-menu {
+    top: auto;
+    bottom: calc(100% + 8px);
+    right: 0;
+  }
+
+  /* Stagger-fade items on open */
+  #mobile-drawer.open .mob-drawer-row:nth-child(1) { animation: drawerItemIn 0.26s ease 0.04s both; }
+  #mobile-drawer.open .mob-drawer-row:nth-child(2) { animation: drawerItemIn 0.26s ease 0.09s both; }
+  #mobile-drawer.open .mob-drawer-divider          { animation: drawerItemIn 0.20s ease 0.13s both; }
+  #mobile-drawer.open .mob-drawer-controls         { animation: drawerItemIn 0.26s ease 0.16s both; }
+
+  @keyframes drawerItemIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+} /* end @media 768px — burger */
+
+
+/* ═══════════════════════════════════════════════════════════
+   2. NAV PANEL — keep top-left, tighten position
+   ═══════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+
+  .nav-panel {
+    top: calc(var(--top-bar-h) + 8px);
+    left: 8px;
+    right: 8px;
+    width: auto;
+    max-height: 83vh;
+    bottom: auto;
+    border-radius: 14px;
+  }
+
+  /* np-expand: pill style matching pc-fab */
+  .np-expand {
+    top: var(--np-expand-top);
+    left: 14px;
+    width: var(--pill-h);
+    height: var(--pill-h);
+    border-radius: 10px;
+    background: var(--panel-solid);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--hairline);
+    color: var(--accent);
+  }
+  .np-expand:hover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   3. PROJECT-CARD — VRINFO pill ↔ panel animation
+      Position: top-left, directly below .np-expand
+   ═══════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+
+  /* ── Hide original PC desktop layout ── */
+  .project-card {
+    /* Reset desktop positioning */
+    right: auto;
+    top: var(--pc-fab-top);
+    left: 14px;
+    bottom: auto;
+    width: calc(100vw - 28px);
+    max-width: none;
+    height: 200px;
+    padding: 12px 14px;
+    border-radius: calc(var(--pill-h) / 2);
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+    border: 1px solid rgba(255,255,255,0.6);
+    box-shadow: 0 8px 28px rgba(0,0,0,0.18);
+    /* Colour override — white card on mobile */
+    --pc-fg: #1a2330;
+    --pc-muted: #4a6470;
+    --pc-accent: var(--icon-blue-dark, #1a9bcb);
+    --pc-hairline: rgba(43,182,230,0.15);
+
+    /* EXPAND animation: width+padding first (0s delay), height after (0.42s delay) */
+    transition:
+      width   0.4s cubic-bezier(.4,0,.2,1) 0s,
+      padding 0.4s cubic-bezier(.4,0,.2,1) 0s,
+      height  0.4s cubic-bezier(.4,0,.2,1) 0.42s,
+      background-color 0.3s ease;
+  }
+
+  /* COLLAPSED state → pill */
+  .project-card.collapsed {
+    width: var(--pill-h);
+    height: var(--pill-h);
+    padding: 0;
+    background: rgba(255,255,255,0.94);
+    pointer-events: none;      /* FAB sits on top */
+    /* COLLAPSE animation: height first, width+padding after */
+    transition:
+      height  0.4s cubic-bezier(.4,0,.2,1) 0s,
+      width   0.4s cubic-bezier(.4,0,.2,1) 0.42s,
+      padding 0.4s cubic-bezier(.4,0,.2,1) 0.42s,
+      background-color 0.3s ease;
+  }
+
+  /* Restore the collapsed override that hides inner children visually */
+  .project-card.collapsed > *:not(.pc-head) { display: block; }
+  .project-card.collapsed .pc-head { padding: 0; border: none; }
+  .project-card.collapsed .pc-head > * { display: block; }
+  .project-card.collapsed .pc-head-top { margin: 0; }
+  .project-card.collapsed .pc-status { display: none; }
+
+  /* ── Children: fade IN slow, fade OUT fast ── */
+  .project-card .pc-head,
+  .project-card .pc-price,
+  .project-card .pc-stats,
+  .project-card .pc-actions {
+    transition: opacity 0.3s ease 0.45s;   /* fade-in: wait for panel to open */
+  }
+  .project-card.collapsed .pc-head,
+  .project-card.collapsed .pc-price,
+  .project-card.collapsed .pc-stats,
+  .project-card.collapsed .pc-actions {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;        /* fade-out fast */
+  }
+
+  /* ── Adapt content colours for white panel ── */
+  .project-card .pc-head { border-bottom: 1px solid var(--pc-hairline, rgba(43,182,230,0.15)); padding: 0 0 10px; }
+  .project-card .pc-status { color: var(--icon-blue, #2bb6e6); }
+  .project-card .pc-status .dot { background: var(--icon-blue, #2bb6e6); box-shadow: 0 0 6px var(--icon-blue, #2bb6e6); }
+  .project-card .pc-head h3 { font-size: 17px; color: #1a2330; }
+  .project-card .loc { color: #4a6470; font-size: 11px; }
+  .project-card .pc-price { padding: 8px 0; border-bottom: 1px solid var(--pc-hairline, rgba(43,182,230,0.15)); }
+  .project-card .pc-price .label { color: #7a8c9a; font-size: 9px; }
+  .project-card .pc-price .amount { color: var(--icon-blue-dark, #1a9bcb); font-size: 20px; }
+  .project-card .pc-stats { border-bottom: 1px solid var(--pc-hairline, rgba(43,182,230,0.15)); grid-template-columns: repeat(4,1fr); }
+  .project-card .pc-stat { padding: 8px 10px; border-right: 1px solid var(--pc-hairline, rgba(43,182,230,0.15)); }
+  .project-card .pc-stat .v { font-size: 14px; color: #1a2330; }
+  .project-card .pc-stat .v small { color: #7a8c9a; }
+  .project-card .pc-stat .k { color: #7a8c9a; font-size: 8px; }
+  .project-card .pc-actions { padding: 10px 0 0; display: none; } /* hide CTA buttons — space-limited */
+
+  /* ── Collapse chevron → info icon swap ── */
+  /* Show collapse chevron only when expanded */
+  .project-card .pc-collapse {
+    color: var(--icon-blue, #2bb6e6);
+    width: 24px;
+    height: 24px;
+    background: rgba(43,182,230,0.12);
+    border-radius: 50%;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .project-card .pc-collapse svg {
+    transition: transform 0.35s cubic-bezier(.4,0,.2,1);
+    transform: rotate(-180deg);   /* chevron points up (close) */
+  }
+  .project-card.collapsed .pc-collapse svg {
+    transform: rotate(0deg);
+  }
+  .project-card .pc-head-top { margin-bottom: 8px; }
+
+
+  /* ── INFO FAB — sits on top of pill when collapsed ── */
+  #pc-info-fab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: var(--pc-fab-top);
+    left: 14px;
+    width: var(--pill-h);
+    height: var(--pill-h);
+    border-radius: 10px;                         /* match np-expand */
+    border: 1px solid var(--hairline);
+    background: var(--panel-solid);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    color: var(--accent);
+    cursor: pointer;
+    z-index: 16;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;              /* default: quick fade, no delay */
+  }
+  /* When pill is collapsed → FAB fades in AFTER pill finishes collapsing */
+  .project-card.collapsed ~ #pc-info-fab,
+  body.pc-collapsed #pc-info-fab {
+    opacity: 1;
+    pointer-events: auto;
+    transition: opacity 0.3s ease 0.85s;        /* delay: wait for pill to finish */
+  }
+  #pc-info-fab:hover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+} /* end @media 768px — project-card */
+
+
+/* ═══════════════════════════════════════════════════════════
+   4. LANDSCAPE (max-height: 500px, orientation: landscape)
+   ═══════════════════════════════════════════════════════════ */
+
+@media (max-height: 500px) and (orientation: landscape) {
+  :root {
+    --pill-h: 36px;
+    --top-bar-h: 48px;
+    --pc-fab-top: calc(var(--np-expand-top) + var(--pill-h) + 8px);
+  }
+
+  .project-card {
+    width: 260px;
+    max-width: 42vw;
+    height: 164px;
+    padding: 9px 12px;
+    transition:
+      width   0.4s cubic-bezier(.4,0,.2,1) 0s,
+      padding 0.4s cubic-bezier(.4,0,.2,1) 0s,
+      height  0.4s cubic-bezier(.4,0,.2,1) 0.42s,
+      background-color 0.3s ease;
+  }
+  .project-card.collapsed {
+    transition:
+      height  0.4s cubic-bezier(.4,0,.2,1) 0s,
+      width   0.4s cubic-bezier(.4,0,.2,1) 0.42s,
+      padding 0.4s cubic-bezier(.4,0,.2,1) 0.42s,
+      background-color 0.3s ease;
+  }
+  .project-card .pc-head h3 { font-size: 14px; }
+  .project-card .pc-stat .v { font-size: 12px; }
+  .project-card .pc-stat .k { font-size: 7px; }
+  .project-card .pc-price .amount { font-size: 17px; }
+
+  /* Children fade delay longer in landscape (panel takes same time but feel slower) */
+  .project-card .pc-head,
+  .project-card .pc-price,
+  .project-card .pc-stats,
+  .project-card .pc-actions {
+    transition: opacity 0.3s ease 0.85s;
+  }
+
+  #pc-info-fab {
+    top: var(--pc-fab-top);
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   5. SMALL PHONES (max-width: 480px)
+   ═══════════════════════════════════════════════════════════ */
+
+@media (max-width: 480px) {
+  .project-card {
+    padding: 10px 12px;
+    height: 188px;
+  }
+  .project-card .pc-head h3 { font-size: 15px; }
+  .project-card .pc-price .amount { font-size: 18px; }
+  .project-card .pc-stat .v { font-size: 13px; }
+}

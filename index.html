@@ -9,6 +9,345 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="css/style.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+/* ============================================================
+   MOBILE OVERRIDES — burger + project-card pill animation
+   ============================================================ */
+
+/* ── Shared tokens ── */
+@media (max-width: 768px) {
+  :root {
+    --pill-h: 36px;
+    --top-bar-h: 56px;
+    --np-expand-top: calc(var(--top-bar-h) + 10px);
+    --pc-fab-top: calc(var(--top-bar-h) + 10px + var(--pill-h) + 8px);
+  }
+}
+
+/* ════════════════════════════════════════════════
+   TOP BAR — compact + hide top-cta
+   ════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .top-bar {
+    padding: 0 14px;
+    height: var(--top-bar-h);
+    align-items: center;
+  }
+  .brand-text .name { font-size: 15px; }
+
+  /* Hide desktop CTA row */
+  .top-cta { display: none !important; }
+
+  /* ── Burger button ── */
+  #mobile-burger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--pill-h);
+    height: var(--pill-h);
+    border-radius: 10px;
+    border: 1px solid var(--hairline);
+    background: var(--panel);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    color: var(--muted);
+    cursor: pointer;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 31;
+    transition: border-color 0.18s, background 0.18s, color 0.18s;
+  }
+  #mobile-burger:hover, #mobile-burger.open {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .bur-line {
+    position: absolute;
+    width: 16px;
+    height: 1.5px;
+    background: currentColor;
+    border-radius: 2px;
+    transition: transform 0.28s cubic-bezier(.4,0,.2,1), opacity 0.18s ease;
+  }
+  .bur-line:nth-child(1) { transform: translateY(-5px); }
+  .bur-line:nth-child(2) { transform: translateY(0); }
+  .bur-line:nth-child(3) { transform: translateY(5px); }
+  #mobile-burger.open .bur-line:nth-child(1) { transform: translateY(0) rotate(45deg); }
+  #mobile-burger.open .bur-line:nth-child(2) { opacity: 0; transform: scaleX(0); }
+  #mobile-burger.open .bur-line:nth-child(3) { transform: translateY(0) rotate(-45deg); }
+
+  /* ── Slide-down drawer ── */
+  #mobile-drawer {
+    position: fixed;
+    top: var(--top-bar-h);
+    left: 0; right: 0;
+    z-index: 30;
+    background: rgba(10,13,18,0.97);
+    backdrop-filter: blur(28px);
+    -webkit-backdrop-filter: blur(28px);
+    border-bottom: 1px solid var(--hairline);
+    border-radius: 0 0 18px 18px;
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: max-height 0.38s cubic-bezier(.4,0,.2,1), opacity 0.22s ease;
+  }
+  #mobile-drawer.open {
+    max-height: 400px;
+    opacity: 1;
+    pointer-events: auto;
+  }
+  #mobile-drawer-inner {
+    padding: 14px 14px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  /* Drawer rows */
+  .mob-drawer-row { display: flex; gap: 8px; }
+
+  .mob-cta-primary {
+    width: 100%; height: 42px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    background: var(--accent); color: var(--bg);
+    border: none; border-radius: 10px;
+    font-size: 13px; font-weight: 600; font-family: inherit;
+    cursor: pointer; letter-spacing: 0.02em;
+    transition: background 0.18s;
+  }
+  .mob-cta-primary:hover { background: #f3d29c; }
+
+  .mob-btn {
+    flex: 1; height: 40px;
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    background: rgba(245,241,232,0.05);
+    border: 1px solid var(--hairline);
+    border-radius: 10px;
+    color: var(--muted); font-size: 12px; font-family: inherit;
+    cursor: pointer;
+    transition: border-color 0.16s, color 0.16s, background 0.16s;
+  }
+  .mob-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+
+  .mob-divider { height: 1px; background: var(--hairline); margin: 2px 0; }
+
+  .mob-controls {
+    display: flex; gap: 8px; align-items: center;
+  }
+  .mob-controls .ctrl-btn {
+    width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+    background: var(--panel);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--hairline);
+    display: grid; place-items: center;
+    color: var(--muted);
+    transition: all 0.2s;
+  }
+  .mob-controls .ctrl-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .mob-controls .ctrl-btn.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+  .mob-controls .ctrl-btn-help {
+    margin-left: auto;
+    background: var(--accent); color: var(--bg);
+    border-color: var(--accent);
+    font-size: 13px; font-weight: 700;
+  }
+  .mob-controls .ctrl-lang-wrap { position: relative; }
+  .mob-controls .ctrl-lang-menu {
+    bottom: calc(100% + 8px);
+    top: auto; right: 0;
+  }
+
+  /* Stagger open animation */
+  #mobile-drawer.open .mob-drawer-row:nth-child(1) { animation: mDrIn 0.25s ease 0.05s both; }
+  #mobile-drawer.open .mob-drawer-row:nth-child(2) { animation: mDrIn 0.25s ease 0.10s both; }
+  #mobile-drawer.open .mob-divider               { animation: mDrIn 0.20s ease 0.14s both; }
+  #mobile-drawer.open .mob-controls              { animation: mDrIn 0.25s ease 0.17s both; }
+  @keyframes mDrIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+}
+
+/* ════════════════════════════════════════════════
+   NAV PANEL — tighter top
+   ════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .nav-panel {
+    top: calc(var(--top-bar-h) + 8px);
+    left: 8px; right: 8px;
+    width: auto;
+    max-height: 52vh;
+    bottom: auto;
+    border-radius: 14px;
+  }
+  /* np-expand pill style */
+  .np-expand {
+    top: var(--np-expand-top);
+    left: 14px;
+    width: var(--pill-h);
+    height: var(--pill-h);
+    border-radius: 10px;
+  }
+}
+
+/* ════════════════════════════════════════════════
+   PROJECT-CARD — pill ↔ panel staggered animation
+   Position: top-left below np-expand
+   ════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+
+  /* Reset desktop right-side positioning */
+  .project-card {
+    position: fixed;   /* use fixed so it's always visible, not clipped by .ui */
+    right: auto;
+    left: 14px;
+    top: var(--pc-fab-top);
+    bottom: auto;
+    /* Expanded dimensions */
+    width: calc(100vw - 28px);
+    max-width: none;
+    height: 196px;
+    padding: 12px 14px;
+    border-radius: calc(var(--pill-h) / 2);
+    overflow: hidden;
+    /* White glass card */
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+    border: 1px solid rgba(255,255,255,0.7);
+    box-shadow: 0 8px 28px rgba(0,0,0,0.18);
+    /* EXPAND: width+padding first (delay 0s), height after (delay 0.42s) */
+    transition:
+      width   0.4s cubic-bezier(.4,0,.2,1) 0s,
+      padding 0.4s cubic-bezier(.4,0,.2,1) 0s,
+      height  0.4s cubic-bezier(.4,0,.2,1) 0.42s;
+  }
+
+  /* COLLAPSED = pill */
+  .project-card.collapsed {
+    width: var(--pill-h);
+    height: var(--pill-h);
+    padding: 0;
+    pointer-events: none;
+    /* COLLAPSE: height first, width+padding after */
+    transition:
+      height  0.4s cubic-bezier(.4,0,.2,1) 0s,
+      width   0.4s cubic-bezier(.4,0,.2,1) 0.42s,
+      padding 0.4s cubic-bezier(.4,0,.2,1) 0.42s;
+  }
+
+  /* Undo desktop "collapsed" display:none hacks */
+  .project-card.collapsed > *:not(.pc-head) { display: block; }
+  .project-card.collapsed .pc-head { padding: 0; border: none; }
+
+  /* Children: fade-in slow (delay 0.45s), fade-out fast (no delay) */
+  .project-card .pc-head,
+  .project-card .pc-price,
+  .project-card .pc-stats,
+  .project-card .pc-actions {
+    transition: opacity 0.3s ease 0.45s;
+  }
+  .project-card.collapsed .pc-head,
+  .project-card.collapsed .pc-price,
+  .project-card.collapsed .pc-stats,
+  .project-card.collapsed .pc-actions {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+  }
+
+  /* White-card colour overrides */
+  .project-card .pc-head {
+    padding: 0 0 10px;
+    border-bottom: 1px solid rgba(43,182,230,0.15);
+  }
+  .project-card .pc-head h3 { font-size: 16px; color: #1a2330; margin-bottom: 2px; }
+  .project-card .loc { color: #4a6470; font-size: 10.5px; }
+  .project-card .pc-status { color: var(--icon-blue, #2bb6e6); font-size: 9px; }
+  .project-card .pc-status .dot { background: var(--icon-blue, #2bb6e6); box-shadow: 0 0 6px var(--icon-blue, #2bb6e6); }
+  .project-card .pc-price { padding: 8px 0; border-bottom: 1px solid rgba(43,182,230,0.15); }
+  .project-card .pc-price .label { color: #7a8c9a; }
+  .project-card .pc-price .amount { color: var(--icon-blue-dark, #1a9bcb); font-size: 20px; }
+  .project-card .pc-stats {
+    border-bottom: 1px solid rgba(43,182,230,0.15);
+    grid-template-columns: repeat(4,1fr);
+  }
+  .project-card .pc-stat { padding: 7px 8px; border-right: 1px solid rgba(43,182,230,0.12); }
+  .project-card .pc-stat:nth-child(4) { border-right: none; }
+  .project-card .pc-stat .v { font-size: 13px; color: #1a2330; }
+  .project-card .pc-stat .v small { color: #7a8c9a; }
+  .project-card .pc-stat .k { color: #7a8c9a; font-size: 7.5px; }
+  .project-card .pc-actions { display: none; }
+
+  /* Collapse button (chevron-down) inside expanded card */
+  .project-card .pc-collapse {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: rgba(43,182,230,0.12);
+    color: var(--icon-blue, #2bb6e6);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .project-card .pc-collapse svg {
+    transition: transform 0.35s cubic-bezier(.4,0,.2,1);
+    transform: rotate(-180deg); /* points up = close */
+  }
+  .project-card.collapsed .pc-collapse svg { transform: rotate(0); }
+  .project-card .pc-head-top { margin-bottom: 8px; }
+
+  /* ── INFO FAB — sibling of .project-card ── */
+  #pc-info-fab {
+    position: fixed;
+    top: var(--pc-fab-top);
+    left: 14px;
+    width: var(--pill-h);
+    height: var(--pill-h);
+    border-radius: 10px;          /* same shape as np-expand */
+    border: 1px solid var(--hairline);
+    background: var(--panel-solid);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    color: var(--accent);
+    cursor: pointer;
+    z-index: 16;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Visible by default; hidden when card expanded */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  /* Show FAB only when card is collapsed — delay 0.85s (wait for pill to finish) */
+  .project-card.collapsed ~ #pc-info-fab {
+    opacity: 1;
+    pointer-events: auto;
+    transition: opacity 0.3s ease 0.85s;
+  }
+  #pc-info-fab:hover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+}
+
+/* ── Landscape ── */
+@media (max-height: 500px) and (orientation: landscape) {
+  :root {
+    --pill-h: 36px;
+    --top-bar-h: 48px;
+    --pc-fab-top: calc(var(--top-bar-h) + 10px + var(--pill-h) + 8px);
+  }
+  .project-card {
+    width: 260px; max-width: 44vw; height: 158px; padding: 9px 12px;
+    transition: width .4s cubic-bezier(.4,0,.2,1) 0s, padding .4s cubic-bezier(.4,0,.2,1) 0s, height .4s cubic-bezier(.4,0,.2,1) .42s;
+  }
+  .project-card.collapsed {
+    transition: height .4s cubic-bezier(.4,0,.2,1) 0s, width .4s cubic-bezier(.4,0,.2,1) .42s, padding .4s cubic-bezier(.4,0,.2,1) .42s;
+  }
+}
+</style>
 </head>
 <body>
 
@@ -45,6 +384,13 @@
         <div class="sub">VR360 EXPERIENCE</div>
       </div>
     </div>
+
+    <!-- Mobile burger (CSS shows it on ≤768px) -->
+    <button id="mobile-burger" aria-label="Menu" aria-expanded="false">
+      <span class="bur-line"></span>
+      <span class="bur-line"></span>
+      <span class="bur-line"></span>
+    </button>
 
     <div class="top-cta">
       <button class="tb-btn" id="btn-sitemap" data-i18n-title="ui.sitemapTitle" title="Bản đồ 2D">
@@ -138,6 +484,15 @@
       <button class="tb-btn tb-btn-block" data-i18n="ui.downloadBrochure">Tải brochure PDF</button>
     </div>
   </aside>
+
+  <!-- INFO FAB — must be sibling AFTER #project-card for CSS ~ selector -->
+  <button id="pc-info-fab" title="Thông tin dự án" aria-label="Mở thông tin dự án">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <circle cx="12" cy="12" r="10"/>
+      <circle cx="12" cy="8" r="0.6" fill="currentColor" stroke="none"/>
+      <line x1="12" y1="11" x2="12" y2="17"/>
+    </svg>
+  </button>
 
   <!-- ─── Drag hint ─── -->
   <div class="tip" data-i18n="ui.dragTip">Kéo để xoay · Cuộn để zoom</div>
@@ -272,3 +627,147 @@
 <script src="js/main.js"></script>
 </body>
 </html>
+
+<!-- ============ MOBILE DRAWER ============ -->
+<div id="mobile-drawer">
+  <div id="mobile-drawer-inner">
+    <div class="mob-drawer-row">
+      <button class="mob-cta-primary" id="mob-book-btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        <span data-i18n="ui.book">Đặt lịch</span>
+      </button>
+    </div>
+    <div class="mob-drawer-row">
+      <button class="mob-btn" id="mob-sitemap-btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 4l-6 2v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>
+        <span data-i18n="ui.sitemap">Bản đồ 2D</span>
+      </button>
+      <button class="mob-btn" id="mob-gallery-btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
+        <span data-i18n="ui.gallery">Thư viện</span>
+      </button>
+    </div>
+    <div class="mob-divider"></div>
+    <div class="mob-controls">
+      <button class="ctrl-btn" id="mob-rotate" title="Auto-rotate">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a9 9 0 11-3-6.7"/><path d="M21 4v5h-5"/></svg>
+      </button>
+      <button class="ctrl-btn" id="mob-zoom-in" title="Zoom in">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-5-5M8 11h6M11 8v6"/></svg>
+      </button>
+      <button class="ctrl-btn" id="mob-zoom-out" title="Zoom out">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-5-5M8 11h6"/></svg>
+      </button>
+      <button class="ctrl-btn" id="mob-fs" title="Fullscreen">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+      </button>
+      <div class="ctrl-lang-wrap">
+        <button class="ctrl-btn" id="mob-lang" type="button" title="Language">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/></svg>
+          <span class="ctrl-lang-code" id="mob-lang-code">VI</span>
+        </button>
+        <div class="ctrl-lang-menu" id="mob-lang-menu" role="menu"></div>
+      </div>
+      <button class="ctrl-btn ctrl-btn-help" id="mob-help" title="Help">?</button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+(function mobilePatch() {
+  var burger  = document.getElementById('mobile-burger');
+  var drawer  = document.getElementById('mobile-drawer');
+  var pc      = document.getElementById('project-card');
+  var pcFab   = document.getElementById('pc-info-fab');
+  var isMob   = window.matchMedia('(max-width: 768px)');
+
+  /* Show burger on mobile */
+  function applyBurger(e) { burger.style.display = e.matches ? 'flex' : 'none'; }
+  applyBurger(isMob);
+  isMob.addEventListener('change', function(e) { applyBurger(e); if (!e.matches) closeDrawer(); });
+
+  /* Burger toggle */
+  var drawerOpen = false;
+  function openDrawer()  { drawerOpen=true;  drawer.classList.add('open');    burger.classList.add('open');    burger.setAttribute('aria-expanded','true'); }
+  function closeDrawer() { drawerOpen=false; drawer.classList.remove('open'); burger.classList.remove('open'); burger.setAttribute('aria-expanded','false'); }
+  burger.addEventListener('click', function(e) { e.stopPropagation(); drawerOpen ? closeDrawer() : openDrawer(); });
+  document.addEventListener('click', function(e) { if (drawerOpen && !drawer.contains(e.target) && e.target!==burger) closeDrawer(); });
+
+  /* Drawer buttons */
+  function $d(id) { return document.getElementById(id); }
+  $d('mob-book-btn')   && $d('mob-book-btn').addEventListener('click',    function() { closeDrawer(); $d('modal-backdrop') && $d('modal-backdrop').classList.add('open'); });
+  $d('mob-sitemap-btn')&& $d('mob-sitemap-btn').addEventListener('click', function() { closeDrawer(); $d('sitemap-overlay') && $d('sitemap-overlay').classList.add('open'); });
+  $d('mob-gallery-btn')&& $d('mob-gallery-btn').addEventListener('click', function() { closeDrawer(); $d('gallery-overlay') && $d('gallery-overlay').classList.add('open'); });
+
+  var mobRot = false;
+  $d('mob-rotate') && $d('mob-rotate').addEventListener('click', function() {
+    mobRot = !mobRot; VR360.setAutoRotate(mobRot);
+    this.classList.toggle('active', mobRot);
+    var dr = $d('ctrl-rotate'); if(dr) dr.classList.toggle('active', mobRot);
+  });
+  $d('mob-zoom-in')  && $d('mob-zoom-in').addEventListener('click',  function() { VR360.zoomBy(-8); });
+  $d('mob-zoom-out') && $d('mob-zoom-out').addEventListener('click', function() { VR360.zoomBy(8); });
+  $d('mob-fs') && $d('mob-fs').addEventListener('click', function() {
+    document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+  });
+  $d('mob-help') && $d('mob-help').addEventListener('click', function() { closeDrawer(); var h=$d('help-btn'); if(h) h.click(); });
+
+  /* Language in drawer */
+  if (window.I18n) {
+    var btn = $d('mob-lang'), menu = $d('mob-lang-menu'), codeEl = $d('mob-lang-code');
+    function renderMobLang() {
+      var cur = I18n.get();
+      if (codeEl) codeEl.textContent = cur.toUpperCase();
+      menu.innerHTML = I18n.langs().map(function(l) {
+        return '<button type="button" class="ctrl-lang-item'+(l.code===cur?' active':'')+'" data-code="'+l.code+'">'
+          +'<span class="cli-flag">'+l.flag+'</span>'
+          +'<span class="cli-label">'+l.label+'</span>'
+          +'<span class="cli-code">'+l.code.toUpperCase()+'</span></button>';
+      }).join('');
+      menu.querySelectorAll('.ctrl-lang-item').forEach(function(it) {
+        it.addEventListener('click', function(e) { e.stopPropagation(); I18n.set(it.dataset.code); menu.classList.remove('open'); renderMobLang(); });
+      });
+    }
+    renderMobLang();
+    btn && btn.addEventListener('click', function(e) { e.stopPropagation(); menu.classList.toggle('open'); });
+    I18n.onChange(renderMobLang);
+
+    /* i18n sync drawer labels */
+    I18n.onChange(function() {
+      drawer.querySelectorAll('[data-i18n]').forEach(function(el) {
+        el.textContent = I18n.t(el.getAttribute('data-i18n'));
+      });
+    });
+  }
+
+  /* Project-card pill/FAB — mobile only */
+  if (!isMob.matches) return;
+
+  pc.classList.add('collapsed');
+
+  pcFab && pcFab.addEventListener('click', function(e) {
+    e.stopPropagation();
+    pc.classList.remove('collapsed');
+  });
+
+  /* Replace pc-collapse btn to avoid double listeners from main.js */
+  var oldBtn = pc.querySelector('#pc-collapse');
+  if (oldBtn) {
+    var newBtn = oldBtn.cloneNode(true);
+    oldBtn.replaceWith(newBtn);
+    newBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      pc.classList.add('collapsed');
+    });
+  }
+
+  /* Tap outside → collapse */
+  document.addEventListener('click', function(e) {
+    if (!pc.classList.contains('collapsed') && !pc.contains(e.target) && e.target !== pcFab) {
+      pc.classList.add('collapsed');
+    }
+  });
+
+})();
+</script>
