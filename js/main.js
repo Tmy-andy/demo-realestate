@@ -19,6 +19,7 @@ let openGroupKey = "tongQuan"; // only one group open at a time
 async function boot() {
   const res = await fetch("data/project.json");
   DATA = await res.json();
+  window.DATA = DATA; // expose for mobile-stepper.js
 
   buildBrand();
   buildProjectCard();

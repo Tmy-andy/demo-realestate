@@ -573,10 +573,28 @@
         }
       }
     } else {
-      // DATA not loaded yet — poll
+      // DATA not loaded yet — poll then render
       const poll = setInterval(() => {
-        if (window.DATA) { clearInterval(poll); buildUnitList(); }
-      }, 200);
+        if (window.DATA) {
+          clearInterval(poll);
+          buildUnitList();
+          if (preselectedCode) {
+            const u = window.DATA.floorplan.units.find(x => x.code === preselectedCode);
+            if (u) {
+              selectedUnit = {
+                code: u.code, type: u.type, area: u.area,
+                direction: u.direction || '—', floor: u.floor || '—',
+                price: u.price, status: u.status,
+              };
+              renderUnitCards();
+              goToStep(2);
+              return;
+            }
+          }
+          // re-render step 1 with data
+          goToStep(1);
+        }
+      }, 100);
     }
 
     goToStep(1);
