@@ -14,92 +14,339 @@
     "floors": "42 tầng",
     "density": "27%",
     "greenSpace": "12.4 ha công viên nội khu",
+    "hotline": "0901 234 567",
+    "zalo": "0901234567",
+    "unitsLeft": 49,
+    "totalUnitsForSale": 312,
+    "promoDeadline": "2025-07-31T23:59:59",
     "amenities": [
-      { "icon": "pool", "label": "Bể bơi vô cực" },
-      { "icon": "gym", "label": "Gym & Yoga 1200m²" },
-      { "icon": "spa", "label": "Spa & Onsen" },
-      { "icon": "school", "label": "Trường liên cấp song ngữ" },
-      { "icon": "mall", "label": "TTTM 18.000 m²" },
-      { "icon": "park", "label": "Công viên trung tâm" },
-      { "icon": "sky", "label": "Sky lounge tầng 42" },
-      { "icon": "kid", "label": "Khu vui chơi trẻ em" }
+      {
+        "icon": "pool",
+        "label": "Bể bơi vô cực"
+      },
+      {
+        "icon": "gym",
+        "label": "Gym & Yoga 1200m²"
+      },
+      {
+        "icon": "spa",
+        "label": "Spa & Onsen"
+      },
+      {
+        "icon": "school",
+        "label": "Trường liên cấp song ngữ"
+      },
+      {
+        "icon": "mall",
+        "label": "TTTM 18.000 m²"
+      },
+      {
+        "icon": "park",
+        "label": "Công viên trung tâm"
+      },
+      {
+        "icon": "sky",
+        "label": "Sky lounge tầng 42"
+      },
+      {
+        "icon": "kid",
+        "label": "Khu vui chơi trẻ em"
+      }
     ],
     "stats": [
-      { "value": "12.4", "unit": "ha", "label": "Cây xanh nội khu" },
-      { "value": "27", "unit": "%", "label": "Mật độ xây dựng" },
-      { "value": "8", "unit": "phút", "label": "Tới hồ Tây" },
-      { "value": "42", "unit": "tầng", "label": "Tầm view panorama" }
+      {
+        "value": "12.4",
+        "unit": "ha",
+        "label": "Cây xanh nội khu"
+      },
+      {
+        "value": "27",
+        "unit": "%",
+        "label": "Mật độ xây dựng"
+      },
+      {
+        "value": "8",
+        "unit": "phút",
+        "label": "Tới hồ Tây"
+      },
+      {
+        "value": "42",
+        "unit": "tầng",
+        "label": "Tầm view panorama"
+      }
     ]
   },
   "menu": {
     "tongQuan": [
-      { "id": "aerial",        "label": "Tổng quan (Top View)", "sceneId": "aerial" },
-      { "id": "view-1",        "label": "Tổng quan (View 1)",   "sceneId": "sky-lounge" },
-      { "id": "view-2",        "label": "Tổng quan (View 2)",   "sceneId": "park" },
-      { "id": "view-3",        "label": "Tổng quan (View 3)",   "sceneId": "pool-deck" },
-      { "id": "view-4",        "label": "Tổng quan (View 4)",   "sceneId": "penthouse" },
-      { "id": "view-5",        "label": "Tổng quan (View 5)",   "sceneId": "master-bedroom" }
+      {
+        "id": "aerial",
+        "label": "Tổng quan (Top View)",
+        "sceneId": "aerial"
+      },
+      {
+        "id": "view-1",
+        "label": "Tổng quan (View 1)",
+        "sceneId": "sky-lounge"
+      },
+      {
+        "id": "view-2",
+        "label": "Tổng quan (View 2)",
+        "sceneId": "park"
+      },
+      {
+        "id": "view-3",
+        "label": "Tổng quan (View 3)",
+        "sceneId": "pool-deck"
+      },
+      {
+        "id": "view-4",
+        "label": "Tổng quan (View 4)",
+        "sceneId": "penthouse"
+      },
+      {
+        "id": "view-5",
+        "label": "Tổng quan (View 5)",
+        "sceneId": "master-bedroom"
+      }
     ],
     "tienIchNoiKhu": [
-      { "id": "be-boi",        "label": "Bể bơi",          "sceneId": "pool-deck" },
-      { "id": "duong-dao-bo",  "label": "Đường dạo bộ",    "sceneId": "park" },
-      { "id": "san-choi-tre",  "label": "Sân chơi trẻ em", "sceneId": "park" },
-      { "id": "san-the-thao",  "label": "Sân thể thao",    "sceneId": "park" },
-      { "id": "sky-lounge-tn", "label": "Sky Lounge",      "sceneId": "sky-lounge" },
-      { "id": "spa-onsen",     "label": "Spa & Onsen",     "sceneId": "sky-lounge" }
+      {
+        "id": "be-boi",
+        "label": "Bể bơi",
+        "sceneId": "pool-deck"
+      },
+      {
+        "id": "duong-dao-bo",
+        "label": "Đường dạo bộ",
+        "sceneId": "park"
+      },
+      {
+        "id": "san-choi-tre",
+        "label": "Sân chơi trẻ em",
+        "sceneId": "park"
+      },
+      {
+        "id": "san-the-thao",
+        "label": "Sân thể thao",
+        "sceneId": "park"
+      },
+      {
+        "id": "sky-lounge-tn",
+        "label": "Sky Lounge",
+        "sceneId": "sky-lounge"
+      },
+      {
+        "id": "spa-onsen",
+        "label": "Spa & Onsen",
+        "sceneId": "sky-lounge"
+      }
     ],
     "tienIchNgoaiKhu": [
-      { "id": "metro-6",       "label": "Tuyến Metro 6" },
-      { "id": "duong-as",      "label": "Tuyến đường Ánh Sáng" },
-      { "id": "vinmec",        "label": "Bệnh viện Quốc tế Vinmec" },
-      { "id": "zen-park",      "label": "Zen Park" },
-      { "id": "dl-thang-long", "label": "Đại lộ Thăng Long" },
-      { "id": "vincom-mega",   "label": "Vincom Mega Mall" },
-      { "id": "tttm-10",       "label": "TTTM & nhà để xe 10 tầng" },
-      { "id": "central-park",  "label": "Central Park 10.2ha" },
-      { "id": "le-trong-tan",  "label": "Đường Lê Trọng Tấn" },
-      { "id": "thcs-nqd",      "label": "Trường THCS Nguyễn Quý Đức" }
+      {
+        "id": "metro-6",
+        "label": "Tuyến Metro 6"
+      },
+      {
+        "id": "duong-as",
+        "label": "Tuyến đường Ánh Sáng"
+      },
+      {
+        "id": "vinmec",
+        "label": "Bệnh viện Quốc tế Vinmec"
+      },
+      {
+        "id": "zen-park",
+        "label": "Zen Park"
+      },
+      {
+        "id": "dl-thang-long",
+        "label": "Đại lộ Thăng Long"
+      },
+      {
+        "id": "vincom-mega",
+        "label": "Vincom Mega Mall"
+      },
+      {
+        "id": "tttm-10",
+        "label": "TTTM & nhà để xe 10 tầng"
+      },
+      {
+        "id": "central-park",
+        "label": "Central Park 10.2ha"
+      },
+      {
+        "id": "le-trong-tan",
+        "label": "Đường Lê Trọng Tấn"
+      },
+      {
+        "id": "thcs-nqd",
+        "label": "Trường THCS Nguyễn Quý Đức"
+      }
     ],
     "matBangTang": [
-      { "id": "i5", "label": "Tòa Thảo Mộc (I5)",      "sceneId": "aerial" },
-      { "id": "i4", "label": "Tòa Nguyệt Quế (I4)",    "sceneId": "aerial" },
-      { "id": "i3", "label": "Tòa The Central (I3)",   "sceneId": "aerial" },
-      { "id": "i2", "label": "Tòa The Park (I2)",      "sceneId": "aerial" },
-      { "id": "i1", "label": "Tòa The Lake Premium (I1)", "sceneId": "aerial" }
+      {
+        "id": "i5",
+        "label": "Tòa Thảo Mộc (I5)",
+        "sceneId": "aerial"
+      },
+      {
+        "id": "i4",
+        "label": "Tòa Nguyệt Quế (I4)",
+        "sceneId": "aerial"
+      },
+      {
+        "id": "i3",
+        "label": "Tòa The Central (I3)",
+        "sceneId": "aerial"
+      },
+      {
+        "id": "i2",
+        "label": "Tòa The Park (I2)",
+        "sceneId": "aerial"
+      },
+      {
+        "id": "i1",
+        "label": "Tòa The Lake Premium (I1)",
+        "sceneId": "aerial"
+      }
     ],
     "view360Can": [
-      { "id": "studio-34",   "label": "Studio - 34m²",       "sceneId": "penthouse" },
-      { "id": "studio-35",   "label": "Studio - 35.1m²",     "sceneId": "penthouse" },
-      { "id": "1pn1-43",     "label": "1 phòng ngủ + 1 - 43m²",  "sceneId": "penthouse" },
-      { "id": "2pn1-46",     "label": "2 phòng ngủ + 1 - 46.4m²", "sceneId": "penthouse" },
-      { "id": "2pn1-54a",    "label": "2 phòng ngủ + 1 - 54.6m²", "sceneId": "penthouse" },
-      { "id": "2pn1-54b",    "label": "2 phòng ngủ + 1 - 54.7m²", "sceneId": "penthouse" },
-      { "id": "2pn1-59",     "label": "2 phòng ngủ + 1 - 59.2m²", "sceneId": "penthouse" },
-      { "id": "2pn1-62a",    "label": "2 phòng ngủ + 1 - 62.2m²", "sceneId": "penthouse" },
-      { "id": "2pn1-62b",    "label": "2 phòng ngủ + 1 - 62.2m²", "sceneId": "penthouse" },
-      { "id": "3pn-74",      "label": "3 phòng ngủ - 74.5m²",  "sceneId": "master-bedroom" },
-      { "id": "3pn-75",      "label": "3 phòng ngủ - 75.6m²",  "sceneId": "master-bedroom" }
+      {
+        "id": "studio-34",
+        "label": "Studio - 34m²",
+        "sceneId": "penthouse"
+      },
+      {
+        "id": "studio-35",
+        "label": "Studio - 35.1m²",
+        "sceneId": "penthouse"
+      },
+      {
+        "id": "1pn1-43",
+        "label": "1 phòng ngủ + 1 - 43m²",
+        "sceneId": "penthouse"
+      },
+      {
+        "id": "2pn1-46",
+        "label": "2 phòng ngủ + 1 - 46.4m²",
+        "sceneId": "penthouse"
+      },
+      {
+        "id": "2pn1-54a",
+        "label": "2 phòng ngủ + 1 - 54.6m²",
+        "sceneId": "penthouse"
+      },
+      {
+        "id": "2pn1-54b",
+        "label": "2 phòng ngủ + 1 - 54.7m²",
+        "sceneId": "penthouse"
+      },
+      {
+        "id": "2pn1-59",
+        "label": "2 phòng ngủ + 1 - 59.2m²",
+        "sceneId": "penthouse"
+      },
+      {
+        "id": "2pn1-62a",
+        "label": "2 phòng ngủ + 1 - 62.2m²",
+        "sceneId": "penthouse"
+      },
+      {
+        "id": "2pn1-62b",
+        "label": "2 phòng ngủ + 1 - 62.2m²",
+        "sceneId": "penthouse"
+      },
+      {
+        "id": "3pn-74",
+        "label": "3 phòng ngủ - 74.5m²",
+        "sceneId": "master-bedroom"
+      },
+      {
+        "id": "3pn-75",
+        "label": "3 phòng ngủ - 75.6m²",
+        "sceneId": "master-bedroom"
+      }
     ]
   },
   "siteMap": {
     "image": "img/thietke-matbangduan.jpg",
     "points": [
-      { "id": "i1", "x": 78, "y": 62, "label": "Tòa The Lake Premium (I1)", "sceneId": "aerial" },
-      { "id": "i2", "x": 62, "y": 66, "label": "Tòa The Park (I2)",         "sceneId": "aerial" },
-      { "id": "i3", "x": 48, "y": 64, "label": "Tòa The Central (I3)",      "sceneId": "aerial" },
-      { "id": "i4", "x": 33, "y": 62, "label": "Tòa Nguyệt Quế (I4)",       "sceneId": "aerial" },
-      { "id": "i5", "x": 22, "y": 66, "label": "Tòa Thảo Mộc (I5)",         "sceneId": "aerial" },
-      { "id": "park", "x": 52, "y": 38, "label": "Công viên trung tâm",     "sceneId": "park" },
-      { "id": "pool", "x": 70, "y": 42, "label": "Bể bơi vô cực",           "sceneId": "pool-deck" }
+      {
+        "id": "i1",
+        "x": 78,
+        "y": 62,
+        "label": "Tòa The Lake Premium (I1)",
+        "sceneId": "aerial"
+      },
+      {
+        "id": "i2",
+        "x": 62,
+        "y": 66,
+        "label": "Tòa The Park (I2)",
+        "sceneId": "aerial"
+      },
+      {
+        "id": "i3",
+        "x": 48,
+        "y": 64,
+        "label": "Tòa The Central (I3)",
+        "sceneId": "aerial"
+      },
+      {
+        "id": "i4",
+        "x": 33,
+        "y": 62,
+        "label": "Tòa Nguyệt Quế (I4)",
+        "sceneId": "aerial"
+      },
+      {
+        "id": "i5",
+        "x": 22,
+        "y": 66,
+        "label": "Tòa Thảo Mộc (I5)",
+        "sceneId": "aerial"
+      },
+      {
+        "id": "park",
+        "x": 52,
+        "y": 38,
+        "label": "Công viên trung tâm",
+        "sceneId": "park"
+      },
+      {
+        "id": "pool",
+        "x": 70,
+        "y": 42,
+        "label": "Bể bơi vô cực",
+        "sceneId": "pool-deck"
+      }
     ]
   },
   "gallery": [
-    { "src": "img/thietke-matbangduan.jpg", "title": "Mặt bằng tổng thể" },
-    { "src": "img/thietke-matbangduan.jpg", "title": "Phối cảnh tháp A" },
-    { "src": "img/thietke-matbangduan.jpg", "title": "Sky Lounge tầng 42" },
-    { "src": "img/thietke-matbangduan.jpg", "title": "Bể bơi vô cực" },
-    { "src": "img/thietke-matbangduan.jpg", "title": "Công viên trung tâm" },
-    { "src": "img/thietke-matbangduan.jpg", "title": "Phòng khách penthouse" }
+    {
+      "src": "img/thietke-matbangduan.jpg",
+      "title": "Mặt bằng tổng thể"
+    },
+    {
+      "src": "img/thietke-matbangduan.jpg",
+      "title": "Phối cảnh tháp A"
+    },
+    {
+      "src": "img/thietke-matbangduan.jpg",
+      "title": "Sky Lounge tầng 42"
+    },
+    {
+      "src": "img/thietke-matbangduan.jpg",
+      "title": "Bể bơi vô cực"
+    },
+    {
+      "src": "img/thietke-matbangduan.jpg",
+      "title": "Công viên trung tâm"
+    },
+    {
+      "src": "img/thietke-matbangduan.jpg",
+      "title": "Phòng khách penthouse"
+    }
   ],
   "scenes": [
     {
@@ -107,12 +354,38 @@
       "title": "Sky Lounge — Tầng 42",
       "subtitle": "Tầm nhìn 360° toàn cảnh thành phố",
       "type": "Tiện ích",
-      "palette": ["#0b1d3a", "#1d3a6b", "#f4c97d", "#fff4d9"],
+      "palette": [
+        "#0b1d3a",
+        "#1d3a6b",
+        "#f4c97d",
+        "#fff4d9"
+      ],
       "horizonY": 0.42,
       "hotspots": [
-        { "id": "h1", "x": 0.18, "y": 0.46, "type": "info", "label": "Bể bơi vô cực", "desc": "Bể bơi tràn 50m hướng tây nhìn hoàng hôn hồ Tây." },
-        { "id": "h2", "x": 0.55, "y": 0.52, "type": "nav", "label": "Vào penthouse mẫu", "target": "penthouse" },
-        { "id": "h3", "x": 0.82, "y": 0.5, "type": "info", "label": "Khu BBQ ngoài trời", "desc": "Khu BBQ 24 bàn riêng tư có mái che." }
+        {
+          "id": "h1",
+          "x": 0.18,
+          "y": 0.46,
+          "type": "info",
+          "label": "Bể bơi vô cực",
+          "desc": "Bể bơi tràn 50m hướng tây nhìn hoàng hôn hồ Tây."
+        },
+        {
+          "id": "h2",
+          "x": 0.55,
+          "y": 0.52,
+          "type": "nav",
+          "label": "Vào penthouse mẫu",
+          "target": "penthouse"
+        },
+        {
+          "id": "h3",
+          "x": 0.82,
+          "y": 0.5,
+          "type": "info",
+          "label": "Khu BBQ ngoài trời",
+          "desc": "Khu BBQ 24 bàn riêng tư có mái che."
+        }
       ]
     },
     {
@@ -120,12 +393,38 @@
       "title": "Penthouse mẫu — Tháp A",
       "subtitle": "Căn 3PN duplex 142m² — tầng 41",
       "type": "Căn hộ",
-      "palette": ["#2b1e16", "#5a4032", "#e8c9a0", "#f9efe2"],
+      "palette": [
+        "#2b1e16",
+        "#5a4032",
+        "#e8c9a0",
+        "#f9efe2"
+      ],
       "horizonY": 0.5,
       "hotspots": [
-        { "id": "p1", "x": 0.32, "y": 0.55, "type": "info", "label": "Phòng khách 38m²", "desc": "Cửa kính từ trần đến sàn, view trực diện hồ Tây." },
-        { "id": "p2", "x": 0.62, "y": 0.5, "type": "nav", "label": "Sang phòng ngủ master", "target": "master-bedroom" },
-        { "id": "p3", "x": 0.78, "y": 0.62, "type": "info", "label": "Bếp đảo Bosch", "desc": "Trang bị full Bosch, đá Dekton, lò hấp & cảm ứng từ." }
+        {
+          "id": "p1",
+          "x": 0.32,
+          "y": 0.55,
+          "type": "info",
+          "label": "Phòng khách 38m²",
+          "desc": "Cửa kính từ trần đến sàn, view trực diện hồ Tây."
+        },
+        {
+          "id": "p2",
+          "x": 0.62,
+          "y": 0.5,
+          "type": "nav",
+          "label": "Sang phòng ngủ master",
+          "target": "master-bedroom"
+        },
+        {
+          "id": "p3",
+          "x": 0.78,
+          "y": 0.62,
+          "type": "info",
+          "label": "Bếp đảo Bosch",
+          "desc": "Trang bị full Bosch, đá Dekton, lò hấp & cảm ứng từ."
+        }
       ]
     },
     {
@@ -133,12 +432,38 @@
       "title": "Phòng ngủ Master",
       "subtitle": "Suite riêng — 24m² + walk-in closet",
       "type": "Căn hộ",
-      "palette": ["#1b1f2a", "#3a4258", "#c9a96e", "#f2ebd9"],
+      "palette": [
+        "#1b1f2a",
+        "#3a4258",
+        "#c9a96e",
+        "#f2ebd9"
+      ],
       "horizonY": 0.48,
       "hotspots": [
-        { "id": "m1", "x": 0.22, "y": 0.5, "type": "info", "label": "Tủ âm tường", "desc": "Tủ walk-in closet 6m² thiết kế riêng." },
-        { "id": "m2", "x": 0.55, "y": 0.55, "type": "info", "label": "Cửa kính lùa toàn cảnh", "desc": "Cửa kính cách âm Low-E 3 lớp." },
-        { "id": "m3", "x": 0.8, "y": 0.52, "type": "nav", "label": "Quay lại Sky Lounge", "target": "sky-lounge" }
+        {
+          "id": "m1",
+          "x": 0.22,
+          "y": 0.5,
+          "type": "info",
+          "label": "Tủ âm tường",
+          "desc": "Tủ walk-in closet 6m² thiết kế riêng."
+        },
+        {
+          "id": "m2",
+          "x": 0.55,
+          "y": 0.55,
+          "type": "info",
+          "label": "Cửa kính lùa toàn cảnh",
+          "desc": "Cửa kính cách âm Low-E 3 lớp."
+        },
+        {
+          "id": "m3",
+          "x": 0.8,
+          "y": 0.52,
+          "type": "nav",
+          "label": "Quay lại Sky Lounge",
+          "target": "sky-lounge"
+        }
       ]
     },
     {
@@ -146,12 +471,38 @@
       "title": "Bể bơi vô cực — Tầng 8",
       "subtitle": "50m × 25m, hệ nước muối thẩm thấu",
       "type": "Tiện ích",
-      "palette": ["#082a3a", "#1f6e8c", "#7fd6c9", "#e8fbf6"],
+      "palette": [
+        "#082a3a",
+        "#1f6e8c",
+        "#7fd6c9",
+        "#e8fbf6"
+      ],
       "horizonY": 0.46,
       "hotspots": [
-        { "id": "po1", "x": 0.28, "y": 0.5, "type": "info", "label": "Bể trẻ em", "desc": "Bể nông 0.4m riêng biệt cho trẻ dưới 6 tuổi." },
-        { "id": "po2", "x": 0.65, "y": 0.48, "type": "info", "label": "Cabana riêng tư", "desc": "12 cabana có thể đặt riêng." },
-        { "id": "po3", "x": 0.85, "y": 0.55, "type": "nav", "label": "Đi cảnh quan", "target": "park" }
+        {
+          "id": "po1",
+          "x": 0.28,
+          "y": 0.5,
+          "type": "info",
+          "label": "Bể trẻ em",
+          "desc": "Bể nông 0.4m riêng biệt cho trẻ dưới 6 tuổi."
+        },
+        {
+          "id": "po2",
+          "x": 0.65,
+          "y": 0.48,
+          "type": "info",
+          "label": "Cabana riêng tư",
+          "desc": "12 cabana có thể đặt riêng."
+        },
+        {
+          "id": "po3",
+          "x": 0.85,
+          "y": 0.55,
+          "type": "nav",
+          "label": "Đi cảnh quan",
+          "target": "park"
+        }
       ]
     },
     {
@@ -159,12 +510,38 @@
       "title": "Công viên trung tâm — 12.4ha",
       "subtitle": "Vườn Nhật, hồ điều hòa, sân chạy 2.4km",
       "type": "Tiện ích",
-      "palette": ["#0d2418", "#1f5237", "#aed581", "#f3f8e8"],
+      "palette": [
+        "#0d2418",
+        "#1f5237",
+        "#aed581",
+        "#f3f8e8"
+      ],
       "horizonY": 0.52,
       "hotspots": [
-        { "id": "pk1", "x": 0.24, "y": 0.55, "type": "info", "label": "Vườn thiền Zen", "desc": "Vườn đá Karesansui phong cách Kyoto." },
-        { "id": "pk2", "x": 0.58, "y": 0.5, "type": "info", "label": "Sân chạy bộ 2.4km", "desc": "Đường runway phủ EPDM giảm chấn." },
-        { "id": "pk3", "x": 0.82, "y": 0.55, "type": "nav", "label": "Lên Sky Lounge", "target": "sky-lounge" }
+        {
+          "id": "pk1",
+          "x": 0.24,
+          "y": 0.55,
+          "type": "info",
+          "label": "Vườn thiền Zen",
+          "desc": "Vườn đá Karesansui phong cách Kyoto."
+        },
+        {
+          "id": "pk2",
+          "x": 0.58,
+          "y": 0.5,
+          "type": "info",
+          "label": "Sân chạy bộ 2.4km",
+          "desc": "Đường runway phủ EPDM giảm chấn."
+        },
+        {
+          "id": "pk3",
+          "x": 0.82,
+          "y": 0.55,
+          "type": "nav",
+          "label": "Lên Sky Lounge",
+          "target": "sky-lounge"
+        }
       ]
     },
     {
@@ -172,28 +549,278 @@
       "title": "Toàn cảnh dự án",
       "subtitle": "Phối cảnh tổng thể 6 tháp",
       "type": "Tổng thể",
-      "palette": ["#0a1424", "#23426b", "#f3a953", "#fbeacc"],
+      "palette": [
+        "#0a1424",
+        "#23426b",
+        "#f3a953",
+        "#fbeacc"
+      ],
       "horizonY": 0.55,
       "hotspots": [
-        { "id": "a1", "x": 0.22, "y": 0.6, "type": "nav", "label": "Tháp A — đang bán", "target": "penthouse" },
-        { "id": "a2", "x": 0.45, "y": 0.58, "type": "info", "label": "Tháp B & C", "desc": "Giai đoạn 1 — đã bàn giao 2026." },
-        { "id": "a3", "x": 0.72, "y": 0.62, "type": "nav", "label": "Công viên trung tâm", "target": "park" }
+        {
+          "id": "a1",
+          "x": 0.22,
+          "y": 0.6,
+          "type": "nav",
+          "label": "Tháp A — đang bán",
+          "target": "penthouse"
+        },
+        {
+          "id": "a2",
+          "x": 0.45,
+          "y": 0.58,
+          "type": "info",
+          "label": "Tháp B & C",
+          "desc": "Giai đoạn 1 — đã bàn giao 2026."
+        },
+        {
+          "id": "a3",
+          "x": 0.72,
+          "y": 0.62,
+          "type": "nav",
+          "label": "Công viên trung tâm",
+          "target": "park"
+        }
       ]
     }
   ],
   "floorplan": {
     "units": [
-      { "code": "A-2BR-72",  "type": "2PN",         "area": "72 m²",  "price": "5.4 tỷ",  "available": 23 },
-      { "code": "A-2BR-86",  "type": "2PN+1",       "area": "86 m²",  "price": "6.8 tỷ",  "available": 14 },
-      { "code": "A-3BR-104", "type": "3PN",         "area": "104 m²", "price": "8.9 tỷ",  "available": 9 },
-      { "code": "A-3BR-142", "type": "Duplex 3PN",  "area": "142 m²", "price": "14.2 tỷ", "available": 3 }
+      {
+        "code": "A-2BR-72-08",
+        "type": "2PN",
+        "floor": 8,
+        "area": 72,
+        "direction": "Đông Nam",
+        "priceVal": 5.4,
+        "price": "5.4 tỷ",
+        "pricePerM2": "75 tr/m²",
+        "available": 23,
+        "total": 60,
+        "status": "available"
+      },
+      {
+        "code": "A-2BR-72-15",
+        "type": "2PN",
+        "floor": 15,
+        "area": 72,
+        "direction": "Tây Bắc",
+        "priceVal": 5.6,
+        "price": "5.6 tỷ",
+        "pricePerM2": "77 tr/m²",
+        "available": 11,
+        "total": 40,
+        "status": "available"
+      },
+      {
+        "code": "A-2BR1-86-12",
+        "type": "2PN+1",
+        "floor": 12,
+        "area": 86,
+        "direction": "Nam",
+        "priceVal": 6.8,
+        "price": "6.8 tỷ",
+        "pricePerM2": "79 tr/m²",
+        "available": 14,
+        "total": 48,
+        "status": "available"
+      },
+      {
+        "code": "A-2BR1-86-22",
+        "type": "2PN+1",
+        "floor": 22,
+        "area": 86,
+        "direction": "Tây",
+        "priceVal": 7.1,
+        "price": "7.1 tỷ",
+        "pricePerM2": "82 tr/m²",
+        "available": 6,
+        "total": 24,
+        "status": "available"
+      },
+      {
+        "code": "A-3BR-104-18",
+        "type": "3PN",
+        "floor": 18,
+        "area": 104,
+        "direction": "Đông",
+        "priceVal": 8.9,
+        "price": "8.9 tỷ",
+        "pricePerM2": "85 tr/m²",
+        "available": 9,
+        "total": 36,
+        "status": "available"
+      },
+      {
+        "code": "A-3BR-104-35",
+        "type": "3PN",
+        "floor": 35,
+        "area": 104,
+        "direction": "Nam",
+        "priceVal": 9.4,
+        "price": "9.4 tỷ",
+        "pricePerM2": "90 tr/m²",
+        "available": 3,
+        "total": 18,
+        "status": "available"
+      },
+      {
+        "code": "A-DX-142-40",
+        "type": "Duplex 3PN",
+        "floor": 40,
+        "area": 142,
+        "direction": "Panorama",
+        "priceVal": 14.2,
+        "price": "14.2 tỷ",
+        "pricePerM2": "100 tr/m²",
+        "available": 3,
+        "total": 6,
+        "status": "available"
+      },
+      {
+        "code": "A-DX-142-41",
+        "type": "Duplex 3PN",
+        "floor": 41,
+        "area": 142,
+        "direction": "Panorama",
+        "priceVal": 15.0,
+        "price": "15.0 tỷ",
+        "pricePerM2": "105 tr/m²",
+        "available": 0,
+        "total": 4,
+        "status": "sold"
+      },
+      {
+        "code": "A-3BR-104-28",
+        "type": "3PN",
+        "floor": 28,
+        "area": 104,
+        "direction": "Tây Bắc",
+        "priceVal": 9.1,
+        "price": "9.1 tỷ",
+        "pricePerM2": "87 tr/m²",
+        "available": 0,
+        "total": 12,
+        "status": "holding"
+      }
+    ]
+  },
+  "legal": {
+    "developerStats": [
+      { "value": "18", "unit": "năm", "label": "Kinh nghiệm" },
+      { "value": "12.400", "unit": "căn", "label": "Đã bàn giao" },
+      { "value": "24", "unit": "dự án", "label": "Tỉnh thành" },
+      { "value": "38.000", "unit": "+", "label": "Cư dân" }
+    ],
+    "documents": [
+      { "name": "Giấy phép xây dựng", "detail": "Số 1842/GP-UBND — 12/2023", "done": true },
+      { "name": "Quyết định giao đất", "detail": "QĐ 3671/QĐ-UBND — 08/2022", "done": true },
+      { "name": "Thẩm định PCCC", "detail": "Cục PCCC & CHỮA CHÁY — Q1/2024", "done": true },
+      { "name": "Bảo lãnh ngân hàng", "detail": "Vietcombank, BIDV, Techcombank", "done": true },
+      { "name": "Phê duyệt 1/500", "detail": "Quyết định UBND Hà Nội — 06/2022", "done": true },
+      { "name": "Sổ hồng dự kiến", "detail": "Q2/2028 sau bàn giao", "done": false }
+    ],
+    "banks": [
+      { "name": "Vietcombank", "rate": "7.5%/năm", "maxTerm": "30 năm" },
+      { "name": "BIDV", "rate": "7.8%/năm", "maxTerm": "25 năm" },
+      { "name": "Techcombank", "rate": "8.0%/năm", "maxTerm": "30 năm" },
+      { "name": "VPBank", "rate": "8.2%/năm", "maxTerm": "25 năm" }
+    ],
+    "testimonials": [
+      { "initials": "N.T.H", "role": "Chuyên gia tài chính", "unit": "Duplex 3PN tầng 40", "text": "Môi trường sống đẳng cấp, view hồ Tây tuyệt đẹp. Quyết định mua là đúng đắn nhất năm ngoái." },
+      { "initials": "P.M.Q", "role": "Doanh nhân", "unit": "2PN+1 tầng 22", "text": "Tiến độ xây dựng đúng cam kết, đội ngũ tư vấn chuyên nghiệp. Rất hài lòng với chất lượng hoàn thiện." },
+      { "initials": "L.T.A", "role": "Bác sĩ", "unit": "3PN tầng 35", "text": "Tiện ích nội khu vượt kỳ vọng. Bể bơi và công viên là điểm nhấn tuyệt vời cho gia đình." }
+    ]
+  },
+  "location": {
+    "lat": 21.0631,
+    "lng": 105.8194,
+    "mapSrc": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3723.5!2d105.8194!3d21.0631!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjHCsDAzJzQ3LjIiTiAxMDXCsDQ5JzA5LjgiRQ!5e0!3m2!1svi!2svn!4v1234567890",
+    "nearby": [
+      { "cat": "school", "name": "Trường THCS Nguyễn Quý Đức", "dist": "0.4 km", "time": "5 phút" },
+      { "cat": "school", "name": "Trường Liên cấp song ngữ Aurora", "dist": "0.1 km", "time": "2 phút" },
+      { "cat": "hospital", "name": "BV Quốc tế Vinmec", "dist": "1.2 km", "time": "8 phút" },
+      { "cat": "hospital", "name": "BV Bạch Mai", "dist": "3.5 km", "time": "15 phút" },
+      { "cat": "metro", "name": "Ga Metro Tây Hồ Tây", "dist": "0.6 km", "time": "7 phút" },
+      { "cat": "metro", "name": "Ga Metro Cầu Giấy", "dist": "2.1 km", "time": "10 phút" },
+      { "cat": "mall", "name": "Vincom Mega Mall", "dist": "0.8 km", "time": "5 phút" },
+      { "cat": "mall", "name": "AEON Mall Hà Đông", "dist": "4.2 km", "time": "18 phút" },
+      { "cat": "airport", "name": "Sân bay Nội Bài", "dist": "28 km", "time": "35 phút" }
+    ]
+  },
+  "amenitiesDetail": {
+    "noiKhu": [
+      { "icon": "pool", "name": "Bể bơi vô cực 50m", "desc": "Hệ nước muối thẩm thấu, tầng 8, view hồ Tây." },
+      { "icon": "gym", "name": "Gym & Yoga 1200m²", "desc": "Thiết bị Life Fitness cao cấp, phòng yoga riêng biệt." },
+      { "icon": "spa", "name": "Spa & Onsen", "desc": "Onsen khoáng nóng chuẩn Nhật, 8 phòng trị liệu riêng tư." },
+      { "icon": "kid", "name": "Khu vui chơi trẻ em", "desc": "Sân chơi trong nhà và ngoài trời, thiết bị Kompan nhập khẩu." },
+      { "icon": "bbq", "name": "BBQ & Rooftop Bar", "desc": "24 bàn BBQ riêng tư có mái che, tầng 9 view toàn khu." },
+      { "icon": "lib", "name": "Thư viện & Co-working", "desc": "Không gian làm việc chung 400m², WiFi 1Gbps." }
+    ],
+    "skyAmenity": [
+      { "icon": "sky", "name": "Sky Lounge tầng 42", "desc": "Bar, nhà hàng fine-dining, view panorama 360° hồ Tây." },
+      { "icon": "cinema", "name": "Cinema Room", "desc": "Phòng chiếu phim riêng tư 20 chỗ, Dolby Atmos." },
+      { "icon": "conf", "name": "Business Center", "desc": "3 phòng họp cao cấp sức chứa 8–30 người." }
+    ],
+    "dichVu": [
+      { "icon": "concierge", "name": "Concierge 24/7", "desc": "Dịch vụ quản gia cao cấp hỗ trợ mọi nhu cầu." },
+      { "icon": "security", "name": "Bảo vệ 3 lớp", "desc": "Camera AI, kiểm soát ra vào thẻ từ, bảo vệ 24/7." },
+      { "icon": "pet", "name": "Pet Friendly", "desc": "Khu vui chơi cho thú cưng, dịch vụ grooming tại chỗ." }
+    ],
+    "haTang": [
+      { "icon": "parking", "name": "Bãi xe 5 tầng hầm", "desc": "1.840 chỗ đỗ xe ô tô + 3.000 xe máy, hệ thống tự động." },
+      { "icon": "elevator", "name": "Thang máy tốc độ cao", "desc": "6 thang/tòa, tốc độ 4m/s, thang hàng riêng biệt." },
+      { "icon": "power", "name": "Điện dự phòng 100%", "desc": "Máy phát điện dự phòng toàn bộ công suất." }
     ]
   },
   "timeline": [
-    { "phase": "Khởi công",              "date": "Q1 / 2024", "done": true },
-    { "phase": "Cất nóc tháp A & B",     "date": "Q2 / 2026", "done": true },
-    { "phase": "Mở bán GĐ 2",            "date": "Q2 / 2026", "done": true },
-    { "phase": "Hoàn thiện ngoại thất",  "date": "Q1 / 2027", "done": false },
-    { "phase": "Bàn giao tháp A",        "date": "Q4 / 2027", "done": false }
+    {
+      "phase": "Khởi công",
+      "date": "Q1 / 2024",
+      "status": "done",
+      "desc": "Lễ khởi công tháp A & B với sự tham dự của UBND Hà Nội. Hoàn thành ép cọc móng cọc khoan nhồi D800."
+    },
+    {
+      "phase": "Hoàn thiện phần ngầm",
+      "date": "Q3 / 2024",
+      "status": "done",
+      "desc": "Thi công 5 tầng hầm, hệ thống kết cấu móng bè, hoàn thiện tầng kỹ thuật B1."
+    },
+    {
+      "phase": "Thi công thân tháp A",
+      "date": "Q4 / 2024",
+      "status": "done",
+      "desc": "Đổ sàn từ tầng 1 đến tầng 20 đúng tiến độ. Lắp đặt hệ thống cơ điện ngầm."
+    },
+    {
+      "phase": "Cất nóc tháp A & B",
+      "date": "Q2 / 2026",
+      "status": "done",
+      "desc": "Hoàn thành kết cấu 42 tầng tháp A và 38 tầng tháp B. Đây là mốc quan trọng nhất của dự án."
+    },
+    {
+      "phase": "Mở bán GĐ 2",
+      "date": "Q2 / 2026",
+      "status": "active",
+      "desc": "Ra mắt 312 căn giai đoạn 2 với ưu đãi chiết khấu 8% và cam kết thuê lại 7%/năm."
+    },
+    {
+      "phase": "Hoàn thiện ngoại thất",
+      "date": "Q1 / 2027",
+      "status": "upcoming",
+      "desc": "Lắp dựng mặt dựng kính Low-E, ốp đá granite ngoại thất, hoàn thiện sảnh tầng 1."
+    },
+    {
+      "phase": "Nghiệm thu & PCCC",
+      "date": "Q2 / 2027",
+      "status": "upcoming",
+      "desc": "Kiểm tra nghiệm thu hệ thống PCCC, thang máy, điện nước toàn tòa. Cấp giấy chứng nhận đủ điều kiện."
+    },
+    {
+      "phase": "Bàn giao tháp A",
+      "date": "Q4 / 2027",
+      "status": "upcoming",
+      "desc": "Bàn giao toàn bộ 920 căn tháp A kèm sổ hồng dự kiến cấp Q2/2028."
+    }
   ]
 }

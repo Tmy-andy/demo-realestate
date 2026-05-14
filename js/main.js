@@ -22,11 +22,16 @@ async function boot() {
 
   buildBrand();
   buildProjectCard();
+  if (DATA.project.promoDeadline) startCountdown(DATA.project.promoDeadline);
   buildAmenities();
   buildTimelineAndUnits();
+  buildTimelinePanel();
   buildNavPanel();
   buildSiteMap();
   buildGallery();
+  buildAmenitiesDetail();
+  buildLegalPanel();
+  buildLocationPanel();
   bindControls();
   bindModal();
   bindPanelCollapse();
@@ -82,6 +87,58 @@ function buildProjectCard() {
       <div class="k">${_tr(s.label)}</div>
     </div>
   `).join("");
+
+  // Units left badge
+  if (p.unitsLeft !== undefined) {
+    const el = document.getElementById("pc-units-left");
+    if (el) el.textContent = p.unitsLeft;
+  }
+
+  // Hotline
+  if (p.hotline) {
+    const numEl = document.getElementById("pc-hotline-num");
+    const btnEl = document.getElementById("pc-hotline-btn");
+    if (numEl) numEl.textContent = p.hotline;
+    if (btnEl) btnEl.href = "tel:" + p.hotline.replace(/\s/g, "");
+  }
+
+  // Zalo
+  if (p.zalo) {
+    const zEl = document.getElementById("pc-zalo-btn");
+    if (zEl) zEl.href = "https://zalo.me/" + p.zalo;
+  }
+}
+
+/* Countdown timer for promo deadline */
+let _cdInterval = null;
+function startCountdown(deadlineStr) {
+  const cdEl = document.getElementById("pc-cd-time");
+  if (!cdEl || !deadlineStr) return;
+
+  function tick() {
+    const now = new Date();
+    const end = new Date(deadlineStr);
+    const diff = end - now;
+    if (diff <= 0) {
+      cdEl.textContent = "Hết ưu đãi";
+      cdEl.classList.add("expired");
+      clearInterval(_cdInterval);
+      return;
+    }
+    const totalH = Math.floor(diff / 3600000);
+    const d = Math.floor(totalH / 24);
+    const h = totalH % 24;
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    const pad = n => String(n).padStart(2, "0");
+    cdEl.textContent = d > 0
+      ? `${d}N ${pad(h)}:${pad(m)}:${pad(s)}`
+      : `${pad(h)}:${pad(m)}:${pad(s)}`;
+  }
+
+  clearInterval(_cdInterval);
+  tick();
+  _cdInterval = setInterval(tick, 1000);
 }
 
 function buildAmenities() {
@@ -106,24 +163,202 @@ function buildAmenities() {
 
 function buildTimelineAndUnits() {
   const tlEl = document.getElementById("timeline-list");
-  tlEl.innerHTML = DATA.timeline.map(t => `
-    <div class="tl-row ${t.done ? 'done' : ''}">
-      <div class="tl-dot"></div>
-      <div class="tl-phase">${_tr(t.phase)}</div>
-      <div class="tl-date">${_tr(t.date)}</div>
-    </div>
-  `).join("");
+  if (tlEl) {
+    tlEl.innerHTML = DATA.timeline.map(t => `
+      <div class="tl-row ${t.done ? 'done' : ''}">
+        <div class="tl-dot"></div>
+        <div class="tl-phase">${_tr(t.phase)}</div>
+        <div class="tl-date">${_tr(t.date)}</div>
+      </div>
+    `).join("");
+  }
+  buildFloorplanPanel();
+}
 
-  const unitEl = document.getElementById("unit-rows");
-  unitEl.innerHTML = DATA.floorplan.units.map(u => `
-    <tr>
-      <td>${u.code}</td>
-      <td>${_tr(u.type)}</td>
-      <td>${u.area}</td>
-      <td class="price">${_tr(u.price)}</td>
-      <td class="avail">${u.available} ${_t("ui.units")}</td>
-    </tr>
+/* ============================================
+   FLOORPLAN PANEL — State & rendering
+   ============================================ */
+const fpState = {
+  activeTypes: new Set(),
+  floorGroup: "",
+  status: "",
+  sortKey: "",
+  sortDir: 1,
+};
+
+function buildFloorplanPanel() {
+  buildFpProgressBars();
+  buildFpTypeTags();
+  bindFpFilters();
+  renderFpTable();
+}
+
+function buildFpProgressBars() {
+  const wrap = document.getElementById("fp-progress-wrap");
+  if (!wrap) return;
+  const units = DATA.floorplan.units;
+  // Group by type
+  const typeMap = {};
+  units.forEach(u => {
+    if (!typeMap[u.type]) typeMap[u.type] = { available: 0, total: 0 };
+    typeMap[u.type].available += (u.available || 0);
+    typeMap[u.type].total     += (u.total || u.available || 1);
+  });
+  wrap.innerHTML = Object.entries(typeMap).map(([type, d]) => {
+    const pct = d.total > 0 ? Math.round((d.available / d.total) * 100) : 0;
+    const cls = pct > 50 ? "low" : pct > 20 ? "med" : "hi";
+    return `
+      <div class="fp-progress-row">
+        <div class="fp-progress-type">${_tr(type)}</div>
+        <div class="fp-progress-bar-wrap">
+          <div class="fp-progress-bar ${cls}" style="width:${pct}%"></div>
+        </div>
+        <div class="fp-progress-count">${d.available}/${d.total} căn</div>
+      </div>`;
+  }).join("");
+}
+
+function buildFpTypeTags() {
+  const wrap = document.getElementById("fp-type-tags");
+  if (!wrap) return;
+  const types = [...new Set(DATA.floorplan.units.map(u => u.type))];
+  wrap.innerHTML = types.map(t => `
+    <button class="fp-tag ${fpState.activeTypes.has(t) ? 'active' : ''}" data-type="${t}">
+      ${_tr(t)}
+    </button>
   `).join("");
+  wrap.querySelectorAll(".fp-tag").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const t = btn.dataset.type;
+      if (fpState.activeTypes.has(t)) fpState.activeTypes.delete(t);
+      else fpState.activeTypes.add(t);
+      btn.classList.toggle("active", fpState.activeTypes.has(t));
+      renderFpTable();
+    });
+  });
+}
+
+function bindFpFilters() {
+  const floorSel  = document.getElementById("fp-floor-select");
+  const statusSel = document.getElementById("fp-status-select");
+  const resetBtn  = document.getElementById("fp-filter-reset");
+  if (floorSel)  floorSel.addEventListener("change",  () => { fpState.floorGroup = floorSel.value;  renderFpTable(); });
+  if (statusSel) statusSel.addEventListener("change", () => { fpState.status     = statusSel.value; renderFpTable(); });
+  if (resetBtn)  resetBtn.addEventListener("click",   () => {
+    fpState.activeTypes.clear();
+    fpState.floorGroup = "";
+    fpState.status     = "";
+    fpState.sortKey    = "";
+    if (floorSel)  floorSel.value  = "";
+    if (statusSel) statusSel.value = "";
+    document.querySelectorAll(".fp-tag.active").forEach(t => t.classList.remove("active"));
+    renderFpTable();
+  });
+
+  // Sortable headers
+  document.querySelectorAll(".fp-full-table thead th[data-sort]").forEach(th => {
+    th.addEventListener("click", () => {
+      const key = th.dataset.sort;
+      if (fpState.sortKey === key) fpState.sortDir *= -1;
+      else { fpState.sortKey = key; fpState.sortDir = 1; }
+      document.querySelectorAll(".fp-full-table thead th").forEach(h => {
+        h.classList.remove("sort-asc", "sort-desc");
+      });
+      th.classList.add(fpState.sortDir === 1 ? "sort-asc" : "sort-desc");
+      renderFpTable();
+    });
+  });
+}
+
+function renderFpTable() {
+  const tbody = document.getElementById("unit-rows");
+  if (!tbody) return;
+  let units = [...DATA.floorplan.units];
+
+  // Filter by type
+  if (fpState.activeTypes.size > 0) {
+    units = units.filter(u => fpState.activeTypes.has(u.type));
+  }
+  // Filter by floor group
+  if (fpState.floorGroup) {
+    units = units.filter(u => {
+      const f = u.floor || 0;
+      if (fpState.floorGroup === "low")  return f >= 1  && f <= 15;
+      if (fpState.floorGroup === "mid")  return f >= 16 && f <= 30;
+      if (fpState.floorGroup === "high") return f >= 31;
+      return true;
+    });
+  }
+  // Filter by status
+  if (fpState.status) {
+    units = units.filter(u => u.status === fpState.status);
+  }
+  // Sort
+  if (fpState.sortKey) {
+    units.sort((a, b) => {
+      let av = a[fpState.sortKey], bv = b[fpState.sortKey];
+      if (typeof av === "string") av = av.toLowerCase();
+      if (typeof bv === "string") bv = bv.toLowerCase();
+      return av < bv ? -fpState.sortDir : av > bv ? fpState.sortDir : 0;
+    });
+  }
+
+  if (!units.length) {
+    tbody.innerHTML = `<tr class="fp-empty-row"><td colspan="10">Không tìm thấy căn phù hợp với bộ lọc</td></tr>`;
+    return;
+  }
+
+  const statusLabel = { available: "Còn trống", holding: "Đang giữ", sold: "Đã bán" };
+  tbody.innerHTML = units.map(u => {
+    const isSold = u.status === "sold";
+    return `
+      <tr class="${isSold ? 'row-sold' : ''}">
+        <td><span class="fp-code">${u.code}</span></td>
+        <td>${_tr(u.type)}</td>
+        <td>${u.floor || "—"}</td>
+        <td>${u.area} m²</td>
+        <td>${u.direction || "—"}</td>
+        <td class="fp-price">${u.price}</td>
+        <td class="fp-ppm2">${u.pricePerM2 || "—"}</td>
+        <td class="fp-avail">${u.available} ${_t("ui.units")}</td>
+        <td><span class="fp-badge ${u.status}">${statusLabel[u.status] || u.status}</span></td>
+        <td>${isSold ? "" : `<button class="fp-interest-btn" data-code="${u.code}" data-type="${_tr(u.type)}">Quan tâm</button>`}</td>
+      </tr>`;
+  }).join("");
+
+  // Bind "Quan tâm" buttons
+  tbody.querySelectorAll(".fp-interest-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const code = btn.dataset.code;
+      const type = btn.dataset.type;
+      openModalWithUnit(code, type);
+    });
+  });
+}
+
+/* Open modal and pre-fill unit info */
+function openModalWithUnit(code, type) {
+  // Open the modal
+  document.getElementById("modal-backdrop").classList.add("open");
+  // Pre-fill: find the interest select and set it, add code tag
+  const sel = document.querySelector("#modal-backdrop select");
+  if (sel && type) {
+    // try to match option text
+    for (const opt of sel.options) {
+      if (opt.textContent.includes(type) || type.includes(opt.textContent)) {
+        opt.selected = true;
+        break;
+      }
+    }
+  }
+  // Add code to note field
+  const note = document.querySelector("#modal-backdrop textarea");
+  if (note && code) {
+    const existing = note.value;
+    if (!existing.includes(code)) {
+      note.value = (existing ? existing + "\n" : "") + `Quan tâm căn: ${code}`;
+    }
+  }
 }
 
 function switchScene(id) {
@@ -345,6 +580,38 @@ function closeLightbox() {
 }
 
 function bindOverlays() {
+  document.getElementById("btn-amenities-detail")?.addEventListener("click", () => {
+    document.getElementById("amenities-detail-overlay").classList.add("open");
+  });
+  document.getElementById("amenities-detail-close")?.addEventListener("click", () => {
+    document.getElementById("amenities-detail-overlay").classList.remove("open");
+  });
+  document.getElementById("amenities-detail-overlay")?.addEventListener("click", (e) => {
+    if (e.target.id === "amenities-detail-overlay") e.currentTarget.classList.remove("open");
+  });
+
+  document.getElementById("btn-legal")?.addEventListener("click", () => {
+    document.getElementById("legal-overlay").classList.add("open");
+  });
+  document.getElementById("legal-close")?.addEventListener("click", () => {
+    document.getElementById("legal-overlay").classList.remove("open");
+  });
+  document.getElementById("legal-overlay")?.addEventListener("click", (e) => {
+    if (e.target.id === "legal-overlay") e.currentTarget.classList.remove("open");
+  });
+
+  document.getElementById("btn-location")?.addEventListener("click", () => {
+    const iframe = document.getElementById("location-iframe");
+    if (iframe && !iframe.src && DATA.location?.mapSrc) iframe.src = DATA.location.mapSrc;
+    document.getElementById("location-overlay").classList.add("open");
+  });
+  document.getElementById("location-close")?.addEventListener("click", () => {
+    document.getElementById("location-overlay").classList.remove("open");
+  });
+  document.getElementById("location-overlay")?.addEventListener("click", (e) => {
+    if (e.target.id === "location-overlay") e.currentTarget.classList.remove("open");
+  });
+
   document.getElementById("btn-sitemap")?.addEventListener("click", () => {
     document.getElementById("sitemap-overlay").classList.add("open");
   });
@@ -419,23 +686,47 @@ function bindModal() {
     if (e.target.id === "modal-backdrop") closeModal();
   });
 }
-function openModal() { document.getElementById("modal-backdrop").classList.add("open"); }
+function openModal() {
+  document.getElementById("modal-backdrop").classList.add("open");
+  // Re-bind filter events each time modal opens (DOM may have been rebuilt)
+  bindFpFilters();
+}
 function closeModal() { document.getElementById("modal-backdrop").classList.remove("open"); }
 
 function bindPanelCollapse() {
   const np = document.getElementById("nav-panel");
   const pc = document.getElementById("project-card");
 
-  document.getElementById("np-collapse")?.addEventListener("click", () => {
-    np.classList.add("collapsed");
-    document.body.classList.add("nav-panel-collapsed");
-  });
-  document.getElementById("np-expand")?.addEventListener("click", () => {
-    np.classList.remove("collapsed");
-    document.body.classList.remove("nav-panel-collapsed");
-  });
-  document.getElementById("pc-collapse")?.addEventListener("click", () => {
-    pc.classList.toggle("collapsed");
+  // Use delegation on document so clone/replace in mobilePatch doesn't break listeners
+  document.addEventListener("click", (e) => {
+    const isMob = window.matchMedia("(max-width: 768px)").matches;
+
+    // np-collapse
+    if (e.target.closest("#np-collapse")) {
+      np.classList.add("collapsed");
+      document.body.classList.add("nav-panel-collapsed");
+    }
+
+    // np-expand (desktop only — mobile handled by mobilePatch)
+    if (!isMob && e.target.closest("#np-expand")) {
+      np.classList.remove("collapsed");
+      document.body.classList.remove("nav-panel-collapsed");
+    }
+
+    // pc-collapse — toggle collapse (desktop); mobile handled by mobilePatch
+    if (!isMob && e.target.closest("#pc-collapse")) {
+      pc.classList.toggle("collapsed");
+      // Show/hide the pc-expand button
+      const pcExp = document.getElementById("pc-expand");
+      if (pcExp) pcExp.classList.toggle("visible", pc.classList.contains("collapsed"));
+    }
+
+    // pc-expand (desktop only)
+    if (!isMob && e.target.closest("#pc-expand")) {
+      pc.classList.remove("collapsed");
+      const pcExp = document.getElementById("pc-expand");
+      if (pcExp) pcExp.classList.remove("visible");
+    }
   });
 }
 
@@ -512,6 +803,7 @@ function bindLanguage() {
 function rebuildDynamic() {
   if (!DATA) return;
   buildProjectCard();
+  if (DATA.project.promoDeadline) startCountdown(DATA.project.promoDeadline);
   buildAmenities();
   buildTimelineAndUnits();
   renderNavList();
@@ -690,4 +982,620 @@ function bindTour() {
   });
 }
 
+/* ============================================
+   AMENITIES DETAIL PANEL (Bước 4)
+   ============================================ */
+function buildAmenitiesDetail() {
+  if (!DATA.amenitiesDetail) return;
+  renderAmenityTab('noiKhu');
+
+  document.getElementById('amenity-tabs')?.querySelectorAll('.adv-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.adv-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderAmenityTab(btn.dataset.tab);
+    });
+  });
+}
+
+function renderAmenityTab(tabKey) {
+  const grid = document.getElementById('amenity-detail-grid');
+  if (!grid || !DATA.amenitiesDetail) return;
+  const items = DATA.amenitiesDetail[tabKey] || [];
+  const iconMap = {
+    pool:      '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 18c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2"/><path d="M2 14c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2"/><path d="M7 12V5a2 2 0 014 0M13 12V5a2 2 0 014 0"/></svg>',
+    gym:       '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="9" width="3" height="6"/><rect x="19" y="9" width="3" height="6"/><rect x="5" y="7" width="2" height="10"/><rect x="17" y="7" width="2" height="10"/><path d="M7 12h10"/></svg>',
+    spa:       '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2c0 5-4 8-4 12s2 6 4 6 4-2 4-6-4-7-4-12z"/><path d="M5 12c2 1 4 4 4 8M19 12c-2 1-4 4-4 8"/></svg>',
+    kid:       '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="7" r="3"/><path d="M5 20c0-4 3-7 7-7s7 3 7 7"/></svg>',
+    bbq:       '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 12h16M8 4l1 4M16 4l-1 4M10 12v8M14 12v8M6 20h12"/></svg>',
+    lib:       '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19V6a2 2 0 012-2h12a2 2 0 012 2v13"/><path d="M4 19a2 2 0 002 2h12a2 2 0 002-2M9 10h6"/></svg>',
+    sky:       '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 20h18M5 20V8l7-4 7 4v12"/><path d="M9 20v-6h6v6"/></svg>',
+    cinema:    '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M8 4v16M16 4v16M2 12h20"/></svg>',
+    conf:      '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 6V4a2 2 0 014 0v2M14 6V4a2 2 0 014 0v2"/></svg>',
+    concierge: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="3"/><path d="M20 21a8 8 0 10-16 0"/><path d="M12 11v10"/></svg>',
+    security:  '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l8 3v7c0 5-3.5 9.75-8 11C7.5 21.75 4 17 4 12V5l8-3z"/></svg>',
+    pet:       '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="7" r="2"/><circle cx="15" cy="7" r="2"/><circle cx="5" cy="13" r="2"/><circle cx="19" cy="13" r="2"/><path d="M12 21c-4 0-6-2-6-5 0-2 2-4 6-4s6 2 6 4c0 3-2 5-6 5z"/></svg>',
+    parking:   '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M9 8h4a3 3 0 010 6H9V8z"/></svg>',
+    elevator:  '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 9l3-3 3 3M9 15l3 3 3-3"/></svg>',
+    power:     '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>',
+  };
+  grid.innerHTML = items.map(item => `
+    <div class="adv-item">
+      <div class="adv-item-icon">${iconMap[item.icon] || ''}</div>
+      <div class="adv-item-body">
+        <div class="adv-item-name">${item.name}</div>
+        <div class="adv-item-desc">${item.desc}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ============================================
+   LEGAL / TRUST PANEL (Bước 5)
+   ============================================ */
+function buildLegalPanel() {
+  if (!DATA.legal) return;
+
+  // Stats
+  const statsEl = document.getElementById('legal-stats');
+  if (statsEl) {
+    statsEl.innerHTML = DATA.legal.developerStats.map(s => `
+      <div class="legal-stat">
+        <div class="legal-stat-v">${s.value}<span class="legal-stat-u">${s.unit}</span></div>
+        <div class="legal-stat-k">${s.label}</div>
+      </div>
+    `).join('');
+  }
+
+  // Checklist
+  const checkEl = document.getElementById('legal-checklist');
+  if (checkEl) {
+    checkEl.innerHTML = DATA.legal.documents.map(d => `
+      <div class="legal-check-row ${d.done ? 'done' : 'pending'}">
+        <div class="legal-check-icon">
+          ${d.done
+            ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>'
+            : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>'
+          }
+        </div>
+        <div class="legal-check-body">
+          <div class="legal-check-name">${d.name}</div>
+          <div class="legal-check-detail">${d.detail}</div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Banks
+  const banksEl = document.getElementById('legal-banks');
+  if (banksEl) {
+    banksEl.innerHTML = DATA.legal.banks.map(b => `
+      <div class="legal-bank-card">
+        <div class="legal-bank-name">${b.name}</div>
+        <div class="legal-bank-rate">${b.rate}</div>
+        <div class="legal-bank-term">Đến ${b.maxTerm}</div>
+      </div>
+    `).join('');
+  }
+
+  // Testimonials
+  const testEl = document.getElementById('legal-testimonials');
+  if (testEl) {
+    let tIdx = 0;
+    const render = () => {
+      const t = DATA.legal.testimonials[tIdx];
+      testEl.innerHTML = `
+        <div class="legal-testi">
+          <div class="lt-avatar">${t.initials}</div>
+          <div class="lt-body">
+            <div class="lt-quote">"${t.text}"</div>
+            <div class="lt-meta"><strong>${t.initials}</strong> · ${t.role} · <em>${t.unit}</em></div>
+          </div>
+          <div class="lt-nav">
+            <button class="lt-btn" id="lt-prev">‹</button>
+            <span class="lt-dots">${DATA.legal.testimonials.map((_,i) => `<span class="lt-dot ${i===tIdx?'active':''}"></span>`).join('')}</span>
+            <button class="lt-btn" id="lt-next">›</button>
+          </div>
+        </div>`;
+      testEl.querySelector('#lt-prev')?.addEventListener('click', () => { tIdx = (tIdx - 1 + DATA.legal.testimonials.length) % DATA.legal.testimonials.length; render(); });
+      testEl.querySelector('#lt-next')?.addEventListener('click', () => { tIdx = (tIdx + 1) % DATA.legal.testimonials.length; render(); });
+    };
+    render();
+  }
+}
+
+/* ============================================
+   LOCATION PANEL (Bước 6)
+   ============================================ */
+function buildLocationPanel() {
+  if (!DATA.location) return;
+  // Set iframe src lazily on open
+  renderLocationList('');
+
+  document.getElementById('location-filter')?.querySelectorAll('.loc-cat-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.loc-cat-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderLocationList(btn.dataset.cat);
+    });
+  });
+}
+
+function renderLocationList(cat) {
+  const el = document.getElementById('location-list');
+  if (!el || !DATA.location) return;
+  const items = DATA.location.nearby.filter(n => !cat || n.cat === cat);
+  el.innerHTML = items.map(n => `
+    <div class="loc-item">
+      <div class="loc-item-icon ${n.cat}">${locCatIcon(n.cat)}</div>
+      <div class="loc-item-body">
+        <div class="loc-item-name">${n.name}</div>
+        <div class="loc-item-meta">${n.dist} · ${n.time} lái xe</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function locCatIcon(cat) {
+  const m = {
+    school: '🏫', hospital: '🏥', metro: '🚇', mall: '🛍', airport: '✈️'
+  };
+  return m[cat] || '📍';
+}
+
+/* ============================================
+   TIMELINE PANEL
+   ============================================ */
+function buildTimelinePanel() {
+  if (!DATA.timeline) return;
+
+  const items   = DATA.timeline;
+  const doneN   = items.filter(t => t.status === 'done').length;
+  const total   = items.length;
+  const pct     = Math.round((doneN / total) * 100);
+  const activeI = items.findIndex(t => t.status === 'active');
+
+  // Overview bar
+  const overviewEl = document.getElementById('tl-overview');
+  if (overviewEl) {
+    overviewEl.innerHTML = `
+      <div class="tlo-bar-wrap">
+        <div class="tlo-bar-fill" style="width:${pct}%"></div>
+      </div>
+      <div class="tlo-meta">
+        <span class="tlo-pct">${pct}% hoàn thành</span>
+        <span class="tlo-count">${doneN} / ${total} mốc</span>
+        ${activeI >= 0 ? `<span class="tlo-active-badge">● Đang thi công: ${items[activeI].phase}</span>` : ''}
+      </div>`;
+  }
+
+  // Track
+  const trackEl = document.getElementById('tl-track');
+  if (!trackEl) return;
+  trackEl.innerHTML = items.map((t, i) => {
+    const cls = t.status === 'done' ? 'done'
+              : t.status === 'active' ? 'active'
+              : 'upcoming';
+    const isLast = i === items.length - 1;
+    return `
+      <div class="tl-item ${cls}">
+        <div class="tl-spine">
+          <div class="tl-node">
+            ${t.status === 'done'
+              ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4L19 7"/></svg>'
+              : t.status === 'active'
+                ? '<div class="tl-node-pulse"></div>'
+                : '<div class="tl-node-dot"></div>'}
+          </div>
+          ${!isLast ? '<div class="tl-line"></div>' : ''}
+        </div>
+        <div class="tl-card">
+          <div class="tl-card-top">
+            <div class="tl-card-date">${_tr(t.date)}</div>
+            <span class="tl-badge ${cls}">${cls === 'done' ? 'Hoàn thành' : cls === 'active' ? 'Đang thực hiện' : 'Sắp tới'}</span>
+          </div>
+          <div class="tl-card-phase">${_tr(t.phase)}</div>
+          ${t.desc ? `<div class="tl-card-desc">${t.desc}</div>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// Bind open/close
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('btn-timeline')?.addEventListener('click', () => {
+    document.getElementById('timeline-overlay')?.classList.add('open');
+  });
+  document.getElementById('timeline-close')?.addEventListener('click', () => {
+    document.getElementById('timeline-overlay')?.classList.remove('open');
+  });
+  document.getElementById('timeline-overlay')?.addEventListener('click', (e) => {
+    if (e.target.id === 'timeline-overlay') e.target.classList.remove('open');
+  });
+});
+
 document.addEventListener("DOMContentLoaded", boot);
+
+/* ============================================
+   LOAN CALCULATOR
+   ============================================ */
+(function initLoanCalc() {
+  const BANKS = [
+    { name: "Vietcombank", rate: 7.5 },
+    { name: "BIDV",        rate: 7.8 },
+    { name: "Techcombank", rate: 8.0 },
+    { name: "VPBank",      rate: 8.2 },
+  ];
+
+  const QUICK_PRICES = [4.9, 5.4, 6.8, 8.9, 14.2];
+
+  let selBank = 0;  // index
+  let selTerm = 20; // years
+
+  function fmt(bil) {
+    if (bil >= 1) return bil.toFixed(2).replace(/\.?0+$/, '') + ' tỷ';
+    return (bil * 1000).toFixed(0) + ' triệu';
+  }
+  function fmtMonth(bil) {
+    const m = bil * 1000; // triệu
+    return m >= 1000
+      ? (m / 1000).toFixed(3).replace(/\.?0+$/, '') + ' tỷ/tháng'
+      : m.toFixed(1) + ' triệu/tháng';
+  }
+
+  function calc() {
+    const price     = parseFloat(document.getElementById('loan-price')?.value) || 5.4;
+    const equityPct = parseInt(document.getElementById('loan-equity')?.value)  || 30;
+    const equity    = price * equityPct / 100;
+    const principal = price - equity;                // tỷ
+    const rAnnual   = BANKS[selBank].rate / 100;
+    const rMonthly  = rAnnual / 12;
+    const n         = selTerm * 12;                  // months
+
+    // Update equity label
+    const pctEl = document.getElementById('loan-equity-pct-label');
+    const valEl = document.getElementById('loan-equity-val');
+    if (pctEl) pctEl.textContent = equityPct + '%';
+    if (valEl) valEl.textContent = fmt(equity);
+
+    // Monthly payment (annuity)
+    let monthly; // tỷ
+    if (rMonthly === 0) {
+      monthly = principal / n;
+    } else {
+      monthly = principal * rMonthly * Math.pow(1 + rMonthly, n) / (Math.pow(1 + rMonthly, n) - 1);
+    }
+    const totalPay    = monthly * n;
+    const totalInt    = totalPay - principal;
+
+    // Update result panel
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('loan-monthly',  fmtMonth(monthly));
+    set('loan-amount',   fmt(principal));
+    set('loan-interest', fmt(totalInt));
+    set('loan-total',    fmt(totalPay));
+
+    // Mini bar chart (yearly principal + interest)
+    drawLoanChart(principal, rMonthly, monthly, selTerm);
+  }
+
+  function drawLoanChart(principal, rMonthly, monthly, years) {
+    const chart = document.getElementById('loan-chart');
+    if (!chart) return;
+    // Build yearly sums
+    let balance = principal;
+    const bars = [];
+    for (let y = 1; y <= years; y++) {
+      let yPrincipal = 0, yInterest = 0;
+      for (let m = 0; m < 12; m++) {
+        const intPart  = balance * rMonthly;
+        const prinPart = Math.min(monthly - intPart, balance);
+        yInterest  += intPart;
+        yPrincipal += prinPart;
+        balance    -= prinPart;
+        if (balance <= 0) { balance = 0; break; }
+      }
+      bars.push({ p: yPrincipal, i: yInterest });
+      if (balance <= 0) break;
+    }
+    const maxBar = Math.max(...bars.map(b => b.p + b.i));
+    const show = Math.min(bars.length, 10); // max 10 bars
+    const step = Math.ceil(bars.length / show);
+    const displayed = bars.filter((_, i) => i % step === 0 || i === bars.length - 1).slice(0, show);
+
+    chart.innerHTML = displayed.map((b, i) => {
+      const total = b.p + b.i;
+      const pPct  = maxBar > 0 ? (b.p / maxBar) * 100 : 0;
+      const iPct  = maxBar > 0 ? (b.i / maxBar) * 100 : 0;
+      const yr    = (i + 1) * step;
+      return `
+        <div class="loan-bar-wrap" title="Năm ${yr}: Gốc ${fmt(b.p)} / Lãi ${fmt(b.i)}">
+          <div class="loan-bar">
+            <div class="lb-interest"  style="height:${iPct}%"></div>
+            <div class="lb-principal" style="height:${pPct}%"></div>
+          </div>
+          <div class="loan-bar-yr">${yr}</div>
+        </div>`;
+    }).join('');
+  }
+
+  function initUI() {
+    // Quick price buttons
+    const qWrap = document.getElementById('loan-quick-prices');
+    if (qWrap) {
+      qWrap.innerHTML = QUICK_PRICES.map(p =>
+        `<button class="loan-qp-btn" data-p="${p}">${p} tỷ</button>`
+      ).join('');
+      qWrap.querySelectorAll('.loan-qp-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const inp = document.getElementById('loan-price');
+          if (inp) { inp.value = btn.dataset.p; calc(); }
+        });
+      });
+    }
+
+    // Term buttons
+    document.getElementById('loan-term-btns')?.querySelectorAll('.loan-term-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.loan-term-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selTerm = parseInt(btn.dataset.val);
+        calc();
+      });
+    });
+
+    // Bank buttons
+    const bankWrap = document.getElementById('loan-bank-btns');
+    if (bankWrap) {
+      bankWrap.innerHTML = BANKS.map((b, i) =>
+        `<button class="loan-bank-btn ${i === 0 ? 'active' : ''}" data-i="${i}">
+          <span class="lbb-name">${b.name}</span>
+          <span class="lbb-rate">${b.rate}%/năm</span>
+        </button>`
+      ).join('');
+      bankWrap.querySelectorAll('.loan-bank-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.loan-bank-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          selBank = parseInt(btn.dataset.i);
+          calc();
+        });
+      });
+    }
+
+    // Sliders + price input
+    document.getElementById('loan-equity')?.addEventListener('input', calc);
+    document.getElementById('loan-price')?.addEventListener('input', calc);
+
+    // CTA → open contact modal
+    document.getElementById('loan-open-form')?.addEventListener('click', () => {
+      document.getElementById('loan-overlay')?.classList.remove('open');
+      document.getElementById('modal-backdrop')?.classList.add('open');
+    });
+
+    calc();
+  }
+
+  // Open/close
+  document.getElementById('btn-loan')?.addEventListener('click', () => {
+    document.getElementById('loan-overlay')?.classList.add('open');
+    initUI(); // idempotent — binds once, re-renders on reopen
+  });
+  document.getElementById('loan-close')?.addEventListener('click', () => {
+    document.getElementById('loan-overlay')?.classList.remove('open');
+  });
+  document.getElementById('loan-overlay')?.addEventListener('click', (e) => {
+    if (e.target.id === 'loan-overlay') e.target.classList.remove('open');
+  });
+
+  // Allow pre-fill from unit table "Tính vay" (future hook)
+  window.openLoanWithPrice = function(priceVal) {
+    const inp = document.getElementById('loan-price');
+    if (inp) inp.value = priceVal;
+    document.getElementById('loan-overlay')?.classList.add('open');
+    initUI();
+  };
+})();
+
+/* ============================================
+   FORM TƯ VẤN MỞ RỘNG
+   ============================================ */
+(function initContactForm() {
+  // ── Single-select choice buttons ──
+  document.querySelectorAll('.cf-btn-group').forEach(group => {
+    group.querySelectorAll('.cf-choice-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        group.querySelectorAll('.cf-choice-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.toggle('selected', true);
+      });
+    });
+  });
+
+  // ── Unit code tags (từ bảng giá → form) ──
+  // openModalWithUnit đã có sẵn trong main.js — ta extend nó
+  const _originalOpenModalWithUnit = window.openModalWithUnit || openModalWithUnit;
+  window.addUnitCodeTag = function(code) {
+    const wrap = document.getElementById('cf-codes-wrap');
+    const row  = document.getElementById('cf-codes-tags');
+    if (!wrap || !row) return;
+    // Không thêm trùng
+    if (row.querySelector(`[data-code="${code}"]`)) return;
+    wrap.style.display = '';
+    const tag = document.createElement('span');
+    tag.className = 'cf-unit-tag';
+    tag.dataset.code = code;
+    tag.innerHTML = `${code}<button type="button" aria-label="Xoá">×</button>`;
+    tag.querySelector('button').addEventListener('click', () => {
+      tag.remove();
+      if (!row.children.length) wrap.style.display = 'none';
+    });
+    row.appendChild(tag);
+    // Cũng điền vào note (backward compat giữ lại logic cũ trong note)
+    const note = document.getElementById('cf-note');
+    if (note && !note.value.includes(code)) {
+      note.value = (note.value ? note.value + '\n' : '') + `Quan tâm căn: ${code}`;
+    }
+  };
+
+  // Patch openModalWithUnit để dùng tag mới thay vì chỉ note
+  window.openModalWithUnit = function(code, type) {
+    document.getElementById('modal-backdrop').classList.add('open');
+    // Set type select
+    const sel = document.getElementById('cf-unit-type');
+    if (sel && type) {
+      for (const opt of sel.options) {
+        if (opt.textContent.trim().toLowerCase().includes(type.toLowerCase()) ||
+            type.toLowerCase().includes(opt.textContent.trim().toLowerCase())) {
+          opt.selected = true; break;
+        }
+      }
+    }
+    // Add tag
+    if (code) window.addUnitCodeTag(code);
+    // Scroll to form
+    const formWrap = document.getElementById('contact-form-wrap');
+    if (formWrap) setTimeout(() => formWrap.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200);
+  };
+
+  // ── Validation + submit ──
+  const submitBtn = document.getElementById('cf-submit');
+  if (!submitBtn) return;
+
+  submitBtn.addEventListener('click', () => {
+    const name  = document.getElementById('cf-name')?.value.trim();
+    const phone = document.getElementById('cf-phone')?.value.trim();
+    const errEl = document.getElementById('cf-error');
+
+    // Validate
+    if (!name || !phone) {
+      errEl.textContent = 'Vui lòng điền Họ tên và Số điện thoại.';
+      errEl.style.display = '';
+      return;
+    }
+    const phoneRe = /^(0|\+84)[0-9]{8,10}$/;
+    if (!phoneRe.test(phone.replace(/\s/g, ''))) {
+      errEl.textContent = 'Số điện thoại chưa đúng định dạng.';
+      errEl.style.display = '';
+      return;
+    }
+    errEl.style.display = 'none';
+
+    // Collect data (log ra console thay vì gửi API thật)
+    const payload = {
+      name,
+      phone,
+      email:   document.getElementById('cf-email')?.value.trim(),
+      zalo:    document.getElementById('cf-zalo')?.value.trim(),
+      unitType: document.getElementById('cf-unit-type')?.value,
+      unitCodes: [...document.querySelectorAll('.cf-unit-tag')].map(t => t.dataset.code),
+      budget:  document.querySelector('#cf-budget-group .cf-choice-btn.selected')?.dataset.val,
+      purpose: document.querySelector('#cf-purpose-group .cf-choice-btn.selected')?.dataset.val,
+      timing:  document.querySelector('#cf-time-group .cf-choice-btn.selected')?.dataset.val,
+      note:    document.getElementById('cf-note')?.value.trim(),
+      consentZalo: document.getElementById('cf-consent-zalo')?.checked,
+      consentSms:  document.getElementById('cf-consent-sms')?.checked,
+      source: 'vr360-form',
+      timestamp: new Date().toISOString(),
+    };
+    console.log('[Aurora CRM] Lead payload:', payload);
+
+    // Loading state
+    submitBtn.classList.add('loading');
+    submitBtn.textContent = 'Đang gửi…';
+
+    // Simulate API call (replace with real endpoint)
+    setTimeout(() => {
+      submitBtn.classList.remove('loading');
+      // Show success
+      document.getElementById('contact-form-wrap').style.display = 'none';
+      const suc = document.getElementById('form-success');
+      suc.style.display = '';
+      suc.style.display = 'flex';
+      // Update Zalo link if user gave a different Zalo number
+      const zaloNum = payload.zalo || payload.phone;
+      const zaloLink = document.getElementById('form-suc-zalo');
+      if (zaloLink) zaloLink.href = 'https://zalo.me/' + zaloNum.replace(/\s/g, '');
+    }, 800);
+  });
+
+  // Reset form
+  document.getElementById('form-suc-reset')?.addEventListener('click', () => {
+    document.getElementById('form-success').style.display = 'none';
+    const formWrap = document.getElementById('contact-form-wrap');
+    formWrap.style.display = '';
+    // Clear fields
+    ['cf-name','cf-phone','cf-email','cf-zalo','cf-note'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.value = '';
+    });
+    document.getElementById('cf-unit-type').selectedIndex = 0;
+    document.querySelectorAll('.cf-choice-btn.selected').forEach(b => b.classList.remove('selected'));
+    document.querySelectorAll('.cf-unit-tag').forEach(t => t.remove());
+    document.getElementById('cf-codes-wrap').style.display = 'none';
+    document.getElementById('cf-consent-zalo').checked = false;
+    document.getElementById('cf-consent-sms').checked = false;
+    document.getElementById('cf-error').style.display = 'none';
+    // Reset submit btn
+    submitBtn.textContent = window.I18n ? window.I18n.t('modal.submit') : 'Gửi yêu cầu tư vấn';
+  });
+})();
+
+/* ============================================
+   URGENCY TOAST — Social proof (Bước 9)
+   ============================================ */
+(function initUrgencyToasts() {
+  const SVG = {
+    view:  `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`,
+    book:  `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>`,
+    alert: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>`,
+  };
+
+  const MESSAGES = [
+    { cls: "view",  title: "18 người đang xem",          sub: "dự án Aurora Heights ngay lúc này" },
+    { cls: "book",  title: "Vừa đặt giữ 2PN+1 tầng 22", sub: "3 phút trước · Khách Hà Nội" },
+    { cls: "book",  title: "Vừa đặt giữ Duplex tầng 40", sub: "12 phút trước · Khách TP.HCM" },
+    { cls: "alert", title: "Còn 49 căn trong đợt này",   sub: "Ưu đãi 8% kết thúc sớm" },
+    { cls: "view",  title: "24 người đang xem",           sub: "dự án Aurora Heights ngay lúc này" },
+    { cls: "book",  title: "Vừa đặt giữ 3PN tầng 35",   sub: "7 phút trước · Khách nước ngoài" },
+    { cls: "alert", title: "Căn 3PN tầng 28 vừa giữ",   sub: "Chỉ còn 9 căn 3PN" },
+    { cls: "view",  title: "31 người đang xem",           sub: "dự án Aurora Heights ngay lúc này" },
+  ];
+
+  const wrap = document.createElement('div');
+  wrap.id = 'urgency-toast-wrap';
+  document.body.appendChild(wrap);
+
+  let msgIdx = 0;
+  const SHOW_AFTER  = 30 * 1000;
+  const INTERVAL    = 18 * 1000;
+  const VISIBLE_DUR =  6 * 1000;
+
+  function showToast() {
+    const msg = MESSAGES[msgIdx % MESSAGES.length];
+    msgIdx++;
+
+    const el = document.createElement('div');
+    el.className = 'urgency-toast';
+    el.innerHTML = `
+      <div class="toast-icon ${msg.cls}">${SVG[msg.cls]}</div>
+      <div class="toast-body">
+        <div class="toast-title">${msg.title}</div>
+        <div class="toast-sub">${msg.sub}</div>
+      </div>
+      <button class="toast-close" aria-label="Đóng">×</button>
+    `;
+    wrap.appendChild(el);
+
+    const dismissTimer = setTimeout(() => dismiss(el), VISIBLE_DUR);
+    el.querySelector('.toast-close').addEventListener('click', () => { clearTimeout(dismissTimer); dismiss(el); });
+    el.addEventListener('click', (e) => {
+      if (!e.target.classList.contains('toast-close')) { clearTimeout(dismissTimer); dismiss(el); }
+    });
+  }
+
+  function dismiss(el) {
+    el.classList.add('hiding');
+    el.addEventListener('animationend', () => el.remove(), { once: true });
+  }
+
+  setTimeout(() => { showToast(); setInterval(showToast, INTERVAL); }, SHOW_AFTER);
+})();
