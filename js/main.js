@@ -830,24 +830,24 @@ function rebuildDynamic() {
    HELP TOUR (HELPTOUR_SPEC)
    ============================================ */
 const HELP_ITEMS = [
-  { target: ".brand",         labelKey: "tour.brand" },
-  { target: "#btn-sitemap",   labelKey: "tour.sitemap" },
-  { target: "#btn-gallery",   labelKey: "tour.gallery" },
-  { target: "#open-modal",    labelKey: "tour.book" },
-  { target: "#tb-ctrlgroup",  labelKey: "tour.ctrlgroup" },
-  { target: "#ctrl-rotate",   labelKey: "tour.rotate" },
-  { target: "#ctrl-zoom-in",  labelKey: "tour.zoomIn" },
-  { target: "#ctrl-zoom-out", labelKey: "tour.zoomOut" },
-  { target: "#ctrl-fullscreen", labelKey: "tour.fullscreen" },
-  { target: "#ctrl-lang-wrap", labelKey: "tour.lang" },
-  { target: "#help-btn",      labelKey: "tour.help" },
-  { target: "#nav-panel",     labelKey: "tour.nav" },
-  { target: "#np-search-wrap", labelKey: "tour.search" },
-  { target: "#np-list",       labelKey: "tour.list" },
-  { target: "#project-card",  labelKey: "tour.project" },
-  { target: "#bb-chat-btn",   round: true,  labelKey: "tour.bot" },
-  { target: "#ui-restore",    labelKey: "tour.restore" },
-  { target: () => document.querySelector(".hotspot"), labelKey: "tour.hotspot" },
+  { target: ".brand",           labelKey: "tour.brand" },
+  { target: "#btn-sitemap",     mobileTarget: "#mob-sitemap-btn", openDrawer: true,  labelKey: "tour.sitemap" },
+  { target: "#btn-gallery",     mobileTarget: "#mob-gallery-btn", openDrawer: true,  labelKey: "tour.gallery" },
+  { target: "#open-modal",      mobileTarget: "#mob-book-btn",    openDrawer: true,  labelKey: "tour.book" },
+  { target: "#tb-ctrlgroup",    labelKey: "tour.ctrlgroup" },
+  { target: "#ctrl-rotate",     mobileTarget: "#mob-rotate",      openDrawer: true,  labelKey: "tour.rotate" },
+  { target: "#ctrl-zoom-in",    mobileTarget: "#mob-zoom-in",     openDrawer: true,  labelKey: "tour.zoomIn" },
+  { target: "#ctrl-zoom-out",   mobileTarget: "#mob-zoom-out",    openDrawer: true,  labelKey: "tour.zoomOut" },
+  { target: "#ctrl-fullscreen", mobileTarget: "#mob-fs",          openDrawer: true,  labelKey: "tour.fullscreen" },
+  { target: "#ctrl-lang-wrap",  mobileTarget: "#mob-lang",        openDrawer: true,  labelKey: "tour.lang" },
+  { target: "#help-btn",        mobileTarget: "#mob-help",        openDrawer: true,  labelKey: "tour.help" },
+  { target: "#nav-panel",       openNav: true,                    labelKey: "tour.nav" },
+  { target: "#np-search-wrap",  openNav: true,                    labelKey: "tour.search" },
+  { target: "#np-list",         openNav: true,                    labelKey: "tour.list" },
+  { target: "#project-card",    openPC: true,                     labelKey: "tour.project" },
+  { target: "#bb-chat-btn",     round: true,                      labelKey: "tour.bot" },
+  { target: "#ui-restore",      labelKey: "tour.restore" },
+  { target: () => document.querySelector(".hotspot"),             labelKey: "tour.hotspot" },
 ];
 
 let tourIdx = -1;
@@ -858,11 +858,12 @@ function startTour(items = HELP_ITEMS, fromIndex = 0) {
   tourItems = items;
   tourIdx = fromIndex;
   tourActive = true;
-  // Make sure UI is visible during tour
   document.getElementById("ui")?.classList.remove("hidden");
-  // Make sure nav-panel is open
-  document.getElementById("nav-panel")?.classList.remove("collapsed");
-  document.body.classList.remove("nav-panel-collapsed");
+  // On desktop, pre-open nav-panel; on mobile, steps open panels lazily
+  if (!window.matchMedia("(max-width: 768px)").matches) {
+    document.getElementById("nav-panel")?.classList.remove("collapsed");
+    document.body.classList.remove("nav-panel-collapsed");
+  }
   document.getElementById("tour-overlay").classList.add("open");
   showTourStep();
 }
@@ -871,6 +872,8 @@ function endTour() {
   tourActive = false;
   tourIdx = -1;
   document.getElementById("tour-overlay")?.classList.remove("open");
+  // Close mobile drawer if it was opened during tour
+  document.getElementById("mobile-drawer")?.classList.remove("open");
 }
 
 function showTourStep() {
@@ -878,11 +881,54 @@ function showTourStep() {
   if (tourIdx >= tourItems.length) { endTour(); return; }
 
   const item = tourItems[tourIdx];
+  const isMob = window.matchMedia("(max-width: 768px)").matches;
+  const drawer = document.getElementById("mobile-drawer");
 
-  // Resolve target
+  // On mobile: manage panel state before measuring targets
+  if (isMob) {
+    // Close drawer when a step doesn't need it (nav/project-card/other steps)
+    if (!item.openDrawer && drawer?.classList.contains("open")) {
+      drawer.classList.remove("open");
+    }
+
+    // openNav: ensure nav-panel is expanded
+    if (item.openNav) {
+      const np = document.getElementById("nav-panel");
+      if (np?.classList.contains("collapsed")) {
+        np.classList.remove("collapsed");
+        document.body.classList.remove("nav-panel-collapsed");
+        setTimeout(showTourStep, 380);
+        return;
+      }
+    }
+
+    // openPC: ensure project-card is expanded
+    if (item.openPC) {
+      const pc = document.getElementById("project-card");
+      if (pc?.classList.contains("collapsed")) {
+        pc.classList.remove("collapsed");
+        setTimeout(showTourStep, 500);
+        return;
+      }
+    }
+
+    // openDrawer: ensure mobile drawer is open
+    if (item.openDrawer && drawer && !drawer.classList.contains("open")) {
+      drawer.classList.add("open");
+      setTimeout(showTourStep, 420);
+      return;
+    }
+  }
+
+  // Resolve target — use mobileTarget on mobile when available
   let target = null;
-  if (typeof item.target === "function") target = item.target();
-  else if (typeof item.target === "string") target = document.querySelector(item.target);
+  if (isMob && item.mobileTarget) {
+    target = document.querySelector(item.mobileTarget);
+  } else if (typeof item.target === "function") {
+    target = item.target();
+  } else if (typeof item.target === "string") {
+    target = document.querySelector(item.target);
+  }
 
   if (!target) { tourIdx++; showTourStep(); return; }
 

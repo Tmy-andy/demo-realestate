@@ -15,15 +15,14 @@
   align-items: flex-end;
   justify-content: center;
   opacity: 0;
+  pointer-events: none;
   transition: opacity 0.3s ease;
 }
 
 @media (max-width: 768px) {
-  #mob-stepper-backdrop {
-    display: flex;
-  }
   #mob-stepper-backdrop.open {
     opacity: 1;
+    pointer-events: auto;
   }
 }
 

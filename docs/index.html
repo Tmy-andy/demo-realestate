@@ -309,8 +309,8 @@
 <!-- Top Bar -->
 <div id="topbar">
   <span class="brand">Aurora Heights VR360</span>
-  <span class="badge">Project Spec v1.0</span>
-  <span class="meta">2026-05-14 &nbsp;·&nbsp; Production</span>
+  <span class="badge">Project Spec v1.1</span>
+  <span class="meta">2026-05-14 &nbsp;·&nbsp; v1.1 &nbsp;·&nbsp; Production</span>
 </div>
 
 <!-- Layout -->
@@ -347,6 +347,9 @@
   <a class="nav-link" href="#design"><span class="num">10</span>Design System</a>
   <a class="nav-link" href="#arch"><span class="num">11</span>Architecture</a>
   <a class="nav-link" href="#limits"><span class="num">12</span>Limitations</a>
+
+  <div class="nav-section-label" style="margin-top:1rem">Changelog</div>
+  <a class="nav-link" href="#changelog"><span class="num">13</span>v1.1 Changes</a>
 </nav>
 
 <!-- Main Content -->
@@ -451,23 +454,22 @@
   <section id="structure">
     <h2 data-num="3">File Structure</h2>
     <pre>BDS/
-├── index.html                    <span class="c"># Single-page app entry (1,250 lines)</span>
+├── index.html                    <span class="c"># Single-page app entry (1,254 lines)</span>
+│                                 <span class="c"># Includes inlined mobile CSS + JS (mobilePatch IIFE)</span>
 │
 ├── data/
-│   └── project.json             <span class="c"># All content & configuration (826 lines)</span>
+│   └── project.json             <span class="c"># All content & configuration (825 lines)</span>
 │
 ├── js/
-│   ├── i18n.js                  <span class="c"># Internationalization → window.I18n</span>
+│   ├── i18n.js                  <span class="c"># Internationalization → window.I18n (1,025 lines)</span>
 │   ├── vr360.js                 <span class="c"># Three.js panorama viewer → window.VR360</span>
 │   ├── ai-panel.js              <span class="c"># AI chatbot → window.AiPanel</span>
-│   ├── main.js                  <span class="c"># Core UI orchestration (1,602 lines)</span>
-│   ├── mobile-patch.js          <span class="c"># Mobile UI behaviors (burger, drawer)</span>
-│   └── mobile-stepper.js        <span class="c"># Mobile floorplan carousel</span>
+│   ├── main.js                  <span class="c"># Core UI orchestration (1,648 lines)</span>
+│   └── mobile-stepper.js        <span class="c"># Mobile floorplan carousel (i18n-aware)</span>
 │
 ├── css/
-│   ├── style.css                <span class="c"># Complete design system (2,500+ lines)</span>
-│   ├── mobile-stepper.css       <span class="c"># Stepper component styles</span>
-│   └── mobile-overrides.css     <span class="c"># Mobile-specific overrides</span>
+│   ├── style.css                <span class="c"># Complete design system (3,657 lines)</span>
+│   └── mobile-stepper.css       <span class="c"># Stepper component styles</span>
 │
 ├── img/
 │   ├── 1.png                    <span class="c"># AI avatar primary</span>
@@ -475,21 +477,28 @@
 │   └── thietke-matbangduan.jpg  <span class="c"># Site map background</span>
 │
 └── docs/
+    ├── index.html               <span class="c"># This file — rendered spec</span>
     ├── PROJECT_SPEC.md          <span class="c"># Full spec (markdown)</span>
-    ├── PROJECT_SPEC.html        <span class="c"># This file</span>
     ├── DASHBOARD_SPEC.md        <span class="c"># Admin dashboard spec</span>
-    ├── BOTCHAT_SPEC.md          <span class="c"># AI panel spec</span>
-    ├── HELPTOUR_SPEC.md         <span class="c"># Help tour spec</span>
-    └── VRINFO_MOBILE_SPEC.md    <span class="c"># Mobile behavior spec</span></pre>
+    └── features/
+        ├── BOTCHAT_SPEC.md      <span class="c"># AI panel spec</span>
+        ├── HELPTOUR_SPEC.md     <span class="c"># Help tour spec</span>
+        ├── VRINFO_MOBILE_SPEC.md <span class="c"># Mobile behavior spec</span>
+        └── aurora-heights-vr360-proposal.md</pre>
 
     <h4>Script Load Order (Critical)</h4>
     <pre><span class="c">&lt;!-- Must load in this exact order --&gt;</span>
-&lt;script src="js/i18n.js"&gt;&lt;/script&gt;       <span class="c"># Exposes window.I18n</span>
-&lt;script src="js/vr360.js"&gt;&lt;/script&gt;      <span class="c"># Exposes window.VR360</span>
-&lt;script src="js/ai-panel.js"&gt;&lt;/script&gt;   <span class="c"># Exposes window.AiPanel</span>
-&lt;script src="js/main.js"&gt;&lt;/script&gt;       <span class="c"># Depends on all above</span>
-&lt;script src="js/mobile-stepper.js"&gt;&lt;/script&gt;
-&lt;script src="js/mobile-patch.js"&gt;&lt;/script&gt;</pre>
+&lt;script src="js/i18n.js"&gt;&lt;/script&gt;          <span class="c"># Exposes window.I18n</span>
+&lt;script src="js/vr360.js"&gt;&lt;/script&gt;         <span class="c"># Exposes window.VR360</span>
+&lt;script src="js/ai-panel.js"&gt;&lt;/script&gt;      <span class="c"># Exposes window.AiPanel</span>
+&lt;script src="js/main.js"&gt;&lt;/script&gt;          <span class="c"># Depends on all above</span>
+&lt;script src="js/mobile-stepper.js"&gt;&lt;/script&gt; <span class="c"># Mobile floorplan IIFE</span>
+<span class="c">&lt;!-- Mobile CSS + JS (burger, drawer, project-card pill) inlined in index.html --&gt;</span></pre>
+
+    <div class="callout warn">
+      <strong>Removed in v1.1</strong>
+      <code>css/mobile-overrides.css</code> and <code>js/mobile-patch.js</code> have been removed — their content was already inlined in <code>index.html</code> (mobile <code>&lt;style&gt;</code> block + <code>mobilePatch()</code> IIFE script). They were orphaned with no <code>&lt;link&gt;</code>/<code>&lt;script&gt;</code> references.
+    </div>
   </section>
 
   <!-- ═══ 4. Data Model ═════════════════════════════════ -->
@@ -754,29 +763,31 @@ listening ─────────────▶ idle</div>
     </section>
 
     <section id="tour">
-    <h3>6.13 Help Tour (17 Steps)</h3>
+    <h3>6.13 Help Tour (18 Steps)</h3>
     <table>
-      <thead><tr><th>#</th><th>Target Element</th></tr></thead>
+      <thead><tr><th>#</th><th>Desktop Target</th><th>Mobile Target</th><th>Panel Action</th></tr></thead>
       <tbody>
-        <tr><td>1</td><td>Brand logo</td></tr>
-        <tr><td>2</td><td>Site map button</td></tr>
-        <tr><td>3</td><td>Gallery button</td></tr>
-        <tr><td>4</td><td>Amenities button</td></tr>
-        <tr><td>5</td><td>Legal button</td></tr>
-        <tr><td>6</td><td>Location button</td></tr>
-        <tr><td>7</td><td>Loan calculator button</td></tr>
-        <tr><td>8</td><td>Timeline button</td></tr>
-        <tr><td>9</td><td>Language switcher</td></tr>
-        <tr><td>10</td><td>Navigation panel</td></tr>
-        <tr><td>11</td><td>Search bar</td></tr>
-        <tr><td>12</td><td>Scene menu items</td></tr>
-        <tr><td>13</td><td>Project card</td></tr>
-        <tr><td>14</td><td>Countdown timer</td></tr>
-        <tr><td>15</td><td>CTA buttons (Book + Price)</td></tr>
-        <tr><td>16</td><td>AI chat button</td></tr>
-        <tr><td>17</td><td>VR hotspots</td></tr>
+        <tr><td>1</td><td><code>.brand</code></td><td>same</td><td>—</td></tr>
+        <tr><td>2</td><td><code>#btn-sitemap</code></td><td><code>#mob-sitemap-btn</code></td><td>Open drawer</td></tr>
+        <tr><td>3</td><td><code>#btn-gallery</code></td><td><code>#mob-gallery-btn</code></td><td>Open drawer</td></tr>
+        <tr><td>4</td><td><code>#open-modal</code></td><td><code>#mob-book-btn</code></td><td>Open drawer</td></tr>
+        <tr><td>5</td><td><code>#tb-ctrlgroup</code></td><td><em>auto-skip (hidden)</em></td><td>—</td></tr>
+        <tr><td>6</td><td><code>#ctrl-rotate</code></td><td><code>#mob-rotate</code></td><td>Open drawer</td></tr>
+        <tr><td>7</td><td><code>#ctrl-zoom-in</code></td><td><code>#mob-zoom-in</code></td><td>Open drawer</td></tr>
+        <tr><td>8</td><td><code>#ctrl-zoom-out</code></td><td><code>#mob-zoom-out</code></td><td>Open drawer</td></tr>
+        <tr><td>9</td><td><code>#ctrl-fullscreen</code></td><td><code>#mob-fs</code></td><td>Open drawer</td></tr>
+        <tr><td>10</td><td><code>#ctrl-lang-wrap</code></td><td><code>#mob-lang</code></td><td>Open drawer</td></tr>
+        <tr><td>11</td><td><code>#help-btn</code></td><td><code>#mob-help</code></td><td>Open drawer</td></tr>
+        <tr><td>12</td><td><code>#nav-panel</code></td><td>same</td><td>Close drawer · Open nav</td></tr>
+        <tr><td>13</td><td><code>#np-search-wrap</code></td><td>same</td><td>Open nav</td></tr>
+        <tr><td>14</td><td><code>#np-list</code></td><td>same</td><td>Open nav</td></tr>
+        <tr><td>15</td><td><code>#project-card</code></td><td>same</td><td>Expand project card</td></tr>
+        <tr><td>16</td><td><code>#bb-chat-btn</code></td><td>same</td><td>—</td></tr>
+        <tr><td>17</td><td><code>#ui-restore</code></td><td>same</td><td>—</td></tr>
+        <tr><td>18</td><td><code>.hotspot</code></td><td>same</td><td>—</td></tr>
       </tbody>
     </table>
+    <p>On mobile, <code>startTour()</code> does <em>not</em> pre-expand the nav panel. Each step opens the required panel lazily (drawer 420 ms delay · nav-panel 380 ms · project-card 500 ms). <code>endTour()</code> closes the drawer.</p>
     </section>
   </section>
 
@@ -837,12 +848,22 @@ listening ─────────────▶ idle</div>
     <table>
       <thead><tr><th>Component</th><th>Mobile Behavior</th></tr></thead>
       <tbody>
-        <tr><td>Burger menu</td><td>Opens full-height slide-in drawer</td></tr>
-        <tr><td>Drawer</td><td>Contains all nav buttons + language switcher</td></tr>
-        <tr><td>Nav panel</td><td>Hidden by default; accessed via drawer</td></tr>
-        <tr><td>Project card</td><td>Collapsed pill at bottom; tap to expand</td></tr>
-        <tr><td>Info FAB</td><td>Floating button to reopen project card</td></tr>
-        <tr><td>Floorplan</td><td>Horizontal stepper carousel (mobile-stepper.js)</td></tr>
+        <tr><td>Burger menu (<code>#mobile-burger</code>)</td><td>Opens full-height slide-in drawer</td></tr>
+        <tr><td>Drawer (<code>#mobile-drawer</code>)</td><td>Contains all nav buttons + language switcher + controls</td></tr>
+        <tr><td>Nav panel</td><td>Collapsed by default; opened via <code>#np-expand</code> FAB</td></tr>
+        <tr><td>Project card</td><td>Collapsed pill at bottom; tap to expand. Mutually exclusive with nav panel</td></tr>
+        <tr><td>Info FAB (<code>#pc-info-fab</code>)</td><td>Shown when both nav panel and project card are collapsed</td></tr>
+        <tr><td>Floorplan</td><td>Horizontal stepper carousel (<code>mobile-stepper.js</code>)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Desktop-Specific Components</h3>
+    <table>
+      <thead><tr><th>Component</th><th>Desktop Behavior</th></tr></thead>
+      <tbody>
+        <tr><td><code>#pc-collapse</code></td><td>Collapses project card to 44×44px square</td></tr>
+        <tr><td><code>#pc-expand</code></td><td>Appears below collapsed project card to re-open it (<code>display: none</code> on mobile)</td></tr>
+        <tr><td><code>#np-collapse</code> / <code>#np-expand</code></td><td>Toggle nav panel collapse state</td></tr>
       </tbody>
     </table>
   </section>
@@ -854,7 +875,7 @@ listening ─────────────▶ idle</div>
     <table>
       <thead><tr><th>Code</th><th>Language</th><th>Flag</th></tr></thead>
       <tbody>
-        <tr><td><code>vi</code></td><td>Vietnamese</td><td>🇻🇳</td></tr>
+        <tr><td><code>vi</code></td><td>Vietnamese (default)</td><td>🇻🇳</td></tr>
         <tr><td><code>en</code></td><td>English</td><td>🇬🇧</td></tr>
         <tr><td><code>zh</code></td><td>Chinese (Simplified)</td><td>🇨🇳</td></tr>
         <tr><td><code>ko</code></td><td>Korean</td><td>🇰🇷</td></tr>
@@ -862,12 +883,37 @@ listening ─────────────▶ idle</div>
       </tbody>
     </table>
     <pre><span class="c">// I18n API</span>
-<span class="fn">I18n.t</span>(<span class="str">'ui.bookNow'</span>, { name: <span class="str">'Aurora'</span> })  <span class="c">// Translate with vars</span>
-<span class="fn">I18n.get</span>()                                  <span class="c">// Current lang code</span>
-<span class="fn">I18n.set</span>(<span class="str">'en'</span>)                              <span class="c">// Switch language</span>
-<span class="fn">I18n.langs</span>()                                <span class="c">// Available lang codes</span>
-<span class="fn">I18n.onChange</span>(callback)                    <span class="c">// Register listener</span>
-<span class="fn">I18n.applyStatic</span>()                          <span class="c">// Apply data-i18n to DOM</span></pre>
+<span class="fn">I18n.t</span>(<span class="str">'ui.bookNow'</span>, { n: <span class="num">3</span>, total: <span class="num">18</span> })  <span class="c">// Translate static key (with optional vars)</span>
+<span class="fn">I18n.tr</span>(<span class="str">'18 người đang xem'</span>)              <span class="c">// Translate dynamic Vietnamese string</span>
+<span class="fn">I18n.get</span>()                                 <span class="c">// Current lang code</span>
+<span class="fn">I18n.set</span>(<span class="str">'en'</span>)                             <span class="c">// Switch language (fires langchange event)</span>
+<span class="fn">I18n.langs</span>()                               <span class="c">// Available lang codes</span>
+<span class="fn">I18n.applyStatic</span>()                         <span class="c">// Bulk-translate DOM via data-i18n attributes</span></pre>
+
+    <h3>HTML Attribute Conventions</h3>
+    <table>
+      <thead><tr><th>Attribute</th><th>Sets</th><th>Use case</th></tr></thead>
+      <tbody>
+        <tr><td><code>data-i18n</code></td><td><code>textContent</code></td><td>Plain text labels</td></tr>
+        <tr><td><code>data-i18n-html</code></td><td><code>innerHTML</code></td><td>Labels containing <code>&lt;strong&gt;</code> or other tags</td></tr>
+        <tr><td><code>data-i18n-title</code></td><td><code>title</code></td><td>Tooltip text</td></tr>
+        <tr><td><code>data-i18n-placeholder</code></td><td><code>placeholder</code></td><td>Input placeholder</td></tr>
+        <tr><td><code>data-i18n-aria</code></td><td><code>aria-label</code></td><td>Accessibility label</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Key Namespaces</h3>
+    <table>
+      <thead><tr><th>Namespace</th><th>Covers</th></tr></thead>
+      <tbody>
+        <tr><td><code>ui.*</code></td><td>General UI labels, buttons, tooltips</td></tr>
+        <tr><td><code>modal.*</code></td><td>Booking modal — fields, validation, success</td></tr>
+        <tr><td><code>stepper.*</code></td><td>Mobile floorplan stepper — all steps</td></tr>
+        <tr><td><code>tour.*</code></td><td>Help tour step labels</td></tr>
+        <tr><td><code>ai.*</code></td><td>AI chatbot panel strings</td></tr>
+      </tbody>
+    </table>
+    <p>Dynamic strings (e.g. urgency toasts) are translated via <code>I18n.tr(viString)</code> using the <code>DYNAMIC</code> lookup table in <code>i18n.js</code>. The <code>langchange</code> event is fired on <code>window</code> when language changes; components listen to it to re-render dynamic content.</p>
   </section>
 
   <!-- ═══ 10. Design System ════════════════════════════ -->
@@ -925,8 +971,8 @@ window.VR360   ← vr360.js
 window.AiPanel ← ai-panel.js  (uses I18n)
 main.js        ← depends on I18n, VR360, AiPanel
                   loads data/project.json
-mobile-stepper.js ← independent
-mobile-patch.js   ← runs after main.js builds DOM</pre>
+mobile-stepper.js ← independent IIFE (uses I18n, listens to langchange)
+mobilePatch()     ← inlined in index.html &lt;script&gt;, runs after DOMContentLoaded</pre>
 
     <h3>Boot Sequence</h3>
     <pre><span class="fn">DOMContentLoaded</span>
@@ -971,9 +1017,37 @@ mobile-patch.js   ← runs after main.js builds DOM</pre>
     </table>
   </section>
 
+  <!-- ═══ 13. Changelog ════════════════════════════════ -->
+  <section id="changelog">
+    <h2 data-num="13">Changelog</h2>
+
+    <h3>v1.1 — 2026-05-14</h3>
+    <table>
+      <thead><tr><th>Area</th><th>Change</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="badge-ok">i18n</span></td>
+          <td>Full i18n pass — all hardcoded Vietnamese strings in <code>index.html</code>, <code>main.js</code>, and <code>mobile-stepper.js</code> replaced with <code>I18n.t()</code> / <code>I18n.tr()</code> / <code>data-i18n</code> attributes. Added <code>data-i18n-html</code> support for elements with inner HTML (consent labels, success sub-text). Added 65+ new keys per language covering <code>modal.*</code>, <code>stepper.*</code>, <code>ui.*</code> namespaces. Added urgency toast strings to <code>DYNAMIC</code> table. <code>mobile-stepper.js</code> listens to <code>langchange</code> and re-renders dynamic content.</td>
+        </tr>
+        <tr>
+          <td><span class="badge-err">Removed</span></td>
+          <td><code>css/mobile-overrides.css</code> and <code>js/mobile-patch.js</code> deleted — both were orphaned (no <code>&lt;link&gt;</code>/<code>&lt;script&gt;</code> references in <code>index.html</code>). Their functionality was already inlined: mobile CSS in an <code>index.html &lt;style&gt;</code> block, mobile JS in a <code>mobilePatch()</code> IIFE <code>&lt;script&gt;</code>.</td>
+        </tr>
+        <tr>
+          <td><span class="badge-ok">Fix</span></td>
+          <td><strong>Desktop project-card collapse/expand</strong> — added <code>#pc-expand</code> button to <code>index.html</code> (was styled in <code>style.css</code> but the element was missing from the DOM). Clicking <code>#pc-collapse</code> now correctly shows the expand button; clicking <code>#pc-expand</code> restores the full card. The element is hidden on mobile via <code>display: none !important</code>.</td>
+        </tr>
+        <tr>
+          <td><span class="badge-ok">Feature</span></td>
+          <td><strong>Mobile help tour</strong> — tour now works on mobile. Each <code>HELP_ITEMS</code> entry carries <code>mobileTarget</code>, <code>openDrawer</code>, <code>openNav</code>, and <code>openPC</code> flags. <code>showTourStep()</code> opens the mobile drawer (420 ms delay), nav panel (380 ms), or project card (500 ms) as needed before measuring target rects. Desktop-only elements with no mobile equivalent (<code>#tb-ctrlgroup</code>) auto-skip via the existing zero-rect guard. <code>endTour()</code> closes the drawer.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
   <hr />
   <p style="color:var(--fg-muted);font-size:12px;text-align:center;padding-bottom:3rem">
-    Aurora Heights VR360 · Project Specification v1.0 · 2026-05-14
+    Aurora Heights VR360 · Project Specification v1.1 · 2026-05-14
   </p>
 
 </main>
