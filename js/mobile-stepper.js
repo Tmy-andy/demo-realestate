@@ -13,25 +13,25 @@
   <div id="mob-stepper-sheet">
     <div class="mst-handle"></div>
     <div class="mst-header">
-      <div class="mst-header-title">Đặt lịch tham quan</div>
-      <button class="mst-close" id="mst-close" aria-label="Đóng">✕</button>
+      <div class="mst-header-title" data-i18n="stepper.title">Đặt lịch tham quan</div>
+      <button class="mst-close" id="mst-close" data-i18n-aria="stepper.close" aria-label="Đóng">✕</button>
     </div>
 
     <!-- Progress steps -->
     <div class="mst-steps" id="mst-steps">
       <div class="mst-step active" data-step="1">
         <div class="mst-step-circle">1</div>
-        <div class="mst-step-label">Chọn căn</div>
+        <div class="mst-step-label" data-i18n="stepper.step1">Chọn căn</div>
       </div>
       <div class="mst-step-line" id="mst-line-1"><div class="mst-step-line-fill"></div></div>
       <div class="mst-step" data-step="2">
         <div class="mst-step-circle">2</div>
-        <div class="mst-step-label">Thông tin</div>
+        <div class="mst-step-label" data-i18n="stepper.step2">Thông tin</div>
       </div>
       <div class="mst-step-line" id="mst-line-2"><div class="mst-step-line-fill"></div></div>
       <div class="mst-step" data-step="3">
         <div class="mst-step-circle">3</div>
-        <div class="mst-step-label">Xác nhận</div>
+        <div class="mst-step-label" data-i18n="stepper.step3">Xác nhận</div>
       </div>
     </div>
 
@@ -39,10 +39,10 @@
 
       <!-- ── Step 1: Chọn căn ── -->
       <div class="mst-panel active" id="mst-panel-1">
-        <div class="mst-section-title">Căn hộ quan tâm</div>
+        <div class="mst-section-title" data-i18n="stepper.sectionTitle">Căn hộ quan tâm</div>
         <div class="mst-unit-filters" id="mst-type-filters"></div>
         <div class="mst-unit-list" id="mst-unit-list"></div>
-        <span class="mst-skip-link" id="mst-skip-unit">Chưa chọn căn cụ thể →</span>
+        <span class="mst-skip-link" id="mst-skip-unit" data-i18n="stepper.skipUnit">Chưa chọn căn cụ thể →</span>
       </div>
 
       <!-- ── Step 2: Form thông tin ── -->
@@ -60,87 +60,87 @@
           <!-- Row 1: Họ tên + SĐT -->
           <div class="mst-row-2">
             <div class="mst-field">
-              <label>Họ &amp; tên <span class="req">*</span></label>
-              <input class="mst-input" id="mst-name" type="text" placeholder="Nguyễn Văn A" autocomplete="name"/>
+              <label><span data-i18n="modal.name">Họ &amp; tên</span> <span class="req">*</span></label>
+              <input class="mst-input" id="mst-name" type="text" data-i18n-placeholder="modal.namePh" placeholder="Nguyễn Văn A" autocomplete="name"/>
             </div>
             <div class="mst-field">
-              <label>Số điện thoại <span class="req">*</span></label>
-              <input class="mst-input" id="mst-phone" type="tel" placeholder="09xx xxx xxx" autocomplete="tel"/>
+              <label><span data-i18n="modal.phone">Số điện thoại</span> <span class="req">*</span></label>
+              <input class="mst-input" id="mst-phone" type="tel" data-i18n-placeholder="modal.phonePh" placeholder="09xx xxx xxx" autocomplete="tel"/>
             </div>
           </div>
 
           <!-- Row 2: Email + Zalo -->
           <div class="mst-row-2">
             <div class="mst-field">
-              <label>Email <span class="opt">(tuỳ chọn)</span></label>
+              <label><span data-i18n="modal.fieldEmail">Email</span> <span class="opt" data-i18n="modal.fieldEmailOpt">(tuỳ chọn)</span></label>
               <input class="mst-input" id="mst-email" type="email" placeholder="email@example.com"/>
             </div>
             <div class="mst-field">
-              <label>Zalo <span class="opt">(nếu khác SĐT)</span></label>
+              <label><span data-i18n="modal.fieldZalo">Zalo</span> <span class="opt" data-i18n="modal.fieldZaloNote">(nếu khác SĐT)</span></label>
               <input class="mst-input" id="mst-zalo-field" type="tel" placeholder="09xx xxx xxx"/>
             </div>
           </div>
 
           <!-- Loại căn -->
           <div class="mst-field">
-            <label>Loại căn quan tâm</label>
+            <label data-i18n="modal.interest">Loại căn quan tâm</label>
             <select class="mst-input" id="mst-unit-type">
-              <option value="">— Chọn loại căn —</option>
-              <option value="studio">Studio</option>
-              <option value="2br">2 phòng ngủ</option>
-              <option value="2br1">2 phòng ngủ +1</option>
-              <option value="3br">3 phòng ngủ</option>
-              <option value="duplex">Duplex / Penthouse</option>
+              <option value="" data-i18n="modal.selectType">— Chọn loại căn —</option>
+              <option value="studio" data-i18n="modal.opt.studio">Studio</option>
+              <option value="2br" data-i18n="modal.opt.2br">2 phòng ngủ</option>
+              <option value="2br1" data-i18n="modal.opt.2br1">2 phòng ngủ +1</option>
+              <option value="3br" data-i18n="modal.opt.3br">3 phòng ngủ</option>
+              <option value="duplex" data-i18n="modal.opt.duplex">Duplex / Penthouse</option>
             </select>
           </div>
 
           <!-- Ngân sách -->
           <div class="mst-field">
-            <label>Ngân sách dự kiến <span class="opt">(tuỳ chọn)</span></label>
+            <label><span data-i18n="modal.fieldBudget">Ngân sách dự kiến</span> <span class="opt" data-i18n="modal.fieldEmailOpt">(tuỳ chọn)</span></label>
             <div class="mst-choice-group" id="mst-budget-group">
-              <button type="button" class="mst-choice-btn" data-val="under5">Dưới 5 tỷ</button>
-              <button type="button" class="mst-choice-btn" data-val="5to8">5 – 8 tỷ</button>
-              <button type="button" class="mst-choice-btn" data-val="8to12">8 – 12 tỷ</button>
-              <button type="button" class="mst-choice-btn" data-val="over12">Trên 12 tỷ</button>
+              <button type="button" class="mst-choice-btn" data-val="under5" data-i18n="modal.budget.under5">Dưới 5 tỷ</button>
+              <button type="button" class="mst-choice-btn" data-val="5to8" data-i18n="modal.budget.5to8">5 – 8 tỷ</button>
+              <button type="button" class="mst-choice-btn" data-val="8to12" data-i18n="modal.budget.8to12">8 – 12 tỷ</button>
+              <button type="button" class="mst-choice-btn" data-val="over12" data-i18n="modal.budget.over12">Trên 12 tỷ</button>
             </div>
           </div>
 
           <!-- Mục đích -->
           <div class="mst-field">
-            <label>Mục đích mua</label>
+            <label data-i18n="modal.fieldPurpose">Mục đích mua</label>
             <div class="mst-choice-group" id="mst-purpose-group">
-              <button type="button" class="mst-choice-btn" data-val="live">Ở thực</button>
-              <button type="button" class="mst-choice-btn" data-val="invest">Đầu tư</button>
-              <button type="button" class="mst-choice-btn" data-val="both">Cả hai</button>
+              <button type="button" class="mst-choice-btn" data-val="live" data-i18n="modal.purpose.live">Ở thực</button>
+              <button type="button" class="mst-choice-btn" data-val="invest" data-i18n="modal.purpose.invest">Đầu tư</button>
+              <button type="button" class="mst-choice-btn" data-val="both" data-i18n="modal.purpose.both">Cả hai</button>
             </div>
           </div>
 
           <!-- Thời gian xem -->
           <div class="mst-field">
-            <label>Thời gian muốn xem</label>
+            <label data-i18n="modal.fieldTime">Thời gian muốn xem</label>
             <div class="mst-choice-group" id="mst-time-group">
-              <button type="button" class="mst-choice-btn" data-val="weekend">Cuối tuần</button>
-              <button type="button" class="mst-choice-btn" data-val="nextweek">Tuần tới</button>
-              <button type="button" class="mst-choice-btn" data-val="flexible">Linh hoạt</button>
+              <button type="button" class="mst-choice-btn" data-val="weekend" data-i18n="modal.time.weekend">Cuối tuần</button>
+              <button type="button" class="mst-choice-btn" data-val="nextweek" data-i18n="modal.time.nextweek">Tuần tới</button>
+              <button type="button" class="mst-choice-btn" data-val="flexible" data-i18n="modal.time.flexible">Linh hoạt</button>
             </div>
           </div>
 
           <!-- Ghi chú -->
           <div class="mst-field">
-            <label>Ghi chú <span class="opt">(tuỳ chọn)</span></label>
-            <textarea class="mst-input" id="mst-note" rows="3" placeholder="Tôi muốn được tư vấn vào cuối tuần…" style="resize:vertical;min-height:70px"></textarea>
+            <label><span data-i18n="modal.note">Ghi chú</span> <span class="opt" data-i18n="modal.fieldEmailOpt">(tuỳ chọn)</span></label>
+            <textarea class="mst-input" id="mst-note" rows="3" data-i18n-placeholder="modal.notePh" placeholder="Tôi muốn được tư vấn vào cuối tuần…" style="resize:vertical;min-height:70px"></textarea>
           </div>
 
           <!-- Consent -->
           <div class="mst-consent-row">
             <input type="checkbox" id="mst-consent-zalo"/>
-            <label class="mst-consent-label" for="mst-consent-zalo">
+            <label class="mst-consent-label" for="mst-consent-zalo" data-i18n-html="modal.consentZalo">
               Đồng ý nhận thông tin qua <strong>Zalo</strong>
             </label>
           </div>
           <div class="mst-consent-row">
             <input type="checkbox" id="mst-consent-sms"/>
-            <label class="mst-consent-label" for="mst-consent-sms">
+            <label class="mst-consent-label" for="mst-consent-sms" data-i18n-html="modal.consentSms">
               Đồng ý nhận thông tin qua <strong>SMS</strong>
             </label>
           </div>
@@ -152,11 +152,11 @@
 
       <!-- ── Step 3: Xác nhận ── -->
       <div class="mst-panel" id="mst-panel-3">
-        <div class="mst-section-title">Kiểm tra lại thông tin</div>
+        <div class="mst-section-title" data-i18n="stepper.confirmTitle">Kiểm tra lại thông tin</div>
         <div class="mst-confirm-card" id="mst-confirm-card">
           <!-- Filled by JS -->
         </div>
-        <p style="font-size:11.5px;color:rgba(245,241,232,0.4);text-align:center;line-height:1.6;margin-bottom:8px;">
+        <p style="font-size:11.5px;color:rgba(245,241,232,0.4);text-align:center;line-height:1.6;margin-bottom:8px;" data-i18n-html="stepper.confirmAction">
           Nhấn <strong style="color:var(--accent)">Gửi yêu cầu</strong> để hoàn tất.<br/>
           Chúng tôi sẽ liên hệ trong <strong style="color:var(--fg)">30 phút</strong>.
         </p>
@@ -171,15 +171,15 @@
               <path d="M9 12l2 2 4-4"/>
             </svg>
           </div>
-          <div class="mst-success-title">Đã gửi thành công!</div>
-          <div class="mst-success-sub">
+          <div class="mst-success-title" data-i18n="stepper.successTitle">Đã gửi thành công!</div>
+          <div class="mst-success-sub" data-i18n-html="stepper.successSub">
             Chúng tôi sẽ liên hệ lại trong <strong>vòng 30 phút</strong> trong giờ làm việc.
           </div>
           <a class="mst-success-zalo" id="mst-suc-zalo" href="https://zalo.me/0901234567" target="_blank" rel="noopener">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><text y="18" font-size="14" font-weight="bold">Z</text></svg>
-            Chat Zalo ngay
+            <span data-i18n="stepper.successZalo">Chat Zalo ngay</span>
           </a>
-          <button class="mst-success-reset" id="mst-suc-reset">Gửi yêu cầu khác</button>
+          <button class="mst-success-reset" id="mst-suc-reset" data-i18n="stepper.successReset">Gửi yêu cầu khác</button>
         </div>
       </div>
 
@@ -189,10 +189,10 @@
     <div class="mst-footer" id="mst-footer">
       <button class="mst-btn-back" id="mst-btn-back" style="display:none">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-        Quay lại
+        <span data-i18n="stepper.back">Quay lại</span>
       </button>
       <button class="mst-btn-next" id="mst-btn-next">
-        Tiếp theo
+        <span data-i18n="stepper.next">Tiếp theo</span>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
       </button>
     </div>
@@ -201,6 +201,7 @@
 
   /* ── Inject HTML ── */
   document.body.insertAdjacentHTML('beforeend', HTML);
+  if (window.I18n) I18n.applyStatic();
 
   /* ── State ── */
   let currentStep = 1;
@@ -227,7 +228,7 @@
     // Build type filters
     const filterWrap = document.getElementById('mst-type-filters');
     const types = [...new Set(units.map(u => u.type))];
-    filterWrap.innerHTML = `<button class="mst-filter-btn active" data-t="">Tất cả</button>` +
+    filterWrap.innerHTML = `<button class="mst-filter-btn active" data-t="">${I18n.t('stepper.filterAll')}</button>` +
       types.map(t => `<button class="mst-filter-btn" data-t="${t}">${t}</button>`).join('');
 
     filterWrap.querySelectorAll('.mst-filter-btn').forEach(btn => {
@@ -262,7 +263,7 @@
           </div>
           <div class="mst-unit-card-body">
             <div class="mst-unit-card-code">${u.code}</div>
-            <div class="mst-unit-card-meta">${u.type} · ${u.area}m² · Hướng ${u.direction||'—'} · Tầng ${u.floor||'—'}</div>
+            <div class="mst-unit-card-meta">${I18n.tr(u.type)} · ${u.area}m² · ${I18n.t('stepper.direction')} ${u.direction||'—'} · ${I18n.t('stepper.floor')} ${u.floor||'—'}</div>
           </div>
           <div class="mst-unit-card-price">${u.price}</div>
         </div>`;
@@ -333,13 +334,18 @@
     }
   }
 
+  const SVG_NEXT = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>`;
+  const SVG_SEND = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>`;
+  const SVG_BACK = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>`;
+
   function updateFooter() {
     btnBack.style.display = currentStep > 1 ? 'flex' : 'none';
     if (currentStep === TOTAL_STEPS) {
-      btnNext.innerHTML = `Gửi yêu cầu <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>`;
+      btnNext.innerHTML = `${I18n.t('stepper.submit')} ${SVG_SEND}`;
     } else {
-      btnNext.innerHTML = `Tiếp theo <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>`;
+      btnNext.innerHTML = `${I18n.t('stepper.next')} ${SVG_NEXT}`;
     }
+    btnBack.innerHTML = `${SVG_BACK} ${I18n.t('stepper.back')}`;
   }
 
   function updatePanel(n) {
@@ -350,7 +356,7 @@
         prev.style.display = 'flex';
         document.getElementById('mst-prev-code').textContent = selectedUnit.code;
         document.getElementById('mst-prev-meta').textContent =
-          `${selectedUnit.type} · ${selectedUnit.area}m² · Hướng ${selectedUnit.direction} · Tầng ${selectedUnit.floor}`;
+          `${I18n.tr(selectedUnit.type)} · ${selectedUnit.area}m² · ${I18n.t('stepper.direction')} ${selectedUnit.direction} · ${I18n.t('stepper.floor')} ${selectedUnit.floor}`;
         document.getElementById('mst-prev-price').textContent = selectedUnit.price;
 
         // Also pre-fill unit type select
@@ -387,9 +393,9 @@
     if (selectedUnit) {
       unitSection = `
         <div class="mst-confirm-section">
-          <div class="mst-confirm-label">Căn đã chọn</div>
+          <div class="mst-confirm-label">${I18n.t('stepper.confirm.unitSelected')}</div>
           <div class="mst-confirm-unit-code">${selectedUnit.code}</div>
-          <div class="mst-confirm-unit-meta">${selectedUnit.type} · ${selectedUnit.area}m² · Hướng ${selectedUnit.direction} · Tầng ${selectedUnit.floor}</div>
+          <div class="mst-confirm-unit-meta">${I18n.tr(selectedUnit.type)} · ${selectedUnit.area}m² · ${I18n.t('stepper.direction')} ${selectedUnit.direction} · ${I18n.t('stepper.floor')} ${selectedUnit.floor}</div>
           <div class="mst-confirm-unit-price">${selectedUnit.price}</div>
         </div>`;
     }
@@ -401,34 +407,34 @@
     card.innerHTML = `
       ${unitSection}
       <div class="mst-confirm-section">
-        <div class="mst-confirm-label">Thông tin liên hệ</div>
+        <div class="mst-confirm-label">${I18n.t('stepper.confirm.contactInfo')}</div>
         <div class="mst-confirm-row">
-          <span class="mst-confirm-row-label">Họ tên</span>
+          <span class="mst-confirm-row-label">${I18n.t('stepper.confirm.name')}</span>
           <span class="mst-confirm-row-val">${name || '—'}</span>
         </div>
         <div class="mst-confirm-row">
-          <span class="mst-confirm-row-label">Điện thoại</span>
+          <span class="mst-confirm-row-label">${I18n.t('stepper.confirm.phone')}</span>
           <span class="mst-confirm-row-val">${phone || '—'}</span>
         </div>
-        ${email ? `<div class="mst-confirm-row"><span class="mst-confirm-row-label">Email</span><span class="mst-confirm-row-val">${email}</span></div>` : ''}
-        ${zaloF ? `<div class="mst-confirm-row"><span class="mst-confirm-row-label">Zalo</span><span class="mst-confirm-row-val">${zaloF}</span></div>` : ''}
+        ${email ? `<div class="mst-confirm-row"><span class="mst-confirm-row-label">${I18n.t('modal.fieldEmail')}</span><span class="mst-confirm-row-val">${email}</span></div>` : ''}
+        ${zaloF ? `<div class="mst-confirm-row"><span class="mst-confirm-row-label">${I18n.t('modal.fieldZalo')}</span><span class="mst-confirm-row-val">${zaloF}</span></div>` : ''}
       </div>
       <div class="mst-confirm-section">
-        <div class="mst-confirm-label">Yêu cầu</div>
+        <div class="mst-confirm-label">${I18n.t('stepper.confirm.request')}</div>
         <div class="mst-confirm-row">
-          <span class="mst-confirm-row-label">Ngân sách</span>
+          <span class="mst-confirm-row-label">${I18n.t('stepper.confirm.budget')}</span>
           <span class="mst-confirm-row-val">${budget}</span>
         </div>
         <div class="mst-confirm-row">
-          <span class="mst-confirm-row-label">Mục đích</span>
+          <span class="mst-confirm-row-label">${I18n.t('stepper.confirm.purpose')}</span>
           <span class="mst-confirm-row-val">${purpose}</span>
         </div>
         <div class="mst-confirm-row">
-          <span class="mst-confirm-row-label">Thời gian xem</span>
+          <span class="mst-confirm-row-label">${I18n.t('stepper.confirm.time')}</span>
           <span class="mst-confirm-row-val">${timing}</span>
         </div>
-        ${note ? `<div class="mst-confirm-row"><span class="mst-confirm-row-label">Ghi chú</span><span class="mst-confirm-row-val">${note}</span></div>` : ''}
-        ${consents.length ? `<div class="mst-confirm-row" style="align-items:center"><span class="mst-confirm-row-label">Nhận tin</span><div class="mst-consent-tags">${consents.join('')}</div></div>` : ''}
+        ${note ? `<div class="mst-confirm-row"><span class="mst-confirm-row-label">${I18n.t('stepper.confirm.note')}</span><span class="mst-confirm-row-val">${note}</span></div>` : ''}
+        ${consents.length ? `<div class="mst-confirm-row" style="align-items:center"><span class="mst-confirm-row-label">${I18n.t('stepper.confirm.contacts')}</span><div class="mst-consent-tags">${consents.join('')}</div></div>` : ''}
       </div>`;
   }
 
@@ -437,12 +443,12 @@
     const name  = document.getElementById('mst-name')?.value.trim();
     const phone = document.getElementById('mst-phone')?.value.trim();
     if (!name || !phone) {
-      showError('Vui lòng điền Họ tên và Số điện thoại.');
+      showError(I18n.t('modal.errRequired'));
       return false;
     }
     const phoneRe = /^(0|\+84)[0-9]{8,10}$/;
     if (!phoneRe.test(phone.replace(/\s/g, ''))) {
-      showError('Số điện thoại chưa đúng định dạng (VD: 0901 234 567).');
+      showError(I18n.t('modal.errPhone'));
       return false;
     }
     hideError();
@@ -482,7 +488,7 @@
     console.log('[Aurora CRM] Mobile stepper payload:', payload);
 
     btnNext.classList.add('loading');
-    btnNext.textContent = 'Đang gửi…';
+    btnNext.textContent = I18n.t('modal.sending');
 
     setTimeout(() => {
       btnNext.classList.remove('loading');
@@ -688,6 +694,16 @@
     const dy = e.touches[0].clientY - touchStartY;
     if (dy > 60) closeStepper();
   }, { passive: true });
+
+  /* ── Re-render dynamic content on language change ── */
+  window.addEventListener('langchange', () => {
+    updateFooter();
+    if (backdrop.style.display === 'flex') {
+      buildUnitList();
+      if (currentStep === 2) updatePanel(2);
+      if (currentStep === 3) buildConfirmCard();
+    }
+  });
 
   /* ── Expose for external use ── */
   window.MobStepper = { open: openStepper, close: closeStepper, reset: resetStepper };

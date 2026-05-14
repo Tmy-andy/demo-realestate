@@ -399,7 +399,7 @@
       <div class="brand-mark"><span>A</span></div>
       <div class="brand-text">
         <div class="name">AURORA</div>
-        <div class="sub">VR360 EXPERIENCE</div>
+        <div class="sub" data-i18n="ui.vrExperience">VR360 EXPERIENCE</div>
       </div>
     </div>
 
@@ -861,14 +861,14 @@
         <div class="form-success-icon">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>
         </div>
-        <div class="form-success-title">Đã gửi thành công!</div>
-        <div class="form-success-sub">Chúng tôi sẽ liên hệ lại trong <strong>vòng 30 phút</strong> trong giờ làm việc.</div>
+        <div class="form-success-title" data-i18n="modal.successTitle">Đã gửi thành công!</div>
+        <div class="form-success-sub" data-i18n-html="modal.successSub">Chúng tôi sẽ liên hệ lại trong <strong>vòng 30 phút</strong> trong giờ làm việc.</div>
         <div class="form-success-actions">
           <a class="form-suc-btn form-suc-primary" id="form-suc-zalo" href="https://zalo.me/0901234567" target="_blank" rel="noopener">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><text y="18" font-size="14" font-weight="bold">Z</text></svg>
-            Chat Zalo ngay
+            <span data-i18n="modal.successZalo">Chat Zalo ngay</span>
           </a>
-          <button class="form-suc-btn form-suc-secondary" id="form-suc-reset">Gửi yêu cầu khác</button>
+          <button class="form-suc-btn form-suc-secondary" id="form-suc-reset" data-i18n="modal.successReset">Gửi yêu cầu khác</button>
         </div>
       </div>
 
@@ -890,11 +890,11 @@
         <!-- Row 2: Email + Zalo -->
         <div class="form-row-2col">
           <div>
-            <label>Email <span class="opt">(tuỳ chọn)</span></label>
+            <label><span data-i18n="modal.fieldEmail">Email</span> <span class="opt" data-i18n="modal.fieldEmailOpt">(tuỳ chọn)</span></label>
             <input id="cf-email" type="email" placeholder="email@example.com" />
           </div>
           <div>
-            <label>Zalo <span class="opt">(nếu khác SĐT)</span></label>
+            <label><span data-i18n="modal.fieldZalo">Zalo</span> <span class="opt" data-i18n="modal.fieldZaloNote">(nếu khác SĐT)</span></label>
             <input id="cf-zalo" type="tel" placeholder="09xx xxx xxx" />
           </div>
         </div>
@@ -903,7 +903,7 @@
         <div>
           <label data-i18n="modal.interest">Loại căn quan tâm</label>
           <select id="cf-unit-type">
-            <option value="">— Chọn loại căn —</option>
+            <option value="" data-i18n="modal.selectType">— Chọn loại căn —</option>
             <option value="studio" data-i18n="modal.opt.studio">Studio</option>
             <option value="2br" data-i18n="modal.opt.2br">2 phòng ngủ</option>
             <option value="2br1" data-i18n="modal.opt.2br1">2 phòng ngủ +1</option>
@@ -914,38 +914,38 @@
 
         <!-- Mã căn quan tâm (tags từ bảng giá) -->
         <div id="cf-codes-wrap" style="display:none">
-          <label>Mã căn quan tâm</label>
+          <label data-i18n="modal.fieldCodeInterest">Mã căn quan tâm</label>
           <div class="cf-tag-row" id="cf-codes-tags"></div>
         </div>
 
         <!-- Ngân sách -->
         <div>
-          <label>Ngân sách dự kiến <span class="opt">(tuỳ chọn)</span></label>
+          <label><span data-i18n="modal.fieldBudget">Ngân sách dự kiến</span> <span class="opt" data-i18n="modal.fieldEmailOpt">(tuỳ chọn)</span></label>
           <div class="cf-btn-group" id="cf-budget-group">
-            <button type="button" class="cf-choice-btn" data-val="under5">Dưới 5 tỷ</button>
-            <button type="button" class="cf-choice-btn" data-val="5to8">5 – 8 tỷ</button>
-            <button type="button" class="cf-choice-btn" data-val="8to12">8 – 12 tỷ</button>
-            <button type="button" class="cf-choice-btn" data-val="over12">Trên 12 tỷ</button>
+            <button type="button" class="cf-choice-btn" data-val="under5" data-i18n="modal.budget.under5">Dưới 5 tỷ</button>
+            <button type="button" class="cf-choice-btn" data-val="5to8" data-i18n="modal.budget.5to8">5 – 8 tỷ</button>
+            <button type="button" class="cf-choice-btn" data-val="8to12" data-i18n="modal.budget.8to12">8 – 12 tỷ</button>
+            <button type="button" class="cf-choice-btn" data-val="over12" data-i18n="modal.budget.over12">Trên 12 tỷ</button>
           </div>
         </div>
 
         <!-- Mục đích mua -->
         <div>
-          <label>Mục đích mua</label>
+          <label data-i18n="modal.fieldPurpose">Mục đích mua</label>
           <div class="cf-btn-group" id="cf-purpose-group">
-            <button type="button" class="cf-choice-btn" data-val="live">Ở thực</button>
-            <button type="button" class="cf-choice-btn" data-val="invest">Đầu tư</button>
-            <button type="button" class="cf-choice-btn" data-val="both">Cả hai</button>
+            <button type="button" class="cf-choice-btn" data-val="live" data-i18n="modal.purpose.live">Ở thực</button>
+            <button type="button" class="cf-choice-btn" data-val="invest" data-i18n="modal.purpose.invest">Đầu tư</button>
+            <button type="button" class="cf-choice-btn" data-val="both" data-i18n="modal.purpose.both">Cả hai</button>
           </div>
         </div>
 
         <!-- Thời gian xem -->
         <div>
-          <label>Thời gian muốn xem</label>
+          <label data-i18n="modal.fieldTime">Thời gian muốn xem</label>
           <div class="cf-btn-group" id="cf-time-group">
-            <button type="button" class="cf-choice-btn" data-val="weekend">Cuối tuần</button>
-            <button type="button" class="cf-choice-btn" data-val="nextweek">Tuần tới</button>
-            <button type="button" class="cf-choice-btn" data-val="flexible">Linh hoạt</button>
+            <button type="button" class="cf-choice-btn" data-val="weekend" data-i18n="modal.time.weekend">Cuối tuần</button>
+            <button type="button" class="cf-choice-btn" data-val="nextweek" data-i18n="modal.time.nextweek">Tuần tới</button>
+            <button type="button" class="cf-choice-btn" data-val="flexible" data-i18n="modal.time.flexible">Linh hoạt</button>
           </div>
         </div>
 
@@ -958,11 +958,11 @@
         <!-- Đồng ý nhận thông tin -->
         <div class="cf-consent-row">
           <input type="checkbox" id="cf-consent-zalo" />
-          <label for="cf-consent-zalo" class="cf-consent-label">Đồng ý nhận thông tin qua <strong>Zalo</strong></label>
+          <label for="cf-consent-zalo" class="cf-consent-label" data-i18n-html="modal.consentZalo">Đồng ý nhận thông tin qua <strong>Zalo</strong></label>
         </div>
         <div class="cf-consent-row">
           <input type="checkbox" id="cf-consent-sms" />
-          <label for="cf-consent-sms" class="cf-consent-label">Đồng ý nhận thông tin qua <strong>SMS</strong></label>
+          <label for="cf-consent-sms" class="cf-consent-label" data-i18n-html="modal.consentSms">Đồng ý nhận thông tin qua <strong>SMS</strong></label>
         </div>
 
         <!-- Validation error -->

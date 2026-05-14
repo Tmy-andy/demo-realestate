@@ -2,11 +2,11 @@
 
 > Mục đích: tài liệu mô tả **đầy đủ** module **Help Tour** (spotlight onboarding) đang dùng trong `vr360` — nút `?` ở top-right kích hoạt một tour highlight từng nút UI, tooltip có mũi tên trỏ về spotlight, click bất kỳ đâu để sang bước tiếp theo. Đủ chi tiết để **port sang dự án khác**.
 
-- **Logic JS:** [js/ui.js:455-682, 773-790](../js/ui.js#L455-L682) (block `HELP_ITEMS_2D / HELP_ITEMS_3D / startTour / endTour / showTourStep` + binding events)
-- **HTML overlay:** [index.html:163-173](../index.html#L163-L173)
-- **Nút trigger `#help-btn`:** [index.html:47](../index.html#L47)
-- **CSS:** [css/style.css:170-229](../css/style.css#L170-L229) (button `.ticon` + `#help-btn`) và [css/style.css:1363-1446](../css/style.css#L1363-L1446) (overlay + spot + tip + arrow)
-- **i18n:** [`tour.*`](../data/i18n/vi.json#L334-L381) và [`tour_overlay.*`](../data/i18n/vi.json#L255-L258), [`top.help`](../data/i18n/vi.json) cho tooltip title
+- **Logic JS:** [js/ui.js:455-682, 773-790](../../../js/ui.js#L455-L682) (block `HELP_ITEMS_2D / HELP_ITEMS_3D / startTour / endTour / showTourStep` + binding events)
+- **HTML overlay:** [index.html:163-173](../../../index.html#L163-L173)
+- **Nút trigger `#help-btn`:** [index.html:47](../../../index.html#L47)
+- **CSS:** [css/style.css:170-229](../../../css/style.css#L170-L229) (button `.ticon` + `#help-btn`) và [css/style.css:1363-1446](../../../css/style.css#L1363-L1446) (overlay + spot + tip + arrow)
+- **i18n:** [`tour.*`](../../../data/i18n/vi.json#L334-L381) và [`tour_overlay.*`](../../../data/i18n/vi.json#L255-L258), [`top.help`](../../../data/i18n/vi.json) cho tooltip title
 
 ---
 
@@ -390,9 +390,9 @@ Mọi giá trị left/top/width/height đều transition CSS (.35s cubic-bezier)
 
 ## 10. Hướng dẫn port nhanh sang dự án mới
 
-1. **Copy HTML overlay** [index.html:163-173](../index.html#L163-L173) vào `<body>`.
-2. **Copy CSS** block trong mục 7 (hoặc trích từ [css/style.css:1363-1446](../css/style.css#L1363-L1446)) + style `.ticon` + `#help-btn` cho nút trigger.
-3. **Copy JS**: lấy 3 hàm `startTour / endTour / showTourStep` + 2 mảng `HELP_ITEMS_*` + 4 event listeners ở [ui.js:773-790](../js/ui.js#L773-L790).
+1. **Copy HTML overlay** [index.html:163-173](../../../index.html#L163-L173) vào `<body>`.
+2. **Copy CSS** block trong mục 7 (hoặc trích từ [css/style.css:1363-1446](../../../css/style.css#L1363-L1446)) + style `.ticon` + `#help-btn` cho nút trigger.
+3. **Copy JS**: lấy 3 hàm `startTour / endTour / showTourStep` + 2 mảng `HELP_ITEMS_*` + 4 event listeners ở [ui.js:773-790](../../../js/ui.js#L773-L790).
 4. **Sửa lại `HELP_ITEMS_*`** cho khớp UI dự án mới (đổi selector + labelKey).
 5. **Thêm nút trigger** `<button class="ticon" id="help-btn">?</button>` ở góc UI và đăng ký:
    ```js

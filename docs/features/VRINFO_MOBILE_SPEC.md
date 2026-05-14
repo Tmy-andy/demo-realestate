@@ -4,12 +4,12 @@
 >
 > **Lưu ý quan trọng:** spec này đã **bỏ phần "di chuyển theo trạng thái dropdown của ô search"** (tức là rule `body:has(#search-results.open) #vr-info { top: ... }` và biến `--search-dd-bottom`). Khi port, vị trí top của panel là cố định theo `--vr-info-top`.
 
-- **HTML:** [index.html:301-322](../index.html#L301-L322)
-- **JS toggle:** [js/ui.js:886-895](../js/ui.js#L886-L895)
-- **CSS desktop base:** [css/style.css:1015-1139](../css/style.css#L1015-L1139)
-- **CSS mobile portrait (chính):** [css/style.css:1818-1893](../css/style.css#L1818-L1893)
-- **CSS mobile landscape:** [css/style.css:1945-1995](../css/style.css#L1945-L1995)
-- **i18n keys:** [`vr_info.*`](../data/i18n/vi.json#L260-L265)
+- **HTML:** [index.html:301-322](../../../index.html#L301-L322)
+- **JS toggle:** [js/ui.js:886-895](../../../js/ui.js#L886-L895)
+- **CSS desktop base:** [css/style.css:1015-1139](../../../css/style.css#L1015-L1139)
+- **CSS mobile portrait (chính):** [css/style.css:1818-1893](../../../css/style.css#L1818-L1893)
+- **CSS mobile landscape:** [css/style.css:1945-1995](../../../css/style.css#L1945-L1995)
+- **i18n keys:** [`vr_info.*`](../../../data/i18n/vi.json#L260-L265)
 
 ---
 

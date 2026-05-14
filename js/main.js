@@ -70,7 +70,7 @@ async function boot() {
 
 function buildBrand() {
   document.querySelector(".brand-text .name").textContent = DATA.project.name;
-  document.querySelector(".brand-text .sub").textContent = "VR360 EXPERIENCE";
+  document.querySelector(".brand-text .sub").textContent = I18n.t("ui.vrExperience");
 }
 
 function buildProjectCard() {
@@ -121,7 +121,8 @@ function startCountdown(deadlineStr) {
     const end = new Date(deadlineStr);
     const diff = end - now;
     if (diff <= 0) {
-      cdEl.textContent = "Hết ưu đãi";
+      cdEl.textContent = I18n.t("ui.expired");
+      cdEl.setAttribute("data-i18n", "ui.expired");
       cdEl.classList.add("expired");
       clearInterval(_cdInterval);
       return;
@@ -305,7 +306,7 @@ function renderFpTable() {
   }
 
   if (!units.length) {
-    tbody.innerHTML = `<tr class="fp-empty-row"><td colspan="10">Không tìm thấy căn phù hợp với bộ lọc</td></tr>`;
+    tbody.innerHTML = `<tr class="fp-empty-row"><td colspan="10">${I18n.t("ui.noFilterResults")}</td></tr>`;
     return;
   }
 
@@ -1425,7 +1426,7 @@ document.addEventListener("DOMContentLoaded", boot);
     const tag = document.createElement('span');
     tag.className = 'cf-unit-tag';
     tag.dataset.code = code;
-    tag.innerHTML = `${code}<button type="button" aria-label="Xoá">×</button>`;
+    tag.innerHTML = `${code}<button type="button" aria-label="${I18n.t('modal.removeUnit')}">×</button>`;
     tag.querySelector('button').addEventListener('click', () => {
       tag.remove();
       if (!row.children.length) wrap.style.display = 'none';
@@ -1469,13 +1470,13 @@ document.addEventListener("DOMContentLoaded", boot);
 
     // Validate
     if (!name || !phone) {
-      errEl.textContent = 'Vui lòng điền Họ tên và Số điện thoại.';
+      errEl.textContent = I18n.t('modal.errRequired');
       errEl.style.display = '';
       return;
     }
     const phoneRe = /^(0|\+84)[0-9]{8,10}$/;
     if (!phoneRe.test(phone.replace(/\s/g, ''))) {
-      errEl.textContent = 'Số điện thoại chưa đúng định dạng.';
+      errEl.textContent = I18n.t('modal.errPhone');
       errEl.style.display = '';
       return;
     }
@@ -1502,7 +1503,7 @@ document.addEventListener("DOMContentLoaded", boot);
 
     // Loading state
     submitBtn.classList.add('loading');
-    submitBtn.textContent = 'Đang gửi…';
+    submitBtn.textContent = I18n.t('modal.sending');
 
     // Simulate API call (replace with real endpoint)
     setTimeout(() => {
@@ -1579,10 +1580,10 @@ document.addEventListener("DOMContentLoaded", boot);
     el.innerHTML = `
       <div class="toast-icon ${msg.cls}">${SVG[msg.cls]}</div>
       <div class="toast-body">
-        <div class="toast-title">${msg.title}</div>
-        <div class="toast-sub">${msg.sub}</div>
+        <div class="toast-title">${I18n.tr(msg.title)}</div>
+        <div class="toast-sub">${I18n.tr(msg.sub)}</div>
       </div>
-      <button class="toast-close" aria-label="Đóng">×</button>
+      <button class="toast-close" aria-label="${I18n.t('ai.close')}">×</button>
     `;
     wrap.appendChild(el);
 

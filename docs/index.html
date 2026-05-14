@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Aurora Heights VR360 — Project Specification</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --sidebar-bg: #0a0d12;
+    --content-bg: #13171f;
+    --fg: #e8e6df;
+    --fg-muted: #9a9590;
+    --accent: #e8c089;
+    --accent-dim: rgba(232,192,137,0.15);
+    --ok: #7ad79a;
+    --danger: #ff6b6b;
+    --warning: #f5a623;
+    --hairline: rgba(255,255,255,0.08);
+    --code-bg: rgba(0,0,0,0.4);
+    --sidebar-width: 280px;
+    --top-height: 56px;
+    --r: 6px;
+    --font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --font-mono: 'Cascadia Code', 'Fira Mono', 'Consolas', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.7;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  /* ── Top bar ── */
+  #topbar {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: var(--top-height);
+    background: var(--sidebar-bg);
+    border-bottom: 1px solid var(--hairline);
+    display: flex; align-items: center;
+    padding: 0 1.5rem; gap: 1rem;
+    z-index: 100;
+  }
+  #topbar .brand {
+    font-size: 1rem; font-weight: 700;
+    color: var(--accent); letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  #topbar .badge {
+    background: var(--accent-dim);
+    color: var(--accent);
+    border: 1px solid rgba(232,192,137,0.3);
+    padding: 2px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 600;
+  }
+  #topbar .meta {
+    margin-left: auto;
+    color: var(--fg-muted);
+    font-size: 12px;
+  }
+
+  /* ── Layout ── */
+  #layout {
+    display: flex;
+    margin-top: var(--top-height);
+    min-height: calc(100vh - var(--top-height));
+  }
+
+  /* ── Sidebar ── */
+  #sidebar {
+    width: var(--sidebar-width);
+    flex-shrink: 0;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--hairline);
+    position: fixed;
+    top: var(--top-height);
+    bottom: 0;
+    overflow-y: auto;
+    padding: 1.5rem 0;
+  }
+  #sidebar::-webkit-scrollbar { width: 4px; }
+  #sidebar::-webkit-scrollbar-track { background: transparent; }
+  #sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+  .nav-section-label {
+    padding: 0.5rem 1.5rem;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--fg-muted);
+    text-transform: uppercase;
+  }
+  .nav-link {
+    display: block;
+    padding: 0.4rem 1.5rem;
+    color: var(--fg-muted);
+    text-decoration: none;
+    font-size: 13px;
+    transition: all 0.15s;
+    border-left: 2px solid transparent;
+  }
+  .nav-link:hover, .nav-link.active {
+    color: var(--fg);
+    background: rgba(255,255,255,0.04);
+    border-left-color: var(--accent);
+  }
+  .nav-link .num {
+    display: inline-block;
+    background: rgba(255,255,255,0.06);
+    color: var(--fg-muted);
+    font-size: 10px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-right: 6px;
+    font-family: var(--font-mono);
+  }
+
+  /* ── Content ── */
+  #content {
+    margin-left: var(--sidebar-width);
+    flex: 1;
+    padding: 3rem 4rem;
+    max-width: 960px;
+  }
+
+  /* ── Typography ── */
+  h1 {
+    font-size: 2.2rem; font-weight: 700;
+    color: var(--fg);
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.02em;
+  }
+  h2 {
+    font-size: 1.5rem; font-weight: 700;
+    color: var(--fg);
+    margin: 3rem 0 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--hairline);
+  }
+  h2::before {
+    content: attr(data-num);
+    color: var(--accent);
+    font-size: 0.85em;
+    margin-right: 0.5rem;
+    font-family: var(--font-mono);
+  }
+  h3 {
+    font-size: 1.1rem; font-weight: 600;
+    color: var(--fg);
+    margin: 2rem 0 0.75rem;
+  }
+  h4 {
+    font-size: 0.9rem; font-weight: 600;
+    color: var(--fg-muted);
+    margin: 1.5rem 0 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  p { margin-bottom: 1rem; color: var(--fg); }
+
+  /* ── Intro block ── */
+  .intro {
+    background: var(--accent-dim);
+    border: 1px solid rgba(232,192,137,0.25);
+    border-radius: var(--r);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 2.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1rem;
+  }
+  .intro-item { }
+  .intro-item .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-muted); }
+  .intro-item .value { font-size: 14px; color: var(--fg); font-weight: 600; }
+
+  /* ── Tables ── */
+  table {
+    width: 100%; border-collapse: collapse;
+    margin: 1rem 0 1.5rem;
+    font-size: 13px;
+  }
+  thead th {
+    background: rgba(255,255,255,0.04);
+    color: var(--fg-muted);
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.6rem 0.85rem;
+    text-align: left;
+    border-bottom: 1px solid var(--hairline);
+  }
+  tbody td {
+    padding: 0.55rem 0.85rem;
+    border-bottom: 1px solid var(--hairline);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: rgba(255,255,255,0.02); }
+  code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    background: var(--code-bg);
+    padding: 1px 5px;
+    border-radius: 3px;
+    color: var(--accent);
+  }
+
+  /* ── Code blocks ── */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r);
+    padding: 1.25rem;
+    overflow-x: auto;
+    margin: 1rem 0 1.5rem;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    line-height: 1.65;
+    color: #c9d1d9;
+  }
+  pre .c { color: #6a737d; }
+  pre .kw { color: #ff7b72; }
+  pre .str { color: #a5d6ff; }
+  pre .fn { color: #d2a8ff; }
+  pre .num { color: #79c0ff; }
+
+  /* ── Badges ── */
+  .badge-ok  { background: rgba(122,215,154,0.15); color: var(--ok);      padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; }
+  .badge-warn { background: rgba(245,166,35,0.15); color: var(--warning); padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; }
+  .badge-err { background: rgba(255,107,107,0.15); color: var(--danger);  padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; }
+  .badge-info { background: rgba(100,150,255,0.15); color: #6496ff;       padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; }
+
+  /* ── Feature cards ── */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+    margin: 1rem 0 1.5rem;
+  }
+  .feature-card {
+    background: var(--content-bg);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r);
+    padding: 1rem;
+    transition: border-color 0.2s;
+  }
+  .feature-card:hover { border-color: rgba(232,192,137,0.3); }
+  .feature-card .fc-title { font-weight: 600; font-size: 13px; margin-bottom: 0.4rem; color: var(--accent); }
+  .feature-card .fc-body { font-size: 12px; color: var(--fg-muted); }
+
+  /* ── Flow diagram ── */
+  .flow {
+    background: var(--code-bg);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r);
+    padding: 1.25rem;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    line-height: 2;
+    color: #c9d1d9;
+    margin: 1rem 0 1.5rem;
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  /* ── Divider ── */
+  hr {
+    border: none;
+    border-top: 1px solid var(--hairline);
+    margin: 2.5rem 0;
+  }
+
+  /* ── Callout ── */
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: var(--accent-dim);
+    border-radius: 0 var(--r) var(--r) 0;
+    padding: 0.85rem 1.25rem;
+    margin: 1rem 0 1.5rem;
+    font-size: 13px;
+  }
+  .callout.warn {
+    border-left-color: var(--warning);
+    background: rgba(245,166,35,0.1);
+  }
+  .callout strong { display: block; margin-bottom: 0.25rem; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    #sidebar { display: none; }
+    #content { margin-left: 0; padding: 2rem 1.5rem; }
+  }
+
+  /* ── Scroll behavior ── */
+  html { scroll-behavior: smooth; }
+  section { scroll-margin-top: calc(var(--top-height) + 1rem); }
+</style>
+</head>
+<body>
+
+<!-- Top Bar -->
+<div id="topbar">
+  <span class="brand">Aurora Heights VR360</span>
+  <span class="badge">Project Spec v1.0</span>
+  <span class="meta">2026-05-14 &nbsp;·&nbsp; Production</span>
+</div>
+
+<!-- Layout -->
+<div id="layout">
+
+<!-- Sidebar -->
+<nav id="sidebar">
+  <div class="nav-section-label">Overview</div>
+  <a class="nav-link" href="#overview"><span class="num">1</span>Project Overview</a>
+  <a class="nav-link" href="#techstack"><span class="num">2</span>Tech Stack</a>
+  <a class="nav-link" href="#structure"><span class="num">3</span>File Structure</a>
+
+  <div class="nav-section-label" style="margin-top:1rem">Data</div>
+  <a class="nav-link" href="#datamodel"><span class="num">4</span>Data Model</a>
+  <a class="nav-link" href="#scenes">→ Scenes</a>
+  <a class="nav-link" href="#units">→ Floor Plan Units</a>
+  <a class="nav-link" href="#menu">→ Menu Groups</a>
+
+  <div class="nav-section-label" style="margin-top:1rem">UI</div>
+  <a class="nav-link" href="#layout-zones"><span class="num">5</span>Layout & Zones</a>
+  <a class="nav-link" href="#features"><span class="num">6</span>Feature Catalog</a>
+  <a class="nav-link" href="#vr">→ VR360 Viewer</a>
+  <a class="nav-link" href="#hotspots">→ Hotspots</a>
+  <a class="nav-link" href="#overlays">→ Overlays</a>
+  <a class="nav-link" href="#booking">→ Booking Modal</a>
+  <a class="nav-link" href="#loan">→ Loan Calculator</a>
+  <a class="nav-link" href="#ai">→ AI Chatbot</a>
+  <a class="nav-link" href="#tour">→ Help Tour</a>
+
+  <div class="nav-section-label" style="margin-top:1rem">Behaviour</div>
+  <a class="nav-link" href="#flows"><span class="num">7</span>User Flows</a>
+  <a class="nav-link" href="#responsive"><span class="num">8</span>Responsive</a>
+  <a class="nav-link" href="#i18n"><span class="num">9</span>i18n</a>
+  <a class="nav-link" href="#design"><span class="num">10</span>Design System</a>
+  <a class="nav-link" href="#arch"><span class="num">11</span>Architecture</a>
+  <a class="nav-link" href="#limits"><span class="num">12</span>Limitations</a>
+</nav>
+
+<!-- Main Content -->
+<main id="content">
+
+  <!-- ═══════════════════════════════════════════════════ -->
+  <h1>Aurora Heights VR360</h1>
+  <p style="color:var(--fg-muted);margin-bottom:2rem">Project Specification — Immersive Real Estate Landing Page</p>
+
+  <div class="intro">
+    <div class="intro-item"><div class="label">Type</div><div class="value">Real Estate VR360</div></div>
+    <div class="intro-item"><div class="label">Stack</div><div class="value">Vanilla JS + Three.js</div></div>
+    <div class="intro-item"><div class="label">Languages</div><div class="value">VI · EN · ZH · KO · JA</div></div>
+    <div class="intro-item"><div class="label">VR Scenes</div><div class="value">6 panoramas</div></div>
+    <div class="intro-item"><div class="label">Unit Types</div><div class="value">9 types</div></div>
+    <div class="intro-item"><div class="label">Amenities</div><div class="value">25 items</div></div>
+    <div class="intro-item"><div class="label">Responsive</div><div class="value">Desktop + Mobile</div></div>
+    <div class="intro-item"><div class="label">Backend</div><div class="value">None (static JSON)</div></div>
+  </div>
+
+  <!-- ═══ 1. Project Overview ════════════════════════════ -->
+  <section id="overview">
+    <h2 data-num="1">Project Overview</h2>
+
+    <h3>Business Goals</h3>
+    <table>
+      <thead><tr><th>Goal</th><th>Implementation</th></tr></thead>
+      <tbody>
+        <tr><td>Generate qualified leads</td><td>Booking modal + contact form</td></tr>
+        <tr><td>Showcase property visually</td><td>VR360 panorama viewer (6 scenes)</td></tr>
+        <tr><td>Build buyer trust</td><td>Legal panel + testimonials + document checklist</td></tr>
+        <tr><td>Drive urgency</td><td>Countdown timer + urgency toasts + limited inventory</td></tr>
+        <tr><td>Support international buyers</td><td>5-language i18n (VI, EN, ZH, KO, JA)</td></tr>
+        <tr><td>Assist buyers 24/7</td><td>AI chatbot with voice recognition + TTS</td></tr>
+        <tr><td>Financial planning support</td><td>Loan calculator with amortization chart</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Project Data</h3>
+    <table>
+      <thead><tr><th>Field</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Project Name</td><td><strong>Aurora Heights</strong></td></tr>
+        <tr><td>Location</td><td>Khu Tây Hồ Tây, Hà Nội</td></tr>
+        <tr><td>Developer</td><td>Aurora Land Holdings</td></tr>
+        <tr><td>Status</td><td><span class="badge-ok">Đang mở bán giai đoạn 2</span></td></tr>
+        <tr><td>Handover</td><td>Quý IV / 2027</td></tr>
+        <tr><td>Starting Price</td><td>Từ <strong>4.9 tỷ</strong> VND</td></tr>
+        <tr><td>Total Units</td><td>1,840</td></tr>
+        <tr><td>Towers</td><td>6</td></tr>
+        <tr><td>Floors</td><td>42</td></tr>
+        <tr><td>Available Units</td><td><span class="badge-warn">49 remaining</span></td></tr>
+        <tr><td>Hotline</td><td><code>0901 234 567</code></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ═══ 2. Tech Stack ══════════════════════════════════ -->
+  <section id="techstack">
+    <h2 data-num="2">Tech Stack & Dependencies</h2>
+
+    <h3>Core Technologies</h3>
+    <table>
+      <thead><tr><th>Layer</th><th>Technology</th><th>Version</th></tr></thead>
+      <tbody>
+        <tr><td>Markup</td><td>HTML5</td><td>—</td></tr>
+        <tr><td>Styling</td><td>CSS3 (custom vars, grid, flex, animations)</td><td>—</td></tr>
+        <tr><td>Scripting</td><td>Vanilla JavaScript (ES2020+)</td><td>—</td></tr>
+        <tr><td>3D Engine</td><td>Three.js (WebGL renderer)</td><td>r128 (CDN)</td></tr>
+        <tr><td>Fonts</td><td>Google Fonts (Cormorant Garamond, Inter, JetBrains Mono)</td><td>—</td></tr>
+        <tr><td>Data</td><td>JSON (single file)</td><td>—</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Browser APIs</h3>
+    <table>
+      <thead><tr><th>API</th><th>Usage</th><th>Fallback</th></tr></thead>
+      <tbody>
+        <tr><td>SpeechRecognition</td><td>Voice input in AI chat</td><td>Text-only mode</td></tr>
+        <tr><td>SpeechSynthesis</td><td>TTS reply in AI chat</td><td>Silent mode</td></tr>
+        <tr><td>AudioContext / AnalyserNode</td><td>Waveform visualizer</td><td>Hidden bars</td></tr>
+        <tr><td>Fullscreen API</td><td>VR fullscreen button</td><td>Button hidden</td></tr>
+        <tr><td>Intersection Observer</td><td>Lazy-load Google Maps</td><td>Immediate load</td></tr>
+        <tr><td>CSS Custom Properties</td><td>Design tokens / theming</td><td>Hardcoded fallbacks</td></tr>
+        <tr><td>sessionStorage</td><td>Language preference</td><td>Default language</td></tr>
+      </tbody>
+    </table>
+
+    <h3>External Services</h3>
+    <table>
+      <thead><tr><th>Service</th><th>Purpose</th><th>Load Strategy</th></tr></thead>
+      <tbody>
+        <tr><td>Google Fonts</td><td>Typography</td><td><code>&lt;link&gt;</code> in <code>&lt;head&gt;</code></td></tr>
+        <tr><td>cdnjs (Three.js)</td><td>3D renderer</td><td><code>&lt;script&gt;</code> in <code>&lt;head&gt;</code></td></tr>
+        <tr><td>Google Maps Embed</td><td>Location panel map</td><td>Lazy (on panel open)</td></tr>
+        <tr><td>Zalo Messaging</td><td>Contact shortcut button</td><td>Static anchor link</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ═══ 3. File Structure ═════════════════════════════ -->
+  <section id="structure">
+    <h2 data-num="3">File Structure</h2>
+    <pre>BDS/
+├── index.html                    <span class="c"># Single-page app entry (1,250 lines)</span>
+│
+├── data/
+│   └── project.json             <span class="c"># All content & configuration (826 lines)</span>
+│
+├── js/
+│   ├── i18n.js                  <span class="c"># Internationalization → window.I18n</span>
+│   ├── vr360.js                 <span class="c"># Three.js panorama viewer → window.VR360</span>
+│   ├── ai-panel.js              <span class="c"># AI chatbot → window.AiPanel</span>
+│   ├── main.js                  <span class="c"># Core UI orchestration (1,602 lines)</span>
+│   ├── mobile-patch.js          <span class="c"># Mobile UI behaviors (burger, drawer)</span>
+│   └── mobile-stepper.js        <span class="c"># Mobile floorplan carousel</span>
+│
+├── css/
+│   ├── style.css                <span class="c"># Complete design system (2,500+ lines)</span>
+│   ├── mobile-stepper.css       <span class="c"># Stepper component styles</span>
+│   └── mobile-overrides.css     <span class="c"># Mobile-specific overrides</span>
+│
+├── img/
+│   ├── 1.png                    <span class="c"># AI avatar primary</span>
+│   ├── 2.png                    <span class="c"># AI avatar alternate</span>
+│   └── thietke-matbangduan.jpg  <span class="c"># Site map background</span>
+│
+└── docs/
+    ├── PROJECT_SPEC.md          <span class="c"># Full spec (markdown)</span>
+    ├── PROJECT_SPEC.html        <span class="c"># This file</span>
+    ├── DASHBOARD_SPEC.md        <span class="c"># Admin dashboard spec</span>
+    ├── BOTCHAT_SPEC.md          <span class="c"># AI panel spec</span>
+    ├── HELPTOUR_SPEC.md         <span class="c"># Help tour spec</span>
+    └── VRINFO_MOBILE_SPEC.md    <span class="c"># Mobile behavior spec</span></pre>
+
+    <h4>Script Load Order (Critical)</h4>
+    <pre><span class="c">&lt;!-- Must load in this exact order --&gt;</span>
+&lt;script src="js/i18n.js"&gt;&lt;/script&gt;       <span class="c"># Exposes window.I18n</span>
+&lt;script src="js/vr360.js"&gt;&lt;/script&gt;      <span class="c"># Exposes window.VR360</span>
+&lt;script src="js/ai-panel.js"&gt;&lt;/script&gt;   <span class="c"># Exposes window.AiPanel</span>
+&lt;script src="js/main.js"&gt;&lt;/script&gt;       <span class="c"># Depends on all above</span>
+&lt;script src="js/mobile-stepper.js"&gt;&lt;/script&gt;
+&lt;script src="js/mobile-patch.js"&gt;&lt;/script&gt;</pre>
+  </section>
+
+  <!-- ═══ 4. Data Model ═════════════════════════════════ -->
+  <section id="datamodel">
+    <h2 data-num="4">Data Model</h2>
+    <div class="callout">
+      <strong>Single Source of Truth</strong>
+      All content lives in <code>data/project.json</code>. No CMS, no database.
+    </div>
+
+    <h3>Root Object Structure</h3>
+    <pre>{
+  <span class="str">"meta"</span>:             { ... },  <span class="c">// Project metadata</span>
+  <span class="str">"stats"</span>:            [ ... ],  <span class="c">// Key stats for display</span>
+  <span class="str">"amenities"</span>:        [ ... ],  <span class="c">// Quick amenity icon list</span>
+  <span class="str">"menuGroups"</span>:       { ... },  <span class="c">// Navigation accordion groups</span>
+  <span class="str">"scenes"</span>:           [ ... ],  <span class="c">// VR360 panorama scenes</span>
+  <span class="str">"floorplanUnits"</span>:   [ ... ],  <span class="c">// Unit inventory</span>
+  <span class="str">"siteMapPoints"</span>:    [ ... ],  <span class="c">// Clickable points on 2D map</span>
+  <span class="str">"gallery"</span>:          [ ... ],  <span class="c">// Photo gallery images</span>
+  <span class="str">"legal"</span>:            { ... },  <span class="c">// Legal & trust info</span>
+  <span class="str">"location"</span>:         { ... },  <span class="c">// Map & nearby POIs</span>
+  <span class="str">"amenitiesDetail"</span>:  { ... },  <span class="c">// Tabbed amenity detail</span>
+  <span class="str">"timeline"</span>:         [ ... ]   <span class="c">// Construction phases</span>
+}</pre>
+
+    <section id="scenes">
+    <h3>Scenes (VR360)</h3>
+    <table>
+      <thead><tr><th>ID</th><th>Title</th><th>Type</th><th>Hotspots</th></tr></thead>
+      <tbody>
+        <tr><td><code>sky-lounge</code></td><td>Sky Lounge Tầng 42</td><td>interior</td><td>3</td></tr>
+        <tr><td><code>penthouse</code></td><td>Penthouse Mẫu 3PN Duplex</td><td>interior</td><td>3</td></tr>
+        <tr><td><code>master-bedroom</code></td><td>Master Suite</td><td>interior</td><td>3</td></tr>
+        <tr><td><code>pool-deck</code></td><td>Bể Bơi Vô Cực Tầng 8</td><td>exterior</td><td>3</td></tr>
+        <tr><td><code>park</code></td><td>Công Viên Trung Tâm 12.4ha</td><td>exterior</td><td>3</td></tr>
+        <tr><td><code>aerial</code></td><td>Toàn Cảnh Dự Án</td><td>exterior</td><td>3</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Hotspot Object Schema</h4>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>string</td><td>Unique identifier</td></tr>
+        <tr><td><code>x</code></td><td>number 0–1</td><td>Equirectangular X position</td></tr>
+        <tr><td><code>y</code></td><td>number 0–1</td><td>Equirectangular Y position</td></tr>
+        <tr><td><code>type</code></td><td><code>"info"</code> | <code>"nav"</code></td><td>Info popup or scene navigation</td></tr>
+        <tr><td><code>label</code></td><td>string</td><td>Pin display text</td></tr>
+        <tr><td><code>desc</code></td><td>string</td><td>(info only) Tooltip description</td></tr>
+        <tr><td><code>target</code></td><td>string</td><td>(nav only) Target scene ID</td></tr>
+      </tbody>
+    </table>
+    </section>
+
+    <section id="units">
+    <h3>Floor Plan Units</h3>
+    <table>
+      <thead><tr><th>Code</th><th>Type</th><th>Floor</th><th>Area</th><th>Price</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td><code>A-2BR-72-08</code></td><td>2PN</td><td>8</td><td>72m²</td><td>5.4 tỷ</td><td><span class="badge-ok">Available</span></td></tr>
+        <tr><td><code>A-2BR-85-15</code></td><td>2PN</td><td>15</td><td>85m²</td><td>6.4 tỷ</td><td><span class="badge-ok">Available</span></td></tr>
+        <tr><td><code>B-3BR-105-20</code></td><td>3PN</td><td>20</td><td>105m²</td><td>8.9 tỷ</td><td><span class="badge-ok">Available</span></td></tr>
+        <tr><td><code>B-3BR-118-25</code></td><td>3PN</td><td>25</td><td>118m²</td><td>10.4 tỷ</td><td><span class="badge-warn">Holding</span></td></tr>
+        <tr><td><code>C-3BRP-128-30</code></td><td>3PN+</td><td>30</td><td>128m²</td><td>12.5 tỷ</td><td><span class="badge-ok">Available</span></td></tr>
+        <tr><td><code>C-3BRP-135-35</code></td><td>3PN+</td><td>35</td><td>135m²</td><td>13.6 tỷ</td><td><span class="badge-warn">Holding</span></td></tr>
+        <tr><td><code>D-PH-180-40</code></td><td>Penthouse</td><td>40</td><td>180m²</td><td>—</td><td><span class="badge-err">Sold</span></td></tr>
+        <tr><td><code>D-PH-220-41</code></td><td>Penthouse</td><td>41</td><td>220m²</td><td>—</td><td><span class="badge-err">Sold</span></td></tr>
+        <tr><td><code>D-PH-280-42</code></td><td>Penthouse</td><td>42</td><td>280m²</td><td>14.2 tỷ</td><td><span class="badge-ok">Available</span></td></tr>
+      </tbody>
+    </table>
+    </section>
+
+    <section id="menu">
+    <h3>Menu Groups</h3>
+    <table>
+      <thead><tr><th>Key</th><th>Label</th><th>Items</th></tr></thead>
+      <tbody>
+        <tr><td><code>tongQuan</code></td><td>Tổng Quan</td><td>6</td></tr>
+        <tr><td><code>tienIchNoiKhu</code></td><td>Tiện Ích Nội Khu</td><td>6</td></tr>
+        <tr><td><code>tienIchNgoaiKhu</code></td><td>Tiện Ích Ngoại Khu</td><td>10</td></tr>
+        <tr><td><code>matBangTang</code></td><td>Mặt Bằng Tầng</td><td>5</td></tr>
+        <tr><td><code>view360Can</code></td><td>View 360° Căn Hộ</td><td>11</td></tr>
+      </tbody>
+    </table>
+    </section>
+  </section>
+
+  <!-- ═══ 5. Layout & Zones ══════════════════════════════ -->
+  <section id="layout-zones">
+    <h2 data-num="5">Layout & Zones</h2>
+
+    <pre>┌─────────────────────────────────────────────────────┐
+│  #loader  (Loading screen — fades out after boot)   │
+└─────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────┐
+│  #vr-stage  (Full-screen Three.js WebGL canvas)     │
+│  #hotspot-layer  (Absolute positioned VR hotspots)  │
+└─────────────────────────────────────────────────────┘
+┌──── #ui  (Overlay layer on top of VR) ──────────────┐
+│  ┌─ #top-bar ──────────────────────────────────┐    │
+│  │  [Brand] [Map][Gallery][Amenity][Legal]     │    │
+│  │          [Location][Loan][Timeline][FP]     │    │
+│  │                           [Lang][Help]      │    │
+│  └─────────────────────────────────────────────┘    │
+│                                                     │
+│  ┌─ #nav-panel ──┐  ┌─ #project-card ──────────┐   │
+│  │ [Search]      │  │ [Stats grid]              │   │
+│  │ [Accordion]   │  │ [Price + countdown]       │   │
+│  │ [Menu items]  │  │ [Amenity icons]           │   │
+│  └───────────────┘  │ [CTA buttons]             │   │
+│                     └───────────────────────────┘   │
+│  ── Overlays (stacked) ─────────────────────────    │
+│  #sitemap-overlay  #gallery-overlay                 │
+│  #amenities-overlay  #legal-overlay                 │
+│  #location-overlay  #loan-overlay                   │
+│  #timeline-overlay  #floorplan-overlay              │
+│                                                     │
+│  ── Modal ──────────────────────────────────────    │
+│  #booking-modal  (Unit table + contact form)        │
+│                                                     │
+│  ── Floaters ───────────────────────────────────    │
+│  [AI Chat FAB]  [UI Restore]  [Urgency Toasts]      │
+│                                                     │
+│  #tour-overlay  (Spotlight onboarding)              │
+│  #ai-panel      (Right-side chat panel)             │
+└─────────────────────────────────────────────────────┘</pre>
+
+    <h3>Z-Index Stack</h3>
+    <table>
+      <thead><tr><th>z-index</th><th>Element</th></tr></thead>
+      <tbody>
+        <tr><td>0</td><td>Canvas (#vr-stage)</td></tr>
+        <tr><td>10</td><td>#hotspot-layer</td></tr>
+        <tr><td>100</td><td>#nav-panel, #project-card</td></tr>
+        <tr><td>110</td><td>#top-bar</td></tr>
+        <tr><td>200</td><td>All overlays (*-overlay)</td></tr>
+        <tr><td>300</td><td>#booking-modal</td></tr>
+        <tr><td>350</td><td>#ai-panel</td></tr>
+        <tr><td>400</td><td>#tour-overlay</td></tr>
+        <tr><td>500</td><td>.urgency-toast</td></tr>
+        <tr><td>9999</td><td>#loader</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ═══ 6. Feature Catalog ════════════════════════════ -->
+  <section id="features">
+    <h2 data-num="6">Feature Catalog</h2>
+
+    <section id="vr">
+    <h3>6.1 VR360 Panorama Viewer</h3>
+    <p>Module: <code>js/vr360.js</code> → <code>window.VR360</code></p>
+    <table>
+      <thead><tr><th>Feature</th><th>Detail</th></tr></thead>
+      <tbody>
+        <tr><td>Renderer</td><td>Three.js WebGL, inverted sphere (r=500, 64 segments)</td></tr>
+        <tr><td>Panorama source</td><td>Procedurally generated canvas (2048×1024)</td></tr>
+        <tr><td>Navigation</td><td>Mouse drag → lon/lat rotation</td></tr>
+        <tr><td>Zoom</td><td>Scroll wheel → FOV 40°–95°</td></tr>
+        <tr><td>Auto-rotate</td><td>Toggle, pauses on drag interaction</td></tr>
+        <tr><td>Fullscreen</td><td>Native Fullscreen API</td></tr>
+        <tr><td>Scene count</td><td>6 scenes (3 interior, 3 exterior)</td></tr>
+      </tbody>
+    </table>
+    <pre><span class="c">// VR360 Public API</span>
+<span class="fn">VR360.init</span>(container, opts)      <span class="c">// Setup renderer</span>
+<span class="fn">VR360.loadScene</span>(sceneData)       <span class="c">// Load panorama by scene object</span>
+<span class="fn">VR360.setAutoRotate</span>(bool)        <span class="c">// Toggle auto-spin</span>
+<span class="fn">VR360.zoomBy</span>(delta)              <span class="c">// Adjust FOV</span>
+<span class="fn">VR360.projectHotspot</span>(x, y)      <span class="c">// Equirect → screen coords</span>
+<span class="fn">VR360.getYaw</span>()                   <span class="c">// Current yaw angle</span>
+<span class="fn">VR360.lookAt</span>(x, y)               <span class="c">// Snap camera direction</span>
+<span class="fn">VR360.destroy</span>()                  <span class="c">// Cleanup WebGL context</span></pre>
+    </section>
+
+    <section id="hotspots">
+    <h3>6.2 Hotspot System</h3>
+    <table>
+      <thead><tr><th>Type</th><th>Behavior</th></tr></thead>
+      <tbody>
+        <tr><td><code>info</code></td><td>Click → popup with label + description overlay</td></tr>
+        <tr><td><code>nav</code></td><td>Click → transition to target scene ID</td></tr>
+      </tbody>
+    </table>
+    <p>Positions computed every animation frame via <code>VR360.projectHotspot()</code>. Hotspots hidden when behind camera (negative z).</p>
+    </section>
+
+    <section id="overlays">
+    <h3>6.3–6.9 Overlays</h3>
+    <p>All overlays share: full-screen coverage, close button, backdrop click to close, Escape key to close, fade-in animation.</p>
+    <table>
+      <thead><tr><th>Overlay</th><th>Feature</th><th>Key Functionality</th></tr></thead>
+      <tbody>
+        <tr><td><code>#sitemap-overlay</code></td><td>2D Site Map</td><td>7 clickable points → switch VR scene</td></tr>
+        <tr><td><code>#gallery-overlay</code></td><td>Photo Gallery</td><td>Grid + lightbox + arrow nav + keyboard</td></tr>
+        <tr><td><code>#amenities-overlay</code></td><td>Amenities Detail</td><td>4 tabs · 25 amenities with icons</td></tr>
+        <tr><td><code>#legal-overlay</code></td><td>Legal & Trust</td><td>Stats · docs checklist · banks · testimonials</td></tr>
+        <tr><td><code>#location-overlay</code></td><td>Location Map</td><td>Google Maps iframe · 9 POIs · category filter</td></tr>
+        <tr><td><code>#loan-overlay</code></td><td>Loan Calculator</td><td>Sliders · bank select · monthly payment · chart</td></tr>
+        <tr><td><code>#timeline-overlay</code></td><td>Construction Timeline</td><td>8 phases · progress bar · status badges</td></tr>
+        <tr><td><code>#floorplan-overlay</code></td><td>Floorplan & Pricing</td><td>9 units · filter/sort table · book CTA</td></tr>
+      </tbody>
+    </table>
+    </section>
+
+    <section id="booking">
+    <h3>6.10 Booking Modal</h3>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Required</th></tr></thead>
+      <tbody>
+        <tr><td>Họ và tên</td><td>text</td><td><span class="badge-err">Yes</span></td></tr>
+        <tr><td>Số điện thoại</td><td>tel</td><td><span class="badge-err">Yes</span></td></tr>
+        <tr><td>Email</td><td>email</td><td>No</td></tr>
+        <tr><td>Zalo</td><td>text</td><td>No</td></tr>
+        <tr><td>Căn hộ quan tâm</td><td>select</td><td>No</td></tr>
+        <tr><td>Ngân sách</td><td>select</td><td>No</td></tr>
+        <tr><td>Mục đích mua</td><td>select</td><td>No</td></tr>
+        <tr><td>Thời điểm mua</td><td>select</td><td>No</td></tr>
+        <tr><td>Đồng ý Zalo / SMS / ĐKBH</td><td>checkbox ×3</td><td>No</td></tr>
+      </tbody>
+    </table>
+    </section>
+
+    <section id="loan">
+    <h3>6.11 Loan Calculator</h3>
+    <table>
+      <thead><tr><th>Input</th><th>Range</th></tr></thead>
+      <tbody>
+        <tr><td>Property price</td><td>Slider 4.9–14.2 tỷ</td></tr>
+        <tr><td>Equity %</td><td>Slider 10–70%</td></tr>
+        <tr><td>Loan term</td><td>Select: 10, 15, 20, 25, 30 years</td></tr>
+        <tr><td>Bank</td><td>Select: Vietcombank, BIDV, Techcombank, VPBank</td></tr>
+      </tbody>
+    </table>
+    <pre><span class="c">// Annuity formula</span>
+M = P × [r(1+r)^n] / [(1+r)^n − 1]
+<span class="c">// P = principal, r = monthly rate, n = total months</span></pre>
+    </section>
+
+    <section id="ai">
+    <h3>6.12 AI Chatbot</h3>
+    <p>Module: <code>js/ai-panel.js</code> → <code>window.AiPanel</code></p>
+    <table>
+      <thead><tr><th>Mode</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>Text mode</td><td>Type → submit → bot text reply</td></tr>
+        <tr><td>Voice mode</td><td>Mic → STT → bot reply → TTS → re-listen loop</td></tr>
+        <tr><td>Capsule mode</td><td>Panel morphs to pill during voice input</td></tr>
+      </tbody>
+    </table>
+    <div class="flow">State machine:
+idle ──── mic click ────▶ listening
+          (STT result)
+listening ─────────────▶ thinking
+          (reply ready)
+thinking ──────────────▶ speaking
+          (TTS ends)
+speaking ──────────────▶ listening  (loop)
+          (mic click)
+listening ─────────────▶ idle</div>
+    </section>
+
+    <section id="tour">
+    <h3>6.13 Help Tour (17 Steps)</h3>
+    <table>
+      <thead><tr><th>#</th><th>Target Element</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Brand logo</td></tr>
+        <tr><td>2</td><td>Site map button</td></tr>
+        <tr><td>3</td><td>Gallery button</td></tr>
+        <tr><td>4</td><td>Amenities button</td></tr>
+        <tr><td>5</td><td>Legal button</td></tr>
+        <tr><td>6</td><td>Location button</td></tr>
+        <tr><td>7</td><td>Loan calculator button</td></tr>
+        <tr><td>8</td><td>Timeline button</td></tr>
+        <tr><td>9</td><td>Language switcher</td></tr>
+        <tr><td>10</td><td>Navigation panel</td></tr>
+        <tr><td>11</td><td>Search bar</td></tr>
+        <tr><td>12</td><td>Scene menu items</td></tr>
+        <tr><td>13</td><td>Project card</td></tr>
+        <tr><td>14</td><td>Countdown timer</td></tr>
+        <tr><td>15</td><td>CTA buttons (Book + Price)</td></tr>
+        <tr><td>16</td><td>AI chat button</td></tr>
+        <tr><td>17</td><td>VR hotspots</td></tr>
+      </tbody>
+    </table>
+    </section>
+  </section>
+
+  <!-- ═══ 7. User Flows ═════════════════════════════════ -->
+  <section id="flows">
+    <h2 data-num="7">User Flows</h2>
+
+    <h3>Primary: Browse & Book</h3>
+    <div class="flow">Page Load
+  └── Loading Screen (fetch JSON + Three.js init)
+        ↓ ~2–3 seconds
+  └── VR Experience (default: sky-lounge scene)
+        ↓ user drags / clicks hotspots
+  └── Explore Scenes
+        ↓ user clicks "Xem Bảng Giá"
+  └── Floorplan Overlay (filter → select unit → "Đặt Cọc")
+        ↓
+  └── Booking Modal (pre-filled with unit data)
+        ↓ fill name + phone → submit
+  └── Success Screen → callback CTA</div>
+
+    <h3>Loan Calculation</h3>
+    <div class="flow">Open Loan Calculator
+  ↓ adjust price slider
+  ↓ set equity % + term + bank
+  ↓ live output updates (monthly payment / total interest)
+  ↓ view amortization chart
+  ↓ click "Tư Vấn Vay Vốn"
+  └── Booking Modal opens</div>
+
+    <h3>Voice AI Chat</h3>
+    <div class="flow">Click AI FAB → panel slides in
+  ↓ demo bubbles appear
+  ↓ user clicks mic
+  └── Panel → capsule mode
+        ↓ mic permission granted
+        ↓ waveform appears, listening starts
+        ↓ user speaks
+        ↓ STT transcribes → user bubble
+        ↓ bot generates reply → bot bubble
+        ↓ TTS speaks reply
+        └── auto re-listen (loop until mic clicked again)</div>
+  </section>
+
+  <!-- ═══ 8. Responsive ═════════════════════════════════ -->
+  <section id="responsive">
+    <h2 data-num="8">Responsive Behavior</h2>
+    <table>
+      <thead><tr><th>Breakpoint</th><th>Width</th><th>Layout Mode</th></tr></thead>
+      <tbody>
+        <tr><td>Desktop</td><td>≥ 769px</td><td>Full sidebar layout (nav panel + project card visible)</td></tr>
+        <tr><td>Mobile/Tablet</td><td>≤ 768px</td><td>Burger menu + drawer + collapsed panels</td></tr>
+        <tr><td>Landscape Mobile</td><td>height ≤ 500px</td><td>Compact mode</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Mobile-Specific Components</h3>
+    <table>
+      <thead><tr><th>Component</th><th>Mobile Behavior</th></tr></thead>
+      <tbody>
+        <tr><td>Burger menu</td><td>Opens full-height slide-in drawer</td></tr>
+        <tr><td>Drawer</td><td>Contains all nav buttons + language switcher</td></tr>
+        <tr><td>Nav panel</td><td>Hidden by default; accessed via drawer</td></tr>
+        <tr><td>Project card</td><td>Collapsed pill at bottom; tap to expand</td></tr>
+        <tr><td>Info FAB</td><td>Floating button to reopen project card</td></tr>
+        <tr><td>Floorplan</td><td>Horizontal stepper carousel (mobile-stepper.js)</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ═══ 9. i18n ═══════════════════════════════════════ -->
+  <section id="i18n">
+    <h2 data-num="9">Internationalization</h2>
+    <p>Module: <code>js/i18n.js</code> → <code>window.I18n</code></p>
+    <table>
+      <thead><tr><th>Code</th><th>Language</th><th>Flag</th></tr></thead>
+      <tbody>
+        <tr><td><code>vi</code></td><td>Vietnamese</td><td>🇻🇳</td></tr>
+        <tr><td><code>en</code></td><td>English</td><td>🇬🇧</td></tr>
+        <tr><td><code>zh</code></td><td>Chinese (Simplified)</td><td>🇨🇳</td></tr>
+        <tr><td><code>ko</code></td><td>Korean</td><td>🇰🇷</td></tr>
+        <tr><td><code>ja</code></td><td>Japanese</td><td>🇯🇵</td></tr>
+      </tbody>
+    </table>
+    <pre><span class="c">// I18n API</span>
+<span class="fn">I18n.t</span>(<span class="str">'ui.bookNow'</span>, { name: <span class="str">'Aurora'</span> })  <span class="c">// Translate with vars</span>
+<span class="fn">I18n.get</span>()                                  <span class="c">// Current lang code</span>
+<span class="fn">I18n.set</span>(<span class="str">'en'</span>)                              <span class="c">// Switch language</span>
+<span class="fn">I18n.langs</span>()                                <span class="c">// Available lang codes</span>
+<span class="fn">I18n.onChange</span>(callback)                    <span class="c">// Register listener</span>
+<span class="fn">I18n.applyStatic</span>()                          <span class="c">// Apply data-i18n to DOM</span></pre>
+  </section>
+
+  <!-- ═══ 10. Design System ════════════════════════════ -->
+  <section id="design">
+    <h2 data-num="10">Design System</h2>
+
+    <h3>CSS Design Tokens</h3>
+    <pre><span class="kw">:root</span> {
+  <span class="c">/* Colors */</span>
+  --bg:       #0a0d12;                     <span class="c">/* Page background (near-black navy) */</span>
+  --fg:       #f5f1e8;                     <span class="c">/* Primary text (warm white) */</span>
+  --accent:   #e8c089;                     <span class="c">/* Gold accent (buttons, highlights) */</span>
+  --ok:       #7ad79a;                     <span class="c">/* Success / available */</span>
+  --danger:   #ff6b6b;                     <span class="c">/* Error / sold */</span>
+  --panel:    rgba(12,16,22, 0.62);       <span class="c">/* Glass panel background */</span>
+  --hairline: rgba(245,241,232, 0.14);    <span class="c">/* Subtle borders */</span>
+
+  <span class="c">/* Typography */</span>
+  --font-display: <span class="str">'Cormorant Garamond'</span>, serif;
+  --font-sans:    <span class="str">'Inter'</span>, sans-serif;
+  --font-mono:    <span class="str">'JetBrains Mono'</span>, monospace;
+
+  <span class="c">/* Spacing */</span>
+  --gap: 1rem;    --gap2: 2rem;
+
+  <span class="c">/* Radius */</span>
+  --r: 8px;       --r2: 16px;
+
+  <span class="c">/* Transition */</span>
+  --t: 0.25s ease;
+}</pre>
+
+    <h3>Typography Scale</h3>
+    <table>
+      <thead><tr><th>Role</th><th>Font</th><th>Size</th></tr></thead>
+      <tbody>
+        <tr><td>Hero / Brand</td><td>Cormorant Garamond 600</td><td>2.4rem</td></tr>
+        <tr><td>Heading 1</td><td>Cormorant Garamond 600</td><td>1.8rem</td></tr>
+        <tr><td>Heading 2</td><td>Cormorant Garamond 500</td><td>1.4rem</td></tr>
+        <tr><td>Body</td><td>Inter 400</td><td>0.875rem</td></tr>
+        <tr><td>Label / Caption</td><td>Inter 500</td><td>0.75rem</td></tr>
+        <tr><td>Price</td><td>Cormorant Garamond 700</td><td>2rem</td></tr>
+        <tr><td>Code / Data</td><td>JetBrains Mono 400</td><td>0.8rem</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ═══ 11. Architecture ══════════════════════════════ -->
+  <section id="arch">
+    <h2 data-num="11">Module Architecture</h2>
+
+    <h3>Dependency Graph</h3>
+    <pre>window.I18n    ← i18n.js
+window.VR360   ← vr360.js
+window.AiPanel ← ai-panel.js  (uses I18n)
+main.js        ← depends on I18n, VR360, AiPanel
+                  loads data/project.json
+mobile-stepper.js ← independent
+mobile-patch.js   ← runs after main.js builds DOM</pre>
+
+    <h3>Boot Sequence</h3>
+    <pre><span class="fn">DOMContentLoaded</span>
+  └── <span class="fn">boot</span>()
+        ├── <span class="fn">fetch</span>(<span class="str">'data/project.json'</span>)
+        ├── <span class="fn">I18n.set</span>(defaultLang)
+        ├── <span class="fn">VR360.init</span>(container)
+        ├── <span class="fn">VR360.loadScene</span>(scenes[<span class="num">0</span>])
+        ├── <span class="fn">buildNavPanel</span>()
+        ├── <span class="fn">buildProjectCard</span>()
+        ├── <span class="fn">buildSiteMap</span>()
+        ├── <span class="fn">buildGallery</span>()
+        ├── <span class="fn">buildAmenitiesDetail</span>()
+        ├── <span class="fn">buildLegalPanel</span>()
+        ├── <span class="fn">buildLocationPanel</span>()
+        ├── <span class="fn">buildFloorplanPanel</span>()
+        ├── <span class="fn">initLoanCalc</span>()
+        ├── <span class="fn">initContactForm</span>()
+        ├── <span class="fn">startCountdown</span>(meta.promoDeadline)
+        ├── <span class="fn">bindSmartHide</span>()
+        ├── <span class="fn">AiPanel.init</span>()
+        └── <span class="fn">startUrgencyToasts</span>()  <span class="c">← delayed 30s</span></pre>
+  </section>
+
+  <!-- ═══ 12. Limitations ═══════════════════════════════ -->
+  <section id="limits">
+    <h2 data-num="12">Known Limitations</h2>
+    <table>
+      <thead><tr><th>Issue</th><th>Impact</th><th>Mitigation</th></tr></thead>
+      <tbody>
+        <tr><td>No backend</td><td>Forms not persisted</td><td>Stub for CRM integration</td></tr>
+        <tr><td>Procedural panoramas</td><td>Not real project photos</td><td>Replace with actual 360° images</td></tr>
+        <tr><td>AI chat stub</td><td>Not a real AI</td><td>Integrate Claude / OpenAI API</td></tr>
+        <tr><td>Voice: Firefox/Safari</td><td>STT unreliable</td><td>Graceful fallback to text</td></tr>
+        <tr><td>No URL routing</td><td>No deep links to scenes</td><td>Add URL hash routing</td></tr>
+        <tr><td>No analytics</td><td>No visitor tracking</td><td>Add GA4 or Mixpanel</td></tr>
+        <tr><td>sessionStorage</td><td>Language lost on close</td><td>Switch to localStorage</td></tr>
+        <tr><td>Single JSON file</td><td>All data loaded upfront</td><td>Split for performance</td></tr>
+        <tr><td>No CDN</td><td>Direct image serving</td><td>Add CDN for production</td></tr>
+        <tr><td>No SSR</td><td>Poor initial SEO</td><td>Add OG meta tags</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <hr />
+  <p style="color:var(--fg-muted);font-size:12px;text-align:center;padding-bottom:3rem">
+    Aurora Heights VR360 · Project Specification v1.0 · 2026-05-14
+  </p>
+
+</main>
+</div>
+
+<script>
+// Active nav link on scroll
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('.nav-link[href^="#"]');
+const obs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      navLinks.forEach(l => l.classList.remove('active'));
+      const link = document.querySelector(`.nav-link[href="#${e.target.id}"]`);
+      if (link) link.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>
