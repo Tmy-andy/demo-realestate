@@ -92,6 +92,16 @@ function getMockLeads() {
 
 // ——— ROUTER ———————————————————————————————————
 document.addEventListener('DOMContentLoaded', async () => {
+  const _sess = JSON.parse(sessionStorage.getItem('ah_session') || 'null');
+  if (_sess) {
+    const av = document.getElementById('tb-avatar');
+    const nm = document.getElementById('tb-name');
+    const rl = document.getElementById('tb-role');
+    if (av) av.textContent = _sess.name.slice(0,2).toUpperCase();
+    if (nm) nm.textContent = _sess.name;
+    if (rl) rl.textContent = _sess.title;
+  }
+
   await loadData();
   document.querySelectorAll('.nav-item[data-p]').forEach(el => {
     el.addEventListener('click', () => nav(el.dataset.p));
