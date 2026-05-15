@@ -1415,10 +1415,17 @@ document.addEventListener("DOMContentLoaded", boot);
     document.getElementById('loan-equity')?.addEventListener('input', calc);
     document.getElementById('loan-price')?.addEventListener('input', calc);
 
-    // CTA → open contact modal
+    // CTA → open loan appointment modal with pre-filled data
     document.getElementById('loan-open-form')?.addEventListener('click', () => {
+      const price     = parseFloat(document.getElementById('loan-price')?.value) || 5.4;
+      const equityPct = parseInt(document.getElementById('loan-equity')?.value)  || 30;
+      const equity    = price * equityPct / 100;
+      const principal = price - equity;
+      const bank      = BANKS[selBank];
+      const monthly   = document.getElementById('loan-monthly')?.textContent || '—';
+
       document.getElementById('loan-overlay')?.classList.remove('open');
-      document.getElementById('modal-backdrop')?.classList.add('open');
+      openLoanApptModal({ price, equityPct, equity, principal, bank, selTerm, monthly });
     });
 
     calc();
@@ -1443,6 +1450,135 @@ document.addEventListener("DOMContentLoaded", boot);
     document.getElementById('loan-overlay')?.classList.add('open');
     initUI();
   };
+})();
+
+/* ============================================
+   LOAN APPOINTMENT MODAL
+   ============================================ */
+(function initLoanApptModal() {
+  function fmtBil(bil) {
+    if (bil >= 1) return bil.toFixed(2).replace(/\.?0+$/, '') + ' tỷ';
+    return (bil * 1000).toFixed(0) + ' triệu';
+  }
+
+  window.openLoanApptModal = function({ price, equityPct, equity, principal, bank, selTerm, monthly }) {
+    // Build summary card
+    const summary = document.getElementById('lap-summary');
+    if (summary) {
+      summary.innerHTML = `
+        <div class="lap-sum-item">
+          <span class="lap-sum-label">Giá trị căn hộ</span>
+          <span class="lap-sum-value">${fmtBil(price)}</span>
+        </div>
+        <div class="lap-sum-item">
+          <span class="lap-sum-label">Vốn tự có (${equityPct}%)</span>
+          <span class="lap-sum-value">${fmtBil(equity)}</span>
+        </div>
+        <div class="lap-sum-item">
+          <span class="lap-sum-label">Số tiền vay</span>
+          <span class="lap-sum-value">${fmtBil(principal)}</span>
+        </div>
+        <div class="lap-sum-item">
+          <span class="lap-sum-label">Thời hạn</span>
+          <span class="lap-sum-value">${selTerm} năm</span>
+        </div>
+        <div class="lap-sum-item">
+          <span class="lap-sum-label">Ngân hàng</span>
+          <span class="lap-sum-value">${bank.name} · ${bank.rate}%/năm</span>
+        </div>
+        <div class="lap-sum-item">
+          <span class="lap-sum-label">Trả hàng tháng</span>
+          <span class="lap-sum-value highlight">${monthly}</span>
+        </div>
+      `;
+    }
+
+    // Reset form
+    ['lap-name', 'lap-phone', 'lap-date', 'lap-note'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    document.querySelectorAll('.lap-check-item input').forEach(cb => {
+      cb.checked = cb.value === 'rate' || cb.value === 'plan';
+    });
+    document.querySelectorAll('.lap-time-btn').forEach(b => b.classList.remove('active'));
+    const flexBtn = document.querySelector('.lap-time-btn[data-val="flexible"]');
+    if (flexBtn) flexBtn.classList.add('active');
+
+    const err = document.getElementById('lap-error');
+    if (err) { err.style.display = 'none'; err.textContent = ''; }
+    const lapSuccess = document.getElementById('lap-success');
+    if (lapSuccess) lapSuccess.style.display = 'none';
+    const lapFooter = document.querySelector('.lap-footer');
+    if (lapFooter) lapFooter.style.display = '';
+    const lapBody = document.querySelector('.lap-body');
+    if (lapBody)  lapBody.style.display = '';
+    const lapSumm = document.getElementById('lap-summary');
+    if (lapSumm)  lapSumm.style.display = '';
+
+    document.getElementById('loan-appt-backdrop')?.classList.add('open');
+  };
+
+  function closeLoanAppt() {
+    document.getElementById('loan-appt-backdrop')?.classList.remove('open');
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // Close handlers
+    document.getElementById('loan-appt-close')?.addEventListener('click', closeLoanAppt);
+    document.getElementById('loan-appt-backdrop')?.addEventListener('click', (e) => {
+      if (e.target.id === 'loan-appt-backdrop') closeLoanAppt();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeLoanAppt();
+    });
+
+    // Time slot selection
+    document.getElementById('lap-time-btns')?.addEventListener('click', (e) => {
+      const btn = e.target.closest('.lap-time-btn');
+      if (!btn) return;
+      document.querySelectorAll('.lap-time-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+
+    // Submit
+    document.getElementById('lap-submit')?.addEventListener('click', () => {
+      const name  = document.getElementById('lap-name')?.value.trim();
+      const phone = document.getElementById('lap-phone')?.value.trim();
+      const err   = document.getElementById('lap-error');
+
+      if (!name || !phone) {
+        err.textContent = 'Vui lòng nhập họ tên và số điện thoại.';
+        err.style.display = 'block';
+        return;
+      }
+      if (!/^(0|\+84)\d{9,10}$/.test(phone.replace(/\s/g, ''))) {
+        err.textContent = 'Số điện thoại không hợp lệ.';
+        err.style.display = 'block';
+        return;
+      }
+
+      err.style.display = 'none';
+      const footer = document.querySelector('.lap-footer');
+      const body   = document.querySelector('.lap-body');
+      const summ   = document.getElementById('lap-summary');
+      if (footer) footer.style.display = 'none';
+      if (body)   body.style.display   = 'none';
+      if (summ)   summ.style.display   = 'none';
+      document.getElementById('lap-success').style.display = 'flex';
+    });
+
+    // Reset
+    document.getElementById('lap-reset')?.addEventListener('click', () => {
+      const footer = document.querySelector('.lap-footer');
+      const body   = document.querySelector('.lap-body');
+      const summ   = document.getElementById('lap-summary');
+      if (footer) footer.style.display = '';
+      if (body)   body.style.display   = '';
+      if (summ)   summ.style.display   = '';
+      document.getElementById('lap-success').style.display = 'none';
+    });
+  });
 })();
 
 /* ============================================

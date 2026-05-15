@@ -1,0 +1,711 @@
+'use strict';
+// ——— ICON HELPER ————————————————————————————————
+const ICO = {
+  overview:   '<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',
+  home:       '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
+  leads:      '<rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/>',
+  navpanel:   '<rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/><path d="M14 4h7"/><path d="M14 9h7"/><path d="M14 15h7"/><path d="M14 20h7"/>',
+  globe:      '<circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
+  palette:    '<circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/>',
+  trending:   '<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>',
+  settings:   '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
+  calendar:   '<rect width="18" height="18" x="3" y="4" rx="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/>',
+  video:      '<polygon points="23 7 16 12 23 17 23 7"/><rect width="15" height="14" x="1" y="5" rx="2"/>',
+  save:       '<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>',
+  edit:       '<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>',
+  trash:      '<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/>',
+  download:   '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>',
+  upload:     '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/>',
+  refresh:    '<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>',
+  plus:       '<path d="M5 12h14"/><path d="M12 5v14"/>',
+  bell:       '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+  book:       '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+  eye:        '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
+  warning:    '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+  check:      '<path d="M20 6 9 17l-5-5"/>',
+  x:          '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  users:      '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  key:        '<circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/>',
+  ban:        '<circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/>',
+  mappin:     '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+  building:   '<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>',
+  hardhat:    '<path d="M2 18a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v2z"/><path d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5"/><path d="M4 15V7a8 8 0 0 1 16 0v8"/>',
+  armchair:   '<path d="M19 9V6a2 2 0 0 0-2-2H7a2 2 0 0 0-2 2v3"/><path d="M3 16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5a2 2 0 0 0-4 0v2H7v-2a2 2 0 0 0-4 0Z"/><path d="M5 18v2"/><path d="M19 18v2"/>',
+  image:      '<rect width="18" height="18" x="3" y="3" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>',
+  map:        '<polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" x2="9" y1="3" y2="18"/><line x1="15" x2="15" y1="6" y2="21"/>',
+  leaf:       '<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>',
+  info:       '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
+  phone:      '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 3.07 9.8a19.79 19.79 0 0 1-3.07-8.63A2 2 0 0 1 2 0h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L5.91 7.91a16 16 0 0 0 6.09 6.09l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 20 16z"/>',
+  link:       '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
+  plug:       '<path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8H6a2 2 0 0 0-2 2v2a8 8 0 0 0 8 8 8 8 0 0 0 8-8v-2a2 2 0 0 0-2-2z"/>',
+  harddrive:  '<line x1="22" x2="2" y1="12" y2="12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/><line x1="6" x2="6.01" y1="16" y2="16"/><line x1="10" x2="10.01" y1="16" y2="16"/>',
+  arrowleft:  '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>',
+  arrowup:    '<path d="m18 15-6-6-6 6"/>',
+  arrowupdown:'<path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/>',
+  grip:       '<circle cx="9" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="19" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="19" r="1" fill="currentColor" stroke="none"/>',
+};
+
+function ico(name, size=14) {
+  return `<svg class="ico" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0">${ICO[name]||''}</svg>`;
+}
+
+// ——— STATE ————————————————————————————————————
+const S = {
+  page: 'dashboard', data: null, leads: [],
+  charts: {}, calFilter: 'all',
+};
+
+// ——— LEAD STATUS ————————————————————————————————
+const LEAD_STATUS = { new:'Mới', called:'Đã gọi', interested:'Đang quan tâm', closed:'Đã chốt', stopped:'Không tiếp tục' };
+const LEAD_BADGE  = { new:'badge-info', called:'badge-warning', interested:'badge-primary', closed:'badge-ok', stopped:'badge-muted' };
+const SOURCE_BADGE = { 'VR Web':'badge-purple', Zalo:'badge-ok', Call:'badge-warning', 'Giới thiệu':'badge-info' };
+
+// ——— ACCESSORS ———————————————————————————————
+const units  = () => S.data?.floorplan?.units || [];
+const scenes = () => S.data?.scenes           || [];
+const proj   = () => S.data?.project          || {};
+const menu   = () => S.data?.menu             || {};
+
+// ——— LOAD DATA ————————————————————————————————
+async function loadData() {
+  try {
+    const r = await fetch('../data/project.json');
+    S.data = await r.json();
+  } catch {
+    S.data = { project:{}, menu:{}, scenes:[], floorplan:{units:[]} };
+  }
+  S.leads = getMockLeads();
+}
+
+function getMockLeads() {
+  return [
+    { id:1,  name:'Nguyễn Văn An',    phone:'0901234567', email:'an@gmail.com',    unitType:'3PN',        budget:'8–12 tỷ', purpose:'Ở thực',  timing:'Trong 3 tháng', source:'VR Web',      status:'new',        createdAt:'2026-05-15T08:30', assignee:'Sales A', notes:'',                       appt: null },
+    { id:2,  name:'Trần Thị Bích',    phone:'0912345678', email:'bich@gmail.com',  unitType:'2PN',        budget:'5–8 tỷ',  purpose:'Đầu tư',  timing:'Trong 6 tháng', source:'Zalo',        status:'called',     createdAt:'2026-05-14T14:00', assignee:'Sales B', notes:'Đã gọi lần 1',           appt: '2026-05-20T10:00' },
+    { id:3,  name:'Lê Minh Cường',    phone:'0923456789', email:'',               unitType:'Duplex 3PN', budget:'> 12 tỷ', purpose:'Ở thực',  timing:'Trong 1 tháng', source:'Giới thiệu',  status:'interested', createdAt:'2026-05-13T10:15', assignee:'Sales A', notes:'Khách VIP',              appt: '2026-05-17T14:30' },
+    { id:4,  name:'Phạm Thu Dung',    phone:'0934567890', email:'dung@mail.vn',   unitType:'3PN',        budget:'8–12 tỷ', purpose:'Cho thuê', timing:'Hơn 6 tháng', source:'Call',         status:'closed',     createdAt:'2026-05-12T16:00', assignee:'Sales C', notes:'Đã chốt căn A-3BR-104-35', appt: null },
+    { id:5,  name:'Hoàng Đức Em',     phone:'0945678901', email:'em@mail.com',    unitType:'2PN',        budget:'< 5 tỷ',  purpose:'Đầu tư',  timing:'Hơn 6 tháng', source:'VR Web',       status:'stopped',    createdAt:'2026-05-11T09:00', assignee:'Sales B', notes:'Không phù hợp ngân sách', appt: null },
+    { id:6,  name:'Vũ Thị Giang',     phone:'0956789012', email:'giang@vn.vn',   unitType:'3PN',        budget:'8–12 tỷ', purpose:'Ở thực',  timing:'Trong 3 tháng', source:'VR Web',       status:'new',        createdAt:'2026-05-15T10:00', assignee:'',       notes:'',                       appt: '2026-05-22T09:00' },
+    { id:7,  name:'Đoàn Quốc Hùng',   phone:'0967890123', email:'hung@corp.vn',  unitType:'2PN',        budget:'5–8 tỷ',  purpose:'Đầu tư',  timing:'Trong 3 tháng', source:'Giới thiệu',  status:'interested', createdAt:'2026-05-10T11:00', assignee:'Sales A', notes:'Cần xem căn mẫu',         appt: '2026-05-19T15:00' },
+    { id:8,  name:'Ngô Thanh Liêm',   phone:'0978901234', email:'liem@mail.com', unitType:'3PN',        budget:'8–12 tỷ', purpose:'Ở thực',  timing:'Trong 1 tháng', source:'Call',         status:'called',     createdAt:'2026-05-09T13:00', assignee:'Sales C', notes:'',                       appt: null },
+  ];
+}
+
+// ——— ROUTER ———————————————————————————————————
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadData();
+  document.querySelectorAll('.nav-item[data-p]').forEach(el => {
+    el.addEventListener('click', () => nav(el.dataset.p));
+  });
+  nav('dashboard');
+});
+
+function nav(page) {
+  S.page = page;
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.p === page));
+  document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+  const el = document.getElementById('p-' + page);
+  if (el) { el.classList.add('active'); render(page, el); }
+}
+
+function render(page, el) {
+  const map = {
+    dashboard: renderDashboard,
+    leads:     renderLeads,
+    calendar:  renderCalendar,
+    units:     renderUnits,
+    vr:        renderVR,
+  };
+  if (map[page]) map[page](el);
+}
+
+// ——— DASHBOARD ————————————————————————————————
+function renderDashboard(el) {
+  const total    = S.leads.length;
+  const newL     = S.leads.filter(l => l.status === 'new').length;
+  const hotL     = S.leads.filter(l => l.status === 'interested').length;
+  const closedL  = S.leads.filter(l => l.status === 'closed').length;
+  const todayStr = new Date().toISOString().slice(0,10);
+  const appts    = S.leads.filter(l => l.appt && l.appt.startsWith(todayStr));
+  const upcomingAppts = S.leads.filter(l => l.appt && l.appt > new Date().toISOString()).sort((a,b) => a.appt.localeCompare(b.appt)).slice(0,5);
+  const closedPct = total ? Math.round(closedL/total*100) : 0;
+
+  el.innerHTML = `
+    <div class="ph">
+      <div class="ph-left">
+        <div class="breadcrumb"><span>Sales</span> / Dashboard</div>
+        <h1>Dashboard Sales</h1>
+      </div>
+      <div class="ph-right" style="font-size:13px;color:var(--muted)">${new Date().toLocaleDateString('vi-VN',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>
+    </div>
+
+    <div class="stat-row" style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
+      ${statCard(ico('leads',22), 'Tổng Leads', total, '', 'primary')}
+      ${statCard(ico('bell',22), 'Mới hôm nay', newL, 'chờ xử lý', 'info')}
+      ${statCard(ico('trending',22), 'Đang quan tâm', hotL, 'cần follow-up', 'warn')}
+      ${statCard(ico('check',22), 'Đã chốt', closedL, `tỷ lệ ${closedPct}%`, 'ok')}
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="card">
+        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
+          <div class="card-title">${ico('calendar',14)} Lịch hẹn hôm nay</div>
+          <span class="badge ${appts.length ? 'badge-primary' : 'badge-muted'}">${appts.length} cuộc</span>
+        </div>
+        ${appts.length === 0
+          ? `<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px">Không có lịch hẹn hôm nay</div>`
+          : `<div style="display:flex;flex-direction:column;gap:8px">
+              ${appts.map(l => `
+                <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg);border-radius:var(--r)">
+                  <div class="avatar" style="width:36px;height:36px;font-size:13px;flex-shrink:0">${l.name.charAt(0)}</div>
+                  <div style="flex:1;min-width:0">
+                    <div style="font-weight:600;font-size:13px">${l.name}</div>
+                    <div style="font-size:12px;color:var(--muted)">${l.phone} · ${l.unitType}</div>
+                  </div>
+                  <div class="mono" style="font-size:12px;color:var(--primary);font-weight:600">${l.appt ? l.appt.slice(11,16) : ''}</div>
+                </div>
+              `).join('')}
+            </div>`
+        }
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">${ico('calendar',14)} Lịch hẹn sắp tới</div>
+        </div>
+        ${upcomingAppts.length === 0
+          ? `<div style="text-align:center;padding:32px;color:var(--muted);font-size:13px">Không có lịch hẹn</div>`
+          : `<div style="display:flex;flex-direction:column;gap:6px">
+              ${upcomingAppts.map(l => {
+                const d = new Date(l.appt);
+                return `
+                  <div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg);border-radius:var(--r)">
+                    <div style="min-width:52px;text-align:center;background:#fff;border:1px solid var(--border);border-radius:8px;padding:4px;flex-shrink:0">
+                      <div style="font-size:10px;color:var(--muted)">${d.toLocaleDateString('vi-VN',{month:'short'})}</div>
+                      <div style="font-size:18px;font-weight:700;color:var(--primary);line-height:1">${d.getDate()}</div>
+                    </div>
+                    <div style="flex:1;min-width:0">
+                      <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.name}</div>
+                      <div style="font-size:11px;color:var(--muted)">${l.unitType} · ${d.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})}</div>
+                    </div>
+                    <span class="badge ${LEAD_BADGE[l.status]}">${LEAD_STATUS[l.status]}</span>
+                  </div>
+                `;
+              }).join('')}
+            </div>`
+        }
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <div class="card-header">
+        <div class="card-title">${ico('overview',14)} Phân bổ leads theo trạng thái</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        ${Object.entries(LEAD_STATUS).map(([k, label]) => {
+          const cnt = S.leads.filter(l => l.status === k).length;
+          const pct = total ? Math.round(cnt/total*100) : 0;
+          return `
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="width:120px;font-size:13px;color:var(--text)">${label}</div>
+              <div style="flex:1;background:var(--bg);border-radius:4px;height:8px;overflow:hidden">
+                <div style="height:100%;border-radius:4px;background:var(--primary);width:${pct}%;transition:width .4s"></div>
+              </div>
+              <div style="width:60px;text-align:right;font-size:12px;color:var(--muted)">${cnt} (${pct}%)</div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function statCard(icon, label, val, sub, type) {
+  const colors = { primary:'#3b82f6', info:'#06b6d4', warn:'#f59e0b', ok:'#10b981' };
+  const c = colors[type] || colors.primary;
+  return `
+    <div class="card" style="padding:20px 24px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between">
+        <div>
+          <div style="font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">${label}</div>
+          <div style="font-size:32px;font-weight:700;color:var(--text)">${val}</div>
+          ${sub ? `<div style="font-size:11px;color:var(--muted);margin-top:4px">${sub}</div>` : ''}
+        </div>
+        <div style="font-size:24px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:${c}18;border-radius:12px">${icon}</div>
+      </div>
+    </div>
+  `;
+}
+
+// ——— LEADS ————————————————————————————————————
+let lf = { search:'', status:'', source:'' };
+
+function filteredLeads() {
+  return S.leads.filter(l => {
+    const q = lf.search.toLowerCase();
+    const matchQ = !q || l.name.toLowerCase().includes(q) || l.phone.includes(q) || (l.email||'').toLowerCase().includes(q);
+    const matchS = !lf.status || l.status === lf.status;
+    const matchSrc = !lf.source || l.source === lf.source;
+    return matchQ && matchS && matchSrc;
+  });
+}
+
+function renderLeads(el) {
+  const ls = filteredLeads();
+  el.innerHTML = `
+    <div class="ph">
+      <div class="ph-left"><div class="breadcrumb"><span>Sales</span> / Leads</div><h1>Leads & Booking</h1></div>
+      <div class="ph-right">
+        <button class="btn btn-primary btn-sm" onclick="openAddLeadPanel()">${ico('plus')} Thêm lead</button>
+        <button class="btn btn-secondary btn-sm" onclick="toast('Đang xuất Excel…','info')">${ico('download')} Excel</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="filter-bar">
+        <input class="fi" style="min-width:200px" placeholder="Tên, SĐT, email…" value="${lf.search}" oninput="lf.search=this.value;reloadLeadsTbody()">
+        <select class="fi fi-select" onchange="lf.status=this.value;reloadLeadsTbody()">
+          <option value="">Tất cả trạng thái</option>
+          ${Object.entries(LEAD_STATUS).map(([k,v])=>`<option value="${k}" ${lf.status===k?'selected':''}>${v}</option>`).join('')}
+        </select>
+        <select class="fi fi-select" onchange="lf.source=this.value;reloadLeadsTbody()">
+          <option value="">Tất cả nguồn</option>
+          ${['VR Web','Zalo','Call','Giới thiệu'].map(s=>`<option ${lf.source===s?'selected':''}>${s}</option>`).join('')}
+        </select>
+        <div class="filter-spacer"></div>
+        <span class="c-muted" style="font-size:12px" id="l-count">${ls.length} leads</span>
+      </div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr>
+            <th style="width:32px">#</th>
+            <th>Họ tên</th><th>SĐT</th><th>Loại căn</th><th>Ngân sách</th>
+            <th>Nguồn</th><th>Trạng thái</th><th>Lịch hẹn</th><th>Thao tác</th>
+          </tr></thead>
+          <tbody id="leads-tbody">${ls.map(leadRow).join('')}</tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function leadRow(l, i) {
+  const apptDisplay = l.appt ? `<span class="mono" style="font-size:11px;color:var(--primary)">${new Date(l.appt).toLocaleDateString('vi-VN')} ${new Date(l.appt).toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})}</span>` : '<span style="color:var(--muted)">—</span>';
+  return `<tr>
+    <td class="c-muted">${i+1}</td>
+    <td class="fw6">${l.name}</td>
+    <td><a href="tel:${l.phone}" class="c-primary mono">${l.phone}</a></td>
+    <td>${l.unitType||'—'}</td>
+    <td>${l.budget||'—'}</td>
+    <td><span class="badge ${SOURCE_BADGE[l.source]||'badge-muted'}">${l.source}</span></td>
+    <td><span class="badge ${LEAD_BADGE[l.status]||'badge-muted'}">${LEAD_STATUS[l.status]||l.status}</span></td>
+    <td>${apptDisplay}</td>
+    <td>
+      <button class="act-btn" onclick="openEditLeadPanel(${l.id})" title="Sửa">${ico('edit')}</button>
+      <button class="act-btn" onclick="quickStatus(${l.id})" title="Cập nhật trạng thái">${ico('refresh')}</button>
+      <button class="act-btn" onclick="openApptPanel(${l.id})" title="Đặt lịch hẹn">${ico('calendar')}</button>
+    </td>
+  </tr>`;
+}
+
+function reloadLeadsTbody() {
+  const ls = filteredLeads();
+  const tbody = document.getElementById('leads-tbody');
+  if (tbody) tbody.innerHTML = ls.map(leadRow).join('');
+  const cnt = document.getElementById('l-count');
+  if (cnt) cnt.textContent = ls.length + ' leads';
+}
+
+function openAddLeadPanel() {
+  showPanel('Thêm Lead Mới', `
+    <div class="form-group">
+      <label class="form-label">Họ và tên <span class="req">*</span></label>
+      <input class="form-control" id="nl-name" placeholder="Nguyễn Văn A">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Số điện thoại <span class="req">*</span></label>
+      <input class="form-control mono" id="nl-phone" placeholder="09xx xxx xxx">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input class="form-control" id="nl-email" type="email" placeholder="example@mail.com">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Loại căn quan tâm</label>
+      <select class="form-control form-select" id="nl-type">
+        <option value="">— Chưa xác định —</option>
+        <option>1PN</option><option>2PN</option><option>3PN</option><option>Duplex 3PN</option><option>Penthouse</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Ngân sách</label>
+      <select class="form-control form-select" id="nl-budget">
+        <option value="">— Chưa xác định —</option>
+        <option>< 5 tỷ</option><option>5–8 tỷ</option><option>8–12 tỷ</option><option>> 12 tỷ</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Mục đích</label>
+      <select class="form-control form-select" id="nl-purpose">
+        <option value="">— Chưa xác định —</option>
+        <option>Ở thực</option><option>Đầu tư</option><option>Cho thuê</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nguồn lead</label>
+      <select class="form-control form-select" id="nl-source">
+        <option>VR Web</option><option>Zalo</option><option>Call</option><option>Giới thiệu</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Ghi chú</label>
+      <textarea class="form-control" id="nl-notes" rows="3" placeholder="Ghi chú thêm…"></textarea>
+    </div>
+  `, () => {
+    const name  = document.getElementById('nl-name').value.trim();
+    const phone = document.getElementById('nl-phone').value.trim();
+    if (!name)  { toast('Nhập họ tên', 'warn'); return; }
+    if (!phone) { toast('Nhập số điện thoại', 'warn'); return; }
+    S.leads.unshift({
+      id: Date.now(), name, phone,
+      email:   document.getElementById('nl-email').value.trim(),
+      unitType: document.getElementById('nl-type').value,
+      budget:   document.getElementById('nl-budget').value,
+      purpose:  document.getElementById('nl-purpose').value,
+      source:   document.getElementById('nl-source').value,
+      notes:    document.getElementById('nl-notes').value.trim(),
+      status: 'new', createdAt: new Date().toISOString(), assignee: '', appt: null,
+    });
+    closePanel();
+    render('leads', document.getElementById('p-leads'));
+    toast('Đã thêm lead mới', 'ok');
+  });
+}
+
+function openEditLeadPanel(id) {
+  const lead = S.leads.find(l => l.id === id); if (!lead) return;
+  showPanel('Chỉnh Sửa Lead', `
+    <div class="form-group">
+      <label class="form-label">Họ và tên <span class="req">*</span></label>
+      <input class="form-control" id="el-name" value="${lead.name}">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Số điện thoại</label>
+      <input class="form-control mono" id="el-phone" value="${lead.phone}">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input class="form-control" id="el-email" value="${lead.email||''}">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Loại căn quan tâm</label>
+      <select class="form-control form-select" id="el-type">
+        <option value="">— Chưa xác định —</option>
+        ${['1PN','2PN','3PN','Duplex 3PN','Penthouse'].map(t=>`<option ${lead.unitType===t?'selected':''}>${t}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Trạng thái</label>
+      <select class="form-control form-select" id="el-status">
+        ${Object.entries(LEAD_STATUS).map(([k,v])=>`<option value="${k}" ${lead.status===k?'selected':''}>${v}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Ghi chú</label>
+      <textarea class="form-control" id="el-notes" rows="3">${lead.notes||''}</textarea>
+    </div>
+  `, () => {
+    const idx = S.leads.findIndex(l => l.id === id);
+    if (idx < 0) return;
+    S.leads[idx] = { ...lead,
+      name:     document.getElementById('el-name').value.trim() || lead.name,
+      phone:    document.getElementById('el-phone').value.trim() || lead.phone,
+      email:    document.getElementById('el-email').value.trim(),
+      unitType: document.getElementById('el-type').value,
+      status:   document.getElementById('el-status').value,
+      notes:    document.getElementById('el-notes').value.trim(),
+    };
+    closePanel();
+    render('leads', document.getElementById('p-leads'));
+    toast('Đã cập nhật lead', 'ok');
+  });
+}
+
+const STATUS_CYCLE = ['new','called','interested','closed','stopped'];
+function quickStatus(id) {
+  const lead = S.leads.find(l => l.id === id); if (!lead) return;
+  const idx = STATUS_CYCLE.indexOf(lead.status);
+  lead.status = STATUS_CYCLE[(idx + 1) % STATUS_CYCLE.length];
+  reloadLeadsTbody();
+  toast(`Cập nhật: ${LEAD_STATUS[lead.status]}`, 'ok');
+}
+
+function openApptPanel(id) {
+  const lead = S.leads.find(l => l.id === id); if (!lead) return;
+  const current = lead.appt ? lead.appt.slice(0,16) : '';
+  showPanel(`Đặt Lịch Hẹn — ${lead.name}`, `
+    <div style="padding:12px;background:var(--bg);border-radius:var(--r);margin-bottom:16px">
+      <div style="font-size:12px;color:var(--muted)">Khách hàng</div>
+      <div style="font-weight:600">${lead.name}</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:2px">${lead.phone} · ${lead.unitType||'Chưa chọn căn'}</div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Ngày & Giờ hẹn</label>
+      <input class="form-control" id="ap-dt" type="datetime-local" value="${current}">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Ghi chú lịch hẹn</label>
+      <textarea class="form-control" id="ap-note" rows="3" placeholder="Địa điểm, nội dung buổi gặp…">${lead.notes||''}</textarea>
+    </div>
+    ${current ? `<button class="btn btn-secondary btn-sm" onclick="clearAppt(${id})" style="margin-bottom:8px">${ico('trash')} Xoá lịch hẹn</button>` : ''}
+  `, () => {
+    const dt   = document.getElementById('ap-dt').value;
+    const note = document.getElementById('ap-note').value.trim();
+    if (!dt) { toast('Chọn ngày giờ hẹn', 'warn'); return; }
+    const idx = S.leads.findIndex(l => l.id === id);
+    S.leads[idx] = { ...lead, appt: dt, notes: note || lead.notes };
+    if (lead.status === 'new' || lead.status === 'called') S.leads[idx].status = 'called';
+    closePanel();
+    render('leads', document.getElementById('p-leads'));
+    toast('Đã đặt lịch hẹn', 'ok');
+  });
+}
+
+function clearAppt(id) {
+  const idx = S.leads.findIndex(l => l.id === id);
+  if (idx < 0) return;
+  S.leads[idx].appt = null;
+  closePanel();
+  render('leads', document.getElementById('p-leads'));
+  toast('Đã xoá lịch hẹn', 'ok');
+}
+
+// ——— CALENDAR ————————————————————————————————
+function renderCalendar(el) {
+  const all    = S.leads.filter(l => l.appt);
+  const today  = new Date().toISOString().slice(0,10);
+  const week   = (() => { const d = new Date(); d.setDate(d.getDate()+7); return d.toISOString().slice(0,10); })();
+  const filter = S.calFilter;
+  let list = all;
+  if (filter === 'today') list = all.filter(l => l.appt.startsWith(today));
+  if (filter === 'week')  list = all.filter(l => l.appt.slice(0,10) >= today && l.appt.slice(0,10) <= week);
+  list = [...list].sort((a,b) => a.appt.localeCompare(b.appt));
+
+  el.innerHTML = `
+    <div class="ph">
+      <div class="ph-left"><div class="breadcrumb"><span>Sales</span> / Lịch Hẹn</div><h1>Lịch Hẹn</h1></div>
+      <div class="ph-right">
+        <button class="btn ${filter==='all'?'btn-primary':'btn-secondary'} btn-sm" onclick="S.calFilter='all';nav('calendar')">Tất cả</button>
+        <button class="btn ${filter==='today'?'btn-primary':'btn-secondary'} btn-sm" onclick="S.calFilter='today';nav('calendar')">Hôm nay</button>
+        <button class="btn ${filter==='week'?'btn-primary':'btn-secondary'} btn-sm" onclick="S.calFilter='week';nav('calendar')">7 ngày tới</button>
+        <button class="btn btn-primary btn-sm" onclick="nav('leads')">+ Đặt lịch mới</button>
+      </div>
+    </div>
+    <div class="card">
+      ${list.length === 0
+        ? `<div style="text-align:center;padding:64px;color:var(--muted)">
+            <div style="font-size:40px;margin-bottom:12px;display:flex;justify-content:center">${ico('calendar',40)}</div>
+            <div style="font-size:15px;font-weight:600">Không có lịch hẹn</div>
+            <div style="font-size:13px;margin-top:4px">Thêm lịch hẹn từ trang Leads</div>
+          </div>`
+        : `<div style="display:flex;flex-direction:column;gap:10px">
+            ${list.map(l => {
+              const d = new Date(l.appt);
+              const isToday = l.appt.startsWith(today);
+              return `
+                <div style="display:flex;align-items:center;gap:16px;padding:14px 16px;background:var(--bg);border-radius:var(--r);border-left:3px solid ${isToday ? 'var(--primary)' : 'var(--border)'}">
+                  <div style="min-width:60px;text-align:center;background:#fff;border:1px solid var(--border);border-radius:10px;padding:6px;flex-shrink:0">
+                    <div style="font-size:10px;color:var(--muted);text-transform:uppercase">${d.toLocaleDateString('vi-VN',{month:'short'})}</div>
+                    <div style="font-size:22px;font-weight:700;color:var(--primary);line-height:1">${d.getDate()}</div>
+                    <div style="font-size:10px;color:var(--muted)">${d.toLocaleDateString('vi-VN',{weekday:'short'})}</div>
+                  </div>
+                  <div style="flex:1;min-width:0">
+                    <div style="font-weight:600;font-size:14px">${l.name}</div>
+                    <div style="font-size:12px;color:var(--muted);margin-top:2px">${l.phone} · ${l.unitType||'Chưa chọn căn'} · ${l.budget||''}</div>
+                    ${l.notes ? `<div style="font-size:12px;color:var(--text);margin-top:4px;font-style:italic">"${l.notes}"</div>` : ''}
+                  </div>
+                  <div style="text-align:right;flex-shrink:0">
+                    <div class="mono" style="font-size:18px;font-weight:700;color:var(--primary)">${d.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})}</div>
+                    <span class="badge ${LEAD_BADGE[l.status]}" style="margin-top:4px">${LEAD_STATUS[l.status]}</span>
+                  </div>
+                  <button class="act-btn" onclick="openApptPanel(${l.id})" title="Chỉnh sửa">${ico('edit')}</button>
+                </div>
+              `;
+            }).join('')}
+          </div>`
+      }
+    </div>
+  `;
+}
+
+// ——— UNITS (Read-only) ————————————————————————
+const UNIT_STATUS_BADGE = { available:'badge-ok', booked:'badge-warning', sold:'badge-info' };
+const UNIT_STATUS_LABEL = { available:'Còn hàng', booked:'Đã đặt cọc', sold:'Đã bán' };
+
+let uf = { search:'', type:'', status:'' };
+
+function renderUnits(el) {
+  const us = filteredUnits();
+  const avail = units().filter(u => u.status === 'available').length;
+  const booked = units().filter(u => u.status === 'booked').length;
+  const sold = units().filter(u => u.status === 'sold').length;
+
+  el.innerHTML = `
+    <div class="ph">
+      <div class="ph-left"><div class="breadcrumb"><span>Sales</span> / Căn Hộ</div><h1>Tình Trạng Căn Hộ</h1></div>
+      <div class="ph-right" style="gap:8px;display:flex;align-items:center">
+        <span class="badge badge-ok">${avail} Còn hàng</span>
+        <span class="badge badge-warning">${booked} Đặt cọc</span>
+        <span class="badge badge-info">${sold} Đã bán</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="filter-bar">
+        <input class="fi" style="min-width:180px" placeholder="Mã căn, tầng…" value="${uf.search}" oninput="uf.search=this.value;reloadUnitsTbody()">
+        <select class="fi fi-select" onchange="uf.type=this.value;reloadUnitsTbody()">
+          <option value="">Tất cả loại</option>
+          ${[...new Set(units().map(u=>u.type))].map(t=>`<option ${uf.type===t?'selected':''}>${t}</option>`).join('')}
+        </select>
+        <select class="fi fi-select" onchange="uf.status=this.value;reloadUnitsTbody()">
+          <option value="">Tất cả tình trạng</option>
+          ${Object.entries(UNIT_STATUS_LABEL).map(([k,v])=>`<option value="${k}" ${uf.status===k?'selected':''}>${v}</option>`).join('')}
+        </select>
+        <div class="filter-spacer"></div>
+        <span class="c-muted" style="font-size:12px" id="u-count">${us.length} căn</span>
+      </div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr><th>Mã căn</th><th>Loại</th><th>Tầng</th><th>DT (m²)</th><th>Hướng</th><th>Giá</th><th>Tình trạng</th></tr></thead>
+          <tbody id="units-tbody">${us.map(unitRow).join('')}</tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px;padding:12px 16px;background:rgba(59,130,246,.05);border:1px solid rgba(59,130,246,.15)">
+      <div style="font-size:12px;color:var(--primary);font-weight:600;display:flex;align-items:center;gap:4px">${ico('info',12)} Chú ý</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:2px">Sales chỉ xem thông tin căn hộ. Để cập nhật giá hoặc tình trạng, liên hệ quản trị viên (Chủ Đầu Tư).</div>
+    </div>
+  `;
+}
+
+function filteredUnits() {
+  return units().filter(u => {
+    const q = uf.search.toLowerCase();
+    const matchQ = !q || u.code.toLowerCase().includes(q) || String(u.floor).includes(q);
+    const matchT = !uf.type || u.type === uf.type;
+    const matchS = !uf.status || u.status === uf.status;
+    return matchQ && matchT && matchS;
+  });
+}
+
+function unitRow(u) {
+  return `<tr>
+    <td class="fw6 mono">${u.code}</td>
+    <td>${u.type}</td>
+    <td>${u.floor}</td>
+    <td>${u.area}</td>
+    <td>${u.direction}</td>
+    <td class="fw6">${u.price}</td>
+    <td><span class="badge ${UNIT_STATUS_BADGE[u.status]||'badge-muted'}">${UNIT_STATUS_LABEL[u.status]||u.status}</span></td>
+  </tr>`;
+}
+
+function reloadUnitsTbody() {
+  const us = filteredUnits();
+  const tbody = document.getElementById('units-tbody');
+  if (tbody) tbody.innerHTML = us.map(unitRow).join('');
+  const cnt = document.getElementById('u-count');
+  if (cnt) cnt.textContent = us.length + ' căn';
+}
+
+// ——— VR TOUR ————————————————————————————————
+const GROUP_META = {
+  tongQuan:        { label: 'Tổng Quan',          icon: 'building' },
+  tienIchNoiKhu:   { label: 'Tiện Ích Nội Khu',   icon: 'leaf' },
+  tienIchNgoaiKhu: { label: 'Tiện Ích Ngoại Khu', icon: 'mappin' },
+  matBangTang:     { label: 'Mặt Bằng / Tòa',     icon: 'hardhat' },
+  view360Can:      { label: 'View 360° Căn Hộ',   icon: 'armchair' },
+};
+
+function vrLink(sceneId) {
+  if (!sceneId) return '../index.html';
+  return `../index.html?scene=${sceneId}`;
+}
+
+function renderVR(el) {
+  const m = menu();
+  const groups = Object.entries(GROUP_META).filter(([k]) => m[k] && m[k].length > 0);
+  el.innerHTML = `
+    <div class="ph">
+      <div class="ph-left"><div class="breadcrumb"><span>Sales</span> / Tour VR360</div><h1>Tour VR360</h1></div>
+      <div class="ph-right">
+        <a href="../index.html" target="_blank" class="btn btn-primary btn-sm">${ico('video')} Mở VR Tour</a>
+      </div>
+    </div>
+    <div class="ph-sub" style="font-size:13px;color:var(--muted);margin-bottom:16px">Dùng các link bên dưới để gửi cho khách hàng hoặc mở trực tiếp trong buổi tư vấn.</div>
+    ${groups.length === 0
+      ? `<div class="card" style="text-align:center;padding:64px;color:var(--muted)"><div style="font-size:40px;display:flex;justify-content:center">${ico('video',40)}</div><div style="margin-top:12px">Chưa có dữ liệu VR tour</div></div>`
+      : groups.map(([key, meta]) => {
+          const items = m[key] || [];
+          return `
+            <div class="card" style="margin-bottom:16px">
+              <div class="card-header" style="padding-bottom:12px">
+                <div class="card-title">${ico(meta.icon, 14)} ${meta.label}</div>
+                <span class="badge badge-muted">${items.length} điểm</span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                ${items.map(item => {
+                  const sc = scenes().find(s => s.id === item.sceneId);
+                  const link = item.customLink || (item.sceneId ? vrLink(item.sceneId) : null);
+                  return `
+                    <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--bg);border-radius:var(--r)">
+                      <div style="width:36px;text-align:center;display:flex;align-items:center;justify-content:center">${sc ? ico('video',20) : ico('mappin',20)}</div>
+                      <div style="flex:1;min-width:0">
+                        <div style="font-weight:600;font-size:13px">${item.label}</div>
+                        ${link ? `<div class="mono" style="font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${link}</div>` : `<div style="font-size:11px;color:var(--warn);display:flex;align-items:center;gap:4px">${ico('warning',11)} Chưa có link</div>`}
+                      </div>
+                      ${link
+                        ? `<a href="${link}" target="_blank" class="btn btn-secondary btn-sm" style="flex-shrink:0">${ico('video')} Mở</a>`
+                        : `<span class="badge badge-warning" style="flex-shrink:0">Chưa có link</span>`
+                      }
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+          `;
+        }).join('')
+    }
+  `;
+}
+
+// ——— UI HELPERS ———————————————————————————————
+function showPanel(title, bodyHTML, onSave) {
+  document.getElementById('sp-title').textContent = title;
+  document.getElementById('sp-body').innerHTML = bodyHTML;
+  const btn = document.getElementById('sp-save');
+  btn.onclick = onSave || null;
+  document.getElementById('sp').classList.add('open');
+  document.getElementById('sp-backdrop').classList.add('show');
+}
+function closePanel() {
+  document.getElementById('sp').classList.remove('open');
+  document.getElementById('sp-backdrop').classList.remove('show');
+}
+document.getElementById('sp-backdrop')?.addEventListener('click', closePanel);
+
+function confirmDel(title, sub, cb) {
+  document.getElementById('cm-title').textContent = title;
+  document.getElementById('cm-sub').textContent = sub || '';
+  document.getElementById('cm-ok').onclick = () => { closeConfirm(); cb(); };
+  document.getElementById('cm-back').classList.add('show');
+}
+function closeConfirm() { document.getElementById('cm-back').classList.remove('show'); }
+document.getElementById('cm-back')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeConfirm(); });
+
+function toast(msg, type = 'ok') {
+  const wrap = document.getElementById('toast-wrap');
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.textContent = msg;
+  wrap.appendChild(t);
+  setTimeout(() => t.classList.add('show'), 10);
+  setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 3000);
+}

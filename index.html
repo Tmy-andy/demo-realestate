@@ -782,6 +782,103 @@
   </div>
 </div>
 
+<!-- ============ LOAN CONSULTATION APPOINTMENT MODAL ============ -->
+<div class="modal-backdrop" id="loan-appt-backdrop">
+  <div class="loan-appt-modal">
+    <button class="modal-close" id="loan-appt-close">×</button>
+
+    <div class="lap-header">
+      <div class="lap-eyebrow">Tư vấn tài chính</div>
+      <h2>Đặt lịch tư vấn vay vốn</h2>
+      <p>Chuyên viên ngân hàng sẽ liên hệ và tư vấn phương án tài chính tối ưu cho bạn.</p>
+    </div>
+
+    <!-- Loan summary (populated by JS) -->
+    <div class="lap-summary" id="lap-summary"></div>
+
+    <div class="lap-body">
+      <!-- LEFT: Yêu cầu tư vấn -->
+      <div class="lap-col">
+        <div class="lap-col-title">Yêu cầu tư vấn</div>
+        <div class="lap-needs-group" id="lap-needs-group">
+          <label class="lap-check-item">
+            <input type="checkbox" name="lap-need" value="rate" checked />
+            So sánh lãi suất giữa các ngân hàng
+          </label>
+          <label class="lap-check-item">
+            <input type="checkbox" name="lap-need" value="plan" checked />
+            Lập kế hoạch trả nợ cụ thể
+          </label>
+          <label class="lap-check-item">
+            <input type="checkbox" name="lap-need" value="docs" />
+            Hồ sơ vay &amp; điều kiện phê duyệt
+          </label>
+          <label class="lap-check-item">
+            <input type="checkbox" name="lap-need" value="subsidy" />
+            Gói lãi suất ưu đãi / hỗ trợ lãi suất
+          </label>
+          <label class="lap-check-item">
+            <input type="checkbox" name="lap-need" value="early" />
+            Chính sách trả trước hạn
+          </label>
+        </div>
+        <div class="lap-field">
+          <label>Ghi chú thêm <span class="opt">(tuỳ chọn)</span></label>
+          <textarea id="lap-note" rows="3" placeholder="Ví dụ: tôi muốn ưu tiên ngân hàng lãi suất cố định, hoặc có câu hỏi cụ thể…"></textarea>
+        </div>
+      </div>
+
+      <!-- RIGHT: Thông tin liên hệ & đặt lịch -->
+      <div class="lap-col">
+        <div class="lap-col-title">Thông tin liên hệ &amp; đặt lịch</div>
+        <div class="lap-field">
+          <label>Họ &amp; tên <span class="req">*</span></label>
+          <input type="text" id="lap-name" placeholder="Nguyễn Văn A" />
+        </div>
+        <div class="lap-field">
+          <label>Số điện thoại <span class="req">*</span></label>
+          <input type="tel" id="lap-phone" placeholder="09xx xxx xxx" />
+        </div>
+        <div class="lap-field">
+          <label>Thời gian mong muốn</label>
+          <div class="lap-time-btns" id="lap-time-btns">
+            <button type="button" class="lap-time-btn" data-val="morning-weekend">Sáng cuối tuần</button>
+            <button type="button" class="lap-time-btn" data-val="afternoon-weekend">Chiều cuối tuần</button>
+            <button type="button" class="lap-time-btn" data-val="morning-weekday">Sáng trong tuần</button>
+            <button type="button" class="lap-time-btn" data-val="afternoon-weekday">Chiều trong tuần</button>
+            <button type="button" class="lap-time-btn active" data-val="flexible">Linh hoạt</button>
+          </div>
+        </div>
+        <div class="lap-field">
+          <label>Ngày cụ thể <span class="opt">(nếu có)</span></label>
+          <input type="date" id="lap-date" />
+        </div>
+      </div>
+    </div>
+
+    <div class="lap-footer">
+      <div class="cf-error" id="lap-error" style="display:none"></div>
+      <button class="lap-submit-btn" id="lap-submit">Xác nhận đặt lịch tư vấn</button>
+    </div>
+
+    <!-- Success state -->
+    <div class="form-success lap-success" id="lap-success" style="display:none">
+      <div class="form-success-icon">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>
+      </div>
+      <div class="form-success-title">Đặt lịch thành công!</div>
+      <div class="form-success-sub">Chuyên viên sẽ liên hệ xác nhận lịch trong <strong>vòng 30 phút</strong> giờ làm việc.</div>
+      <div class="form-success-actions">
+        <a class="form-suc-btn form-suc-primary" href="https://zalo.me/0901234567" target="_blank" rel="noopener">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><text y="18" font-size="14" font-weight="bold">Z</text></svg>
+          Chat Zalo ngay
+        </a>
+        <button class="form-suc-btn form-suc-secondary" id="lap-reset">Đặt lịch khác</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ============ TIMELINE / PROGRESS OVERLAY ============ -->
 <div class="adv-overlay" id="timeline-overlay">
   <div class="adv-frame timeline-frame">
