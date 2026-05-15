@@ -52,13 +52,127 @@ function ico(name, size=14) {
 // ——— STATE ————————————————————————————————————
 const S = {
   page: 'dashboard', data: null, leads: [],
-  charts: {}, calFilter: 'all',
+  charts: {}, calFilter: 'all', calView: 'list', weekStart: null,
 };
 
 // ——— LEAD STATUS ————————————————————————————————
 const LEAD_STATUS = { new:'Mới', called:'Đã gọi', interested:'Đang quan tâm', closed:'Đã chốt', stopped:'Không tiếp tục' };
 const LEAD_BADGE  = { new:'badge-info', called:'badge-warning', interested:'badge-primary', closed:'badge-ok', stopped:'badge-muted' };
-const SOURCE_BADGE = { 'VR Web':'badge-purple', Zalo:'badge-ok', Call:'badge-warning', 'Giới thiệu':'badge-info' };
+// Nguồn lead — gom theo nhóm để hiển thị optgroup
+const SOURCE_GROUPS = {
+  'Website / VR':       ['VR Web','Live Chat website'],
+  'Quảng cáo trả phí':  ['Google Ads','Facebook Ads','Zalo Ads'],
+  'Mạng xã hội':        ['Facebook','TikTok','YouTube','Instagram'],
+  'Sàn BĐS / Portal':   ['Batdongsan.com.vn','Chợ Tốt Nhà','Mogi','Alonhadat','Nhà Tốt'],
+  'Đại lý / CTV':       ['Sàn F1','Cộng tác viên'],
+  'Liên hệ trực tiếp':  ['Hotline','Telesale','Zalo OA','Zalo cá nhân','Email','SMS / Brandname'],
+  'Offline':            ['Walk-in','Sự kiện','Banner / Tờ rơi','Báo chí / PR'],
+  'Khác':               ['Giới thiệu','Khách cũ','Re-marketing','Khác'],
+};
+const SOURCE_BADGE = {
+  'VR Web':'badge-purple','Live Chat website':'badge-purple',
+  'Google Ads':'badge-warning','Facebook Ads':'badge-warning','Zalo Ads':'badge-warning',
+  'Facebook':'badge-primary','TikTok':'badge-primary','YouTube':'badge-primary','Instagram':'badge-primary',
+  'Batdongsan.com.vn':'badge-info','Chợ Tốt Nhà':'badge-info','Mogi':'badge-info','Alonhadat':'badge-info','Nhà Tốt':'badge-info',
+  'Sàn F1':'badge-purple','Cộng tác viên':'badge-purple',
+  'Hotline':'badge-ok','Telesale':'badge-warning','Zalo OA':'badge-ok','Zalo cá nhân':'badge-ok','Email':'badge-info','SMS / Brandname':'badge-info',
+  'Walk-in':'badge-warning','Sự kiện':'badge-purple','Banner / Tờ rơi':'badge-muted','Báo chí / PR':'badge-muted',
+  'Giới thiệu':'badge-info','Khách cũ':'badge-ok','Re-marketing':'badge-warning','Khác':'badge-muted',
+  'Zalo':'badge-ok','Call':'badge-warning',
+};
+function sourceOptions(selected='') {
+  return Object.entries(SOURCE_GROUPS).map(([g,items]) =>
+    `<optgroup label="${g}">${items.map(s=>`<option ${selected===s?'selected':''}>${s}</option>`).join('')}</optgroup>`
+  ).join('');
+}
+
+// ——— Searchable combobox cho nguồn lead ———————
+function sourceCombo(id, selected='', placeholder='Tìm nguồn…', onChange='') {
+  const has = selected ? 'has-value' : '';
+  return `
+    <div class="combo ${has}" data-combo="${id}" data-cb="${onChange}">
+      <input type="hidden" id="${id}" value="${selected}">
+      <input type="text" class="form-control combo-input" id="${id}-q" value="${selected}" placeholder="${placeholder}" autocomplete="off"
+        oninput="comboFilter('${id}',this.value);comboShow('${id}')"
+        onfocus="comboShow('${id}')"
+        onkeydown="comboKey(event,'${id}')">
+      <button type="button" class="combo-clear" onclick="comboClear('${id}')" tabindex="-1">×</button>
+      <span class="combo-caret">▾</span>
+      <div class="combo-pop" id="${id}-pop">${comboRender('')}</div>
+    </div>`;
+}
+function comboFireCb(wrap) {
+  const cb = wrap && wrap.dataset.cb;
+  if (cb && typeof window[cb] === 'function') window[cb](document.getElementById(wrap.dataset.combo).value);
+}
+function comboRender(q) {
+  const ql = (q||'').toLowerCase().trim();
+  let html = '', count = 0;
+  for (const [g, items] of Object.entries(SOURCE_GROUPS)) {
+    const matched = items.filter(s => !ql || s.toLowerCase().includes(ql));
+    if (!matched.length) continue;
+    html += `<div class="combo-group">${g}</div>`;
+    html += matched.map(s => `<div class="combo-opt" data-val="${s}" onmousedown="comboPick(event)">${highlightMatch(s, ql)}</div>`).join('');
+    count += matched.length;
+  }
+  if (!count) html = `<div class="combo-empty">Không tìm thấy nguồn "${q}"</div>`;
+  return html;
+}
+function highlightMatch(text, q) {
+  if (!q) return text;
+  const i = text.toLowerCase().indexOf(q);
+  if (i < 0) return text;
+  return text.slice(0,i) + '<b style="color:var(--primary)">' + text.slice(i, i+q.length) + '</b>' + text.slice(i+q.length);
+}
+function comboFilter(id, q) {
+  const pop = document.getElementById(id+'-pop');
+  if (pop) pop.innerHTML = comboRender(q);
+  const wrap = document.querySelector(`[data-combo="${id}"]`);
+  if (wrap) wrap.classList.toggle('has-value', !!q);
+}
+function comboShow(id) {
+  document.querySelectorAll('.combo.open').forEach(c => { if (c.dataset.combo !== id) c.classList.remove('open'); });
+  const wrap = document.querySelector(`[data-combo="${id}"]`);
+  if (wrap) wrap.classList.add('open');
+}
+function comboHide(id) {
+  const wrap = document.querySelector(`[data-combo="${id}"]`);
+  if (wrap) wrap.classList.remove('open');
+}
+function comboPick(e) {
+  e.preventDefault();
+  const opt = e.currentTarget;
+  const val = opt.dataset.val;
+  const wrap = opt.closest('.combo');
+  const id = wrap.dataset.combo;
+  document.getElementById(id).value = val;
+  document.getElementById(id+'-q').value = val;
+  wrap.classList.add('has-value');
+  comboHide(id);
+  comboFireCb(wrap);
+}
+function comboClear(id) {
+  document.getElementById(id).value = '';
+  document.getElementById(id+'-q').value = '';
+  comboFilter(id, '');
+  document.getElementById(id+'-q').focus();
+  comboFireCb(document.querySelector(`[data-combo="${id}"]`));
+}
+function comboKey(e, id) {
+  const pop = document.getElementById(id+'-pop'); if (!pop) return;
+  const opts = [...pop.querySelectorAll('.combo-opt')];
+  let i = opts.findIndex(o => o.classList.contains('active'));
+  if (e.key === 'ArrowDown') { e.preventDefault(); i = Math.min(opts.length-1, i+1); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); i = Math.max(0, i-1); }
+  else if (e.key === 'Enter') { if (i>=0 && opts[i]) { e.preventDefault(); opts[i].dispatchEvent(new MouseEvent('mousedown')); } return; }
+  else if (e.key === 'Escape') { comboHide(id); return; }
+  else return;
+  opts.forEach(o => o.classList.remove('active'));
+  if (opts[i]) { opts[i].classList.add('active'); opts[i].scrollIntoView({block:'nearest'}); }
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.combo')) document.querySelectorAll('.combo.open').forEach(c => c.classList.remove('open'));
+});
 
 // ——— ACCESSORS ———————————————————————————————
 const units  = () => S.data?.floorplan?.units || [];
@@ -276,10 +390,7 @@ function renderLeads(el) {
           <option value="">Tất cả trạng thái</option>
           ${Object.entries(LEAD_STATUS).map(([k,v])=>`<option value="${k}" ${lf.status===k?'selected':''}>${v}</option>`).join('')}
         </select>
-        <select class="fi fi-select" onchange="lf.source=this.value;reloadLeadsTbody()">
-          <option value="">Tất cả nguồn</option>
-          ${['VR Web','Zalo','Call','Giới thiệu'].map(s=>`<option ${lf.source===s?'selected':''}>${s}</option>`).join('')}
-        </select>
+        <div style="min-width:220px">${sourceCombo('lf-source', lf.source, 'Tất cả nguồn — gõ để tìm…', 'onSourceFilter')}</div>
         <div class="filter-spacer"></div>
         <span class="c-muted" style="font-size:12px" id="l-count">${ls.length} leads</span>
       </div>
@@ -361,9 +472,8 @@ function openAddLeadPanel() {
     </div>
     <div class="form-group">
       <label class="form-label">Nguồn lead</label>
-      <select class="form-control form-select" id="nl-source">
-        <option>VR Web</option><option>Zalo</option><option>Call</option><option>Giới thiệu</option>
-      </select>
+      ${sourceCombo('nl-source', 'Walk-in', 'Gõ để tìm nguồn (vd: tiktok, batdongsan…)…')}
+      <small class="c-muted" style="font-size:11px">Chọn đúng nguồn để tracking ROI từng kênh.</small>
     </div>
     <div class="form-group">
       <label class="form-label">Ghi chú</label>
@@ -490,60 +600,169 @@ function clearAppt(id) {
 
 // ——— CALENDAR ————————————————————————————————
 function renderCalendar(el) {
+  if (!S.calView) S.calView = 'list';
+  el.innerHTML = `
+    <div class="ph">
+      <div class="ph-left"><div class="breadcrumb"><span>Sales</span> / Lịch Hẹn</div><h1>Lịch Hẹn</h1></div>
+      <div class="ph-right">
+        <div class="view-toggle" id="cal-toggle" style="margin-right:8px">
+          <button class="${S.calView==='list'?'active':''}" onclick="setCalView('list')">${ico('leads',12)} Danh sách</button>
+          <button class="${S.calView==='week'?'active':''}" onclick="setCalView('week')">${ico('calendar',12)} Lịch tuần</button>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="nav('leads')">+ Đặt lịch mới</button>
+      </div>
+    </div>
+    <div class="card" id="cal-card">${renderCalContent()}</div>
+  `;
+}
+
+function setCalView(v) {
+  S.calView = v;
+  const c = document.getElementById('cal-card'); if (c) c.innerHTML = renderCalContent();
+  document.querySelectorAll('#cal-toggle button').forEach((b,i) => b.classList.toggle('active', (i===0&&v==='list')||(i===1&&v==='week')));
+}
+
+function renderCalContent() {
+  return S.calView === 'week' ? renderCalWeek() : renderCalList();
+}
+
+function renderCalList() {
   const all    = S.leads.filter(l => l.appt);
   const today  = new Date().toISOString().slice(0,10);
   const week   = (() => { const d = new Date(); d.setDate(d.getDate()+7); return d.toISOString().slice(0,10); })();
-  const filter = S.calFilter;
+  const filter = S.calFilter || 'all';
   let list = all;
   if (filter === 'today') list = all.filter(l => l.appt.startsWith(today));
   if (filter === 'week')  list = all.filter(l => l.appt.slice(0,10) >= today && l.appt.slice(0,10) <= week);
   list = [...list].sort((a,b) => a.appt.localeCompare(b.appt));
 
-  el.innerHTML = `
-    <div class="ph">
-      <div class="ph-left"><div class="breadcrumb"><span>Sales</span> / Lịch Hẹn</div><h1>Lịch Hẹn</h1></div>
-      <div class="ph-right">
-        <button class="btn ${filter==='all'?'btn-primary':'btn-secondary'} btn-sm" onclick="S.calFilter='all';nav('calendar')">Tất cả</button>
-        <button class="btn ${filter==='today'?'btn-primary':'btn-secondary'} btn-sm" onclick="S.calFilter='today';nav('calendar')">Hôm nay</button>
-        <button class="btn ${filter==='week'?'btn-primary':'btn-secondary'} btn-sm" onclick="S.calFilter='week';nav('calendar')">7 ngày tới</button>
-        <button class="btn btn-primary btn-sm" onclick="nav('leads')">+ Đặt lịch mới</button>
+  return `
+    <div class="filter-bar">
+      <button class="btn ${filter==='all'?'btn-primary':'btn-secondary'} btn-sm" onclick="S.calFilter='all';setCalView('list')">Tất cả</button>
+      <button class="btn ${filter==='today'?'btn-primary':'btn-secondary'} btn-sm" onclick="S.calFilter='today';setCalView('list')">Hôm nay</button>
+      <button class="btn ${filter==='week'?'btn-primary':'btn-secondary'} btn-sm" onclick="S.calFilter='week';setCalView('list')">7 ngày tới</button>
+      <div class="filter-spacer"></div>
+      <span class="c-muted" style="font-size:12px">${list.length} lịch hẹn</span>
+    </div>
+    ${list.length === 0
+      ? `<div style="text-align:center;padding:64px;color:var(--muted)">
+          <div style="font-size:40px;margin-bottom:12px;display:flex;justify-content:center">${ico('calendar',40)}</div>
+          <div style="font-size:15px;font-weight:600">Không có lịch hẹn</div>
+          <div style="font-size:13px;margin-top:4px">Thêm lịch hẹn từ trang Leads</div>
+        </div>`
+      : `<div style="display:flex;flex-direction:column;gap:10px;padding:12px">
+          ${list.map(l => {
+            const d = new Date(l.appt);
+            const isToday = l.appt.startsWith(today);
+            return `
+              <div style="display:flex;align-items:center;gap:16px;padding:14px 16px;background:var(--bg);border-radius:var(--r);border-left:3px solid ${isToday ? 'var(--primary)' : 'var(--border)'}">
+                <div style="min-width:60px;text-align:center;background:#fff;border:1px solid var(--border);border-radius:10px;padding:6px;flex-shrink:0">
+                  <div style="font-size:10px;color:var(--muted);text-transform:uppercase">${d.toLocaleDateString('vi-VN',{month:'short'})}</div>
+                  <div style="font-size:22px;font-weight:700;color:var(--primary);line-height:1">${d.getDate()}</div>
+                  <div style="font-size:10px;color:var(--muted)">${d.toLocaleDateString('vi-VN',{weekday:'short'})}</div>
+                </div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-weight:600;font-size:14px">${l.name}</div>
+                  <div style="font-size:12px;color:var(--muted);margin-top:2px">${l.phone} · ${l.unitType||'Chưa chọn căn'} · ${l.budget||''}</div>
+                  ${l.notes ? `<div style="font-size:12px;color:var(--text);margin-top:4px;font-style:italic">"${l.notes}"</div>` : ''}
+                </div>
+                <div style="text-align:right;flex-shrink:0">
+                  <div class="mono" style="font-size:18px;font-weight:700;color:var(--primary)">${d.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})}</div>
+                  <span class="badge ${LEAD_BADGE[l.status]}" style="margin-top:4px">${LEAD_STATUS[l.status]}</span>
+                </div>
+                <button class="act-btn" onclick="openApptPanel(${l.id})" title="Chỉnh sửa">${ico('edit')}</button>
+              </div>
+            `;
+          }).join('')}
+        </div>`
+    }
+  `;
+}
+
+// ——— Lịch tuần ————————————————————————————————
+function startOfWeek(d) {
+  const x = new Date(d); x.setHours(0,0,0,0);
+  const day = (x.getDay() + 6) % 7; // T2 = 0
+  x.setDate(x.getDate() - day);
+  return x;
+}
+function fmtRange(start) {
+  const end = new Date(start); end.setDate(end.getDate()+6);
+  const f = d => d.toLocaleDateString('vi-VN', {day:'2-digit',month:'2-digit'});
+  return `${f(start)} – ${f(end)} / ${end.getFullYear()}`;
+}
+function shiftWeek(days) {
+  const cur = S.weekStart || startOfWeek(new Date());
+  const nx = new Date(cur); nx.setDate(nx.getDate()+days);
+  S.weekStart = startOfWeek(nx);
+  setCalView('week');
+}
+function gotoToday() { S.weekStart = startOfWeek(new Date()); setCalView('week'); }
+
+function renderCalWeek() {
+  if (!S.weekStart) S.weekStart = startOfWeek(new Date());
+  const ws = S.weekStart;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const days = Array.from({length:7}, (_,i) => { const d = new Date(ws); d.setDate(d.getDate()+i); return d; });
+  const dows = ['T2','T3','T4','T5','T6','T7','CN'];
+  const hours = []; for (let h=8; h<=19; h++) hours.push(h);
+
+  // Group leads có appt theo "YYYY-MM-DD|H"
+  const byCell = {};
+  S.leads.forEach(l => {
+    if (!l.appt) return;
+    const ds = l.appt.slice(0,10);
+    const h  = parseInt(l.appt.slice(11,13));
+    const key = `${ds}|${h}`;
+    (byCell[key] = byCell[key] || []).push(l);
+  });
+
+  const head = `<div class="cal-cell cal-head"></div>` + days.map((d,i) => {
+    const isToday = d.getTime() === today.getTime();
+    return `<div class="cal-cell cal-head ${isToday?'today':''}">
+      <div class="cal-dow">${dows[i]}</div>
+      <div class="cal-day">${d.getDate()}/${d.getMonth()+1}</div>
+    </div>`;
+  }).join('');
+
+  const rows = hours.map(h => {
+    const cells = days.map(d => {
+      const ds = d.toISOString().slice(0,10);
+      const list = byCell[`${ds}|${h}`] || [];
+      return `<div class="cal-cell">${list.map(l => {
+        const tm = l.appt.slice(11,16);
+        const sCls = l.status === 'closed' ? 's-done' : (l.status === 'stopped' ? 's-cancelled' : (l.status === 'interested' ? 's-confirmed' : 's-pending'));
+        return `<div class="cal-event ${sCls}" onclick="openApptPanel(${l.id})" title="${l.name} · ${tm} · ${l.unitType||''}">
+          <div class="ev-time">${tm}</div>
+          <div class="ev-name">${l.name}</div>
+          <div class="ev-meta">${l.unitType||''}${l.assignee?' · '+l.assignee:''}</div>
+        </div>`;
+      }).join('')}</div>`;
+    }).join('');
+    return `<div class="cal-cell cal-time">${String(h).padStart(2,'0')}:00</div>${cells}`;
+  }).join('');
+
+  return `
+    <div class="cal-toolbar">
+      <div class="cal-nav">
+        <button onclick="shiftWeek(-7)" title="Tuần trước">‹</button>
+        <button onclick="gotoToday()" title="Hôm nay" style="width:auto;padding:0 10px;font-size:12px">Hôm nay</button>
+        <button onclick="shiftWeek(7)" title="Tuần sau">›</button>
+      </div>
+      <div class="cal-range">${fmtRange(ws)}</div>
+      <div style="font-size:12px;color:var(--muted)">
+        <span style="display:inline-block;width:10px;height:10px;background:rgba(245,158,11,.4);border-left:2px solid #f59e0b;margin-right:4px;vertical-align:middle"></span>Mới
+        <span style="display:inline-block;width:10px;height:10px;background:rgba(59,130,246,.4);border-left:2px solid #3b82f6;margin:0 4px 0 10px;vertical-align:middle"></span>Quan tâm
+        <span style="display:inline-block;width:10px;height:10px;background:rgba(16,185,129,.4);border-left:2px solid #10b981;margin:0 4px 0 10px;vertical-align:middle"></span>Đã chốt
       </div>
     </div>
-    <div class="card">
-      ${list.length === 0
-        ? `<div style="text-align:center;padding:64px;color:var(--muted)">
-            <div style="font-size:40px;margin-bottom:12px;display:flex;justify-content:center">${ico('calendar',40)}</div>
-            <div style="font-size:15px;font-weight:600">Không có lịch hẹn</div>
-            <div style="font-size:13px;margin-top:4px">Thêm lịch hẹn từ trang Leads</div>
-          </div>`
-        : `<div style="display:flex;flex-direction:column;gap:10px">
-            ${list.map(l => {
-              const d = new Date(l.appt);
-              const isToday = l.appt.startsWith(today);
-              return `
-                <div style="display:flex;align-items:center;gap:16px;padding:14px 16px;background:var(--bg);border-radius:var(--r);border-left:3px solid ${isToday ? 'var(--primary)' : 'var(--border)'}">
-                  <div style="min-width:60px;text-align:center;background:#fff;border:1px solid var(--border);border-radius:10px;padding:6px;flex-shrink:0">
-                    <div style="font-size:10px;color:var(--muted);text-transform:uppercase">${d.toLocaleDateString('vi-VN',{month:'short'})}</div>
-                    <div style="font-size:22px;font-weight:700;color:var(--primary);line-height:1">${d.getDate()}</div>
-                    <div style="font-size:10px;color:var(--muted)">${d.toLocaleDateString('vi-VN',{weekday:'short'})}</div>
-                  </div>
-                  <div style="flex:1;min-width:0">
-                    <div style="font-weight:600;font-size:14px">${l.name}</div>
-                    <div style="font-size:12px;color:var(--muted);margin-top:2px">${l.phone} · ${l.unitType||'Chưa chọn căn'} · ${l.budget||''}</div>
-                    ${l.notes ? `<div style="font-size:12px;color:var(--text);margin-top:4px;font-style:italic">"${l.notes}"</div>` : ''}
-                  </div>
-                  <div style="text-align:right;flex-shrink:0">
-                    <div class="mono" style="font-size:18px;font-weight:700;color:var(--primary)">${d.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})}</div>
-                    <span class="badge ${LEAD_BADGE[l.status]}" style="margin-top:4px">${LEAD_STATUS[l.status]}</span>
-                  </div>
-                  <button class="act-btn" onclick="openApptPanel(${l.id})" title="Chỉnh sửa">${ico('edit')}</button>
-                </div>
-              `;
-            }).join('')}
-          </div>`
-      }
-    </div>
+    <div class="cal-week">${head}${rows}</div>
   `;
+}
+
+function onSourceFilter(v) {
+  lf.source = v || '';
+  reloadLeadsTbody();
 }
 
 // ——— UNITS (Read-only) ————————————————————————

@@ -57,6 +57,9 @@ const S = {
   page: 'overview',
   data: null,          // raw project.json
   leads: [],
+  bookings: [],
+  bookingView: 'list',
+  weekStart: null,
   analyticsTab: 'views',
   settingsTab: 'project',
   i18nLang: 'EN',
@@ -92,6 +95,7 @@ async function loadData() {
     }
   }
   S.leads = getMockLeads();
+  S.bookings = getMockBookings();
   if (!S.data.menu) S.data.menu = {};
   Object.keys(GROUP_META).forEach(k => { if (!S.data.menu[k]) S.data.menu[k] = []; });
   // Đảm bảo các nhánh nội dung tồn tại để không lỗi khi render lần đầu
@@ -169,6 +173,16 @@ function getMockLeads() {
     { id:4, name:'Phạm Thu Dung',  phone:'0934567890', email:'dung@mail.vn',  zalo:'0934567890', unitType:'3PN',        budget:'8–12 tỷ', purpose:'Cho thuê', timing:'Hơn 6 tháng', source:'Call',         status:'closed',    createdAt:'2026-05-12T16:00', assignee:'Sales C', notes:'Đã chốt căn A-3BR-104-35' },
     { id:5, name:'Hoàng Đức Em',   phone:'0945678901', email:'em@mail.com',   zalo:'',           unitType:'2PN',        budget:'< 5 tỷ',  purpose:'Đầu tư',  timing:'Hơn 6 tháng', source:'VR Web',       status:'stopped',   createdAt:'2026-05-11T09:00', assignee:'Sales B', notes:'Không phù hợp ngân sách' },
     { id:6, name:'Vũ Thị Giang',   phone:'0956789012', email:'giang@vn.vn',  zalo:'0956789012', unitType:'3PN',        budget:'8–12 tỷ', purpose:'Ở thực',  timing:'Trong 3 tháng', source:'VR Web',       status:'new',       createdAt:'2026-05-15T10:00', assignee:'',       notes:'' },
+    { id:7, name:'Đỗ Minh Khang',  phone:'0967890123', email:'',              zalo:'0967890123', unitType:'2PN',        budget:'5–8 tỷ',  purpose:'Ở thực',  timing:'Trong 3 tháng', source:'Walk-in',     status:'interested', createdAt:'2026-05-14T15:30', assignee:'Sales A', notes:'Khách đến nhà mẫu thứ 7', manual:true },
+    { id:8, name:'Bùi Thanh Hà',   phone:'0978901234', email:'ha@fb.vn',     zalo:'',           unitType:'3PN',        budget:'8–12 tỷ', purpose:'Đầu tư',  timing:'Trong 6 tháng', source:'Facebook',    status:'called',    createdAt:'2026-05-13T09:00', assignee:'Sales C', notes:'Inbox từ Fanpage', manual:true },
+  ];
+}
+
+function getMockBookings() {
+  return [
+    { id:1, leadId:1, name:'Nguyễn Văn An',  phone:'0901234567', date:'2026-05-18', time:'10:00', type:'Xem nhà mẫu',  assignee:'Sales A', status:'confirmed', notes:'Khách quan tâm tầng cao',         createdAt:'2026-05-15T09:00', manual:false },
+    { id:2, leadId:7, name:'Đỗ Minh Khang',  phone:'0967890123', date:'2026-05-17', time:'14:30', type:'Tư vấn tại VP', assignee:'Sales A', status:'pending',   notes:'Hẹn lại sau khi gọi xác nhận',    createdAt:'2026-05-14T16:00', manual:true  },
+    { id:3, leadId:null,name:'Lý Quốc Hùng', phone:'0989012345', date:'2026-05-19', time:'09:30', type:'Xem nhà mẫu',  assignee:'Sales B', status:'confirmed', notes:'Khách giới thiệu — chưa có lead', createdAt:'2026-05-15T11:00', manual:true  },
   ];
 }
 
@@ -553,7 +567,139 @@ let lf = { search:'', status:'', source:'' };
 
 const LEAD_STATUS  = { new:'Mới', called:'Đã gọi', interested:'Đang quan tâm', closed:'Đã chốt', stopped:'Không tiếp tục' };
 const LEAD_BADGE   = { new:'badge-info', called:'badge-warning', interested:'badge-primary', closed:'badge-ok', stopped:'badge-muted' };
-const SOURCE_BADGE = { 'VR Web':'badge-purple', Zalo:'badge-ok', Call:'badge-warning', 'Giới thiệu':'badge-info' };
+// Nguồn lead — gom theo nhóm để hiển thị optgroup
+const SOURCE_GROUPS = {
+  'Website / VR':       ['VR Web','Live Chat website'],
+  'Quảng cáo trả phí':  ['Google Ads','Facebook Ads','Zalo Ads'],
+  'Mạng xã hội':        ['Facebook','TikTok','YouTube','Instagram'],
+  'Sàn BĐS / Portal':   ['Batdongsan.com.vn','Chợ Tốt Nhà','Mogi','Alonhadat','Nhà Tốt'],
+  'Đại lý / CTV':       ['Sàn F1','Cộng tác viên'],
+  'Liên hệ trực tiếp':  ['Hotline','Telesale','Zalo OA','Zalo cá nhân','Email','SMS / Brandname'],
+  'Offline':            ['Walk-in','Sự kiện','Banner / Tờ rơi','Báo chí / PR'],
+  'Khác':               ['Giới thiệu','Khách cũ','Re-marketing','Khác'],
+};
+const SOURCE_LIST = Object.values(SOURCE_GROUPS).flat();
+const SOURCE_BADGE = {
+  'VR Web':'badge-purple','Live Chat website':'badge-purple',
+  'Google Ads':'badge-warning','Facebook Ads':'badge-warning','Zalo Ads':'badge-warning',
+  'Facebook':'badge-primary','TikTok':'badge-primary','YouTube':'badge-primary','Instagram':'badge-primary',
+  'Batdongsan.com.vn':'badge-info','Chợ Tốt Nhà':'badge-info','Mogi':'badge-info','Alonhadat':'badge-info','Nhà Tốt':'badge-info',
+  'Sàn F1':'badge-purple','Cộng tác viên':'badge-purple',
+  'Hotline':'badge-ok','Telesale':'badge-warning','Zalo OA':'badge-ok','Zalo cá nhân':'badge-ok','Email':'badge-info','SMS / Brandname':'badge-info',
+  'Walk-in':'badge-warning','Sự kiện':'badge-purple','Banner / Tờ rơi':'badge-muted','Báo chí / PR':'badge-muted',
+  'Giới thiệu':'badge-info','Khách cũ':'badge-ok','Re-marketing':'badge-warning','Khác':'badge-muted',
+  // Backward-compat cho mock data cũ
+  'Zalo':'badge-ok','Call':'badge-warning',
+};
+function sourceOptions(selected='') {
+  return Object.entries(SOURCE_GROUPS).map(([g,items]) =>
+    `<optgroup label="${g}">${items.map(s=>`<option ${selected===s?'selected':''}>${s}</option>`).join('')}</optgroup>`
+  ).join('');
+}
+
+// ——— Searchable combobox cho nguồn lead ———————
+// Usage: sourceCombo('al-source', 'Walk-in')
+function sourceCombo(id, selected='', placeholder='Tìm nguồn…', onChange='') {
+  const has = selected ? 'has-value' : '';
+  return `
+    <div class="combo ${has}" data-combo="${id}" data-cb="${onChange}">
+      <input type="hidden" id="${id}" value="${selected}">
+      <input type="text" class="form-control combo-input" id="${id}-q" value="${selected}" placeholder="${placeholder}" autocomplete="off"
+        oninput="comboFilter('${id}',this.value);comboShow('${id}')"
+        onfocus="comboShow('${id}')"
+        onkeydown="comboKey(event,'${id}')">
+      <button type="button" class="combo-clear" onclick="comboClear('${id}')" tabindex="-1">×</button>
+      <span class="combo-caret">▾</span>
+      <div class="combo-pop" id="${id}-pop">${comboRender('')}</div>
+    </div>`;
+}
+
+function comboFireCb(wrap) {
+  const cb = wrap && wrap.dataset.cb;
+  if (cb && typeof window[cb] === 'function') window[cb](document.getElementById(wrap.dataset.combo).value);
+}
+
+function comboRender(q) {
+  const ql = (q||'').toLowerCase().trim();
+  let html = '';
+  let count = 0;
+  for (const [g, items] of Object.entries(SOURCE_GROUPS)) {
+    const matched = items.filter(s => !ql || s.toLowerCase().includes(ql));
+    if (!matched.length) continue;
+    html += `<div class="combo-group">${g}</div>`;
+    html += matched.map(s => `<div class="combo-opt" data-val="${s}" onmousedown="comboPick(event)">${highlightMatch(s, ql)}</div>`).join('');
+    count += matched.length;
+  }
+  if (!count) html = `<div class="combo-empty">Không tìm thấy nguồn "${q}"</div>`;
+  return html;
+}
+
+function highlightMatch(text, q) {
+  if (!q) return text;
+  const i = text.toLowerCase().indexOf(q);
+  if (i < 0) return text;
+  return text.slice(0,i) + '<b style="color:var(--primary)">' + text.slice(i, i+q.length) + '</b>' + text.slice(i+q.length);
+}
+
+function comboFilter(id, q) {
+  const pop = document.getElementById(id+'-pop');
+  if (pop) pop.innerHTML = comboRender(q);
+  const wrap = document.querySelector(`[data-combo="${id}"]`);
+  if (wrap) wrap.classList.toggle('has-value', !!q);
+}
+
+function comboShow(id) {
+  document.querySelectorAll('.combo.open').forEach(c => { if (c.dataset.combo !== id) c.classList.remove('open'); });
+  const wrap = document.querySelector(`[data-combo="${id}"]`);
+  if (wrap) wrap.classList.add('open');
+}
+
+function comboHide(id) {
+  const wrap = document.querySelector(`[data-combo="${id}"]`);
+  if (wrap) wrap.classList.remove('open');
+}
+
+function comboPick(e) {
+  e.preventDefault();
+  const opt = e.currentTarget;
+  const val = opt.dataset.val;
+  const wrap = opt.closest('.combo');
+  const id = wrap.dataset.combo;
+  document.getElementById(id).value = val;
+  document.getElementById(id+'-q').value = val;
+  wrap.classList.add('has-value');
+  comboHide(id);
+  comboFireCb(wrap);
+}
+
+function comboClear(id) {
+  document.getElementById(id).value = '';
+  document.getElementById(id+'-q').value = '';
+  comboFilter(id, '');
+  document.getElementById(id+'-q').focus();
+  comboFireCb(document.querySelector(`[data-combo="${id}"]`));
+}
+
+function comboKey(e, id) {
+  const pop = document.getElementById(id+'-pop'); if (!pop) return;
+  const opts = [...pop.querySelectorAll('.combo-opt')];
+  let i = opts.findIndex(o => o.classList.contains('active'));
+  if (e.key === 'ArrowDown') { e.preventDefault(); i = Math.min(opts.length-1, i+1); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); i = Math.max(0, i-1); }
+  else if (e.key === 'Enter') { if (i>=0 && opts[i]) { e.preventDefault(); opts[i].dispatchEvent(new MouseEvent('mousedown')); } return; }
+  else if (e.key === 'Escape') { comboHide(id); return; }
+  else return;
+  opts.forEach(o => o.classList.remove('active'));
+  if (opts[i]) { opts[i].classList.add('active'); opts[i].scrollIntoView({block:'nearest'}); }
+}
+
+// Đóng combobox khi click ra ngoài
+document.addEventListener('click', e => {
+  if (!e.target.closest('.combo')) document.querySelectorAll('.combo.open').forEach(c => c.classList.remove('open'));
+});
+const BOOKING_STATUS = { pending:'Chờ xác nhận', confirmed:'Đã xác nhận', done:'Đã hoàn tất', cancelled:'Đã huỷ' };
+const BOOKING_BADGE  = { pending:'badge-warning', confirmed:'badge-info', done:'badge-ok', cancelled:'badge-muted' };
+const BOOKING_TYPES  = ['Xem nhà mẫu','Tư vấn tại VP','Xem VR online','Khác'];
 
 function renderLeads(el) {
   const ls = filteredLeads();
@@ -561,21 +707,21 @@ function renderLeads(el) {
     <div class="ph">
       <div class="ph-left"><div class="breadcrumb"><span>Dashboard</span> / Leads</div><h1>Leads & Booking</h1></div>
       <div class="btn-group">
+        <button class="btn btn-primary btn-sm" onclick="openAddLeadPanel()">${ico('plus')||'+'} Thêm Lead</button>
+        <button class="btn btn-primary btn-sm" onclick="openAddBookingPanel()">${ico('calendar')||'📅'} Đặt Lịch</button>
         <button class="btn btn-secondary btn-sm" onclick="exportLeadsCSV()">${ico('download')} CSV</button>
         <button class="btn btn-secondary btn-sm" onclick="toast('Đang xuất Excel…','info')">${ico('download')} Excel</button>
       </div>
     </div>
     <div class="card">
+      <div class="card-header"><span class="card-title">Danh Sách Leads</span><span class="c-muted" style="font-size:12px">Bao gồm cả lead nhập thủ công từ Walk-in, gọi điện, sự kiện…</span></div>
       <div class="filter-bar">
         <input class="fi" style="min-width:200px" placeholder="Tên, SĐT, email…" value="${lf.search}" oninput="lf.search=this.value;reloadLeadsTbody()">
         <select class="fi fi-select" onchange="lf.status=this.value;reloadLeadsTbody()">
           <option value="">Tất cả trạng thái</option>
           ${Object.entries(LEAD_STATUS).map(([k,v])=>`<option value="${k}" ${lf.status===k?'selected':''}>${v}</option>`).join('')}
         </select>
-        <select class="fi fi-select" onchange="lf.source=this.value;reloadLeadsTbody()">
-          <option value="">Tất cả nguồn</option>
-          ${['VR Web','Zalo','Call','Giới thiệu'].map(s=>`<option ${lf.source===s?'selected':''}>${s}</option>`).join('')}
-        </select>
+        <div style="min-width:220px">${sourceCombo('lf-source', lf.source, 'Tất cả nguồn — gõ để tìm…', 'onSourceFilter')}</div>
         <div class="filter-spacer"></div>
         <span class="c-muted" style="font-size:12px" id="l-count">${ls.length} leads</span>
       </div>
@@ -590,7 +736,127 @@ function renderLeads(el) {
         <button class="pager active">1</button><button class="pager">2</button>
       </div>
     </div>
+
+    <div class="card" style="margin-top:16px">
+      <div class="card-header">
+        <span class="card-title">Lịch Hẹn / Booking</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div class="view-toggle" id="bk-toggle">
+            <button class="${S.bookingView==='week'?'':'active'}" onclick="setBookingView('list')">${ico('leads',12)} Danh sách</button>
+            <button class="${S.bookingView==='week'?'active':''}" onclick="setBookingView('week')">${ico('calendar',12)} Lịch tuần</button>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="openAddBookingPanel()">+ Đặt lịch thủ công</button>
+        </div>
+      </div>
+      <div id="bk-view">${renderBookingView()}</div>
+    </div>
   `;
+}
+
+function setBookingView(v) {
+  S.bookingView = v;
+  const c = document.getElementById('bk-view'); if (c) c.innerHTML = renderBookingView();
+  document.querySelectorAll('#bk-toggle button').forEach((b,i) => b.classList.toggle('active', (i===0&&v==='list')||(i===1&&v==='week')));
+}
+
+function renderBookingView() {
+  return S.bookingView === 'week' ? renderBookingWeek() : renderBookingList();
+}
+
+function renderBookingList() {
+  const bs = S.bookings;
+  return `<div class="table-wrap">
+    <table class="tbl">
+      <thead><tr><th>#</th><th>Khách hàng</th><th>Điện thoại</th><th>Ngày</th><th>Giờ</th><th>Loại</th><th>Phụ trách</th><th>Trạng thái</th><th>Ghi chú</th><th>Thao tác</th></tr></thead>
+      <tbody id="b-body">${bs.map(bookingRow).join('')}</tbody>
+    </table>
+    ${bs.length===0 ? '<div class="c-muted" style="padding:16px;text-align:center">Chưa có lịch hẹn nào</div>' : ''}
+  </div>`;
+}
+
+// ——— Lịch tuần ————————————————————————————————
+function startOfWeek(d) {
+  const x = new Date(d); x.setHours(0,0,0,0);
+  const day = (x.getDay() + 6) % 7; // T2 = 0
+  x.setDate(x.getDate() - day);
+  return x;
+}
+
+function fmtRange(start) {
+  const end = new Date(start); end.setDate(end.getDate()+6);
+  const f = d => d.toLocaleDateString('vi-VN', {day:'2-digit',month:'2-digit'});
+  return `${f(start)} – ${f(end)} / ${end.getFullYear()}`;
+}
+
+function shiftWeek(days) {
+  const cur = S.weekStart || startOfWeek(new Date());
+  const nx = new Date(cur); nx.setDate(nx.getDate()+days);
+  S.weekStart = startOfWeek(nx);
+  setBookingView('week');
+}
+
+function gotoToday() { S.weekStart = startOfWeek(new Date()); setBookingView('week'); }
+
+function renderBookingWeek() {
+  if (!S.weekStart) S.weekStart = startOfWeek(new Date());
+  const ws = S.weekStart;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const days = Array.from({length:7}, (_,i) => { const d = new Date(ws); d.setDate(d.getDate()+i); return d; });
+  const dows = ['T2','T3','T4','T5','T6','T7','CN'];
+  const hours = []; for (let h=8; h<=19; h++) hours.push(h);
+
+  // Group bookings theo "YYYY-MM-DD|H"
+  const byCell = {};
+  S.bookings.forEach(b => {
+    if (!b.date || !b.time) return;
+    const h = parseInt(b.time.split(':')[0]);
+    const key = `${b.date}|${h}`;
+    (byCell[key] = byCell[key] || []).push(b);
+  });
+
+  const head = `<div class="cal-cell cal-head"></div>` + days.map((d,i) => {
+    const isToday = d.getTime() === today.getTime();
+    return `<div class="cal-cell cal-head ${isToday?'today':''}">
+      <div class="cal-dow">${dows[i]}</div>
+      <div class="cal-day">${d.getDate()}/${d.getMonth()+1}</div>
+    </div>`;
+  }).join('');
+
+  const rows = hours.map(h => {
+    const cells = days.map(d => {
+      const ds = d.toISOString().slice(0,10);
+      const list = byCell[`${ds}|${h}`] || [];
+      return `<div class="cal-cell">${list.map(b => `
+        <div class="cal-event s-${b.status}" onclick="openEditBookingPanel(${b.id})" title="${b.name} · ${b.time} · ${b.type||''}">
+          <div class="ev-time">${b.time}</div>
+          <div class="ev-name">${b.name}</div>
+          <div class="ev-meta">${b.type||''}${b.assignee?' · '+b.assignee:''}</div>
+        </div>`).join('')}</div>`;
+    }).join('');
+    return `<div class="cal-cell cal-time">${String(h).padStart(2,'0')}:00</div>${cells}`;
+  }).join('');
+
+  return `
+    <div class="cal-toolbar">
+      <div class="cal-nav">
+        <button onclick="shiftWeek(-7)" title="Tuần trước">‹</button>
+        <button onclick="gotoToday()" title="Hôm nay" style="width:auto;padding:0 10px;font-size:12px">Hôm nay</button>
+        <button onclick="shiftWeek(7)" title="Tuần sau">›</button>
+      </div>
+      <div class="cal-range">${fmtRange(ws)}</div>
+      <div style="font-size:12px;color:var(--muted)">
+        <span style="display:inline-block;width:10px;height:10px;background:rgba(245,158,11,.4);border-left:2px solid #f59e0b;margin-right:4px;vertical-align:middle"></span>Chờ
+        <span style="display:inline-block;width:10px;height:10px;background:rgba(59,130,246,.4);border-left:2px solid #3b82f6;margin:0 4px 0 10px;vertical-align:middle"></span>Xác nhận
+        <span style="display:inline-block;width:10px;height:10px;background:rgba(16,185,129,.4);border-left:2px solid #10b981;margin:0 4px 0 10px;vertical-align:middle"></span>Hoàn tất
+      </div>
+    </div>
+    <div class="cal-week">${head}${rows}</div>
+  `;
+}
+
+function onSourceFilter(v) {
+  lf.source = v || '';
+  reloadLeadsTbody();
 }
 
 function leadRow(l, i) {
@@ -601,15 +867,17 @@ function leadRow(l, i) {
     <td><a href="tel:${l.phone}" class="c-primary mono">${l.phone}</a></td>
     <td>${l.unitType||'—'}</td>
     <td>${l.budget||'—'}</td>
-    <td><span class="badge ${SOURCE_BADGE[l.source]||'badge-muted'}">${l.source}</span></td>
+    <td><span class="badge ${SOURCE_BADGE[l.source]||'badge-muted'}">${l.source}</span>${l.manual?' <span class="badge badge-muted" title="Nhập thủ công" style="font-size:10px">✎ Thủ công</span>':''}</td>
     <td><span class="badge ${LEAD_BADGE[l.status]||'badge-muted'}">${LEAD_STATUS[l.status]||l.status}</span></td>
     <td class="c-muted">${dt}</td>
     <td>${l.assignee||'<span class="c-muted">—</span>'}</td>
     <td><div class="row-actions">
-      <a href="tel:${l.phone}" class="act-btn">${ico('phone')}</a>
-      ${l.zalo?`<a href="https://zalo.me/${l.zalo}" target="_blank" class="act-btn">${ico('link')}</a>`:''}
-      <button class="act-btn" onclick="openLeadPanel(${l.id})">${ico('edit')}</button>
-      <button class="act-btn danger" onclick="confirmDel('Xoá lead ${l.name}?','Lead sẽ bị xoá vĩnh viễn.',()=>deleteLead(${l.id}))">${ico('trash')}</button>
+      <a href="tel:${l.phone}" class="act-btn" title="Gọi điện">${ico('phone')}</a>
+      ${l.zalo
+        ? `<a href="https://zalo.me/${l.zalo}" target="_blank" class="act-btn act-btn-zalo" title="Mở Zalo"><img src="../img/Icon_of_Zalo.svg" alt="Zalo" width="14" height="14"></a>`
+        : `<span class="act-btn act-btn-zalo disabled" title="Chưa có Zalo" aria-disabled="true"><img src="../img/Icon_of_Zalo.svg" alt="Zalo" width="14" height="14"></span>`}
+      <button class="act-btn" onclick="openLeadPanel(${l.id})" title="Sửa">${ico('edit')}</button>
+      <button class="act-btn danger" onclick="confirmDel('Xoá lead ${l.name}?','Lead sẽ bị xoá vĩnh viễn.',()=>deleteLead(${l.id}))" title="Xoá">${ico('trash')}</button>
     </div></td>
   </tr>`;
 }
@@ -660,11 +928,19 @@ function openLeadPanel(id) {
     </div>
     <div class="form-section">Quản Lý CRM</div>
     <div class="form-row">
+      <div class="form-group"><label class="form-label">Nguồn</label>
+        ${sourceCombo('lp-source', l.source||'', 'Tìm nguồn…')}
+      </div>
       <div class="form-group"><label class="form-label">Trạng thái</label>
         <select class="form-control form-select" id="lp-status">${Object.entries(LEAD_STATUS).map(([k,v])=>`<option value="${k}" ${l.status===k?'selected':''}>${v}</option>`).join('')}</select>
       </div>
+    </div>
+    <div class="form-row">
       <div class="form-group"><label class="form-label">Người phụ trách</label>
         <select class="form-control form-select" id="lp-assign">${['','Sales A','Sales B','Sales C'].map(a=>`<option ${l.assignee===a?'selected':''}>${a||'Chưa phân công'}</option>`).join('')}</select>
+      </div>
+      <div class="form-group"><label class="form-label">Mục đích</label>
+        <select class="form-control form-select" id="lp-purpose">${['','Ở thực','Đầu tư','Cho thuê'].map(p=>`<option ${l.purpose===p?'selected':''}>${p||'—'}</option>`).join('')}</select>
       </div>
     </div>
     <div class="form-group"><label class="form-label">Ghi chú CRM</label><textarea class="form-control" id="lp-notes" rows="3">${l.notes||''}</textarea></div>
@@ -678,8 +954,10 @@ function openLeadPanel(id) {
       zalo:     document.getElementById('lp-zalo').value,
       unitType: document.getElementById('lp-type').value,
       budget:   document.getElementById('lp-budget').value,
+      source:   document.getElementById('lp-source').value,
       status:   document.getElementById('lp-status').value,
       assignee: document.getElementById('lp-assign').value,
+      purpose:  document.getElementById('lp-purpose').value,
       notes:    document.getElementById('lp-notes').value,
     };
     closePanel();
@@ -694,6 +972,187 @@ function exportLeadsCSV() {
   const blob = new Blob(['﻿'+[hdr.join(','),...rows].join('\n')], {type:'text/csv;charset=utf-8'});
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'leads-aurora.csv'; a.click();
   toast('Đã xuất CSV', 'ok');
+}
+
+// ——— THÊM LEAD THỦ CÔNG ———————————————————————
+function openAddLeadPanel() {
+  showPanel('Thêm Lead Thủ Công', `
+    <div class="form-section">Thông Tin Liên Hệ</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Họ tên <span class="req">*</span></label><input class="form-control" id="al-name" placeholder="VD: Nguyễn Văn A"></div>
+      <div class="form-group"><label class="form-label">Số điện thoại <span class="req">*</span></label><input class="form-control" id="al-phone" placeholder="09xx xxx xxx"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Email</label><input class="form-control" id="al-email" placeholder="email@domain.com"></div>
+      <div class="form-group"><label class="form-label">Zalo</label><input class="form-control" id="al-zalo" placeholder="Số Zalo (nếu khác SĐT)"></div>
+    </div>
+    <div class="form-section">Căn Hộ Quan Tâm</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Loại căn</label>
+        <select class="form-control form-select" id="al-type">${['','2PN','2PN+1','3PN','Duplex 3PN'].map(t=>`<option value="${t}">${t||'Chưa xác định'}</option>`).join('')}</select>
+      </div>
+      <div class="form-group"><label class="form-label">Ngân sách</label>
+        <select class="form-control form-select" id="al-budget"><option value="">Chưa xác định</option>${['< 5 tỷ','5–8 tỷ','8–12 tỷ','> 12 tỷ'].map(b=>`<option>${b}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Mục đích</label>
+        <select class="form-control form-select" id="al-purpose"><option value="">—</option>${['Ở thực','Đầu tư','Cho thuê'].map(p=>`<option>${p}</option>`).join('')}</select>
+      </div>
+      <div class="form-group"><label class="form-label">Thời điểm mua</label>
+        <select class="form-control form-select" id="al-timing"><option value="">—</option>${['Trong 1 tháng','Trong 3 tháng','Trong 6 tháng','Hơn 6 tháng'].map(t=>`<option>${t}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="form-section">Nguồn & Phân Công</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Nguồn lead <span class="req">*</span></label>
+        ${sourceCombo('al-source', 'Walk-in', 'Gõ để tìm nguồn (vd: tiktok, batdongsan…)…')}
+        <small class="c-muted" style="font-size:11px">Lead từ VR Web tự động đẩy vào hệ thống. Chọn nguồn tương ứng cho lead nhập thủ công để tracking ROI từng kênh.</small>
+      </div>
+      <div class="form-group"><label class="form-label">Phụ trách</label>
+        <select class="form-control form-select" id="al-assign">${['','Sales A','Sales B','Sales C'].map(a=>`<option>${a||'Chưa phân công'}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Ghi chú</label><textarea class="form-control" id="al-notes" rows="3" placeholder="Nội dung trao đổi, yêu cầu đặc biệt…"></textarea></div>
+  `, () => {
+    const name  = document.getElementById('al-name').value.trim();
+    const phone = document.getElementById('al-phone').value.trim();
+    if (!name || !phone) { toast('Vui lòng nhập họ tên và số điện thoại','err'); return; }
+    const newId = (S.leads.reduce((m,l)=>Math.max(m,l.id),0)||0) + 1;
+    S.leads.unshift({
+      id: newId,
+      name, phone,
+      email:    document.getElementById('al-email').value.trim(),
+      zalo:     document.getElementById('al-zalo').value.trim(),
+      unitType: document.getElementById('al-type').value,
+      budget:   document.getElementById('al-budget').value,
+      purpose:  document.getElementById('al-purpose').value,
+      timing:   document.getElementById('al-timing').value,
+      source:   document.getElementById('al-source').value,
+      status:   'new',
+      createdAt:new Date().toISOString().slice(0,16),
+      assignee: document.getElementById('al-assign').value,
+      notes:    document.getElementById('al-notes').value,
+      manual:   true,
+    });
+    closePanel();
+    render('leads', document.getElementById('p-leads'));
+    toast('Đã thêm lead thủ công', 'ok');
+  });
+}
+
+// ——— BOOKING ———————————————————————————————————
+function bookingRow(b, i) {
+  const dt = b.date ? new Date(b.date).toLocaleDateString('vi-VN') : '—';
+  return `<tr>
+    <td class="c-muted">${i+1}</td>
+    <td class="fw6">${b.name}${b.manual?' <span class="badge badge-muted" style="font-size:10px" title="Đặt lịch thủ công">✎</span>':''}</td>
+    <td><a href="tel:${b.phone}" class="c-primary mono">${b.phone}</a></td>
+    <td>${dt}</td>
+    <td class="mono">${b.time||'—'}</td>
+    <td>${b.type||'—'}</td>
+    <td>${b.assignee||'<span class="c-muted">—</span>'}</td>
+    <td><span class="badge ${BOOKING_BADGE[b.status]||'badge-muted'}">${BOOKING_STATUS[b.status]||b.status}</span></td>
+    <td class="c-muted" style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${(b.notes||'').replace(/"/g,'&quot;')}">${b.notes||'—'}</td>
+    <td><div class="row-actions">
+      <a href="tel:${b.phone}" class="act-btn" title="Gọi điện">${ico('phone')}</a>
+      <button class="act-btn" onclick="openEditBookingPanel(${b.id})" title="Sửa">${ico('edit')}</button>
+      <button class="act-btn danger" onclick="confirmDel('Xoá lịch hẹn của ${b.name}?','Lịch hẹn sẽ bị xoá vĩnh viễn.',()=>deleteBooking(${b.id}))" title="Xoá">${ico('trash')}</button>
+    </div></td>
+  </tr>`;
+}
+
+function deleteBooking(id) {
+  S.bookings = S.bookings.filter(b=>b.id!==id);
+  render('leads', document.getElementById('p-leads'));
+  toast('Đã xoá lịch hẹn', 'ok');
+}
+
+function bookingFormHTML(b={}) {
+  const today = new Date().toISOString().slice(0,10);
+  const leadOpts = ['<option value="">— Khách mới (chưa có lead) —</option>']
+    .concat(S.leads.map(l=>`<option value="${l.id}" ${b.leadId===l.id?'selected':''}>${l.name} · ${l.phone}</option>`)).join('');
+  return `
+    <div class="form-section">Khách Hàng</div>
+    <div class="form-group"><label class="form-label">Liên kết với Lead có sẵn</label>
+      <select class="form-control form-select" id="ab-lead" onchange="onBookingLeadChange()">${leadOpts}</select>
+      <small class="c-muted" style="font-size:11px">Chọn lead có sẵn để tự điền tên/SĐT, hoặc để trống nếu khách mới.</small>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Họ tên <span class="req">*</span></label><input class="form-control" id="ab-name" value="${b.name||''}"></div>
+      <div class="form-group"><label class="form-label">Số điện thoại <span class="req">*</span></label><input class="form-control" id="ab-phone" value="${b.phone||''}"></div>
+    </div>
+    <div class="form-section">Chi Tiết Lịch Hẹn</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Ngày <span class="req">*</span></label><input type="date" class="form-control" id="ab-date" value="${b.date||today}"></div>
+      <div class="form-group"><label class="form-label">Giờ <span class="req">*</span></label><input type="time" class="form-control" id="ab-time" value="${b.time||'10:00'}"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Loại</label>
+        <select class="form-control form-select" id="ab-type">${BOOKING_TYPES.map(t=>`<option ${b.type===t?'selected':''}>${t}</option>`).join('')}</select>
+      </div>
+      <div class="form-group"><label class="form-label">Phụ trách</label>
+        <select class="form-control form-select" id="ab-assign">${['','Sales A','Sales B','Sales C'].map(a=>`<option ${b.assignee===a?'selected':''}>${a||'Chưa phân công'}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Trạng thái</label>
+      <select class="form-control form-select" id="ab-status">${Object.entries(BOOKING_STATUS).map(([k,v])=>`<option value="${k}" ${(b.status||'pending')===k?'selected':''}>${v}</option>`).join('')}</select>
+    </div>
+    <div class="form-group"><label class="form-label">Ghi chú</label><textarea class="form-control" id="ab-notes" rows="3" placeholder="Yêu cầu của khách, nội dung tư vấn…">${b.notes||''}</textarea></div>
+  `;
+}
+
+function onBookingLeadChange() {
+  const id = parseInt(document.getElementById('ab-lead').value);
+  if (!id) return;
+  const l = S.leads.find(x=>x.id===id); if (!l) return;
+  document.getElementById('ab-name').value  = l.name;
+  document.getElementById('ab-phone').value = l.phone;
+}
+
+function openAddBookingPanel() {
+  showPanel('Đặt Lịch Hẹn Thủ Công', bookingFormHTML(), () => {
+    const name  = document.getElementById('ab-name').value.trim();
+    const phone = document.getElementById('ab-phone').value.trim();
+    const date  = document.getElementById('ab-date').value;
+    const time  = document.getElementById('ab-time').value;
+    if (!name || !phone || !date || !time) { toast('Vui lòng nhập tên, SĐT, ngày và giờ','err'); return; }
+    const leadId = parseInt(document.getElementById('ab-lead').value) || null;
+    const newId = (S.bookings.reduce((m,b)=>Math.max(m,b.id),0)||0) + 1;
+    S.bookings.unshift({
+      id: newId, leadId, name, phone, date, time,
+      type:     document.getElementById('ab-type').value,
+      assignee: document.getElementById('ab-assign').value,
+      status:   document.getElementById('ab-status').value,
+      notes:    document.getElementById('ab-notes').value,
+      createdAt:new Date().toISOString().slice(0,16),
+      manual:   true,
+    });
+    closePanel();
+    render('leads', document.getElementById('p-leads'));
+    toast('Đã đặt lịch hẹn', 'ok');
+  });
+}
+
+function openEditBookingPanel(id) {
+  const b = S.bookings.find(x=>x.id===id); if (!b) return;
+  showPanel('Cập Nhật Lịch Hẹn', bookingFormHTML(b), () => {
+    const idx = S.bookings.findIndex(x=>x.id===id); if (idx<0) return;
+    S.bookings[idx] = { ...b,
+      leadId:   parseInt(document.getElementById('ab-lead').value) || null,
+      name:     document.getElementById('ab-name').value,
+      phone:    document.getElementById('ab-phone').value,
+      date:     document.getElementById('ab-date').value,
+      time:     document.getElementById('ab-time').value,
+      type:     document.getElementById('ab-type').value,
+      assignee: document.getElementById('ab-assign').value,
+      status:   document.getElementById('ab-status').value,
+      notes:    document.getElementById('ab-notes').value,
+    };
+    closePanel();
+    render('leads', document.getElementById('p-leads'));
+    toast('Đã cập nhật lịch hẹn', 'ok');
+  });
 }
 
 // ——— DANH SÁCH VR (np-list) ———————————————————
@@ -1324,7 +1783,7 @@ function drawAnalyticsCharts() {
   }
   if (document.getElementById('ac-ai')) new Chart('ac-ai',{type:'doughnut',data:{labels:['Dùng Voice AI','Không dùng'],datasets:[{data:[32,68],backgroundColor:['#7c3aed','#e2e8f0'],borderWidth:0}]},options:donut});
   if (document.getElementById('ac-lday')) new Chart('ac-lday',{type:'bar',data:{labels:days,datasets:[{label:'Leads',data:[3,5,4,8,6,12,10],backgroundColor:'rgba(16,185,129,.6)',borderRadius:4}]},options:xOpts(false)});
-  if (document.getElementById('ac-lsrc')) new Chart('ac-lsrc',{type:'doughnut',data:{labels:['VR Web','Zalo','Call','Giới thiệu'],datasets:[{data:[58,22,12,8],backgroundColor:['#3b82f6','#10b981','#f59e0b','#7c3aed'],borderWidth:0}]},options:donut});
+  if (document.getElementById('ac-lsrc')) new Chart('ac-lsrc',{type:'doughnut',data:{labels:['VR Web','Zalo OA','Hotline','Facebook Ads','Sàn BĐS','Walk-in','Giới thiệu','Khác'],datasets:[{data:[42,18,10,12,8,4,4,2],backgroundColor:['#3b82f6','#10b981','#22c55e','#f59e0b','#06b6d4','#ef4444','#7c3aed','#94a3b8'],borderWidth:0}]},options:donut});
 }
 
 // ——— SETTINGS ————————————————————————————————
