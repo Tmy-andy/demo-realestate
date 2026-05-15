@@ -75,17 +75,80 @@ const GROUP_META = {
 };
 
 // ——— LOAD DATA ————————————————————————————————
+const LS_KEY = 'ah_admin_data';
+
 async function loadData() {
-  try {
-    const r = await fetch('../data/project.json');
-    S.data = await r.json();
-  } catch {
-    S.data = getFallbackData();
+  // Ưu tiên localStorage (admin đã sửa) — nếu không có, fetch JSON gốc
+  const cached = localStorage.getItem(LS_KEY);
+  if (cached) {
+    try { S.data = JSON.parse(cached); } catch { S.data = null; }
+  }
+  if (!S.data) {
+    try {
+      const r = await fetch('../data/project.json');
+      S.data = await r.json();
+    } catch {
+      S.data = getFallbackData();
+    }
   }
   S.leads = getMockLeads();
-  // Ensure every menu group exists
   if (!S.data.menu) S.data.menu = {};
   Object.keys(GROUP_META).forEach(k => { if (!S.data.menu[k]) S.data.menu[k] = []; });
+  // Đảm bảo các nhánh nội dung tồn tại để không lỗi khi render lần đầu
+  S.data.gallery        ??= [];
+  S.data.siteMap        ??= { image: '', points: [] };
+  S.data.timeline       ??= [];
+  S.data.legal          ??= { documents: [], banks: [], developerStats: [], testimonials: [] };
+  S.data.location       ??= { lat: 0, lng: 0, mapSrc: '', nearby: [] };
+  S.data.amenitiesDetail??= { noiKhu: [], skyAmenity: [], dichVu: [], haTang: [] };
+  if (!S.data.project)  S.data.project = {};
+  S.data.project.amenities ??= [];
+}
+
+function saveData(msg = 'Đã lưu') {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(S.data));
+    toast(msg, 'ok');
+  } catch (e) {
+    toast('Lỗi lưu: ' + e.message, 'err');
+  }
+}
+
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(S.data,null,2)],{type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'project.json';
+  a.click();
+  toast('Đã tải project.json', 'ok');
+}
+
+function importJSON() {
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = 'application/json';
+  inp.onchange = e => {
+    const f = e.target.files[0]; if (!f) return;
+    const fr = new FileReader();
+    fr.onload = ev => {
+      try {
+        S.data = JSON.parse(ev.target.result);
+        saveData('Đã import project.json');
+        go(S.page);
+      } catch (err) { toast('File JSON không hợp lệ', 'err'); }
+    };
+    fr.readAsText(f);
+  };
+  inp.click();
+}
+
+function resetData() {
+  confirmDel('Reset về project.json gốc?', 'Mọi chỉnh sửa trên admin sẽ mất.', async () => {
+    localStorage.removeItem(LS_KEY);
+    S.data = null;
+    await loadData();
+    go(S.page);
+    toast('Đã reset về mặc định', 'ok');
+  });
 }
 
 // ——— FALLBACK DATA ————————————————————————————
@@ -130,6 +193,12 @@ function render(page, el) {
     case 'theme':     renderTheme(el); break;
     case 'analytics': renderAnalytics(el); break;
     case 'settings':  renderSettings(el); break;
+    case 'gallery':   renderGalleryPage(el); break;
+    case 'sitemap':   renderSiteMapPage(el); break;
+    case 'amenities': renderAmenitiesPage(el); break;
+    case 'timeline':  renderTimelinePage(el); break;
+    case 'legal':     renderLegalPage(el); break;
+    case 'location':  renderLocationPage(el); break;
   }
 }
 
@@ -205,7 +274,7 @@ function renderOverview(el) {
           <div class="card-body"><div class="chart-wrap"><canvas id="ch-scenes"></canvas></div></div>
         </div>
       </div>
-      <div class="card" style="height:fit-content">
+      <div class="card">
         <div class="card-header"><span class="card-title">Hoạt Động Gần Đây</span></div>
         <div class="card-body p0" style="padding:16px">
           <div class="feed" id="feed">
@@ -965,10 +1034,15 @@ function openScenePanel(id) {
         <option value="Tổng thể" ${s.type==='Tổng thể'?'selected':''}>Tổng thể</option>
       </select>
     </div>
+    <div class="form-section">Ảnh Panorama 360°</div>
+    ${imageField('sp-pano', 'Ảnh panorama (equirectangular)', s.panoramaUrl||'')}
     <div class="form-section">Link VR360</div>
-    <div style="padding:12px;background:var(--primary-soft);border:1px solid var(--primary-dim);border-radius:var(--r);margin-bottom:14px">
-      <div style="font-size:12px;font-weight:600;color:var(--primary);margin-bottom:6px">${ico('link')} Link trực tiếp tới scene này:</div>
-      <a href="${vrLink(s.id)}" target="_blank" class="mono c-primary" style="font-size:12px;word-break:break-all">${vrLink(s.id)}</a>
+    <div style="padding:12px;background:var(--primary-soft);border:1px solid var(--primary-dim);border-radius:var(--r);margin-bottom:14px;display:flex;align-items:center;gap:8px">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:600;color:var(--primary);margin-bottom:6px">${ico('link')} Link trực tiếp tới scene này:</div>
+        <a href="${vrLink(s.id)}" target="_blank" class="mono c-primary" style="font-size:12px;word-break:break-all">${vrLink(s.id)}</a>
+      </div>
+      <button class="btn btn-secondary btn-sm" type="button" onclick="previewVR('${vrLink(s.id)}','Preview: ${esc(s.title)}')">${ico('eye')} Preview</button>
     </div>
     <div class="form-section">Palette Màu</div>
     <div style="display:flex;gap:10px;flex-wrap:wrap">
@@ -981,6 +1055,7 @@ function openScenePanel(id) {
   `, () => {
     const idx = S.data.scenes.findIndex(x=>x.id===id);
     if (idx<0) return;
+    const pano = imgFieldValue('sp-pano');
     S.data.scenes[idx] = { ...s,
       title:    document.getElementById('sp-title').value,
       subtitle: document.getElementById('sp-sub').value,
@@ -988,8 +1063,10 @@ function openScenePanel(id) {
       horizonY: parseFloat(document.getElementById('sp-hor').value)||s.horizonY,
       palette:  [0,1,2,3].map(i=>{ const el=document.getElementById(`sp-c${i}`); return el?el.value:s.palette[i]; }),
     };
+    if (pano) S.data.scenes[idx].panoramaUrl = pano;
+    else delete S.data.scenes[idx].panoramaUrl;
     closePanel();
-    toast('Đã lưu scene', 'ok');
+    saveData('Đã lưu scene');
   });
 }
 
@@ -1337,6 +1414,14 @@ function settingsTabHTML(p) {
       </div>
     </div>
 
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header"><span class="card-title">Logo & Ảnh Đại Diện</span></div>
+      <div class="card-body">
+        ${imageField('sp-logo', 'Logo dự án', p.logo||'')}
+        ${imageField('sp-hero', 'Ảnh hero (banner trang VR)', p.heroImg||'')}
+      </div>
+    </div>
+
     <div style="display:flex;justify-content:flex-end;margin-top:4px">
       <button class="btn btn-primary" onclick="saveProjectSettings()">${ico('save')} Lưu tất cả</button>
     </div>`;
@@ -1395,78 +1480,26 @@ function settingsTabHTML(p) {
           <button class="btn btn-secondary btn-sm" onclick="exportBackup()">${ico('download')} Export</button>
         </div>
         <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r)">
-          <div><div class="fw6">Import data</div><div class="c-muted" style="font-size:12px">Upload project.json mới</div></div>
-          <button class="btn btn-secondary btn-sm" onclick="toast('Chọn file JSON để import','info')">${ico('upload')} Import</button>
+          <div><div class="fw6">Import data</div><div class="c-muted" style="font-size:12px">Upload project.json mới — ghi đè localStorage</div></div>
+          <button class="btn btn-secondary btn-sm" onclick="importJSON()">${ico('upload')} Import</button>
+        </div>
+        <div style="padding:12px 14px;background:var(--primary-soft);border:1px solid var(--primary-dim);border-radius:var(--r);font-size:12px;color:var(--primary)">
+          <b>Lưu ý:</b> Dữ liệu admin đang lưu trong <code>localStorage</code> của trình duyệt. Bấm <b>Export</b> để tải file <code>project.json</code> đã sửa rồi thay tay vào thư mục <code>data/</code> để frontend đọc.
         </div>
         <div style="padding:12px 14px;background:var(--danger-soft);border:1px solid var(--danger-dim);border-radius:var(--r)">
           <div class="c-danger fw6" style="margin-bottom:4px">${ico('warning')} Vùng nguy hiểm</div>
-          <div class="c-muted" style="font-size:13px;margin-bottom:10px">Reset sẽ xoá toàn bộ dữ liệu tùy chỉnh.</div>
-          <button class="btn btn-danger btn-sm" onclick="confirmDel('Reset về mặc định?','Toàn bộ data sẽ bị xoá.',()=>toast('Đã reset về mặc định','ok'))">Reset về mặc định</button>
+          <div class="c-muted" style="font-size:13px;margin-bottom:10px">Reset sẽ xoá toàn bộ chỉnh sửa và đọc lại <code>data/project.json</code> gốc.</div>
+          <button class="btn btn-danger btn-sm" onclick="resetData()">Reset về mặc định</button>
         </div>
       </div>
     </div>`;
 }
 
-function openGalleryPanel() {
-  const imgs = S.data.gallery || [];
-  showPanel('Thư Viện Ảnh', `
-    <div class="form-hint" style="margin-bottom:12px">Chỉnh sửa trực tiếp trong <code>data/project.json</code> → trường <b>gallery</b>. Hiện có <b>${imgs.length} ảnh</b>.</div>
-    <div style="display:flex;flex-direction:column;gap:8px">
-      ${imgs.map((img,i)=>`
-        <div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg);border-radius:var(--r)">
-          <div style="font-size:20px;display:flex;align-items:center">${ico('image',20)}</div>
-          <div style="flex:1;min-width:0">
-            <div style="font-size:12px;font-weight:600">${img.title||'Không có tiêu đề'}</div>
-            <div style="font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${img.src}</div>
-          </div>
-        </div>`).join('')}
-    </div>
-    <div style="margin-top:14px;padding:12px;background:var(--primary-soft);border:1px solid var(--primary-dim);border-radius:var(--r);font-size:12px;color:var(--primary)">
-      Tính năng upload ảnh trực tiếp cần backend. Hiện tại chỉnh sửa qua file JSON.
-    </div>
-  `, null);
-  document.getElementById('sp-save').style.display = 'none';
-}
-
-function openSiteMapPanel() {
-  const sm = S.data.siteMap || {};
-  const pts = sm.points || [];
-  showPanel('Bản Đồ 2D', `
-    <div class="form-hint" style="margin-bottom:12px">Bản đồ 2D sử dụng ảnh <b>${sm.image||'chưa đặt'}</b> với <b>${pts.length} điểm tương tác</b>.</div>
-    <div style="display:flex;flex-direction:column;gap:8px">
-      ${pts.map(pt=>`
-        <div style="display:flex;align-items:center;gap:10px;padding:10px;background:var(--bg);border-radius:var(--r)">
-          <div class="mono" style="font-size:11px;color:var(--muted);min-width:70px">X:${pt.x}% Y:${pt.y}%</div>
-          <div style="flex:1;font-size:12px;font-weight:600">${pt.label}</div>
-          <div class="mono" style="font-size:11px;color:var(--primary)">${pt.sceneId||'—'}</div>
-        </div>`).join('')}
-    </div>
-    <div style="margin-top:14px;padding:12px;background:var(--primary-soft);border:1px solid var(--primary-dim);border-radius:var(--r);font-size:12px;color:var(--primary)">
-      Chỉnh sửa tọa độ điểm và ảnh nền trong <code>data/project.json</code> → trường <b>siteMap</b>.
-    </div>
-  `, null);
-  document.getElementById('sp-save').style.display = 'none';
-}
-
-function openTimelinePanel() {
-  const tl = S.data.timeline || [];
-  showPanel('Tiến Độ Xây Dựng', `
-    <div class="form-hint" style="margin-bottom:12px">Hiện có <b>${tl.length} mốc tiến độ</b> trong dữ liệu.</div>
-    ${tl.length === 0
-      ? `<div style="text-align:center;padding:32px;color:var(--muted)">Chưa có dữ liệu tiến độ trong project.json.<br>Thêm trường <b>timeline</b> vào JSON.</div>`
-      : `<div style="display:flex;flex-direction:column;gap:8px">
-          ${tl.map(m=>`
-            <div style="display:flex;align-items:flex-start;gap:12px;padding:10px;background:var(--bg);border-radius:var(--r)">
-              <div style="width:10px;height:10px;border-radius:50%;background:${m.done?'var(--ok)':'var(--border)'};margin-top:4px;flex-shrink:0"></div>
-              <div><div style="font-weight:600;font-size:13px">${m.title||m.label||''}</div><div style="font-size:11px;color:var(--muted)">${m.date||''}</div></div>
-            </div>`).join('')}
-        </div>`}
-    <div style="margin-top:14px;padding:12px;background:var(--primary-soft);border:1px solid var(--primary-dim);border-radius:var(--r);font-size:12px;color:var(--primary)">
-      Chỉnh sửa trong <code>data/project.json</code> → trường <b>timeline</b>.
-    </div>
-  `, null);
-  document.getElementById('sp-save').style.display = 'none';
-}
+// Các hàm openGalleryPanel/openSiteMapPanel/openTimelinePanel cũ
+// đã được chuyển thành trang riêng. Giữ wrapper để overview cards vẫn chạy.
+function openGalleryPanel()  { go('gallery'); }
+function openSiteMapPanel()  { go('sitemap'); }
+function openTimelinePanel() { go('timeline'); }
 
 function saveProjectSettings() {
   const g = id => { const el = document.getElementById(id); return el ? el.value.trim() : undefined; };
@@ -1486,14 +1519,14 @@ function saveProjectSettings() {
     density: g('sp-density'), greenSpace: g('sp-greenSpace'),
     stats,
   });
-  toast('Đã lưu thông tin dự án', 'ok');
+  const logo = imgFieldValue('sp-logo');
+  const hero = imgFieldValue('sp-hero');
+  if (logo) S.data.project.logo = logo; else delete S.data.project.logo;
+  if (hero) S.data.project.heroImg = hero; else delete S.data.project.heroImg;
+  saveData('Đã lưu thông tin dự án');
 }
 
-function exportBackup() {
-  const blob = new Blob([JSON.stringify(S.data,null,2)],{type:'application/json'});
-  const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='aurora-backup.json'; a.click();
-  toast('Đã xuất backup', 'ok');
-}
+function exportBackup() { exportJSON(); }
 
 // ——— UI: PANEL / MODAL / TOAST ———————————————
 function showPanel(title, bodyHTML, onSave) {
@@ -1504,7 +1537,9 @@ function showPanel(title, bodyHTML, onSave) {
   document.getElementById('sp-backdrop').classList.add('open');
 }
 function closePanel() {
-  document.getElementById('sp').classList.remove('open');
+  const sp = document.getElementById('sp');
+  sp.classList.remove('open');
+  sp.classList.remove('sp-wide');
   document.getElementById('sp-backdrop').classList.remove('open');
 }
 
