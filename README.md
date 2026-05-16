@@ -2,28 +2,28 @@
 
 > Trang bán hàng bất động sản tương tác VR360 + hệ thống quản trị nội bộ — dự án căn hộ cao cấp **Aurora Heights** (Khu Tây Hồ Tây, Hà Nội).
 
-<p align="center">
+<p align="left">
   <!-- Dòng 1: Phiên bản & trạng thái -->
   <img src="https://img.shields.io/badge/version-1.2-blue?style=flat-square" alt="Version" />
   <img src="https://img.shields.io/badge/status-production-success?style=flat-square" alt="Status" />
   <img src="https://img.shields.io/badge/cập_nhật-16--05--2026-lightgrey?style=flat-square" alt="Updated" />
 </p>
 
-<p align="center">
+<p align="left">
   <!-- Dòng 2: Đặc tính dự án -->
   <img src="https://img.shields.io/badge/i18n-5_ngôn_ngữ-orange?style=flat-square" alt="i18n" />
   <img src="https://img.shields.io/badge/responsive-desktop_%2B_mobile-9cf?style=flat-square" alt="Responsive" />
   <img src="https://img.shields.io/badge/backend-none_(static_JSON)-yellow?style=flat-square" alt="Backend" />
 </p>
 
-<p align="center">
+<p align="left">
   <!-- Dòng 3: Công nghệ lõi -->
   <img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white" alt="HTML5" />
   <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" alt="CSS3" />
   <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JavaScript" />
 </p>
 
-<p align="center">
+<p align="left">
   <!-- Dòng 4: Thư viện & API -->
   <img src="https://img.shields.io/badge/Three.js_r128-000000?style=for-the-badge&logo=three.js&logoColor=white" alt="Three.js" />
   <img src="https://img.shields.io/badge/Chart.js_4.4-FF6384?style=for-the-badge&logo=chart.js&logoColor=white" alt="Chart.js" />
