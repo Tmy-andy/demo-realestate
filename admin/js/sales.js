@@ -324,7 +324,7 @@ function renderDashboard(el) {
       <div class="card-header">
         <div class="card-title">${ico('overview',14)} Phân bổ leads theo trạng thái</div>
       </div>
-      <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;flex-direction:column;gap:10px;padding:14px 18px">
         ${Object.entries(LEAD_STATUS).map(([k, label]) => {
           const cnt = S.leads.filter(l => l.status === k).length;
           const pct = total ? Math.round(cnt/total*100) : 0;

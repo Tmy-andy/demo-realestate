@@ -88,7 +88,7 @@ input, select, textarea { font-family: inherit; font-size: inherit }
 .user-name { font-size: 13px; font-weight: 600 }
 .user-role { font-size: 11px; color: var(--muted) }
 .btn-logout { padding: 5px 12px; border-radius: var(--r); background: var(--danger-soft); border: 1px solid var(--danger-dim); color: var(--danger); font-size: 12px; font-weight: 600; transition: var(--t) }
-.btn-logout:hover { background: var(--danger); color: #fff }
+.btn-logout:hover { background: var(--danger) !important; color: #fff }
 
 /* SIDEBAR */
 #sidebar {

@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hướng Dẫn Sử Dụng — Chủ Đầu Tư Aurora Heights Admin</title>
+<style>
+  :root {
+    --bg: #0f1117; --sidebar-bg: #0a0d12; --content-bg: #13171f;
+    --fg: #e8e6df; --fg-muted: #9a9590;
+    --accent: #e8c089; --accent-dim: rgba(232,192,137,0.15);
+    --ok: #7ad79a; --danger: #ff6b6b; --warning: #f5a623; --info: #6496ff;
+    --hairline: rgba(255,255,255,0.08); --code-bg: rgba(0,0,0,0.4);
+    --sidebar-width: 280px; --top-height: 56px; --r: 6px;
+    --font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --font-mono: 'Cascadia Code', 'Fira Mono', 'Consolas', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--font-sans); font-size: 14px; line-height: 1.7; display: flex; flex-direction: column; min-height: 100vh; }
+
+  #topbar { position: fixed; top: 0; left: 0; right: 0; height: var(--top-height); background: var(--sidebar-bg); border-bottom: 1px solid var(--hairline); display: flex; align-items: center; padding: 0 1.5rem; gap: 1rem; z-index: 100; }
+  #topbar .brand { font-size: 1rem; font-weight: 700; color: var(--accent); letter-spacing: 0.04em; white-space: nowrap; }
+  #topbar .badge { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(232,192,137,0.3); padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  #topbar .meta { margin-left: auto; color: var(--fg-muted); font-size: 12px; }
+  #topbar a { color: var(--fg-muted); text-decoration: none; font-size: 12px; }
+  #topbar a:hover { color: var(--accent); }
+
+  #layout { display: flex; margin-top: var(--top-height); min-height: calc(100vh - var(--top-height)); }
+  #sidebar { width: var(--sidebar-width); flex-shrink: 0; background: var(--sidebar-bg); border-right: 1px solid var(--hairline); position: fixed; top: var(--top-height); bottom: 0; overflow-y: auto; padding: 1.5rem 0; }
+  #sidebar::-webkit-scrollbar { width: 4px; }
+  #sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+  .nav-section-label { padding: 0.5rem 1.5rem; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: var(--fg-muted); text-transform: uppercase; }
+  .nav-link { display: block; padding: 0.4rem 1.5rem; color: var(--fg-muted); text-decoration: none; font-size: 13px; transition: all 0.15s; border-left: 2px solid transparent; }
+  .nav-link:hover, .nav-link.active { color: var(--fg); background: rgba(255,255,255,0.04); border-left-color: var(--accent); }
+  .nav-link .num { display: inline-block; background: rgba(255,255,255,0.06); color: var(--fg-muted); font-size: 10px; padding: 1px 5px; border-radius: 3px; margin-right: 6px; font-family: var(--font-mono); }
+  #content { margin-left: var(--sidebar-width); flex: 1; padding: 3rem 4rem;}
+
+  h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+  h2 { font-size: 1.5rem; font-weight: 700; margin: 3rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--hairline); }
+  h2::before { content: attr(data-num); color: var(--accent); font-size: 0.85em; margin-right: 0.5rem; font-family: var(--font-mono); }
+  h3 { font-size: 1.1rem; font-weight: 600; margin: 2rem 0 0.75rem; }
+  h4 { font-size: 0.9rem; font-weight: 600; color: var(--fg-muted); margin: 1.5rem 0 0.5rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  p { margin-bottom: 1rem; }
+  ul, ol { margin: 0 0 1rem 1.25rem; }
+  ul li, ol li { margin-bottom: 0.4rem; }
+  strong { color: #fff; }
+
+  .intro { background: var(--accent-dim); border: 1px solid rgba(232,192,137,0.25); border-radius: var(--r); padding: 1.25rem 1.5rem; margin-bottom: 2.5rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; }
+  .intro-item .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-muted); }
+  .intro-item .value { font-size: 14px; color: var(--fg); font-weight: 600; }
+
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 13px; }
+  thead th { background: rgba(255,255,255,0.04); color: var(--fg-muted); font-weight: 600; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.6rem 0.85rem; text-align: left; border-bottom: 1px solid var(--hairline); }
+  tbody td { padding: 0.55rem 0.85rem; border-bottom: 1px solid var(--hairline); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: rgba(255,255,255,0.02); }
+  code { font-family: var(--font-mono); font-size: 12px; background: var(--code-bg); padding: 1px 5px; border-radius: 3px; color: var(--accent); }
+
+  .step { display: flex; gap: 1rem; background: var(--content-bg); border: 1px solid var(--hairline); border-radius: var(--r); padding: 1rem 1.25rem; margin: 0.75rem 0; }
+  .step-num { flex-shrink: 0; width: 32px; height: 32px; background: var(--accent-dim); color: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-family: var(--font-mono); }
+  .step-body { flex: 1; }
+  .step-body .step-title { font-weight: 600; color: var(--fg); margin-bottom: 0.25rem; }
+  .step-body .step-desc { color: var(--fg-muted); font-size: 13px; line-height: 1.65; }
+
+  .callout { border-left: 3px solid var(--accent); background: var(--accent-dim); border-radius: 0 var(--r) var(--r) 0; padding: 0.85rem 1.25rem; margin: 1rem 0 1.5rem; font-size: 13px; }
+  .callout.warn { border-left-color: var(--warning); background: rgba(245,166,35,0.1); }
+  .callout.info { border-left-color: var(--info); background: rgba(100,150,255,0.1); }
+  .callout.ok { border-left-color: var(--ok); background: rgba(122,215,154,0.1); }
+  .callout.danger { border-left-color: var(--danger); background: rgba(255,107,107,0.1); }
+  .callout strong { display: block; margin-bottom: 0.25rem; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; }
+
+  .badge-ok { background: rgba(122,215,154,0.15); color: var(--ok); padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; white-space: nowrap; display: inline-block; }
+  .badge-warn{ background: rgba(245,166,35,0.15); color: var(--warning); padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; white-space: nowrap; display: inline-block; }
+  .badge-err { background: rgba(255,107,107,0.15); color: var(--danger); padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; white-space: nowrap; display: inline-block; }
+  .badge-info{ background: rgba(100,150,255,0.15); color: var(--info); padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; white-space: nowrap; display: inline-block; }
+
+  pre, .flow { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: var(--r); padding: 1.25rem; overflow-x: auto; margin: 1rem 0 1.5rem; font-family: var(--font-mono); font-size: 12.5px; line-height: 1.65; color: #c9d1d9; white-space: pre; }
+  hr { border: none; border-top: 1px solid var(--hairline); margin: 2.5rem 0; }
+  kbd { display: inline-block; padding: 2px 7px; background: rgba(255,255,255,0.08); border: 1px solid var(--hairline); border-radius: 4px; font-family: var(--font-mono); font-size: 11px; color: #fff; box-shadow: 0 1px 0 rgba(0,0,0,0.4); }
+
+  details { background: var(--content-bg); border: 1px solid var(--hairline); border-radius: var(--r); padding: 0.75rem 1rem; margin: 0.5rem 0; }
+  details summary { cursor: pointer; font-weight: 600; color: var(--fg); list-style: none; padding-right: 1.5rem; position: relative; }
+  details summary::after { content: "+"; position: absolute; right: 0; top: 0; color: var(--accent); font-size: 1.2rem; line-height: 1; }
+  details[open] summary::after { content: "−"; }
+  details p { margin-top: 0.75rem; color: var(--fg-muted); font-size: 13px; }
+
+  @media (max-width: 900px) { #sidebar { display: none; } #content { margin-left: 0; padding: 2rem 1.5rem; } }
+  html { scroll-behavior: smooth; }
+  section { scroll-margin-top: calc(var(--top-height) + 1rem); }
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <span class="brand">Aurora Heights Admin</span>
+  <span class="badge">HDSD · Chủ Đầu Tư</span>
+  <span class="meta">
+    <a href="index.html">← Đặc Tả Dự Án</a>
+    &nbsp;·&nbsp;
+    <a href="huong-dan-khach.html">HDSD Khách</a>
+    &nbsp;·&nbsp;
+    <a href="huong-dan-sales.html">HDSD Sales</a>
+  </span>
+</div>
+
+<div id="layout">
+
+<nav id="sidebar">
+  <div class="nav-section-label">Bắt Đầu</div>
+  <a class="nav-link" href="#gioi-thieu"><span class="num">1</span>Giới Thiệu Vai Trò</a>
+  <a class="nav-link" href="#dang-nhap"><span class="num">2</span>Đăng Nhập</a>
+  <a class="nav-link" href="#tong-quan-ui"><span class="num">3</span>Giao Diện Tổng Quan</a>
+  <a class="nav-link" href="#thao-tac-chung"><span class="num">4</span>Thao Tác Chung</a>
+
+  <div class="nav-section-label" style="margin-top:1rem">Quản Lý</div>
+  <a class="nav-link" href="#tong-quan"><span class="num">5</span>Tổng Quan (Dashboard)</a>
+  <a class="nav-link" href="#can-ho"><span class="num">6</span>Căn Hộ</a>
+  <a class="nav-link" href="#leads"><span class="num">7</span>Leads & Booking</a>
+
+  <div class="nav-section-label" style="margin-top:1rem">Nội Dung VR</div>
+  <a class="nav-link" href="#danh-sach-vr"><span class="num">8</span>Danh Sách VR</a>
+  <a class="nav-link" href="#thu-vien"><span class="num">9</span>Thư Viện Ảnh</a>
+  <a class="nav-link" href="#ban-do-2d"><span class="num">10</span>Bản Đồ 2D</a>
+  <a class="nav-link" href="#tien-ich"><span class="num">11</span>Tiện Ích</a>
+  <a class="nav-link" href="#tien-do"><span class="num">12</span>Tiến Độ XD</a>
+  <a class="nav-link" href="#phap-ly"><span class="num">13</span>Pháp Lý</a>
+  <a class="nav-link" href="#vi-tri"><span class="num">14</span>Vị Trí & POI</a>
+  <a class="nav-link" href="#i18n"><span class="num">15</span>Ngôn Ngữ & i18n</a>
+
+  <div class="nav-section-label" style="margin-top:1rem">Hệ Thống</div>
+  <a class="nav-link" href="#theme"><span class="num">16</span>Giao Diện & Theme</a>
+  <a class="nav-link" href="#analytics"><span class="num">17</span>Analytics</a>
+  <a class="nav-link" href="#cai-dat"><span class="num">18</span>Cài Đặt</a>
+
+  <div class="nav-section-label" style="margin-top:1rem">Khác</div>
+  <a class="nav-link" href="#preview"><span class="num">19</span>Preview VR</a>
+  <a class="nav-link" href="#luu-tru"><span class="num">20</span>Lưu Trữ & Backup</a>
+  <a class="nav-link" href="#cong-bo"><span class="num">21</span>Công Bố Thay Đổi</a>
+  <a class="nav-link" href="#faq"><span class="num">22</span>FAQ & Sự Cố</a>
+</nav>
+
+<main id="content">
+
+  <h1>Hướng Dẫn Sử Dụng Cho Chủ Đầu Tư</h1>
+  <p style="color:var(--fg-muted);margin-bottom:2rem">
+    Trang quản trị (Owner) <code>admin/owner.html</code> dành cho ban quản lý dự án, đội marketing và đội kỹ thuật.
+    Cho phép chỉnh sửa toàn bộ nội dung trang VR, xem báo cáo và quản lý leads.
+  </p>
+
+  <div class="intro">
+    <div class="intro-item"><div class="label">Vai Trò</div><div class="value">Chủ Đầu Tư · Owner</div></div>
+    <div class="intro-item"><div class="label">URL</div><div class="value">admin/owner.html</div></div>
+    <div class="intro-item"><div class="label">Tài Khoản</div><div class="value">admin / aurora@2025</div></div>
+    <div class="intro-item"><div class="label">Số Trang</div><div class="value">14 module</div></div>
+    <div class="intro-item"><div class="label">Lưu Trữ</div><div class="value">localStorage</div></div>
+    <div class="intro-item"><div class="label">Backup</div><div class="value">Export/Import JSON</div></div>
+  </div>
+
+  <!-- 1 -->
+  <section id="gioi-thieu">
+    <h2 data-num="1">Giới Thiệu Vai Trò</h2>
+    <p>Tư cách <strong>Owner</strong> có toàn quyền:</p>
+    <ul>
+      <li>Quản lý kho căn hộ (thêm/sửa/xoá, đổi trạng thái).</li>
+      <li>Xem và xử lý toàn bộ leads + booking của mọi sales.</li>
+      <li>Chỉnh sửa <strong>mọi nội dung</strong> trên trang VR — cảnh, hotspot, thư viện ảnh, bản đồ, tiện ích, tiến độ, pháp lý, vị trí.</li>
+      <li>Đổi <strong>màu chủ đạo</strong> (theme) của trang VR mà không cần code.</li>
+      <li>Thêm / xoá <strong>ngôn ngữ</strong> và chỉnh các chuỗi dịch.</li>
+      <li>Xem báo cáo Analytics.</li>
+      <li>Export / Import / Reset toàn bộ dữ liệu dự án.</li>
+    </ul>
+
+    <div class="callout warn">
+      <strong>Quan trọng — Ranh giới lưu trữ</strong>
+      Mọi thay đổi của Owner được lưu vào <strong>localStorage</strong> của trình duyệt, <em>không tự động</em> đẩy lên trang VR public. Để publish, xem mục <a href="#cong-bo">Công Bố Thay Đổi</a>.
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section id="dang-nhap">
+    <h2 data-num="2">Đăng Nhập</h2>
+
+    <div class="step"><div class="step-num">1</div><div class="step-body">
+      <div class="step-title">Mở trang đăng nhập</div>
+      <div class="step-desc">Truy cập <code>admin/index.html</code> trên máy chủ nội bộ.</div>
+    </div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body">
+      <div class="step-title">Nhập thông tin</div>
+      <div class="step-desc">Tên đăng nhập: <code>admin</code><br>Mật khẩu: <code>aurora@2025</code></div>
+    </div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body">
+      <div class="step-title">Bấm "Đăng Nhập"</div>
+      <div class="step-desc">Hệ thống xác thực rồi tự chuyển sang <code>owner.html</code>. Phiên đăng nhập được lưu trong sessionStorage (mất khi đóng tab).</div>
+    </div></div>
+
+    <h3>Đăng Xuất</h3>
+    <p>Bấm nút <strong>"Đăng xuất"</strong> trên góc phải topbar. Phiên bị xoá khỏi sessionStorage và bạn được đưa về trang login.</p>
+
+    <div class="callout danger">
+      <strong>Chú ý bảo mật</strong>
+      Tài khoản admin có quyền chỉnh sửa <strong>mọi dữ liệu dự án</strong>. Tuyệt đối không chia sẻ mật khẩu cho người ngoài. Nên đổi mật khẩu mặc định khi triển khai thực tế (sửa mảng <code>USERS</code> trong <code>admin/index.html</code>).
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section id="tong-quan-ui">
+    <h2 data-num="3">Giao Diện Tổng Quan</h2>
+
+    <pre>┌──────────────────────────────────────────────────────────┐
+│  ① Sidebar (trái)         ② Topbar                      │
+│      Quản Lý                   [Preview VR]              │
+│      ├─ Tổng Quan              [🔔] [📄] [Admin] [Đăng xuất] │
+│      ├─ Căn Hộ                                           │
+│      └─ Leads & Booking   ③ Khu Vực Nội Dung Chính       │
+│      Nội Dung VR             (Render trang được chọn)    │
+│      ├─ Danh Sách VR                                     │
+│      ├─ Thư Viện Ảnh                                     │
+│      ├─ Bản Đồ 2D                                        │
+│      ├─ Tiện Ích          ④ Slide Panel (trượt từ phải)  │
+│      ├─ Tiến Độ              Form chỉnh sửa chi tiết     │
+│      ├─ Pháp Lý                                          │
+│      ├─ Vị Trí                                           │
+│      └─ Ngôn Ngữ          ⑤ Modal Xác Nhận               │
+│      Hệ Thống                Khi xoá hoặc reset          │
+│      ├─ Theme                                            │
+│      ├─ Analytics                                        │
+│      └─ Cài Đặt           ⑥ Toast (đáy phải)             │
+└──────────────────────────────────────────────────────────┘</pre>
+
+    <table>
+      <thead><tr><th>Khu Vực</th><th>Chức Năng</th></tr></thead>
+      <tbody>
+        <tr><td>① Sidebar</td><td>Chia 3 nhóm chức năng. Bấm bất kỳ mục nào để chuyển trang nội dung.</td></tr>
+        <tr><td>② Topbar</td><td>Nút Preview VR (xem trang public ngay), thông báo, đăng xuất.</td></tr>
+        <tr><td>③ Nội dung chính</td><td>Hiển thị trang được chọn — bảng dữ liệu, form, biểu đồ.</td></tr>
+        <tr><td>④ Slide Panel</td><td>Trượt ra từ bên phải khi bạn thêm hoặc sửa một mục.</td></tr>
+        <tr><td>⑤ Modal Xác Nhận</td><td>Hiện khi bạn bấm xoá hoặc reset — phải bấm "Xác Nhận" để thực hiện.</td></tr>
+        <tr><td>⑥ Toast</td><td>Thông báo nhanh ở góc dưới phải sau mỗi thao tác (Đã lưu / Đã xoá / Lỗi).</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 4 -->
+  <section id="thao-tac-chung">
+    <h2 data-num="4">Thao Tác Chung Trên Mọi Trang</h2>
+
+    <h3>4 Hành Động Cơ Bản (CRUD)</h3>
+    <table>
+      <thead><tr><th>Hành Động</th><th>Thực Hiện Như Thế Nào</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Thêm mới</strong></td><td>Bấm nút <code>+ Thêm</code> trên đầu danh sách → Slide Panel mở ra → điền form → bấm <strong>Lưu</strong></td></tr>
+        <tr><td><strong>Sửa</strong></td><td>Bấm icon ✏️ (hoặc cả dòng) → Slide Panel mở ra với dữ liệu cũ → chỉnh → bấm <strong>Lưu</strong></td></tr>
+        <tr><td><strong>Xoá</strong></td><td>Bấm icon 🗑️ → Modal xác nhận hiện ra → bấm <strong>Xác Nhận</strong> để xoá</td></tr>
+        <tr><td><strong>Kéo thả sắp xếp</strong></td><td>Trên các danh sách có thứ tự (nav menu, thư viện ảnh, tiến độ): nhấn giữ + kéo lên/xuống để đổi vị trí</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Tự Động Lưu</h3>
+    <div class="callout info">
+      <strong>Mọi thay đổi đều được lưu ngay vào localStorage</strong>
+      Sau khi bấm "Lưu" trong slide panel, dữ liệu được ghi vào <code>localStorage.ah_admin_data</code>. Bạn có thể đóng tab và mở lại — dữ liệu vẫn còn.
+    </div>
+
+    <h3>Hoàn Tác?</h3>
+    <p>Hệ thống <strong>không có Undo</strong> trực tiếp. Cách an toàn:</p>
+    <ul>
+      <li>Trước khi chỉnh sửa lớn, hãy <strong>Export Backup</strong> tại trang Cài Đặt (xem mục 20).</li>
+      <li>Nếu lỡ xoá nhầm → vào Cài Đặt → <strong>Import</strong> file backup gần nhất.</li>
+    </ul>
+  </section>
+
+  <!-- 5 -->
+  <section id="tong-quan">
+    <h2 data-num="5">Trang Tổng Quan (Dashboard)</h2>
+    <p>Trang mặc định khi bạn vừa đăng nhập. Cho cái nhìn tổng thể về dự án.</p>
+
+    <h3>Thành Phần</h3>
+    <table>
+      <thead><tr><th>Phần</th><th>Hiển Thị</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Thẻ KPI</strong></td><td>Tổng visitor hôm nay · Leads mới · Bookings sắp tới · Doanh thu dự kiến · Tỉ lệ chuyển đổi</td></tr>
+        <tr><td><strong>Biểu đồ visitor theo giờ</strong></td><td>24 cột thể hiện số người truy cập trang VR trong 24h qua (Chart.js)</td></tr>
+        <tr><td><strong>Biểu đồ độ phổ biến của cảnh</strong></td><td>Bar chart so sánh lượt xem giữa 6 cảnh VR</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout info">
+      <strong>Số liệu mock</strong>
+      Hiện tại biểu đồ là dữ liệu mẫu (mock). Khi tích hợp Analytics thật (mục 17), số liệu sẽ về theo thời gian thực.
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section id="can-ho">
+    <h2 data-num="6">Quản Lý Căn Hộ</h2>
+    <p>Trang quan trọng nhất — quản lý toàn bộ kho căn của dự án.</p>
+
+    <h3>Cấu Trúc Bảng</h3>
+    <p>Mỗi dòng là một căn với các trường: Mã căn · Loại · Tầng · Diện tích · Hướng · Giá · Còn/Tổng (trong loại) · Trạng thái.</p>
+
+    <h3>Lọc & Sắp Xếp</h3>
+    <ul>
+      <li>Lọc theo <strong>trạng thái</strong> (Còn hàng / Đang giữ chỗ / Đã bán).</li>
+      <li>Lọc theo <strong>loại căn</strong> (2PN / 2PN+1 / 3PN / Duplex).</li>
+      <li>Bấm tiêu đề cột để sắp xếp.</li>
+    </ul>
+
+    <h3>Thêm Căn Mới</h3>
+    <div class="step"><div class="step-num">1</div><div class="step-body">
+      <div class="step-title">Bấm "+ Thêm Căn"</div>
+      <div class="step-desc">Slide Panel mở ra với form trống.</div>
+    </div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body">
+      <div class="step-title">Điền thông tin</div>
+      <div class="step-desc">Mã căn (vd <code>A-3BR-104-22</code>) · Loại (2PN/3PN…) · Tầng · Diện tích (m²) · Hướng · Giá (tỷ) · Trạng thái.</div>
+    </div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body">
+      <div class="step-title">Bấm Lưu</div>
+      <div class="step-desc">Căn xuất hiện trong bảng + thống kê tổng quan cập nhật ngay.</div>
+    </div></div>
+
+    <h3>Sửa Trạng Thái Nhanh</h3>
+    <p>Bấm badge trạng thái trên dòng → xoay vòng giữa <span class="badge-ok">Còn hàng</span> → <span class="badge-warn">Đang giữ chỗ</span> → <span class="badge-err">Đã bán</span>.</p>
+
+    <div class="callout warn">
+      <strong>Quy ước mã căn</strong>
+      Mã căn nên theo format <code>{Tòa}-{Loại}-{Diện tích}-{Tầng}</code> để dễ nhận diện. Ví dụ <code>A-3BR-104-28</code> = Tòa A, 3 phòng ngủ, 104m², tầng 28.
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section id="leads">
+    <h2 data-num="7">Leads & Booking</h2>
+    <p>Trang gộp 2 chức năng: <strong>Leads</strong> (khách hàng tiềm năng) và <strong>Booking</strong> (lịch hẹn).</p>
+
+    <h3>Tab Leads</h3>
+    <table>
+      <thead><tr><th>Trạng Thái</th><th>Ý Nghĩa</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge-info">Mới</span></td><td>Vừa đăng ký, chưa liên hệ</td></tr>
+        <tr><td><span class="badge-warn">Đã gọi</span></td><td>Sales đã gọi liên hệ</td></tr>
+        <tr><td><span class="badge-info">Đang quan tâm</span></td><td>Khách quan tâm thật, đang tư vấn</td></tr>
+        <tr><td><span class="badge-ok">Đã chốt</span></td><td>Đã ký hợp đồng đặt cọc</td></tr>
+        <tr><td><span class="badge-err">Không tiếp tục</span></td><td>Khách không còn nhu cầu</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Lọc Lead</h4>
+    <ul>
+      <li>Theo <strong>nguồn</strong> (combobox tìm kiếm): Online (Facebook · Zalo · Google · Website · TikTok) · Offline (Hotline · Walk-in · Sự kiện · Giới thiệu).</li>
+      <li>Theo <strong>trạng thái</strong>.</li>
+      <li>Tìm theo tên / SĐT.</li>
+    </ul>
+
+    <h4>Xuất CSV</h4>
+    <p>Bấm <strong>Xuất CSV</strong> trên đầu bảng để tải toàn bộ lead về máy (mở được trong Excel).</p>
+
+    <h3>Tab Booking — Hai Cách Xem</h3>
+    <table>
+      <thead><tr><th>Chế Độ</th><th>Hiển Thị</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Tuần</strong></td><td>Lưới 7 ngày × 12 giờ. Mỗi ô là một lịch hẹn. Bấm <strong>← →</strong> để chuyển tuần, <strong>Hôm Nay</strong> để về tuần hiện tại.</td></tr>
+        <tr><td><strong>Danh sách</strong></td><td>Bảng phẳng tất cả lịch hẹn theo thứ tự thời gian.</td></tr>
+      </tbody>
+    </table>
+
+    <table>
+      <thead><tr><th>Trạng Thái Booking</th><th>Ý Nghĩa</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge-warn">Chờ xác nhận</span></td><td>Khách đã đăng ký, chưa được sales gọi xác nhận</td></tr>
+        <tr><td><span class="badge-info">Đã xác nhận</span></td><td>Sales đã gọi và chốt lịch</td></tr>
+        <tr><td><span class="badge-ok">Đã hoàn tất</span></td><td>Lịch hẹn đã diễn ra</td></tr>
+        <tr><td><span class="badge-err">Đã huỷ</span></td><td>Khách hoặc sales huỷ lịch</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 8 -->
+  <section id="danh-sach-vr">
+    <h2 data-num="8">Danh Sách VR (Nav Panel)</h2>
+    <p>Chỉnh menu accordion bên trái trên trang VR. Có 5 nhóm cố định:</p>
+
+    <table>
+      <thead><tr><th>Key</th><th>Tên Hiển Thị</th><th>Số Mục Mẫu</th></tr></thead>
+      <tbody>
+        <tr><td><code>tongQuan</code></td><td>Tổng Quan</td><td>6</td></tr>
+        <tr><td><code>tienIchNoiKhu</code></td><td>Tiện Ích Nội Khu</td><td>6</td></tr>
+        <tr><td><code>tienIchNgoaiKhu</code></td><td>Tiện Ích Ngoại Khu</td><td>10</td></tr>
+        <tr><td><code>matBangTang</code></td><td>Mặt Bằng Tầng</td><td>5</td></tr>
+        <tr><td><code>view360Can</code></td><td>View 360° Căn Hộ</td><td>11</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Thêm Mục Vào Nhóm</h3>
+    <div class="step"><div class="step-num">1</div><div class="step-body">
+      <div class="step-title">Mở rộng nhóm bằng cách bấm tiêu đề</div>
+      <div class="step-desc">Bạn thấy các card hiện tại của nhóm.</div>
+    </div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body">
+      <div class="step-title">Bấm "+ Thêm card"</div>
+      <div class="step-desc">Form mở ra với 3 trường: tên hiển thị · ID · cảnh VR đích.</div>
+    </div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body">
+      <div class="step-title">Chọn cảnh VR đích</div>
+      <div class="step-desc">Dropdown liệt kê 6 cảnh có sẵn. Link sẽ <strong>tự điền</strong> theo lựa chọn.</div>
+    </div></div>
+
+    <h3>Kéo Thả Sắp Xếp</h3>
+    <p>Nhấn giữ card + kéo lên/xuống. Vị trí mới được lưu ngay.</p>
+  </section>
+
+  <!-- 9 -->
+  <section id="thu-vien">
+    <h2 data-num="9">Thư Viện Ảnh (Gallery)</h2>
+    <p>Quản lý ảnh hiển thị trong overlay Gallery của trang VR.</p>
+
+    <h3>Thêm Ảnh — Hai Cách</h3>
+    <table>
+      <thead><tr><th>Cách</th><th>Mô Tả</th></tr></thead>
+      <tbody>
+        <tr><td><strong>URL</strong></td><td>Dán đường dẫn ảnh online (http://… hoặc https://…)</td></tr>
+        <tr><td><strong>Tải lên (drag-drop)</strong></td><td>Kéo thả file ảnh từ máy vào vùng drop zone. Ảnh được lưu dưới dạng base64.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <strong>Giới hạn dung lượng</strong>
+      Mỗi ảnh upload không quá <strong>10 MB</strong>. Tổng dung lượng localStorage không quá <strong>5 MB</strong> (đã ghi rõ trong <code>admin-content.js</code>: <code>MAX_IMG_BYTES = 10 MB</code>, <code>MAX_TOTAL_BYTES = 5 MB</code>). Nếu cần nhiều ảnh chất lượng cao, hãy dùng URL CDN.
+    </div>
+
+    <h3>Sắp Xếp Bằng Kéo Thả</h3>
+    <p>Kéo thẻ ảnh sang vị trí mới — thứ tự trong overlay Gallery sẽ thay đổi theo.</p>
+
+    <h3>Xoá Ảnh</h3>
+    <p>Bấm icon 🗑️ trên ảnh → xác nhận. Ảnh bị xoá khỏi cả danh sách + dung lượng localStorage.</p>
+  </section>
+
+  <!-- 10 -->
+  <section id="ban-do-2d">
+    <h2 data-num="10">Bản Đồ 2D (Site Map)</h2>
+    <p>Chỉnh ảnh nền + các điểm bấm trên overlay Site Map.</p>
+
+    <h3>Đổi Ảnh Nền</h3>
+    <p>Bấm <strong>"Đổi ảnh nền"</strong> ở đầu trang → chọn từ máy hoặc dán URL → ảnh mới hiện ngay.</p>
+
+    <h3>Thêm Điểm Bấm</h3>
+    <div class="step"><div class="step-num">1</div><div class="step-body">
+      <div class="step-title">Click vào vị trí trên canvas</div>
+      <div class="step-desc">Một điểm mới xuất hiện tại vị trí bạn click.</div>
+    </div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body">
+      <div class="step-title">Điền tên + chọn cảnh đích</div>
+      <div class="step-desc">Tên hiển thị (vd "Bể bơi"), cảnh VR sẽ mở khi khách bấm.</div>
+    </div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body">
+      <div class="step-title">Kéo điểm để chỉnh vị trí</div>
+      <div class="step-desc">Sau khi tạo, có thể kéo điểm trên canvas để chỉnh chính xác vị trí.</div>
+    </div></div>
+
+    <p>Bấm <strong>"Thêm thủ công"</strong> nếu muốn nhập toạ độ % chính xác thay vì click trên canvas.</p>
+  </section>
+
+  <!-- 11 -->
+  <section id="tien-ich">
+    <h2 data-num="11">Tiện Ích</h2>
+    <p>Có 2 khu vực chỉnh sửa:</p>
+
+    <h3>Tiện Ích Nhanh (project.amenities)</h3>
+    <p>Các icon tiện ích hiển thị trên Project Card. Mỗi tiện ích có <strong>icon</strong> và <strong>nhãn ngắn</strong> (vd "Bể bơi vô cực", "Gym & Yoga 1200m²").</p>
+
+    <h3>4 Nhóm Tiện Ích Chi Tiết</h3>
+    <table>
+      <thead><tr><th>Nhóm</th><th>Key</th><th>Mô Tả</th></tr></thead>
+      <tbody>
+        <tr><td>Nội Khu</td><td><code>noiKhu</code></td><td>Bể bơi, gym, sảnh, khu vui chơi</td></tr>
+        <tr><td>Sky Amenity</td><td><code>skyAmenity</code></td><td>Tiện ích trên cao (sky garden, sky bar)</td></tr>
+        <tr><td>Dịch Vụ</td><td><code>dichVu</code></td><td>Concierge, lễ tân 24/7, an ninh</td></tr>
+        <tr><td>Hạ Tầng</td><td><code>haTang</code></td><td>Hầm gửi xe, sạc điện, smart home</td></tr>
+      </tbody>
+    </table>
+
+    <p>Mỗi tiện ích chi tiết có 3 trường: <strong>icon · tên · mô tả ngắn</strong>. CRUD đầy đủ.</p>
+  </section>
+
+  <!-- 12 -->
+  <section id="tien-do">
+    <h2 data-num="12">Tiến Độ Xây Dựng</h2>
+    <p>Quản lý 8 giai đoạn của dự án.</p>
+
+    <table>
+      <thead><tr><th>Trường</th><th>Mô Tả</th></tr></thead>
+      <tbody>
+        <tr><td>Giai đoạn</td><td>Tên giai đoạn (vd "Ép cọc đại trà")</td></tr>
+        <tr><td>Thời gian</td><td>Tháng/năm (vd "Q3 2025")</td></tr>
+        <tr><td>Trạng thái</td><td><span class="badge-ok">Hoàn thành</span> · <span class="badge-warn">Đang thực hiện</span> · <span class="badge-info">Sắp tới</span></td></tr>
+        <tr><td>Mô tả</td><td>Đoạn văn bản chi tiết (1–2 câu)</td></tr>
+      </tbody>
+    </table>
+
+    <p>Kéo thả để sắp lại thứ tự nếu cần.</p>
+  </section>
+
+  <!-- 13 -->
+  <section id="phap-ly">
+    <h2 data-num="13">Pháp Lý</h2>
+    <p>Có 4 section riêng:</p>
+
+    <table>
+      <thead><tr><th>Section</th><th>Trường</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Chỉ số chủ đầu tư</strong> (<code>developerStats</code>)</td><td>Nhãn + Giá trị (vd "Năm thành lập" → "2008")</td></tr>
+        <tr><td><strong>Giấy tờ pháp lý</strong> (<code>documents</code>)</td><td>Tên giấy tờ + trạng thái (đã có / đang xin) + thời điểm</td></tr>
+        <tr><td><strong>Ngân hàng bảo lãnh</strong> (<code>banks</code>)</td><td>Tên + logo</td></tr>
+        <tr><td><strong>Nhận xét khách hàng</strong> (<code>testimonials</code>)</td><td>Tên · vai trò · nội dung · ảnh đại diện</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 14 -->
+  <section id="vi-tri">
+    <h2 data-num="14">Vị Trí & POI</h2>
+    <p>Hai phần:</p>
+
+    <h3>Toạ Độ & Google Maps</h3>
+    <p>Nhập <strong>lat</strong> + <strong>lng</strong> chính xác của dự án + đường dẫn nhúng Google Maps (mở Google Maps → Share → Embed map → copy src của iframe).</p>
+
+    <h3>Danh Sách POI (Tiện Ích Lân Cận)</h3>
+    <table>
+      <thead><tr><th>Danh Mục</th><th>Mã</th></tr></thead>
+      <tbody>
+        <tr><td>Trường học</td><td><code>school</code></td></tr>
+        <tr><td>Bệnh viện</td><td><code>hospital</code></td></tr>
+        <tr><td>Trung tâm thương mại</td><td><code>mall</code></td></tr>
+        <tr><td>Giao thông</td><td><code>transport</code></td></tr>
+        <tr><td>Giải trí</td><td><code>leisure</code></td></tr>
+      </tbody>
+    </table>
+    <p>Mỗi POI có: danh mục · tên · khoảng cách (vd "1,2 km") · thời gian (vd "8 phút").</p>
+  </section>
+
+  <!-- 15 -->
+  <section id="i18n">
+    <h2 data-num="15">Ngôn Ngữ & i18n</h2>
+    <p>Quản lý bản dịch cho 5 ngôn ngữ (VI, EN, ZH, KO, JA) — và có thể thêm ngôn ngữ mới.</p>
+
+    <h3>Bảng Dịch</h3>
+    <p>Mỗi dòng là một key dịch, mỗi cột là một ngôn ngữ. Click ô bất kỳ để chỉnh.</p>
+
+    <h3>Thêm Ngôn Ngữ Mới</h3>
+    <div class="step"><div class="step-num">1</div><div class="step-body">
+      <div class="step-title">Bấm "+ Thêm ngôn ngữ"</div>
+      <div class="step-desc">Form yêu cầu mã ngôn ngữ (vd <code>fr</code>) + tên hiển thị (vd "Français").</div>
+    </div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body">
+      <div class="step-title">Cột mới được tạo</div>
+      <div class="step-desc">Các ô trống — bạn cần dịch lần lượt từng key, hoặc copy từ EN làm gốc.</div>
+    </div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body">
+      <div class="step-title">Lưu</div>
+      <div class="step-desc">Sau khi publish (mục 21), khách có thể chọn ngôn ngữ mới trên dropdown của trang VR.</div>
+    </div></div>
+
+    <div class="callout info">
+      <strong>Theo ghi chú dự án</strong>
+      Theo định hướng phát triển (file <code>note để hôm sau sửa.MD</code>), tab i18n sẽ mặc định <strong>chỉ hiển thị tiếng Việt</strong>, các ngôn ngữ khác phải bấm "Thêm ngôn ngữ mới" để bật.
+    </div>
+  </section>
+
+  <!-- 16 -->
+  <section id="theme">
+    <h2 data-num="16">Giao Diện & Theme</h2>
+    <p>Đổi <strong>màu chủ đạo</strong> của trang VR mà không cần code.</p>
+
+    <h3>Chỉnh Token Màu</h3>
+    <p>Mỗi color token (<code>--bg</code>, <code>--fg</code>, <code>--accent</code>, <code>--ok</code>, <code>--danger</code>…) có một color picker. Đổi màu sẽ thấy preview ngay.</p>
+
+    <h3>4 Preset Có Sẵn</h3>
+    <ul>
+      <li><strong>Aurora (Mặc định)</strong> — vàng kem trên nền xanh đêm.</li>
+      <li>Các biến thể khác — bấm để áp dụng nhanh.</li>
+    </ul>
+
+    <h3>Xuất Theme</h3>
+    <table>
+      <thead><tr><th>Định Dạng</th><th>Mục Đích</th></tr></thead>
+      <tbody>
+        <tr><td><strong>CSS</strong></td><td>File <code>.css</code> chứa <code>:root { --bg: …; }</code> — paste vào <code>style.css</code> hoặc <code>style</code> tag</td></tr>
+        <tr><td><strong>JSON</strong></td><td>Đối tượng JSON — phù hợp lưu vào git hoặc gửi cho dev</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <strong>Theme không tự áp dụng cho trang public</strong>
+      Sau khi chỉnh theme, bạn cần Export CSS và <strong>đẩy file</strong> vào <code>css/style.css</code> hoặc nhờ dev tích hợp. Localstorage không ảnh hưởng tới trang VR đang chạy ngoài kia.
+    </div>
+  </section>
+
+  <!-- 17 -->
+  <section id="analytics">
+    <h2 data-num="17">Analytics</h2>
+    <p>Trang dạng tab với các biểu đồ tổng quan: visitor, cảnh phổ biến, nguồn traffic, tỉ lệ chuyển đổi, doanh thu.</p>
+
+    <div class="callout info">
+      <strong>Hiện đang là mock</strong>
+      Để dùng thật, cần tích hợp Google Analytics 4 hoặc Mixpanel (xem mục Giới hạn trong đặc tả). Sau tích hợp, các biểu đồ sẽ phản ánh số liệu thực.
+    </div>
+  </section>
+
+  <!-- 18 -->
+  <section id="cai-dat">
+    <h2 data-num="18">Cài Đặt</h2>
+
+    <h3>Hồ Sơ Dự Án</h3>
+    <p>Sửa nhanh <strong>tên dự án</strong>, <strong>chủ đầu tư</strong>, <strong>hotline</strong>, <strong>zalo</strong>, <strong>tagline</strong>, <strong>vị trí</strong> — các thông tin hiển thị toàn trang VR. Bấm Lưu.</p>
+
+    <h3>Người Dùng</h3>
+    <p>Xem danh sách user (admin, sales, sales2). Đổi mật khẩu / vô hiệu hoá tài khoản.</p>
+
+    <h3>Backup / Restore</h3>
+    <table>
+      <thead><tr><th>Nút</th><th>Tác Dụng</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Export JSON</strong></td><td>Tải toàn bộ dữ liệu hiện tại về máy dưới dạng <code>aurora-backup-YYYY-MM-DD.json</code></td></tr>
+        <tr><td><strong>Import JSON</strong></td><td>Nạp file backup → ghi đè toàn bộ localStorage (cần xác nhận)</td></tr>
+        <tr><td><strong>Reset Data</strong></td><td>Xoá <code>localStorage.ah_admin_data</code> → lần tải kế tiếp sẽ fetch lại <code>data/project.json</code> gốc</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout danger">
+      <strong>Cảnh báo</strong>
+      Thao tác <strong>Reset</strong> và <strong>Import</strong> không thể hoàn tác. Luôn Export Backup trước khi reset.
+    </div>
+  </section>
+
+  <!-- 19 -->
+  <section id="preview">
+    <h2 data-num="19">Preview VR — Xem Thử Trước Khi Publish</h2>
+    <p>Trên topbar có nút <strong>"Preview VR"</strong>. Bấm để mở <code>../index.html</code> (trang public) <strong>trong slide panel</strong> ngay tại workspace admin — không cần mở tab mới.</p>
+
+    <h3>Khi Nào Dùng?</h3>
+    <ul>
+      <li>Sau khi vừa chỉnh danh sách VR / thư viện ảnh / tiện ích — xem thực tế hiển thị ra sao.</li>
+      <li>Trước khi gửi cho dev publish — kiểm tra mọi thứ ổn.</li>
+      <li>Demo cho ban giám đốc/đối tác.</li>
+    </ul>
+
+    <div class="callout warn">
+      <strong>Preview KHÔNG dùng dữ liệu admin của bạn</strong>
+      Preview vẫn fetch <code>data/project.json</code> gốc. Để preview với dữ liệu đã chỉnh, bạn cần publish file JSON đã export (mục 21) trước.
+    </div>
+  </section>
+
+  <!-- 20 -->
+  <section id="luu-tru">
+    <h2 data-num="20">Lưu Trữ & Backup</h2>
+
+    <h3>Cách Dữ Liệu Được Lưu</h3>
+    <table>
+      <thead><tr><th>Key</th><th>Phạm Vi</th><th>Nội Dung</th></tr></thead>
+      <tbody>
+        <tr><td><code>ah_session</code></td><td>sessionStorage</td><td>Trạng thái đăng nhập — mất khi đóng tab</td></tr>
+        <tr><td><code>ah_admin_data</code></td><td>localStorage</td><td>Toàn bộ dữ liệu dự án bạn đã chỉnh — tồn tại lâu dài, gắn với trình duyệt + thiết bị</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Quy Trình Backup Khuyến Nghị</h3>
+    <ol>
+      <li><strong>Cuối ngày</strong> — vào Cài Đặt → Export JSON → lưu file vào folder backup (kèm ngày trong tên).</li>
+      <li><strong>Trước mỗi thay đổi lớn</strong> (đổi theme, sửa hàng loạt căn hộ) — Export thêm một bản.</li>
+      <li><strong>Upload backup</strong> lên Google Drive / cloud nội bộ để không phụ thuộc trình duyệt.</li>
+    </ol>
+
+    <div class="callout warn">
+      <strong>Cảnh báo</strong>
+      Nếu xoá lịch sử trình duyệt / cache, dữ liệu localStorage sẽ <strong>mất hoàn toàn</strong>. Backup thường xuyên là bắt buộc.
+    </div>
+  </section>
+
+  <!-- 21 -->
+  <section id="cong-bo">
+    <h2 data-num="21">Công Bố Thay Đổi Lên Trang Public</h2>
+    <p>Đây là bước <strong>quan trọng nhất</strong> — biến những gì bạn chỉnh thành nội dung khách thấy.</p>
+
+    <div class="callout warn">
+      <strong>Hiện tại CHƯA tự động</strong>
+      Phiên bản này không có backend tự động — các thay đổi admin nằm trong localStorage, không ảnh hưởng <code>data/project.json</code> trên server.
+    </div>
+
+    <h3>Quy Trình Thủ Công</h3>
+    <div class="step"><div class="step-num">1</div><div class="step-body">
+      <div class="step-title">Vào Cài Đặt → Export JSON</div>
+      <div class="step-desc">Tải file JSON về máy.</div>
+    </div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body">
+      <div class="step-title">Đổi tên file thành <code>project.json</code></div>
+      <div class="step-desc">Phải đúng tên này để FE nhận diện được.</div>
+    </div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body">
+      <div class="step-title">Gửi cho dev / upload lên server</div>
+      <div class="step-desc">Ghi đè file <code>data/project.json</code> trên server. Sau đó refresh trang public — thay đổi sẽ hiển thị.</div>
+    </div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-body">
+      <div class="step-title">Kiểm tra lại bằng Preview VR</div>
+      <div class="step-desc">Vào lại admin → bấm Preview VR để chắc chắn trang public đã cập nhật.</div>
+    </div></div>
+
+    <div class="callout info">
+      <strong>Hướng phát triển</strong>
+      Khi tích hợp backend (API endpoint <code>POST /project</code>), nút "Publish" sẽ tự gửi JSON lên server và trang public cập nhật trong vài giây.
+    </div>
+  </section>
+
+  <!-- 22 -->
+  <section id="faq">
+    <h2 data-num="22">FAQ & Xử Lý Sự Cố</h2>
+
+    <details>
+      <summary>Tôi vừa chỉnh thêm 5 căn nhưng trang VR public vẫn cũ?</summary>
+      <p>Bình thường — admin chỉ lưu vào localStorage. Cần làm bước <a href="#cong-bo">Công Bố Thay Đổi</a> (Export → upload <code>project.json</code> lên server).</p>
+    </details>
+
+    <details>
+      <summary>Mở admin trên máy khác thì dữ liệu khác?</summary>
+      <p>Đúng — localStorage gắn với <strong>từng trình duyệt + từng thiết bị</strong>. Để đồng bộ, sử dụng Export JSON ở máy A → Import vào máy B.</p>
+    </details>
+
+    <details>
+      <summary>Bấm "Lưu" mà toast báo "Lỗi lưu — vượt dung lượng"?</summary>
+      <p>localStorage có giới hạn ~5 MB. Thường do upload quá nhiều ảnh base64. Giải pháp: (1) xoá bớt ảnh; (2) thay base64 bằng URL CDN; (3) Export backup rồi Reset.</p>
+    </details>
+
+    <details>
+      <summary>Mất mật khẩu admin?</summary>
+      <p>Mật khẩu được hardcode trong <code>admin/index.html</code> (mảng <code>USERS[]</code>). Hỏi dev hoặc xem file trực tiếp để khôi phục.</p>
+    </details>
+
+    <details>
+      <summary>Có giới hạn số lượng căn hộ, hotspot, POI không?</summary>
+      <p>Về mặt kỹ thuật: không. Tuy nhiên hiệu năng bắt đầu giảm khi vượt 500 căn, 100 hotspot/cảnh hoặc 50 POI. Hợp lý là giữ <strong>≤ 200 căn nổi bật</strong> trong inventory hiển thị.</p>
+    </details>
+
+    <details>
+      <summary>Slide Panel không đóng được, kẹt ở giữa màn?</summary>
+      <p>Refresh trang bằng <kbd>F5</kbd>. Dữ liệu chưa lưu sẽ mất — đây là lý do nên bấm <strong>Lưu</strong> ngay sau mỗi thay đổi.</p>
+    </details>
+
+    <details>
+      <summary>Tôi muốn dùng 2 dự án khác nhau trên cùng máy?</summary>
+      <p>Hiện tại admin gắn với 1 dự án (1 file <code>project.json</code>). Để chạy nhiều dự án, mỗi dự án phải có subdomain / folder riêng — hoặc dùng tính năng "Workspace" sau khi triển khai backend.</p>
+    </details>
+
+    <details>
+      <summary>Có log thao tác (audit log) không?</summary>
+      <p>Phiên bản hiện tại chưa có audit log. Đây là một trong các đề xuất cải tiến (xem <code>ADMIN_IMPROVEMENT_PROPOSAL.md</code>).</p>
+    </details>
+  </section>
+
+  <hr />
+  <p style="color:var(--fg-muted);font-size:12px;text-align:center;padding-bottom:3rem">
+    Aurora Heights VR360 · HDSD Chủ Đầu Tư · v1.0 · 16-05-2026
+  </p>
+
+</main>
+</div>
+
+<script>
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-link[href^="#"]');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const link = document.querySelector(`.nav-link[href="#${e.target.id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>

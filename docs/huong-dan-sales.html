@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hướng Dẫn Sử Dụng — Nhân Viên Sales Aurora Heights Admin</title>
+<style>
+  :root {
+    --bg: #0f1117; --sidebar-bg: #0a0d12; --content-bg: #13171f;
+    --fg: #e8e6df; --fg-muted: #9a9590;
+    --accent: #e8c089; --accent-dim: rgba(232,192,137,0.15);
+    --ok: #7ad79a; --danger: #ff6b6b; --warning: #f5a623; --info: #6496ff;
+    --hairline: rgba(255,255,255,0.08); --code-bg: rgba(0,0,0,0.4);
+    --sidebar-width: 280px; --top-height: 56px; --r: 6px;
+    --font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --font-mono: 'Cascadia Code', 'Fira Mono', 'Consolas', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--font-sans); font-size: 14px; line-height: 1.7; display: flex; flex-direction: column; min-height: 100vh; }
+
+  #topbar { position: fixed; top: 0; left: 0; right: 0; height: var(--top-height); background: var(--sidebar-bg); border-bottom: 1px solid var(--hairline); display: flex; align-items: center; padding: 0 1.5rem; gap: 1rem; z-index: 100; }
+  #topbar .brand { font-size: 1rem; font-weight: 700; color: var(--accent); letter-spacing: 0.04em; white-space: nowrap; }
+  #topbar .badge { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(232,192,137,0.3); padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  #topbar .meta { margin-left: auto; color: var(--fg-muted); font-size: 12px; }
+  #topbar a { color: var(--fg-muted); text-decoration: none; font-size: 12px; }
+  #topbar a:hover { color: var(--accent); }
+
+  #layout { display: flex; margin-top: var(--top-height); min-height: calc(100vh - var(--top-height)); }
+  #sidebar { width: var(--sidebar-width); flex-shrink: 0; background: var(--sidebar-bg); border-right: 1px solid var(--hairline); position: fixed; top: var(--top-height); bottom: 0; overflow-y: auto; padding: 1.5rem 0; }
+  #sidebar::-webkit-scrollbar { width: 4px; }
+  #sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+  .nav-section-label { padding: 0.5rem 1.5rem; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: var(--fg-muted); text-transform: uppercase; }
+  .nav-link { display: block; padding: 0.4rem 1.5rem; color: var(--fg-muted); text-decoration: none; font-size: 13px; transition: all 0.15s; border-left: 2px solid transparent; }
+  .nav-link:hover, .nav-link.active { color: var(--fg); background: rgba(255,255,255,0.04); border-left-color: var(--accent); }
+  .nav-link .num { display: inline-block; background: rgba(255,255,255,0.06); color: var(--fg-muted); font-size: 10px; padding: 1px 5px; border-radius: 3px; margin-right: 6px; font-family: var(--font-mono); }
+  #content { margin-left: var(--sidebar-width); flex: 1; padding: 3rem 4rem; }
+
+  h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+  h2 { font-size: 1.5rem; font-weight: 700; margin: 3rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--hairline); }
+  h2::before { content: attr(data-num); color: var(--accent); font-size: 0.85em; margin-right: 0.5rem; font-family: var(--font-mono); }
+  h3 { font-size: 1.1rem; font-weight: 600; margin: 2rem 0 0.75rem; }
+  h4 { font-size: 0.9rem; font-weight: 600; color: var(--fg-muted); margin: 1.5rem 0 0.5rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  p { margin-bottom: 1rem; }
+  ul, ol { margin: 0 0 1rem 1.25rem; }
+  ul li, ol li { margin-bottom: 0.4rem; }
+  strong { color: #fff; }
+
+  .intro { background: var(--accent-dim); border: 1px solid rgba(232,192,137,0.25); border-radius: var(--r); padding: 1.25rem 1.5rem; margin-bottom: 2.5rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; }
+  .intro-item .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-muted); }
+  .intro-item .value { font-size: 14px; color: var(--fg); font-weight: 600; }
+
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 13px; }
+  thead th { background: rgba(255,255,255,0.04); color: var(--fg-muted); font-weight: 600; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.6rem 0.85rem; text-align: left; border-bottom: 1px solid var(--hairline); }
+  tbody td { padding: 0.55rem 0.85rem; border-bottom: 1px solid var(--hairline); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: rgba(255,255,255,0.02); }
+  code { font-family: var(--font-mono); font-size: 12px; background: var(--code-bg); padding: 1px 5px; border-radius: 3px; color: var(--accent); }
+
+  .step { display: flex; gap: 1rem; background: var(--content-bg); border: 1px solid var(--hairline); border-radius: var(--r); padding: 1rem 1.25rem; margin: 0.75rem 0; }
+  .step-num { flex-shrink: 0; width: 32px; height: 32px; background: var(--accent-dim); color: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-family: var(--font-mono); }
+  .step-body { flex: 1; }
+  .step-body .step-title { font-weight: 600; color: var(--fg); margin-bottom: 0.25rem; }
+  .step-body .step-desc { color: var(--fg-muted); font-size: 13px; line-height: 1.65; }
+
+  .callout { border-left: 3px solid var(--accent); background: var(--accent-dim); border-radius: 0 var(--r) var(--r) 0; padding: 0.85rem 1.25rem; margin: 1rem 0 1.5rem; font-size: 13px; }
+  .callout.warn { border-left-color: var(--warning); background: rgba(245,166,35,0.1); }
+  .callout.info { border-left-color: var(--info); background: rgba(100,150,255,0.1); }
+  .callout.ok { border-left-color: var(--ok); background: rgba(122,215,154,0.1); }
+  .callout.danger { border-left-color: var(--danger); background: rgba(255,107,107,0.1); }
+  .callout strong { display: block; margin-bottom: 0.25rem; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; }
+
+  .badge-ok { background: rgba(122,215,154,0.15); color: var(--ok); padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; white-space: nowrap; display: inline-block; }
+  .badge-warn{ background: rgba(245,166,35,0.15); color: var(--warning); padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; white-space: nowrap; display: inline-block; }
+  .badge-err { background: rgba(255,107,107,0.15); color: var(--danger); padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; white-space: nowrap; display: inline-block; }
+  .badge-info{ background: rgba(100,150,255,0.15); color: var(--info); padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; white-space: nowrap; display: inline-block; }
+
+  pre, .flow { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: var(--r); padding: 1.25rem; overflow-x: auto; margin: 1rem 0 1.5rem; font-family: var(--font-mono); font-size: 12.5px; line-height: 1.65; color: #c9d1d9; white-space: pre; }
+  hr { border: none; border-top: 1px solid var(--hairline); margin: 2.5rem 0; }
+  kbd { display: inline-block; padding: 2px 7px; background: rgba(255,255,255,0.08); border: 1px solid var(--hairline); border-radius: 4px; font-family: var(--font-mono); font-size: 11px; color: #fff; box-shadow: 0 1px 0 rgba(0,0,0,0.4); }
+
+  details { background: var(--content-bg); border: 1px solid var(--hairline); border-radius: var(--r); padding: 0.75rem 1rem; margin: 0.5rem 0; }
+  details summary { cursor: pointer; font-weight: 600; color: var(--fg); list-style: none; padding-right: 1.5rem; position: relative; }
+  details summary::after { content: "+"; position: absolute; right: 0; top: 0; color: var(--accent); font-size: 1.2rem; line-height: 1; }
+  details[open] summary::after { content: "−"; }
+  details p { margin-top: 0.75rem; color: var(--fg-muted); font-size: 13px; }
+
+  @media (max-width: 900px) { #sidebar { display: none; } #content { margin-left: 0; padding: 2rem 1.5rem; } }
+  html { scroll-behavior: smooth; }
+  section { scroll-margin-top: calc(var(--top-height) + 1rem); }
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <span class="brand">Aurora Heights Sales</span>
+  <span class="badge">HDSD · Nhân Viên Sales</span>
+  <span class="meta">
+    <a href="index.html">← Đặc Tả Dự Án</a>
+    &nbsp;·&nbsp;
+    <a href="huong-dan-khach.html">HDSD Khách</a>
+    &nbsp;·&nbsp;
+    <a href="huong-dan-owner.html">HDSD Owner</a>
+  </span>
+</div>
+
+<div id="layout">
+
+<nav id="sidebar">
+  <div class="nav-section-label">Bắt Đầu</div>
+  <a class="nav-link" href="#gioi-thieu"><span class="num">1</span>Giới Thiệu Vai Trò</a>
+  <a class="nav-link" href="#dang-nhap"><span class="num">2</span>Đăng Nhập</a>
+  <a class="nav-link" href="#tong-quan-ui"><span class="num">3</span>Giao Diện Tổng Quan</a>
+
+  <div class="nav-section-label" style="margin-top:1rem">Công Việc Hàng Ngày</div>
+  <a class="nav-link" href="#dashboard"><span class="num">4</span>Dashboard Cá Nhân</a>
+  <a class="nav-link" href="#leads"><span class="num">5</span>Quản Lý Leads</a>
+  <a class="nav-link" href="#dat-lich"><span class="num">6</span>Đặt Lịch Hẹn</a>
+  <a class="nav-link" href="#calendar"><span class="num">7</span>Lịch Hẹn</a>
+
+  <div class="nav-section-label" style="margin-top:1rem">Dự Án</div>
+  <a class="nav-link" href="#units"><span class="num">8</span>Tình Trạng Căn Hộ</a>
+  <a class="nav-link" href="#tour-vr"><span class="num">9</span>Tour VR360 Cho Khách</a>
+
+  <div class="nav-section-label" style="margin-top:1rem">Quy Trình</div>
+  <a class="nav-link" href="#tu-van"><span class="num">10</span>Quy Trình Tư Vấn</a>
+  <a class="nav-link" href="#tu-vung"><span class="num">11</span>Từ Vựng Trạng Thái</a>
+  <a class="nav-link" href="#nguon-lead"><span class="num">12</span>Nguồn Lead</a>
+
+  <div class="nav-section-label" style="margin-top:1rem">Khác</div>
+  <a class="nav-link" href="#meo"><span class="num">13</span>Mẹo Sử Dụng</a>
+  <a class="nav-link" href="#faq"><span class="num">14</span>FAQ & Sự Cố</a>
+  <a class="nav-link" href="#kpi"><span class="num">15</span>KPI & Báo Cáo</a>
+</nav>
+
+<main id="content">
+
+  <h1>Hướng Dẫn Sử Dụng Cho Nhân Viên Sales</h1>
+  <p style="color:var(--fg-muted);margin-bottom:2rem">
+    Workspace <code>admin/sales.html</code> dành riêng cho nhân viên kinh doanh dự án Aurora Heights.
+    Tập trung vào 3 việc chính: <strong>theo dõi leads</strong>, <strong>quản lý lịch hẹn</strong>, và <strong>tư vấn căn hộ qua VR360</strong>.
+  </p>
+
+  <div class="intro">
+    <div class="intro-item"><div class="label">Vai Trò</div><div class="value">Sales · Bất Động Sản</div></div>
+    <div class="intro-item"><div class="label">URL</div><div class="value">admin/sales.html</div></div>
+    <div class="intro-item"><div class="label">Tài Khoản Demo</div><div class="value">sales / sales@2025</div></div>
+    <div class="intro-item"><div class="label">Số Trang</div><div class="value">5 module</div></div>
+    <div class="intro-item"><div class="label">Quyền Sửa Căn</div><div class="value">Không (chỉ xem)</div></div>
+    <div class="intro-item"><div class="label">Quyền Sửa Lead</div><div class="value">Có (CRUD)</div></div>
+  </div>
+
+  <!-- 1 -->
+  <section id="gioi-thieu">
+    <h2 data-num="1">Giới Thiệu Vai Trò</h2>
+    <p>Với tài khoản <strong>Sales</strong>, bạn có quyền:</p>
+    <ul>
+      <li><strong>Xem & quản lý leads</strong> bạn phụ trách: thêm mới, cập nhật trạng thái, ghi chú lịch sử tư vấn.</li>
+      <li><strong>Đặt và quản lý lịch hẹn</strong> với khách (xem nhà mẫu, tư vấn VP, demo VR online).</li>
+      <li><strong>Xem tình trạng căn hộ</strong> (chỉ đọc — không sửa được trạng thái).</li>
+      <li><strong>Mở tour VR360</strong> ngay trong workspace để demo cho khách online.</li>
+    </ul>
+
+    <h3>Không Có Quyền</h3>
+    <ul>
+      <li>Sửa giá / trạng thái căn hộ (chỉ Owner).</li>
+      <li>Chỉnh nội dung trang VR (cảnh, hotspot, tiện ích, pháp lý…).</li>
+      <li>Đổi theme / ngôn ngữ.</li>
+      <li>Xem leads của sales khác (nếu hệ thống có phân quyền theo người dùng).</li>
+    </ul>
+
+    <div class="callout info">
+      <strong>Hai tài khoản Sales demo</strong>
+      <code>sales</code> và <code>sales2</code> — cùng mật khẩu <code>sales@2025</code>. Dùng để thử nghiệm scenario nhiều sales cùng làm việc.
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section id="dang-nhap">
+    <h2 data-num="2">Đăng Nhập</h2>
+
+    <div class="step"><div class="step-num">1</div><div class="step-body">
+      <div class="step-title">Truy cập <code>admin/index.html</code></div>
+      <div class="step-desc">Cùng trang đăng nhập với Owner — hệ thống tự nhận diện vai trò qua tài khoản.</div>
+    </div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body">
+      <div class="step-title">Nhập tài khoản Sales</div>
+      <div class="step-desc">Tên đăng nhập: <code>sales</code> hoặc <code>sales2</code>. Mật khẩu: <code>sales@2025</code>.</div>
+    </div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body">
+      <div class="step-title">Bấm "Đăng Nhập"</div>
+      <div class="step-desc">Hệ thống chuyển sang <code>sales.html</code>. Avatar topbar hiện chữ <strong>SL</strong> với màu xanh lá đặc trưng của sales.</div>
+    </div></div>
+
+    <div class="callout warn">
+      <strong>Nếu vào nhầm</strong>
+      Sales <strong>không vào được</strong> <code>owner.html</code> — hệ thống sẽ tự đẩy về login. Tương tự, Owner không thể vào <code>sales.html</code>.
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section id="tong-quan-ui">
+    <h2 data-num="3">Giao Diện Tổng Quan</h2>
+
+    <pre>┌──────────────────────────────────────────────────────────┐
+│  ① Sidebar (trái)         ② Topbar                      │
+│      Công Việc                 [🔔] [Sales Agent ▼]      │
+│      ├─ Dashboard              [Đăng xuất]               │
+│      ├─ Leads & Booking                                  │
+│      └─ Lịch Hẹn          ③ Khu Vực Nội Dung Chính       │
+│                              (Render trang được chọn)    │
+│      Dự Án                                               │
+│      ├─ Tình Trạng Căn Hộ ④ Slide Panel (trượt phải)     │
+│      └─ Tour VR360           Form lead / lịch hẹn        │
+│                                                          │
+│                           ⑤ Modal Xác Nhận               │
+│                              Khi xoá lead / huỷ hẹn      │
+│                                                          │
+│                           ⑥ Toast (đáy phải)             │
+└──────────────────────────────────────────────────────────┘</pre>
+
+    <h3>Sự Khác Biệt So Với Owner</h3>
+    <table>
+      <thead><tr><th>Mục</th><th>Owner</th><th>Sales</th></tr></thead>
+      <tbody>
+        <tr><td>Số nhóm sidebar</td><td>3 (Quản Lý · Nội Dung VR · Hệ Thống)</td><td>2 (Công Việc · Dự Án)</td></tr>
+        <tr><td>Số trang</td><td>14</td><td>5</td></tr>
+        <tr><td>Preview VR (topbar)</td><td>Có</td><td>Không có (dùng trang Tour VR thay thế)</td></tr>
+        <tr><td>Màu avatar</td><td>Tím (Owner)</td><td>Xanh lá (Sales)</td></tr>
+        <tr><td>Sửa căn hộ</td><td>Có</td><td>Không (chỉ xem)</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 4 -->
+  <section id="dashboard">
+    <h2 data-num="4">Dashboard Cá Nhân</h2>
+    <p>Trang đầu tiên khi bạn đăng nhập. Tổng quan công việc trong ngày.</p>
+
+    <h3>Các Thẻ KPI</h3>
+    <table>
+      <thead><tr><th>Thẻ</th><th>Số Liệu</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Leads mới hôm nay</strong></td><td>Số lead mới được giao trong 24h qua</td></tr>
+        <tr><td><strong>Đang quan tâm</strong></td><td>Lead trạng thái <code>interested</code> bạn phụ trách</td></tr>
+        <tr><td><strong>Đã chốt tháng này</strong></td><td>Số deal đã ký từ đầu tháng</td></tr>
+        <tr><td><strong>Lịch hẹn hôm nay</strong></td><td>Số booking dự kiến diễn ra trong ngày</td></tr>
+        <tr><td><strong>Lịch hẹn tuần này</strong></td><td>Tổng số booking trong 7 ngày tới</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout info">
+      <strong>Mẹo bắt đầu ngày</strong>
+      Mỗi sáng, vào Dashboard → kiểm tra <strong>"Lịch hẹn hôm nay"</strong> để chuẩn bị. Sau đó qua <strong>Leads</strong> xem có lead mới cần gọi không.
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section id="leads">
+    <h2 data-num="5">Quản Lý Leads</h2>
+    <p>Trang quan trọng nhất với sales — quản lý toàn bộ khách hàng tiềm năng.</p>
+
+    <h3>Bảng Lead</h3>
+    <p>Mỗi dòng là một khách hàng, với các cột: <strong>Họ tên · SĐT · Email · Nguồn · Căn quan tâm · Trạng thái · Lịch hẹn (nếu có)</strong>.</p>
+
+    <h3>Thêm Lead Mới</h3>
+    <div class="step"><div class="step-num">1</div><div class="step-body">
+      <div class="step-title">Bấm "+ Thêm Lead"</div>
+      <div class="step-desc">Slide Panel mở form rỗng.</div>
+    </div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body">
+      <div class="step-title">Điền thông tin khách</div>
+      <div class="step-desc">Họ tên · SĐT (bắt buộc) · Email · Zalo · Căn quan tâm · Ngân sách · Mục đích.</div>
+    </div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body">
+      <div class="step-title">Chọn nguồn lead</div>
+      <div class="step-desc">Combobox có thanh tìm kiếm — gõ vài chữ để tìm nhanh (vd: gõ "fac" → Facebook).</div>
+    </div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-body">
+      <div class="step-title">Bấm Lưu</div>
+      <div class="step-desc">Lead xuất hiện trên bảng với trạng thái mặc định <span class="badge-info">Mới</span>.</div>
+    </div></div>
+
+    <h3>Xoay Trạng Thái Nhanh</h3>
+    <p>Bấm badge trạng thái trên dòng lead → xoay vòng theo thứ tự:</p>
+    <pre>Mới → Đã gọi → Đang quan tâm → Đã chốt → Không tiếp tục → (về Mới)</pre>
+    <p>Tiện cho việc cập nhật nhanh sau cuộc gọi mà không cần mở form đầy đủ.</p>
+
+    <h3>Sửa Lead</h3>
+    <p>Bấm icon ✏️ hoặc click dòng → slide panel với dữ liệu cũ → chỉnh → Lưu.</p>
+
+    <h3>Xoá Lead</h3>
+    <p>Bấm icon 🗑️ → xác nhận. <strong>Không khôi phục được</strong> — chỉ xoá khi chắc chắn lead không còn giá trị.</p>
+
+    <h3>Lọc & Tìm Kiếm</h3>
+    <table>
+      <thead><tr><th>Bộ Lọc</th><th>Tác Dụng</th></tr></thead>
+      <tbody>
+        <tr><td>Theo trạng thái</td><td>Click các badge ở đầu trang để xem nhóm tương ứng</td></tr>
+        <tr><td>Theo nguồn</td><td>Combobox — tìm trong toàn bộ Online + Offline</td></tr>
+        <tr><td>Tìm tự do</td><td>Gõ tên / SĐT / email vào ô tìm kiếm</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 6 -->
+  <section id="dat-lich">
+    <h2 data-num="6">Đặt Lịch Hẹn Cho Khách</h2>
+    <p>Khi lead đã sẵn sàng gặp mặt, bạn có thể đặt lịch ngay từ trang Leads.</p>
+
+    <div class="step"><div class="step-num">1</div><div class="step-body">
+      <div class="step-title">Trên dòng lead → bấm icon lịch (📅) hoặc nút "Đặt Hẹn"</div>
+      <div class="step-desc">Panel đặt hẹn mở ra, đã chọn sẵn khách hàng này.</div>
+    </div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body">
+      <div class="step-title">Chọn loại hẹn</div>
+      <div class="step-desc">
+        <ul>
+          <li><strong>Xem nhà mẫu</strong> — khách đến site dự án</li>
+          <li><strong>Tư vấn tại VP</strong> — gặp tại văn phòng</li>
+          <li><strong>Xem VR online</strong> — demo qua video call</li>
+          <li><strong>Khác</strong> — ghi rõ trong ghi chú</li>
+        </ul>
+      </div>
+    </div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body">
+      <div class="step-title">Chọn ngày + giờ</div>
+      <div class="step-desc">Date picker + time picker. Hệ thống hiện cảnh báo nếu trùng lịch hẹn khác của bạn.</div>
+    </div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-body">
+      <div class="step-title">Thêm ghi chú</div>
+      <div class="step-desc">Ví dụ: "Khách muốn xem cả 3PN và Duplex", "Đi cùng vợ và 2 con nhỏ", "Cần xe đưa đón từ Hồ Tây".</div>
+    </div></div>
+    <div class="step"><div class="step-num">5</div><div class="step-body">
+      <div class="step-title">Lưu</div>
+      <div class="step-desc">Lịch hẹn xuất hiện trên trang <strong>Lịch Hẹn</strong> với trạng thái <span class="badge-warn">Chờ xác nhận</span>.</div>
+    </div></div>
+
+    <h3>Huỷ Lịch Hẹn</h3>
+    <p>Bấm icon ❌ trên dòng lịch hẹn → xác nhận. Khi huỷ, trạng thái chuyển sang <span class="badge-err">Đã huỷ</span> (không xoá khỏi lịch sử).</p>
+  </section>
+
+  <!-- 7 -->
+  <section id="calendar">
+    <h2 data-num="7">Lịch Hẹn</h2>
+    <p>Xem toàn bộ lịch hẹn của bạn theo 2 chế độ.</p>
+
+    <h3>Chế Độ Tuần</h3>
+    <p>Lưới 7 ngày × 12 giờ. Mỗi ô là một lịch hẹn, hiện tên khách + loại hẹn.</p>
+    <table>
+      <thead><tr><th>Thao Tác</th><th>Tác Dụng</th></tr></thead>
+      <tbody>
+        <tr><td>← →</td><td>Chuyển sang tuần trước / tuần sau</td></tr>
+        <tr><td>Hôm Nay</td><td>Quay về tuần hiện tại</td></tr>
+        <tr><td>Click ô trống</td><td>Mở form tạo lịch hẹn nhanh tại giờ đó</td></tr>
+        <tr><td>Click lịch hẹn</td><td>Xem chi tiết / chỉnh sửa</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Chế Độ Danh Sách</h3>
+    <p>Bảng phẳng tất cả lịch hẹn theo thứ tự thời gian — dễ scan nhanh, xuất CSV.</p>
+
+    <h3>4 Trạng Thái Booking</h3>
+    <table>
+      <thead><tr><th>Trạng Thái</th><th>Khi Nào Dùng</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge-warn">Chờ xác nhận</span></td><td>Vừa đặt, đang chờ gọi xác nhận với khách</td></tr>
+        <tr><td><span class="badge-info">Đã xác nhận</span></td><td>Khách đã đồng ý lịch, sẽ đến đúng giờ</td></tr>
+        <tr><td><span class="badge-ok">Đã hoàn tất</span></td><td>Lịch hẹn đã diễn ra (tự động hoặc bấm chuyển)</td></tr>
+        <tr><td><span class="badge-err">Đã huỷ</span></td><td>Khách hoặc sales huỷ</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <strong>Tính năng đang phát triển</strong>
+      Theo <code>note để hôm sau sửa.MD</code>: sắp tới khi click vào lịch hẹn, bạn sẽ <strong>đổi được trạng thái trực tiếp trên panel chi tiết</strong>, không cần quay về trang Leads để cập nhật.
+    </div>
+  </section>
+
+  <!-- 8 -->
+  <section id="units">
+    <h2 data-num="8">Tình Trạng Căn Hộ (Chỉ Đọc)</h2>
+    <p>Xem nhanh kho căn hộ để tư vấn cho khách.</p>
+
+    <h3>Bảng Hiển Thị</h3>
+    <p>Mỗi dòng: <strong>Mã căn · Loại · Tầng · Diện tích · Hướng · Giá · Trạng thái</strong>.</p>
+
+    <table>
+      <thead><tr><th>Badge</th><th>Ý Nghĩa</th><th>Khi Tư Vấn</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge-ok">Còn hàng</span></td><td>Sẵn sàng đặt cọc</td><td>Ưu tiên giới thiệu cho khách quan tâm</td></tr>
+        <tr><td><span class="badge-warn">Đang giữ chỗ</span></td><td>Đã có khách giữ tạm, chưa ký hợp đồng cọc</td><td>Có thể đề xuất căn tương đương; nếu khách kiên quyết thì đặt vào danh sách chờ</td></tr>
+        <tr><td><span class="badge-err">Đã bán</span></td><td>Hoàn thành giao dịch</td><td>Không nhận đặt thêm; nhân tiện báo cho khách biết "đã hết" để tăng tính khẩn cấp với căn còn lại</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Lọc Theo Loại</h3>
+    <p>Bấm tab loại (2PN / 2PN+1 / 3PN / Duplex) để lọc nhanh. Tương ứng với nhu cầu khách.</p>
+
+    <div class="callout info">
+      <strong>Cần đổi trạng thái căn?</strong>
+      Sales <strong>không thể</strong> sửa trực tiếp. Liên hệ <strong>Owner</strong> để cập nhật (vd: chuyển từ "Còn hàng" sang "Đang giữ chỗ" khi bạn vừa nhận đặt cọc).
+    </div>
+  </section>
+
+  <!-- 9 -->
+  <section id="tour-vr">
+    <h2 data-num="9">Tour VR360 Cho Khách</h2>
+    <p>Khi tư vấn online (qua Zoom, Google Meet hoặc gọi video Zalo), bạn có thể <strong>mở tour VR ngay trong workspace</strong> để chia sẻ màn hình cho khách.</p>
+
+    <div class="step"><div class="step-num">1</div><div class="step-body">
+      <div class="step-title">Vào trang "Tour VR360" trên sidebar</div>
+      <div class="step-desc">Bạn thấy lưới các cảnh VR có sẵn (Sky Lounge, Penthouse, Bể bơi…).</div>
+    </div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body">
+      <div class="step-title">Bấm cảnh muốn mở</div>
+      <div class="step-desc">Trang VR (<code>index.html</code>) hiện ra trong slide panel bên phải, đã chuyển sẵn về cảnh đó.</div>
+    </div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body">
+      <div class="step-title">Chia sẻ màn hình với khách</div>
+      <div class="step-desc">Trong Zoom/Meet, chia sẻ toàn bộ cửa sổ trình duyệt hoặc chỉ tab này. Khách sẽ thấy VR cùng lúc với bạn.</div>
+    </div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-body">
+      <div class="step-title">Điều khiển VR theo yêu cầu của khách</div>
+      <div class="step-desc">Bạn xoay, zoom, chuyển cảnh — khách xem theo. Có thể bấm hotspot để giải thích, mở bảng giá để so sánh căn…</div>
+    </div></div>
+
+    <div class="callout ok">
+      <strong>Mẹo demo hiệu quả</strong>
+      <ul style="margin:0.5rem 0 0">
+        <li>Bắt đầu từ <strong>Toàn cảnh dự án</strong> (aerial) để khách định hình vị trí.</li>
+        <li>Tiếp theo <strong>cảnh phù hợp với nhu cầu</strong> (penthouse cho khách cao cấp, công viên cho gia đình…).</li>
+        <li>Luôn kết thúc bằng <strong>Bảng giá</strong> để chốt vào căn cụ thể.</li>
+        <li>Sau demo, gửi link trang VR cho khách tự xem lại — họ sẽ quay lại bạn để đặt cọc.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 10 -->
+  <section id="tu-van">
+    <h2 data-num="10">Quy Trình Tư Vấn Một Lead Hoàn Chỉnh</h2>
+
+    <pre>1. Nhận Lead (từ marketing / website / hotline)
+   └── Trạng thái: Mới  · Bạn thấy lead trên Dashboard sáng hôm sau
+
+2. Gọi Lần Đầu (trong 30 phút)
+   ├── Xác nhận thông tin, hiểu nhu cầu
+   └── Cập nhật trạng thái: Đã gọi  · Ghi note vào lead
+
+3. Tư Vấn Sâu (gọi lần 2 / video call / hẹn gặp)
+   ├── Mở Tour VR360 demo cho khách
+   ├── So sánh các căn phù hợp với ngân sách
+   ├── Tính khoản vay với khách
+   └── Cập nhật trạng thái: Đang quan tâm
+
+4. Đặt Lịch Xem Trực Tiếp
+   ├── Vào trang Leads → Đặt Hẹn
+   ├── Loại: Xem nhà mẫu / Tư vấn tại VP
+   └── Gửi xác nhận qua Zalo / SMS
+
+5. Sau Buổi Gặp
+   ├── Cập nhật booking → Đã hoàn tất
+   ├── Nếu khách ký cọc → trạng thái lead: Đã chốt
+   └── Báo Owner đổi trạng thái căn → Đang giữ chỗ</pre>
+
+    <div class="callout info">
+      <strong>Số liệu tham khảo</strong>
+      Tỉ lệ chuyển đổi trung bình ngành BĐS cao cấp: 100 lead → 30 tư vấn sâu → 10 hẹn gặp → 3 chốt cọc.
+    </div>
+  </section>
+
+  <!-- 11 -->
+  <section id="tu-vung">
+    <h2 data-num="11">Từ Vựng Trạng Thái</h2>
+
+    <h3>Lead Status</h3>
+    <table>
+      <thead><tr><th>Mã</th><th>Hiển Thị</th><th>Khi Nào Chuyển</th></tr></thead>
+      <tbody>
+        <tr><td><code>new</code></td><td><span class="badge-info">Mới</span></td><td>Vừa được thêm vào hệ thống</td></tr>
+        <tr><td><code>called</code></td><td><span class="badge-warn">Đã gọi</span></td><td>Sau cuộc gọi đầu tiên (bắt máy hoặc không)</td></tr>
+        <tr><td><code>interested</code></td><td><span class="badge-info">Đang quan tâm</span></td><td>Khách thể hiện sự quan tâm thực sự — đang tư vấn</td></tr>
+        <tr><td><code>closed</code></td><td><span class="badge-ok">Đã chốt</span></td><td>Đã ký hợp đồng cọc</td></tr>
+        <tr><td><code>stopped</code></td><td><span class="badge-err">Không tiếp tục</span></td><td>Khách báo không còn nhu cầu / không liên hệ lại sau 3 lần thử</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Booking Status</h3>
+    <table>
+      <thead><tr><th>Mã</th><th>Hiển Thị</th><th>Ý Nghĩa</th></tr></thead>
+      <tbody>
+        <tr><td><code>pending</code></td><td><span class="badge-warn">Chờ xác nhận</span></td><td>Vừa tạo, chưa gọi xác nhận</td></tr>
+        <tr><td><code>confirmed</code></td><td><span class="badge-info">Đã xác nhận</span></td><td>Khách đã xác nhận sẽ đến</td></tr>
+        <tr><td><code>done</code></td><td><span class="badge-ok">Đã hoàn tất</span></td><td>Buổi hẹn đã diễn ra</td></tr>
+        <tr><td><code>cancelled</code></td><td><span class="badge-err">Đã huỷ</span></td><td>Khách hoặc sales huỷ</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Booking Type</h3>
+    <ul>
+      <li><strong>Xem nhà mẫu</strong> — khách đến tận site dự án</li>
+      <li><strong>Tư vấn tại VP</strong> — gặp tại văn phòng bán hàng</li>
+      <li><strong>Xem VR online</strong> — demo qua video call kèm chia sẻ Tour VR</li>
+      <li><strong>Khác</strong> — ghi rõ trong ghi chú (vd: gặp café, đi xem dự án khác cùng…)</li>
+    </ul>
+  </section>
+
+  <!-- 12 -->
+  <section id="nguon-lead">
+    <h2 data-num="12">Nguồn Lead</h2>
+
+    <h3>Online</h3>
+    <table>
+      <tbody>
+        <tr><td><strong>Facebook</strong></td><td>Quảng cáo / fanpage / inbox</td></tr>
+        <tr><td><strong>Zalo</strong></td><td>Zalo OA, tin nhắn quảng cáo</td></tr>
+        <tr><td><strong>Google</strong></td><td>Google Ads, Search organic</td></tr>
+        <tr><td><strong>Website</strong></td><td>Form trên trang VR (auroraheights.vn)</td></tr>
+        <tr><td><strong>TikTok</strong></td><td>Video viral, livestream</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Offline</h3>
+    <table>
+      <tbody>
+        <tr><td><strong>Hotline</strong></td><td>Khách gọi 0901 234 567</td></tr>
+        <tr><td><strong>Walk-in</strong></td><td>Khách trực tiếp đến văn phòng / sales gallery</td></tr>
+        <tr><td><strong>Sự kiện</strong></td><td>Open house, lễ ra mắt, hội chợ BĐS</td></tr>
+        <tr><td><strong>Giới thiệu</strong></td><td>Khách cũ giới thiệu khách mới</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout info">
+      <strong>Vì sao nguồn quan trọng?</strong>
+      Marketing dùng nguồn để đánh giá hiệu quả từng kênh, từ đó phân bổ ngân sách. <strong>Đừng quên gán nguồn</strong> khi thêm lead mới — gán sai/bỏ trống làm sai báo cáo.
+    </div>
+  </section>
+
+  <!-- 13 -->
+  <section id="meo">
+    <h2 data-num="13">Mẹo Sử Dụng Hiệu Quả</h2>
+
+    <h3>Tối Ưu Workflow Hàng Ngày</h3>
+    <ol>
+      <li><strong>Mở admin ngay từ sáng</strong> — bookmark trang <code>admin/sales.html</code> để mở 1 chạm.</li>
+      <li>Sáng: Dashboard → Leads (sort theo trạng thái Mới) → gọi lần lượt.</li>
+      <li>Trưa: Lịch hẹn → xác nhận với khách có hẹn buổi chiều.</li>
+      <li>Chiều: Lịch hẹn → đánh dấu "Đã hoàn tất" sau mỗi buổi.</li>
+      <li>Tối: Leads → cập nhật ghi chú/trạng thái sau ngày làm việc.</li>
+    </ol>
+
+    <h3>Lúc Demo Tour VR Cho Khách</h3>
+    <ul>
+      <li>Mở <strong>Tour VR360</strong> trước khi gọi — sẵn sàng share screen.</li>
+      <li>Đặt cảnh đầu là <strong>"Toàn cảnh dự án"</strong> để khách có bối cảnh.</li>
+      <li>Lúc chuyển cảnh, <strong>nói chậm</strong> để khách kịp nhìn — "Bây giờ chị có thể thấy đây là bể bơi vô cực tầng 8…".</li>
+      <li>Khi khách hỏi giá → mở <strong>Bảng Giá</strong> ngay trong VR để dẫn vào căn cụ thể.</li>
+      <li>Kết thúc demo → gửi link VR + Zalo của bạn cho khách tự xem lại.</li>
+    </ul>
+
+    <h3>Đặt Lịch Hẹn Thông Minh</h3>
+    <ul>
+      <li>Đặt hẹn <strong>cách 2–3 giờ</strong> giữa các buổi — tránh trễ giờ ảnh hưởng khách kế tiếp.</li>
+      <li>Khách offline buổi sáng (9h–11h) thường nghiêm túc hơn buổi tối.</li>
+      <li>Demo online buổi tối (19h–21h) phù hợp với khách đi làm văn phòng.</li>
+      <li>Sau khi đặt → gửi <strong>tin nhắn xác nhận</strong> qua Zalo trong vòng 5 phút.</li>
+    </ul>
+
+    <h3>Ghi Chú Lead Đúng Cách</h3>
+    <p>Mỗi lần liên hệ, ghi vào field <em>note/ghi chú</em>:</p>
+    <pre>05/16 14:30 - Gọi lần 1, bắt máy. Quan tâm 3PN tầng cao,
+              ngân sách 9-10 tỷ. Muốn xem Penthouse mẫu cuối tuần.
+              Hẹn gọi lại thứ Sáu sau 17h.
+05/17 17:15 - Gọi lại, đã hẹn xem VR online tối thứ Bảy 20h.</pre>
+    <p>Ghi rõ <strong>ngày · giờ · nội dung</strong> giúp bạn nhớ và đồng nghiệp dễ tiếp nhận khi bạn nghỉ.</p>
+  </section>
+
+  <!-- 14 -->
+  <section id="faq">
+    <h2 data-num="14">FAQ & Xử Lý Sự Cố</h2>
+
+    <details>
+      <summary>Tôi cập nhật lead mà đồng nghiệp không thấy?</summary>
+      <p>Đúng — dữ liệu lead lưu trong localStorage của <strong>từng trình duyệt</strong>. Hệ thống chưa có backend đồng bộ. Để chia sẻ thông tin: thông báo qua Zalo nội bộ, hoặc đề xuất Owner export-import.</p>
+    </details>
+
+    <details>
+      <summary>Bấm "Đặt Hẹn" mà form không mở?</summary>
+      <p>Có thể đang có slide panel khác đang mở. Bấm × hoặc <kbd>Esc</kbd> để đóng panel hiện tại, rồi thử lại.</p>
+    </details>
+
+    <details>
+      <summary>Tôi mở Tour VR mà thấy ảnh trống / cảnh đen?</summary>
+      <p>Trình duyệt có thể tắt WebGL. Thử trên Chrome / Edge bản mới nhất. Nếu vẫn vậy, có thể card đồ hoạ máy bạn không đủ — chuyển sang máy khác để demo.</p>
+    </details>
+
+    <details>
+      <summary>Khách hỏi về căn đã bán, có cách nào cập nhật lại?</summary>
+      <p>Bạn không sửa được. Báo Owner để họ chuyển trạng thái — và đề xuất căn tương đương cho khách trong lúc chờ.</p>
+    </details>
+
+    <details>
+      <summary>Có thể xem leads của sales khác không?</summary>
+      <p>Trong phiên bản hiện tại, tất cả sales chia sẻ chung pool lead trên cùng máy (do localStorage chung). Khi triển khai backend, mỗi sales chỉ thấy lead được phân.</p>
+    </details>
+
+    <details>
+      <summary>Mất kết nối mạng — admin có chạy được không?</summary>
+      <p>Sau khi đã đăng nhập và mở trang lần đầu, admin chạy được offline — vì dữ liệu nằm trong localStorage. Tuy nhiên Tour VR cần mạng để tải Three.js từ CDN.</p>
+    </details>
+
+    <details>
+      <summary>Quên đăng xuất khi rời máy?</summary>
+      <p>Phiên đăng nhập lưu trong sessionStorage — tự xoá khi đóng tab. Nhưng để an toàn, <strong>luôn bấm "Đăng xuất"</strong> khi rời máy chung.</p>
+    </details>
+
+    <details>
+      <summary>Khách yêu cầu tài liệu PDF, gửi từ đâu?</summary>
+      <p>Admin hiện chưa có chức năng quản lý tài liệu marketing. Lấy PDF từ Drive nội bộ rồi gửi cho khách qua email/Zalo.</p>
+    </details>
+  </section>
+
+  <!-- 15 -->
+  <section id="kpi">
+    <h2 data-num="15">KPI & Báo Cáo</h2>
+    <p>Sales tự theo dõi KPI cá nhân qua Dashboard. Báo cáo tổng hợp thuộc về Owner.</p>
+
+    <h3>KPI Tham Khảo</h3>
+    <table>
+      <thead><tr><th>Chỉ Số</th><th>Mục Tiêu Tháng</th></tr></thead>
+      <tbody>
+        <tr><td>Số lead xử lý</td><td>≥ 80</td></tr>
+        <tr><td>Tỉ lệ "Đã gọi" trong 24h</td><td>≥ 95%</td></tr>
+        <tr><td>Số booking đặt được</td><td>≥ 20</td></tr>
+        <tr><td>Tỉ lệ booking "Đã hoàn tất"</td><td>≥ 70%</td></tr>
+        <tr><td>Số căn chốt cọc</td><td>≥ 3</td></tr>
+        <tr><td>Doanh số (tỷ VND)</td><td>≥ 20</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout info">
+      <strong>Xuất CSV cho báo cáo</strong>
+      Trang Leads có nút <strong>"Xuất CSV"</strong> — tải toàn bộ lead bạn phụ trách dạng spreadsheet. Mở trong Excel để làm pivot table tự phân tích.
+    </div>
+
+    <div class="callout ok">
+      <strong>Chúc bạn chốt deal thành công!</strong>
+      Mọi câu hỏi về quy trình nội bộ — liên hệ trực tiếp với Owner. Mọi sự cố kỹ thuật — báo IT hoặc dev đội ngũ admin.
+    </div>
+  </section>
+
+  <hr />
+  <p style="color:var(--fg-muted);font-size:12px;text-align:center;padding-bottom:3rem">
+    Aurora Heights VR360 · HDSD Nhân Viên Sales · v1.0 · 16-05-2026
+  </p>
+
+</main>
+</div>
+
+<script>
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-link[href^="#"]');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const link = document.querySelector(`.nav-link[href="#${e.target.id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>

@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hướng Dẫn Sử Dụng — Khách Tham Quan Aurora Heights VR360</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --sidebar-bg: #0a0d12;
+    --content-bg: #13171f;
+    --fg: #e8e6df;
+    --fg-muted: #9a9590;
+    --accent: #e8c089;
+    --accent-dim: rgba(232,192,137,0.15);
+    --ok: #7ad79a;
+    --danger: #ff6b6b;
+    --warning: #f5a623;
+    --info: #6496ff;
+    --hairline: rgba(255,255,255,0.08);
+    --code-bg: rgba(0,0,0,0.4);
+    --sidebar-width: 280px;
+    --top-height: 56px;
+    --r: 6px;
+    --font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --font-mono: 'Cascadia Code', 'Fira Mono', 'Consolas', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--fg);
+    font-family: var(--font-sans); font-size: 14px; line-height: 1.7;
+    display: flex; flex-direction: column; min-height: 100vh;
+  }
+
+  /* Top bar */
+  #topbar {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: var(--top-height);
+    background: var(--sidebar-bg);
+    border-bottom: 1px solid var(--hairline);
+    display: flex; align-items: center;
+    padding: 0 1.5rem; gap: 1rem; z-index: 100;
+  }
+  #topbar .brand {
+    font-size: 1rem; font-weight: 700;
+    color: var(--accent); letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  #topbar .badge {
+    background: var(--accent-dim); color: var(--accent);
+    border: 1px solid rgba(232,192,137,0.3);
+    padding: 2px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 600;
+  }
+  #topbar .meta { margin-left: auto; color: var(--fg-muted); font-size: 12px; }
+  #topbar a { color: var(--fg-muted); text-decoration: none; font-size: 12px; }
+  #topbar a:hover { color: var(--accent); }
+
+  /* Layout */
+  #layout {
+    display: flex; margin-top: var(--top-height);
+    min-height: calc(100vh - var(--top-height));
+  }
+  #sidebar {
+    width: var(--sidebar-width); flex-shrink: 0;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--hairline);
+    position: fixed; top: var(--top-height); bottom: 0;
+    overflow-y: auto; padding: 1.5rem 0;
+  }
+  #sidebar::-webkit-scrollbar { width: 4px; }
+  #sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+  .nav-section-label {
+    padding: 0.5rem 1.5rem; font-size: 10px; font-weight: 700;
+    letter-spacing: 0.1em; color: var(--fg-muted); text-transform: uppercase;
+  }
+  .nav-link {
+    display: block; padding: 0.4rem 1.5rem;
+    color: var(--fg-muted); text-decoration: none;
+    font-size: 13px; transition: all 0.15s;
+    border-left: 2px solid transparent;
+  }
+  .nav-link:hover, .nav-link.active {
+    color: var(--fg); background: rgba(255,255,255,0.04);
+    border-left-color: var(--accent);
+  }
+  .nav-link .num {
+    display: inline-block; background: rgba(255,255,255,0.06);
+    color: var(--fg-muted); font-size: 10px;
+    padding: 1px 5px; border-radius: 3px; margin-right: 6px;
+    font-family: var(--font-mono);
+  }
+  #content {
+    margin-left: var(--sidebar-width); flex: 1;
+    padding: 3rem 4rem;
+  }
+
+  /* Typography */
+  h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+  h2 {
+    font-size: 1.5rem; font-weight: 700; margin: 3rem 0 1rem;
+    padding-bottom: 0.5rem; border-bottom: 1px solid var(--hairline);
+  }
+  h2::before {
+    content: attr(data-num); color: var(--accent);
+    font-size: 0.85em; margin-right: 0.5rem; font-family: var(--font-mono);
+  }
+  h3 { font-size: 1.1rem; font-weight: 600; margin: 2rem 0 0.75rem; }
+  h4 {
+    font-size: 0.9rem; font-weight: 600; color: var(--fg-muted);
+    margin: 1.5rem 0 0.5rem; text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  p { margin-bottom: 1rem; }
+  ul, ol { margin: 0 0 1rem 1.25rem; }
+  ul li, ol li { margin-bottom: 0.4rem; }
+  strong { color: #fff; }
+
+  /* Intro */
+  .intro {
+    background: var(--accent-dim);
+    border: 1px solid rgba(232,192,137,0.25);
+    border-radius: var(--r);
+    padding: 1.25rem 1.5rem; margin-bottom: 2.5rem;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 1rem;
+  }
+  .intro-item .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-muted); }
+  .intro-item .value { font-size: 14px; color: var(--fg); font-weight: 600; }
+
+  /* Tables */
+  table {
+    width: 100%; border-collapse: collapse;
+    margin: 1rem 0 1.5rem; font-size: 13px;
+  }
+  thead th {
+    background: rgba(255,255,255,0.04); color: var(--fg-muted);
+    font-weight: 600; font-size: 11px; letter-spacing: 0.06em;
+    text-transform: uppercase; padding: 0.6rem 0.85rem;
+    text-align: left; border-bottom: 1px solid var(--hairline);
+  }
+  tbody td {
+    padding: 0.55rem 0.85rem; border-bottom: 1px solid var(--hairline);
+    vertical-align: top;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: rgba(255,255,255,0.02); }
+  code {
+    font-family: var(--font-mono); font-size: 12px;
+    background: var(--code-bg); padding: 1px 5px;
+    border-radius: 3px; color: var(--accent);
+  }
+
+  /* Step cards */
+  .step {
+    display: flex; gap: 1rem;
+    background: var(--content-bg);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r);
+    padding: 1rem 1.25rem; margin: 0.75rem 0;
+  }
+  .step-num {
+    flex-shrink: 0; width: 32px; height: 32px;
+    background: var(--accent-dim); color: var(--accent);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-family: var(--font-mono);
+  }
+  .step-body { flex: 1; }
+  .step-body .step-title { font-weight: 600; color: var(--fg); margin-bottom: 0.25rem; }
+  .step-body .step-desc { color: var(--fg-muted); font-size: 13px; line-height: 1.65; }
+
+  /* Callout */
+  .callout {
+    border-left: 3px solid var(--accent);
+    background: var(--accent-dim);
+    border-radius: 0 var(--r) var(--r) 0;
+    padding: 0.85rem 1.25rem; margin: 1rem 0 1.5rem;
+    font-size: 13px;
+  }
+  .callout.warn { border-left-color: var(--warning); background: rgba(245,166,35,0.1); }
+  .callout.info { border-left-color: var(--info); background: rgba(100,150,255,0.1); }
+  .callout.ok { border-left-color: var(--ok); background: rgba(122,215,154,0.1); }
+  .callout strong {
+    display: block; margin-bottom: 0.25rem;
+    font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em;
+  }
+
+  /* Badges */
+  .badge-ok  { background: rgba(122,215,154,0.15); color: var(--ok);      padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; white-space: nowrap; display: inline-block; }
+  .badge-warn{ background: rgba(245,166,35,0.15);  color: var(--warning); padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; white-space: nowrap; display: inline-block; }
+  .badge-err { background: rgba(255,107,107,0.15); color: var(--danger);  padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; white-space: nowrap; display: inline-block; }
+  .badge-info{ background: rgba(100,150,255,0.15); color: var(--info);    padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; white-space: nowrap; display: inline-block; }
+
+  /* Pre/flow */
+  pre, .flow {
+    background: var(--code-bg);
+    border: 1px solid var(--hairline);
+    border-radius: var(--r);
+    padding: 1.25rem; overflow-x: auto;
+    margin: 1rem 0 1.5rem;
+    font-family: var(--font-mono); font-size: 12.5px; line-height: 1.65;
+    color: #c9d1d9; white-space: pre;
+  }
+  hr { border: none; border-top: 1px solid var(--hairline); margin: 2.5rem 0; }
+
+  /* Keyboard key */
+  kbd {
+    display: inline-block; padding: 2px 7px;
+    background: rgba(255,255,255,0.08); border: 1px solid var(--hairline);
+    border-radius: 4px; font-family: var(--font-mono); font-size: 11px;
+    color: #fff; box-shadow: 0 1px 0 rgba(0,0,0,0.4);
+  }
+
+  /* FAQ */
+  details {
+    background: var(--content-bg); border: 1px solid var(--hairline);
+    border-radius: var(--r); padding: 0.75rem 1rem; margin: 0.5rem 0;
+  }
+  details summary {
+    cursor: pointer; font-weight: 600; color: var(--fg);
+    list-style: none; padding-right: 1.5rem; position: relative;
+  }
+  details summary::after {
+    content: "+"; position: absolute; right: 0; top: 0;
+    color: var(--accent); font-size: 1.2rem; line-height: 1;
+  }
+  details[open] summary::after { content: "−"; }
+  details p { margin-top: 0.75rem; color: var(--fg-muted); font-size: 13px; }
+
+  @media (max-width: 900px) {
+    #sidebar { display: none; }
+    #content { margin-left: 0; padding: 2rem 1.5rem; }
+  }
+  html { scroll-behavior: smooth; }
+  section { scroll-margin-top: calc(var(--top-height) + 1rem); }
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <span class="brand">Aurora Heights VR360</span>
+  <span class="badge">HDSD · Khách Tham Quan</span>
+  <span class="meta">
+    <a href="index.html">← Đặc Tả Dự Án</a>
+    &nbsp;·&nbsp;
+    <a href="huong-dan-owner.html">HDSD Owner</a>
+    &nbsp;·&nbsp;
+    <a href="huong-dan-sales.html">HDSD Sales</a>
+  </span>
+</div>
+
+<div id="layout">
+
+<nav id="sidebar">
+  <div class="nav-section-label">Bắt Đầu</div>
+  <a class="nav-link" href="#gioi-thieu"><span class="num">1</span>Giới Thiệu</a>
+  <a class="nav-link" href="#mo-trang"><span class="num">2</span>Mở Trang VR</a>
+  <a class="nav-link" href="#giao-dien"><span class="num">3</span>Giao Diện Tổng Quan</a>
+
+  <div class="nav-section-label" style="margin-top:1rem">Tham Quan VR</div>
+  <a class="nav-link" href="#xoay-canh"><span class="num">4</span>Xoay & Zoom Cảnh</a>
+  <a class="nav-link" href="#hotspot"><span class="num">5</span>Hotspot</a>
+  <a class="nav-link" href="#chuyen-canh"><span class="num">6</span>Chuyển Cảnh</a>
+  <a class="nav-link" href="#dieu-khien"><span class="num">7</span>Thanh Điều Khiển</a>
+
+  <div class="nav-section-label" style="margin-top:1rem">Khám Phá Dự Án</div>
+  <a class="nav-link" href="#ban-do"><span class="num">8</span>Bản Đồ 2D</a>
+  <a class="nav-link" href="#gallery"><span class="num">9</span>Thư Viện Ảnh</a>
+  <a class="nav-link" href="#tien-ich"><span class="num">10</span>Tiện Ích</a>
+  <a class="nav-link" href="#tien-do"><span class="num">11</span>Tiến Độ</a>
+  <a class="nav-link" href="#phap-ly"><span class="num">12</span>Pháp Lý</a>
+  <a class="nav-link" href="#vi-tri"><span class="num">13</span>Vị Trí</a>
+
+  <div class="nav-section-label" style="margin-top:1rem">Hành Động</div>
+  <a class="nav-link" href="#mat-bang"><span class="num">14</span>Bảng Giá & Đặt Cọc</a>
+  <a class="nav-link" href="#vay-von"><span class="num">15</span>Tính Vay Vốn</a>
+  <a class="nav-link" href="#ai-chat"><span class="num">16</span>Trợ Lý AI</a>
+  <a class="nav-link" href="#ngon-ngu"><span class="num">17</span>Đổi Ngôn Ngữ</a>
+
+  <div class="nav-section-label" style="margin-top:1rem">Khác</div>
+  <a class="nav-link" href="#mobile"><span class="num">18</span>Trên Điện Thoại</a>
+  <a class="nav-link" href="#phim-tat"><span class="num">19</span>Phím Tắt</a>
+  <a class="nav-link" href="#faq"><span class="num">20</span>Câu Hỏi Thường Gặp</a>
+  <a class="nav-link" href="#ho-tro"><span class="num">21</span>Liên Hệ Hỗ Trợ</a>
+</nav>
+
+<main id="content">
+
+  <h1>Hướng Dẫn Sử Dụng Cho Khách Tham Quan</h1>
+  <p style="color:var(--fg-muted);margin-bottom:2rem">
+    Trang web VR360 dự án <strong>Aurora Heights</strong> — sử dụng trực tiếp trên trình duyệt, không cần cài đặt.
+    Tài liệu này hướng dẫn bạn từ lần mở trang đầu tiên cho đến khi đặt cọc thành công.
+  </p>
+
+  <div class="intro">
+    <div class="intro-item"><div class="label">Đối Tượng</div><div class="value">Khách tham quan</div></div>
+    <div class="intro-item"><div class="label">Yêu Cầu</div><div class="value">Trình duyệt hiện đại</div></div>
+    <div class="intro-item"><div class="label">Thiết Bị</div><div class="value">PC / Laptop / Điện thoại</div></div>
+    <div class="intro-item"><div class="label">Thời Gian</div><div class="value">~5 phút làm quen</div></div>
+    <div class="intro-item"><div class="label">Cài Đặt</div><div class="value">Không cần</div></div>
+    <div class="intro-item"><div class="label">Ngôn Ngữ</div><div class="value">VI · EN · ZH · KO · JA</div></div>
+  </div>
+
+  <!-- 1 -->
+  <section id="gioi-thieu">
+    <h2 data-num="1">Giới Thiệu</h2>
+    <p>
+      <strong>Aurora Heights VR360</strong> là trang trải nghiệm bất động sản tương tác, cho phép bạn:
+    </p>
+    <ul>
+      <li>Đứng giữa các không gian dự án và nhìn 360° xung quanh (Sky Lounge, Penthouse, Master Suite, bể bơi, công viên, toàn cảnh trên cao).</li>
+      <li>Xem chi tiết từng căn hộ kèm diện tích, giá, hướng, tầng.</li>
+      <li>Tự tính khoản vay ngân hàng theo điều kiện riêng của bạn.</li>
+      <li>Trò chuyện với trợ lý ảo bằng văn bản hoặc <strong>giọng nói</strong>.</li>
+      <li>Đặt cọc trực tuyến — sales sẽ liên hệ lại trong vòng 30 phút.</li>
+    </ul>
+
+    <div class="callout info">
+      <strong>Mẹo nhỏ</strong>
+      Nếu là lần đầu tiên bạn mở trang, hãy bấm nút <strong>Help</strong> (biểu tượng dấu hỏi <code>?</code> trên thanh trên cùng) để xem tour hướng dẫn 18 bước ngắn gọn ngay trên giao diện.
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section id="mo-trang">
+    <h2 data-num="2">Mở Trang VR</h2>
+
+    <h3>Yêu Cầu Tối Thiểu</h3>
+    <table>
+      <thead><tr><th>Hạng Mục</th><th>Khuyến Nghị</th></tr></thead>
+      <tbody>
+        <tr><td>Trình duyệt</td><td>Google Chrome, Microsoft Edge, Safari, Firefox (bản cập nhật trong 12 tháng)</td></tr>
+        <tr><td>Hệ điều hành</td><td>Windows 10+, macOS 11+, Android 9+, iOS 14+</td></tr>
+        <tr><td>Tốc độ mạng</td><td>≥ 5 Mbps để tải nhanh</td></tr>
+        <tr><td>WebGL</td><td>Bật mặc định trên hầu hết trình duyệt</td></tr>
+        <tr><td>Mic (tuỳ chọn)</td><td>Chỉ cần khi muốn nói chuyện với trợ lý AI</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Các Bước Mở</h3>
+    <div class="step"><div class="step-num">1</div><div class="step-body">
+      <div class="step-title">Mở liên kết</div>
+      <div class="step-desc">Bấm vào liên kết do sales hoặc tài liệu marketing cung cấp, hoặc gõ địa chỉ trang vào trình duyệt.</div>
+    </div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body">
+      <div class="step-title">Chờ màn hình loading</div>
+      <div class="step-desc">Hệ thống mất ~2–3 giây để tải dữ liệu và khởi động cảnh VR đầu tiên (mặc định là <em>Sky Lounge Tầng 42</em>).</div>
+    </div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body">
+      <div class="step-title">Bắt đầu khám phá</div>
+      <div class="step-desc">Khi cảnh VR hiện ra, bạn có thể kéo chuột để xoay quanh, hoặc bấm các pin <em>hotspot</em> để xem thông tin hoặc chuyển sang khu vực khác.</div>
+    </div></div>
+
+    <div class="callout warn">
+      <strong>Nếu trang không tải</strong>
+      Hãy thử: (1) refresh lại trang bằng <kbd>F5</kbd>; (2) kiểm tra kết nối mạng; (3) thử trình duyệt khác. Nếu vẫn lỗi, gọi hotline <code>0901 234 567</code> để được hỗ trợ.
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section id="giao-dien">
+    <h2 data-num="3">Giao Diện Tổng Quan</h2>
+    <p>Khi vào trang, bạn sẽ thấy giao diện chia thành 4 khu vực chính, đè trên ảnh VR toàn màn hình:</p>
+
+    <pre>┌──────────────────────────────────────────────────────────┐
+│  ① Thanh trên (top bar)                                  │
+│      [Logo]  [Bản đồ][Gallery][Tiện ích][Pháp lý]…      │
+│                                       [Ngôn ngữ][?]      │
+├──────────────────────────────────────────────────────────┤
+│  ② Nav Panel (trái)        ④ Project Card (phải)        │
+│      Tìm kiếm                   Thống kê dự án           │
+│      Tổng Quan                   Giá khởi điểm           │
+│      Tiện Ích Nội Khu            Đếm ngược ưu đãi        │
+│      Tiện Ích Ngoại Khu          Tiện ích nhanh          │
+│      Mặt Bằng Tầng               [Xem Bảng Giá]          │
+│      View 360° Căn Hộ            [Đặt Lịch Tham Quan]    │
+├──────────────────────────────────────────────────────────┤
+│  ③ Sân khấu VR (toàn màn hình)                           │
+│      Các hotspot hiển thị lên trên                       │
+│  💬 Nút AI Chat (góc dưới phải)                          │
+└──────────────────────────────────────────────────────────┘</pre>
+
+    <table>
+      <thead><tr><th>Khu Vực</th><th>Chức Năng Chính</th></tr></thead>
+      <tbody>
+        <tr><td>① Thanh trên</td><td>Mở các overlay (bản đồ, gallery, tiện ích, pháp lý, vị trí, vay vốn, tiến độ, bảng giá), chuyển ngôn ngữ, mở Help Tour</td></tr>
+        <tr><td>② Nav Panel (trái)</td><td>Tìm kiếm + menu nhóm cảnh VR. Bấm vào mục bất kỳ để chuyển cảnh</td></tr>
+        <tr><td>③ Sân khấu VR</td><td>Khu vực chính — kéo để xoay, lăn chuột để zoom, bấm hotspot để xem chi tiết</td></tr>
+        <tr><td>④ Project Card (phải)</td><td>Thông tin nhanh + nút <em>Xem Bảng Giá</em>, <em>Đặt Lịch Tham Quan</em></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 4 -->
+  <section id="xoay-canh">
+    <h2 data-num="4">Xoay & Zoom Cảnh</h2>
+
+    <h3>Trên Máy Tính</h3>
+    <table>
+      <thead><tr><th>Hành Động</th><th>Cách Thực Hiện</th></tr></thead>
+      <tbody>
+        <tr><td>Xoay nhìn quanh</td><td>Giữ chuột trái + kéo (kéo trái/phải để xoay ngang, kéo lên/xuống để nhìn lên/xuống)</td></tr>
+        <tr><td>Zoom gần</td><td>Lăn chuột về phía trước, hoặc nhấn nút <strong>+</strong> trên thanh điều khiển</td></tr>
+        <tr><td>Zoom xa</td><td>Lăn chuột về phía sau, hoặc nhấn nút <strong>−</strong></td></tr>
+        <tr><td>Tự xoay 360°</td><td>Nhấn nút <strong>↻</strong> trên thanh điều khiển. Khi bạn kéo bằng chuột, tính năng tự xoay sẽ tạm dừng.</td></tr>
+        <tr><td>Toàn màn hình</td><td>Nhấn nút <strong>⛶</strong>. Nhấn lần nữa hoặc phím <kbd>Esc</kbd> để thoát toàn màn hình.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Trên Điện Thoại / Tablet</h3>
+    <table>
+      <thead><tr><th>Hành Động</th><th>Cách Thực Hiện</th></tr></thead>
+      <tbody>
+        <tr><td>Xoay nhìn quanh</td><td>Chạm và kéo ngón tay trên màn hình</td></tr>
+        <tr><td>Zoom</td><td>Chụm/mở hai ngón tay (pinch in / pinch out)</td></tr>
+        <tr><td>Mở menu</td><td>Bấm nút burger (3 gạch) ở góc trên</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <strong>Lưu ý</strong>
+      Có thể zoom trong khoảng <strong>40°</strong> (cận cảnh) đến <strong>95°</strong> (góc rộng). Khi bạn dừng kéo, camera sẽ giữ nguyên hướng nhìn cho đến lần tương tác kế tiếp.
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section id="hotspot">
+    <h2 data-num="5">Hotspot — Các Pin Trên Cảnh VR</h2>
+    <p>Hotspot là các <strong>pin tròn nhỏ</strong> nổi trên cảnh VR. Có 2 loại:</p>
+
+    <table>
+      <thead><tr><th>Loại</th><th>Biểu Tượng</th><th>Khi Bấm</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="badge-info">Thông tin</span></td>
+          <td>Pin có icon "i" hoặc tên ngắn</td>
+          <td>Hiện popup giải thích vật/khu vực đang nhìn (ví dụ: "Bể bơi vô cực — Bể bơi tràn 50m hướng Tây nhìn hoàng hôn hồ Tây")</td>
+        </tr>
+        <tr>
+          <td><span class="badge-ok">Chuyển cảnh</span></td>
+          <td>Pin có icon mũi tên hoặc tên khu vực</td>
+          <td>Chuyển sang một cảnh VR khác (ví dụ: từ "Sky Lounge" sang "Penthouse")</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="step"><div class="step-num">1</div><div class="step-body">
+      <div class="step-title">Di chuột vào pin</div>
+      <div class="step-desc">Pin sẽ phóng to nhẹ để báo hiệu có thể bấm.</div>
+    </div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body">
+      <div class="step-title">Bấm pin</div>
+      <div class="step-desc">Nếu là <em>Thông tin</em> → popup hiện ra. Nếu là <em>Chuyển cảnh</em> → cảnh VR chuyển sang khu vực mới.</div>
+    </div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body">
+      <div class="step-title">Đóng popup</div>
+      <div class="step-desc">Bấm ra ngoài popup, bấm nút × hoặc nhấn phím <kbd>Esc</kbd>.</div>
+    </div></div>
+
+    <div class="callout info">
+      <strong>Vì sao có lúc không thấy pin?</strong>
+      Khi bạn xoay camera, một số pin có thể nằm <strong>sau lưng</strong> và tự ẩn đi. Hãy xoay tiếp để tìm chúng.
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section id="chuyen-canh">
+    <h2 data-num="6">Chuyển Cảnh</h2>
+    <p>Bạn có thể chuyển sang một cảnh VR khác bằng 4 cách:</p>
+
+    <ol>
+      <li><strong>Bấm hotspot chuyển cảnh</strong> ngay trong VR (cách tự nhiên nhất).</li>
+      <li><strong>Mở Nav Panel</strong> bên trái → chọn nhóm (Tổng Quan, Tiện Ích Nội Khu…) → chọn mục cụ thể.</li>
+      <li><strong>Mở Bản Đồ 2D</strong> trên thanh trên → bấm vào điểm muốn xem.</li>
+      <li><strong>Hỏi trợ lý AI</strong> "Cho tôi xem bể bơi", "Mở Penthouse mẫu"… AI sẽ tự chuyển cảnh.</li>
+    </ol>
+
+    <h3>Danh Sách 6 Cảnh VR</h3>
+    <table>
+      <thead><tr><th>Tên Cảnh</th><th>Loại</th><th>Mô Tả</th></tr></thead>
+      <tbody>
+        <tr><td>Sky Lounge Tầng 42</td><td>Nội thất</td><td>Tầm nhìn 360° toàn cảnh thành phố từ tầng cao nhất</td></tr>
+        <tr><td>Penthouse Mẫu 3PN Duplex</td><td>Nội thất</td><td>Căn hộ mẫu cao cấp 2 tầng</td></tr>
+        <tr><td>Master Suite</td><td>Nội thất</td><td>Phòng ngủ chính của căn penthouse</td></tr>
+        <tr><td>Bể Bơi Vô Cực Tầng 8</td><td>Ngoại cảnh</td><td>Bể bơi tràn 50m hướng Tây nhìn hoàng hôn hồ Tây</td></tr>
+        <tr><td>Công Viên Trung Tâm 12,4 ha</td><td>Ngoại cảnh</td><td>Công viên cây xanh nội khu rộng nhất khu vực</td></tr>
+        <tr><td>Toàn Cảnh Dự Án</td><td>Ngoại cảnh</td><td>Góc nhìn từ trên cao (drone) bao quát toàn bộ dự án</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 7 -->
+  <section id="dieu-khien">
+    <h2 data-num="7">Thanh Điều Khiển</h2>
+    <p>Trên thanh trên cùng (góc phải) có nhóm nút điều khiển nhanh:</p>
+
+    <table>
+      <thead><tr><th>Nút</th><th>Tác Dụng</th></tr></thead>
+      <tbody>
+        <tr><td><strong>↻ Tự xoay</strong></td><td>Bật/tắt tự xoay 360°. Tự dừng khi bạn kéo chuột.</td></tr>
+        <tr><td><strong>+</strong></td><td>Zoom gần (giảm FOV xuống tối thiểu 40°)</td></tr>
+        <tr><td><strong>−</strong></td><td>Zoom xa (tăng FOV lên tối đa 95°)</td></tr>
+        <tr><td><strong>⛶ Toàn màn hình</strong></td><td>Phóng to trang lên toàn màn hình thiết bị</td></tr>
+        <tr><td><strong>🌐 Ngôn ngữ</strong></td><td>Chuyển sang 1 trong 5 ngôn ngữ (xem mục 17)</td></tr>
+        <tr><td><strong>? Trợ giúp</strong></td><td>Bật tour hướng dẫn 18 bước trên giao diện</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Các Nút Mở Overlay</h3>
+    <p>Phía giữa thanh trên có 8 nút mở các overlay chi tiết:</p>
+    <table>
+      <tbody>
+        <tr><td><strong>Bản đồ</strong></td><td>→ Mục 8</td></tr>
+        <tr><td><strong>Gallery</strong></td><td>→ Mục 9</td></tr>
+        <tr><td><strong>Tiện ích</strong></td><td>→ Mục 10</td></tr>
+        <tr><td><strong>Tiến độ</strong></td><td>→ Mục 11</td></tr>
+        <tr><td><strong>Pháp lý</strong></td><td>→ Mục 12</td></tr>
+        <tr><td><strong>Vị trí</strong></td><td>→ Mục 13</td></tr>
+        <tr><td><strong>Mặt bằng / Bảng giá</strong></td><td>→ Mục 14</td></tr>
+        <tr><td><strong>Vay vốn</strong></td><td>→ Mục 15</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 8 -->
+  <section id="ban-do">
+    <h2 data-num="8">Bản Đồ 2D Dự Án</h2>
+    <p>
+      Mở bằng cách bấm <strong>Bản đồ</strong> trên thanh trên. Bản đồ hiện thiết kế mặt bằng dự án từ trên xuống,
+      kèm các <strong>điểm bấm</strong> (7 điểm) tương ứng với 6 cảnh VR.
+    </p>
+
+    <div class="step"><div class="step-num">1</div><div class="step-body">
+      <div class="step-title">Xem tổng quan</div>
+      <div class="step-desc">Bạn thấy bố cục tổng thể: các tòa, công viên, đường nội bộ, vị trí tiện ích.</div>
+    </div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body">
+      <div class="step-title">Bấm điểm bất kỳ</div>
+      <div class="step-desc">Overlay bản đồ đóng lại và cảnh VR tương ứng được mở (ví dụ bấm điểm "Bể bơi" sẽ chuyển sang cảnh Pool Deck).</div>
+    </div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body">
+      <div class="step-title">Đóng overlay</div>
+      <div class="step-desc">Bấm nút × ở góc, bấm ra ngoài, hoặc nhấn <kbd>Esc</kbd>.</div>
+    </div></div>
+  </section>
+
+  <!-- 9 -->
+  <section id="gallery">
+    <h2 data-num="9">Thư Viện Ảnh</h2>
+    <p>Mở bằng cách bấm <strong>Gallery</strong>. Hiển thị lưới các ảnh thực tế / phối cảnh dự án.</p>
+
+    <table>
+      <thead><tr><th>Thao Tác</th><th>Tác Dụng</th></tr></thead>
+      <tbody>
+        <tr><td>Bấm vào ảnh</td><td>Mở lightbox xem ảnh lớn</td></tr>
+        <tr><td>Mũi tên ← →</td><td>Ảnh trước / ảnh tiếp theo</td></tr>
+        <tr><td>Phím <kbd>←</kbd> <kbd>→</kbd></td><td>Cũng dùng được trên bàn phím</td></tr>
+        <tr><td>Phím <kbd>Esc</kbd></td><td>Đóng lightbox</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 10 -->
+  <section id="tien-ich">
+    <h2 data-num="10">Chi Tiết Tiện Ích</h2>
+    <p>Mở bằng cách bấm <strong>Tiện ích</strong>. Có 4 tab tương ứng với 4 nhóm tiện ích:</p>
+
+    <table>
+      <thead><tr><th>Tab</th><th>Mô Tả</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Nội Khu</strong></td><td>Bể bơi, gym, sky lounge, sảnh, khu vui chơi, vườn cảnh quan…</td></tr>
+        <tr><td><strong>Sky Amenity</strong></td><td>Các tiện ích trên cao (sky garden, sky bar, observatory)</td></tr>
+        <tr><td><strong>Dịch Vụ</strong></td><td>Lễ tân 24/7, concierge, an ninh, dịch vụ căn hộ</td></tr>
+        <tr><td><strong>Hạ Tầng</strong></td><td>Hầm gửi xe, sạc xe điện, máy phát dự phòng, smart home</td></tr>
+      </tbody>
+    </table>
+    <p>Bấm vào card tiện ích bất kỳ để xem mô tả chi tiết.</p>
+  </section>
+
+  <!-- 11 -->
+  <section id="tien-do">
+    <h2 data-num="11">Tiến Độ Xây Dựng</h2>
+    <p>Mở bằng cách bấm <strong>Tiến độ</strong>. Hiển thị 8 giai đoạn của dự án theo thứ tự thời gian:</p>
+    <ul>
+      <li>Các giai đoạn <span class="badge-ok">Hoàn thành</span> được tích xanh.</li>
+      <li>Giai đoạn <span class="badge-warn">Đang thực hiện</span> hiển thị thanh tiến độ phần trăm.</li>
+      <li>Các giai đoạn <span class="badge-info">Sắp tới</span> hiển thị tháng/năm dự kiến.</li>
+    </ul>
+    <p>Bạn sẽ thấy rõ dự án đã đi tới đâu: ép cọc, đào móng, lên tầng, hoàn thiện, bàn giao.</p>
+  </section>
+
+  <!-- 12 -->
+  <section id="phap-ly">
+    <h2 data-num="12">Pháp Lý & Uy Tín</h2>
+    <p>Mở bằng cách bấm <strong>Pháp lý</strong>. Bao gồm:</p>
+    <ul>
+      <li><strong>Chỉ số chủ đầu tư</strong> — số năm hoạt động, số dự án đã bàn giao, tổng diện tích…</li>
+      <li><strong>Danh sách giấy tờ</strong> — sổ đỏ, giấy phép xây dựng, văn bản chấp thuận, bảo lãnh ngân hàng. Mỗi mục đều có trạng thái và thời điểm cấp.</li>
+      <li><strong>Ngân hàng bảo lãnh</strong> — logo và tên các ngân hàng đối tác.</li>
+      <li><strong>Nhận xét khách hàng</strong> — testimonial của những người đã mua giai đoạn trước.</li>
+    </ul>
+  </section>
+
+  <!-- 13 -->
+  <section id="vi-tri">
+    <h2 data-num="13">Vị Trí & Tiện Ích Lân Cận</h2>
+    <p>Mở bằng cách bấm <strong>Vị trí</strong>. Hiển thị:</p>
+    <ul>
+      <li><strong>Bản đồ Google Maps</strong> nhúng — vị trí dự án có pin đánh dấu.</li>
+      <li><strong>Danh sách 9 POI lân cận</strong> chia theo nhóm:
+        trường học, bệnh viện, trung tâm thương mại, phương tiện công cộng, giải trí.
+      </li>
+      <li>Mỗi POI hiển thị khoảng cách và thời gian di chuyển (phút).</li>
+    </ul>
+    <p>Bạn có thể bấm các tab/danh mục để lọc nhanh.</p>
+  </section>
+
+  <!-- 14 -->
+  <section id="mat-bang">
+    <h2 data-num="14">Bảng Giá & Đặt Cọc</h2>
+    <p>Mục quan trọng nhất nếu bạn quan tâm tới một căn cụ thể. Mở bằng cách bấm <strong>Xem Bảng Giá</strong>
+    (trên project card bên phải) hoặc <strong>Mặt bằng</strong> trên thanh trên.</p>
+
+    <h3>Bảng Inventory 9 Căn</h3>
+    <p>Mỗi dòng là một căn, kèm: mã căn, loại (2PN/2PN+1/3PN/Duplex), tầng, diện tích, hướng, giá, % căn còn trong loại đó, và trạng thái.</p>
+
+    <table>
+      <thead><tr><th>Badge</th><th>Ý Nghĩa</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge-ok">Còn hàng</span></td><td>Có thể đặt cọc</td></tr>
+        <tr><td><span class="badge-warn">Đang giữ chỗ</span></td><td>Đã có khách giữ, có thể chuyển sang nếu đặt cọc trước</td></tr>
+        <tr><td><span class="badge-err">Đã bán</span></td><td>Không còn nhận đặt cọc</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Lọc & Sắp Xếp</h3>
+    <ul>
+      <li>Lọc theo loại căn (2PN, 2PN+1, 3PN, Duplex).</li>
+      <li>Lọc theo trạng thái (Còn hàng / Đang giữ chỗ).</li>
+      <li>Sắp xếp theo giá tăng/giảm, diện tích, tầng.</li>
+    </ul>
+
+    <h3>Đặt Cọc</h3>
+    <div class="step"><div class="step-num">1</div><div class="step-body">
+      <div class="step-title">Bấm nút "Đặt Cọc" trên dòng căn quan tâm</div>
+      <div class="step-desc">Form đặt cọc mở ra, đã <strong>điền sẵn</strong> mã căn và loại căn để bạn không phải nhập lại.</div>
+    </div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body">
+      <div class="step-title">Điền thông tin liên hệ</div>
+      <div class="step-desc">
+        Bắt buộc: <strong>Họ và tên</strong> + <strong>Số điện thoại</strong>.<br>
+        Tuỳ chọn: Email, Zalo, ngân sách, mục đích mua (ở/đầu tư), thời điểm mua.
+      </div>
+    </div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body">
+      <div class="step-title">Tick xác nhận đồng ý</div>
+      <div class="step-desc">Đồng ý nhận tin qua Zalo, SMS hoặc đăng ký bảo hiểm (nếu muốn).</div>
+    </div></div>
+    <div class="step"><div class="step-num">4</div><div class="step-body">
+      <div class="step-title">Bấm "Gửi Đăng Ký"</div>
+      <div class="step-desc">Hiện màn hình cảm ơn. Sales sẽ gọi lại trong vòng 30 phút theo giờ làm việc.</div>
+    </div></div>
+
+    <div class="callout warn">
+      <strong>Lưu ý quan trọng</strong>
+      Đặt cọc qua trang web chỉ là <strong>đăng ký quan tâm</strong> — chưa phát sinh nghĩa vụ tài chính. Hợp đồng đặt cọc chính thức sẽ được sales hướng dẫn ký riêng.
+    </div>
+  </section>
+
+  <!-- 15 -->
+  <section id="vay-von">
+    <h2 data-num="15">Công Cụ Tính Vay Vốn</h2>
+    <p>Mở bằng cách bấm <strong>Vay vốn</strong> trên thanh trên. Giúp bạn ước tính khoản trả góp hàng tháng.</p>
+
+    <h3>4 Đầu Vào Cần Chọn</h3>
+    <table>
+      <thead><tr><th>Đầu Vào</th><th>Phạm Vi</th><th>Gợi Ý</th></tr></thead>
+      <tbody>
+        <tr><td>Giá căn hộ</td><td>4,9 — 14,2 tỷ</td><td>Kéo theo căn bạn đang quan tâm</td></tr>
+        <tr><td>% Vốn tự có</td><td>10 — 70%</td><td>Thường là 30% trở lên để được lãi suất tốt</td></tr>
+        <tr><td>Thời hạn vay</td><td>10, 15, 20, 25, 30 năm</td><td>Càng dài, trả góp/tháng càng thấp nhưng tổng lãi cao</td></tr>
+        <tr><td>Ngân hàng</td><td>Vietcombank · BIDV · Techcombank · VPBank</td><td>Mỗi ngân hàng có lãi suất khác nhau</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Kết Quả Hiển Thị</h3>
+    <ul>
+      <li><strong>Trả góp hàng tháng</strong> — tính theo công thức niên kim.</li>
+      <li><strong>Tổng lãi phải trả</strong> trong toàn bộ thời hạn.</li>
+      <li><strong>Biểu đồ trả nợ</strong> — minh hoạ phần gốc/lãi mỗi năm.</li>
+      <li>Nút <strong>"Tư Vấn Vay Vốn"</strong> để mở form liên hệ với chuyên viên ngân hàng.</li>
+    </ul>
+
+    <div class="callout">
+      <strong>Công thức</strong>
+      <pre style="margin:0.5rem 0 0">M = P × [r(1+r)ⁿ] / [(1+r)ⁿ − 1]
+P = số tiền vay  ·  r = lãi suất tháng  ·  n = tổng số tháng</pre>
+    </div>
+
+    <div class="callout warn">
+      <strong>Lưu ý</strong>
+      Lãi suất hiển thị trên trang chỉ là <strong>ước tính theo bảng công bố</strong>. Lãi suất thực phụ thuộc hồ sơ tín dụng, sản phẩm vay và thời điểm giải ngân.
+    </div>
+  </section>
+
+  <!-- 16 -->
+  <section id="ai-chat">
+    <h2 data-num="16">Trợ Lý AI</h2>
+    <p>Nút <strong>💬 chat</strong> ở góc dưới phải. Bấm vào sẽ trượt ra panel AI bên phải.</p>
+
+    <h3>Hai Cách Hỏi</h3>
+    <table>
+      <thead><tr><th>Chế Độ</th><th>Cách Dùng</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Văn bản</strong></td><td>Gõ câu hỏi → nhấn Enter (hoặc nút gửi). AI trả lời bằng chữ.</td></tr>
+        <tr><td><strong>Giọng nói</strong></td><td>Bấm nút <strong>🎤 mic</strong>, cấp quyền sử dụng microphone. Nói câu hỏi của bạn. AI sẽ chuyển giọng thành chữ, trả lời và đọc thành tiếng cho bạn nghe.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Ví Dụ Câu Hỏi</h3>
+    <ul>
+      <li>"Căn 3PN còn không, giá bao nhiêu?"</li>
+      <li>"Cho tôi xem bể bơi"</li>
+      <li>"Khoảng cách tới hồ Tây bao xa?"</li>
+      <li>"Có ngân hàng nào hỗ trợ vay không?"</li>
+      <li>"Khi nào bàn giao nhà?"</li>
+    </ul>
+
+    <h3>Chế Độ Viên (Capsule)</h3>
+    <p>Khi đang nhập giọng nói, panel AI sẽ <strong>thu lại thành một viên nhỏ</strong> để không che cảnh VR — bạn vẫn xem được dự án trong lúc nói chuyện.</p>
+
+    <div class="callout info">
+      <strong>Nếu mic không hoạt động</strong>
+      Trên Firefox / Safari, tính năng nhận diện giọng nói có thể không ổn định — hãy quay về chế độ <em>văn bản</em>. Trên Chrome / Edge / mobile Chrome thì hoạt động tốt.
+    </div>
+  </section>
+
+  <!-- 17 -->
+  <section id="ngon-ngu">
+    <h2 data-num="17">Đổi Ngôn Ngữ</h2>
+    <p>Nút <strong>🌐 ngôn ngữ</strong> trên thanh trên. Bấm để hiện menu chọn:</p>
+
+    <table>
+      <thead><tr><th>Cờ</th><th>Ngôn Ngữ</th><th>Mã</th></tr></thead>
+      <tbody>
+        <tr><td>🇻🇳</td><td>Tiếng Việt (mặc định)</td><td>vi</td></tr>
+        <tr><td>🇬🇧</td><td>Tiếng Anh</td><td>en</td></tr>
+        <tr><td>🇨🇳</td><td>Tiếng Trung (giản thể)</td><td>zh</td></tr>
+        <tr><td>🇰🇷</td><td>Tiếng Hàn</td><td>ko</td></tr>
+        <tr><td>🇯🇵</td><td>Tiếng Nhật</td><td>ja</td></tr>
+      </tbody>
+    </table>
+
+    <p>Toàn bộ nội dung: tiêu đề, nhãn, hotspot, form đặt cọc, thậm chí thông báo urgency sẽ chuyển sang ngôn ngữ bạn chọn ngay lập tức.</p>
+
+    <div class="callout warn">
+      <strong>Ngôn ngữ sẽ trở về tiếng Việt khi đóng tab</strong>
+      Trang lưu lựa chọn ngôn ngữ trong sessionStorage — nếu bạn đóng tab và mở lại, sẽ trở về mặc định tiếng Việt.
+    </div>
+  </section>
+
+  <!-- 18 -->
+  <section id="mobile">
+    <h2 data-num="18">Sử Dụng Trên Điện Thoại</h2>
+    <p>Trên thiết bị có chiều rộng ≤ 768px, giao diện tự điều chỉnh thành layout mobile:</p>
+
+    <table>
+      <thead><tr><th>Thành Phần</th><th>Cách Mở</th></tr></thead>
+      <tbody>
+        <tr><td>Menu chính</td><td>Bấm nút burger (3 gạch) ở góc trên</td></tr>
+        <tr><td>Bản đồ / Gallery / Pháp lý / …</td><td>Mở menu burger → bấm nút tương ứng</td></tr>
+        <tr><td>Nav Panel (menu trái)</td><td>Bấm FAB hình mũi tên ở cạnh trái</td></tr>
+        <tr><td>Project card (thông tin dự án)</td><td>Pill nhỏ ở đáy — chạm để bung lên</td></tr>
+        <tr><td>Bảng giá / Mặt bằng</td><td>Hiển thị dạng <strong>stepper</strong> ngang — vuốt trái/phải để chuyển bước</td></tr>
+        <tr><td>Đổi ngôn ngữ</td><td>Trong menu burger</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout info">
+      <strong>Mẹo trên mobile</strong>
+      Xoay điện thoại sang <strong>nằm ngang</strong> để có không gian VR rộng hơn. Giao diện sẽ tự chuyển sang chế độ compact.
+    </div>
+  </section>
+
+  <!-- 19 -->
+  <section id="phim-tat">
+    <h2 data-num="19">Phím Tắt</h2>
+    <p>Chỉ áp dụng trên máy tính:</p>
+
+    <table>
+      <thead><tr><th>Phím</th><th>Tác Dụng</th></tr></thead>
+      <tbody>
+        <tr><td><kbd>Esc</kbd></td><td>Đóng overlay / modal / popup hotspot / thoát toàn màn hình</td></tr>
+        <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>Lightbox gallery: ảnh trước / ảnh tiếp theo</td></tr>
+        <tr><td><kbd>F5</kbd></td><td>Reload trang nếu gặp lỗi</td></tr>
+        <tr><td>Lăn chuột</td><td>Zoom VR</td></tr>
+        <tr><td>Kéo chuột trái</td><td>Xoay VR</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 20 -->
+  <section id="faq">
+    <h2 data-num="20">Câu Hỏi Thường Gặp</h2>
+
+    <details>
+      <summary>Tôi không thấy ảnh VR, chỉ thấy màn hình đen?</summary>
+      <p>Trình duyệt của bạn có thể đã tắt WebGL. Hãy thử: (1) cập nhật trình duyệt lên bản mới nhất; (2) tắt mở lại trình duyệt; (3) thử trình duyệt khác như Chrome/Edge.</p>
+    </details>
+
+    <details>
+      <summary>Tôi đặt cọc rồi thì có chắc giữ được căn không?</summary>
+      <p>Đăng ký trên trang web chỉ là <strong>báo nhu cầu</strong>. Sales sẽ liên hệ và hướng dẫn ký hợp đồng đặt cọc chính thức (kèm thanh toán cọc) để giữ căn. Trạng thái trên hệ thống sẽ chuyển thành <em>Đang giữ chỗ</em> sau khi sales xác nhận.</p>
+    </details>
+
+    <details>
+      <summary>Tại sao có lúc xuất hiện thông báo "12 người đang xem cảnh này"?</summary>
+      <p>Đó là <strong>thông báo urgency</strong> — cho biết mức độ quan tâm thực tế của cảnh/căn bạn đang xem. Hệ thống tự ẩn sau vài giây.</p>
+    </details>
+
+    <details>
+      <summary>Trợ lý AI có lưu lại nội dung tôi nói không?</summary>
+      <p>Phiên chat hiện tại chỉ tồn tại trong tab đang mở; đóng tab là mất. Tuy nhiên, các câu hỏi có chứa thông tin liên hệ (SĐT, email) có thể được sales lưu lại để gọi lại.</p>
+    </details>
+
+    <details>
+      <summary>Có thể tải bảng giá về máy không?</summary>
+      <p>Hiện tại bảng giá chỉ xem trực tuyến. Nếu cần file PDF, hãy yêu cầu sales — họ sẽ gửi bản chính thức kèm chính sách bán hàng đầy đủ.</p>
+    </details>
+
+    <details>
+      <summary>Đếm ngược trên Project Card là gì?</summary>
+      <p>Đó là thời gian còn lại của <strong>chương trình ưu đãi hiện tại</strong> (chiết khấu / quà tặng / hỗ trợ lãi suất). Khi đếm về 0, ưu đãi kết thúc và chương trình kế tiếp (nếu có) sẽ thay vào.</p>
+    </details>
+
+    <details>
+      <summary>Trang có thu thập dữ liệu cá nhân của tôi không?</summary>
+      <p>Chỉ khi bạn <strong>chủ động</strong> gửi form đặt cọc / form vay vốn. Việc xoay VR, mở các overlay, đổi ngôn ngữ không gửi dữ liệu lên server.</p>
+    </details>
+
+    <details>
+      <summary>Tôi muốn tự xem trực tiếp, không qua sales?</summary>
+      <p>Hãy dùng form <strong>"Đặt Lịch Tham Quan"</strong> trên project card. Chọn ngày + giờ thuận tiện; sales sẽ xác nhận lịch hẹn riêng cho bạn.</p>
+    </details>
+  </section>
+
+  <!-- 21 -->
+  <section id="ho-tro">
+    <h2 data-num="21">Liên Hệ Hỗ Trợ</h2>
+
+    <table>
+      <thead><tr><th>Kênh</th><th>Thông Tin</th></tr></thead>
+      <tbody>
+        <tr><td>Hotline</td><td><strong>0901 234 567</strong> (8h–22h, hằng ngày)</td></tr>
+        <tr><td>Zalo OA</td><td>Bấm icon Zalo (góc dưới phải, nếu hiển thị)</td></tr>
+        <tr><td>Website</td><td>aurora-heights.vn</td></tr>
+        <tr><td>Văn phòng bán hàng</td><td>Khu Tây Hồ Tây, Hà Nội — mở cửa 8h30–18h hằng ngày</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout ok">
+      <strong>Chúc bạn tham quan vui vẻ!</strong>
+      Nếu có bất cứ điều gì chưa rõ — đừng ngại bấm <strong>💬 AI Chat</strong> hoặc gọi <strong>hotline</strong>. Đội ngũ tư vấn sẵn sàng phục vụ.
+    </div>
+  </section>
+
+  <hr />
+  <p style="color:var(--fg-muted);font-size:12px;text-align:center;padding-bottom:3rem">
+    Aurora Heights VR360 · HDSD Khách Tham Quan · v1.0 · 16-05-2026
+  </p>
+
+</main>
+</div>
+
+<script>
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-link[href^="#"]');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const link = document.querySelector(`.nav-link[href="#${e.target.id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>

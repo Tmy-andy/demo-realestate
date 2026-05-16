@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Aurora Heights VR360 — Project Specification</title>
+<title>Aurora Heights VR360 — Đặc Tả Dự Án v1.2</title>
 <style>
   :root {
     --bg: #0f1117;
@@ -128,7 +128,6 @@
     margin-left: var(--sidebar-width);
     flex: 1;
     padding: 3rem 4rem;
-    max-width: 960px;
   }
 
   /* ── Typography ── */
@@ -205,6 +204,9 @@
   }
   tbody tr:last-child td { border-bottom: none; }
   tbody tr:hover td { background: rgba(255,255,255,0.02); }
+  /* Changelog tables: keep first column wide enough for badges */
+  .table-changelog th:first-child,
+  .table-changelog td:first-child { width: 110px; white-space: nowrap; }
   code {
     font-family: var(--font-mono);
     font-size: 12px;
@@ -234,10 +236,10 @@
   pre .num { color: #79c0ff; }
 
   /* ── Badges ── */
-  .badge-ok  { background: rgba(122,215,154,0.15); color: var(--ok);      padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; }
-  .badge-warn { background: rgba(245,166,35,0.15); color: var(--warning); padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; }
-  .badge-err { background: rgba(255,107,107,0.15); color: var(--danger);  padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; }
-  .badge-info { background: rgba(100,150,255,0.15); color: #6496ff;       padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; }
+  .badge-ok  { background: rgba(122,215,154,0.15); color: var(--ok);      padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; white-space: nowrap; display: inline-block; }
+  .badge-warn { background: rgba(245,166,35,0.15); color: var(--warning); padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; white-space: nowrap; display: inline-block; }
+  .badge-err { background: rgba(255,107,107,0.15); color: var(--danger);  padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; white-space: nowrap; display: inline-block; }
+  .badge-info { background: rgba(100,150,255,0.15); color: #6496ff;       padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; white-space: nowrap; display: inline-block; }
 
   /* ── Feature cards ── */
   .feature-grid {
@@ -310,8 +312,8 @@
 <!-- Top Bar -->
 <div id="topbar">
   <span class="brand">Aurora Heights VR360</span>
-  <span class="badge">Project Spec v1.1</span>
-  <span class="meta">2026-05-14 &nbsp;·&nbsp; v1.1 &nbsp;·&nbsp; Production</span>
+  <span class="badge">Đặc Tả Dự Án v1.2</span>
+  <span class="meta">16-05-2026 &nbsp;·&nbsp; v1.2 &nbsp;·&nbsp; Production + Admin</span>
 </div>
 
 <!-- Layout -->
@@ -319,38 +321,49 @@
 
 <!-- Sidebar -->
 <nav id="sidebar">
-  <div class="nav-section-label">Overview</div>
-  <a class="nav-link" href="#overview"><span class="num">1</span>Project Overview</a>
-  <a class="nav-link" href="#techstack"><span class="num">2</span>Tech Stack</a>
-  <a class="nav-link" href="#structure"><span class="num">3</span>File Structure</a>
+  <div class="nav-section-label">Tổng Quan</div>
+  <a class="nav-link" href="#overview"><span class="num">1</span>Giới Thiệu Dự Án</a>
+  <a class="nav-link" href="#techstack"><span class="num">2</span>Công Nghệ Sử Dụng</a>
+  <a class="nav-link" href="#structure"><span class="num">3</span>Cấu Trúc Thư Mục</a>
 
-  <div class="nav-section-label" style="margin-top:1rem">Data</div>
-  <a class="nav-link" href="#datamodel"><span class="num">4</span>Data Model</a>
-  <a class="nav-link" href="#scenes">→ Scenes</a>
-  <a class="nav-link" href="#units">→ Floor Plan Units</a>
-  <a class="nav-link" href="#menu">→ Menu Groups</a>
+  <div class="nav-section-label" style="margin-top:1rem">Dữ Liệu</div>
+  <a class="nav-link" href="#datamodel"><span class="num">4</span>Mô Hình Dữ Liệu</a>
+  <a class="nav-link" href="#scenes">→ Cảnh VR (Scenes)</a>
+  <a class="nav-link" href="#units">→ Danh Sách Căn Hộ</a>
+  <a class="nav-link" href="#menu">→ Nhóm Menu</a>
 
-  <div class="nav-section-label" style="margin-top:1rem">UI</div>
-  <a class="nav-link" href="#layout-zones"><span class="num">5</span>Layout & Zones</a>
-  <a class="nav-link" href="#features"><span class="num">6</span>Feature Catalog</a>
-  <a class="nav-link" href="#vr">→ VR360 Viewer</a>
-  <a class="nav-link" href="#hotspots">→ Hotspots</a>
-  <a class="nav-link" href="#overlays">→ Overlays</a>
-  <a class="nav-link" href="#booking">→ Booking Modal</a>
-  <a class="nav-link" href="#loan">→ Loan Calculator</a>
-  <a class="nav-link" href="#ai">→ AI Chatbot</a>
-  <a class="nav-link" href="#tour">→ Help Tour</a>
+  <div class="nav-section-label" style="margin-top:1rem">Giao Diện</div>
+  <a class="nav-link" href="#layout-zones"><span class="num">5</span>Bố Cục & Khu Vực</a>
+  <a class="nav-link" href="#features"><span class="num">6</span>Danh Mục Tính Năng</a>
+  <a class="nav-link" href="#vr">→ Trình Xem VR360</a>
+  <a class="nav-link" href="#hotspots">→ Điểm Hotspot</a>
+  <a class="nav-link" href="#overlays">→ Lớp Phủ (Overlays)</a>
+  <a class="nav-link" href="#booking">→ Form Đặt Cọc</a>
+  <a class="nav-link" href="#loan">→ Tính Vay Vốn</a>
+  <a class="nav-link" href="#ai">→ Trợ Lý AI</a>
+  <a class="nav-link" href="#tour">→ Tour Hướng Dẫn</a>
 
-  <div class="nav-section-label" style="margin-top:1rem">Behaviour</div>
-  <a class="nav-link" href="#flows"><span class="num">7</span>User Flows</a>
+  <div class="nav-section-label" style="margin-top:1rem">Hành Vi</div>
+  <a class="nav-link" href="#flows"><span class="num">7</span>Luồng Người Dùng</a>
   <a class="nav-link" href="#responsive"><span class="num">8</span>Responsive</a>
-  <a class="nav-link" href="#i18n"><span class="num">9</span>i18n</a>
-  <a class="nav-link" href="#design"><span class="num">10</span>Design System</a>
-  <a class="nav-link" href="#arch"><span class="num">11</span>Architecture</a>
-  <a class="nav-link" href="#limits"><span class="num">12</span>Limitations</a>
+  <a class="nav-link" href="#i18n"><span class="num">9</span>Đa Ngôn Ngữ</a>
+  <a class="nav-link" href="#design"><span class="num">10</span>Hệ Thống Thiết Kế</a>
+  <a class="nav-link" href="#arch"><span class="num">11</span>Kiến Trúc</a>
+  <a class="nav-link" href="#limits"><span class="num">12</span>Giới Hạn Hiện Tại</a>
 
-  <div class="nav-section-label" style="margin-top:1rem">Changelog</div>
-  <a class="nav-link" href="#changelog"><span class="num">13</span>v1.1 Changes</a>
+  <div class="nav-section-label" style="margin-top:1rem">Quản Trị</div>
+  <a class="nav-link" href="#admin"><span class="num">13</span>Trang Quản Trị</a>
+  <a class="nav-link" href="#admin-owner">→ Module Chủ Đầu Tư</a>
+  <a class="nav-link" href="#admin-sales">→ Module Sales</a>
+  <a class="nav-link" href="#admin-storage">→ Lưu Trữ Dữ Liệu</a>
+
+  <div class="nav-section-label" style="margin-top:1rem">Hướng Dẫn</div>
+  <a class="nav-link" href="huong-dan-khach.html">→ HDSD Khách Tham Quan</a>
+  <a class="nav-link" href="huong-dan-owner.html">→ HDSD Chủ Đầu Tư</a>
+  <a class="nav-link" href="huong-dan-sales.html">→ HDSD Nhân Viên Sales</a>
+
+  <div class="nav-section-label" style="margin-top:1rem">Nhật Ký</div>
+  <a class="nav-link" href="#changelog"><span class="num">14</span>Thay Đổi v1.2</a>
 </nav>
 
 <!-- Main Content -->
@@ -358,51 +371,51 @@
 
   <!-- ═══════════════════════════════════════════════════ -->
   <h1>Aurora Heights VR360</h1>
-  <p style="color:var(--fg-muted);margin-bottom:2rem">Project Specification — Immersive Real Estate Landing Page</p>
+  <p style="color:var(--fg-muted);margin-bottom:2rem">Đặc Tả Dự Án — Trang Bán Hàng Bất Động Sản Tương Tác VR360</p>
 
   <div class="intro">
-    <div class="intro-item"><div class="label">Type</div><div class="value">Real Estate VR360</div></div>
-    <div class="intro-item"><div class="label">Stack</div><div class="value">Vanilla JS + Three.js</div></div>
-    <div class="intro-item"><div class="label">Languages</div><div class="value">VI · EN · ZH · KO · JA</div></div>
-    <div class="intro-item"><div class="label">VR Scenes</div><div class="value">6 panoramas</div></div>
-    <div class="intro-item"><div class="label">Unit Types</div><div class="value">9 types</div></div>
-    <div class="intro-item"><div class="label">Amenities</div><div class="value">25 items</div></div>
+    <div class="intro-item"><div class="label">Loại Dự Án</div><div class="value">BĐS VR360 + Quản Trị</div></div>
+    <div class="intro-item"><div class="label">Công Nghệ</div><div class="value">Vanilla JS + Three.js + Chart.js</div></div>
+    <div class="intro-item"><div class="label">Ngôn Ngữ</div><div class="value">VI · EN · ZH · KO · JA</div></div>
+    <div class="intro-item"><div class="label">Cảnh VR</div><div class="value">6 panorama</div></div>
+    <div class="intro-item"><div class="label">Căn Hộ Mẫu</div><div class="value">9 căn</div></div>
+    <div class="intro-item"><div class="label">Vai Trò Quản Trị</div><div class="value">Chủ ĐT · Sales</div></div>
     <div class="intro-item"><div class="label">Responsive</div><div class="value">Desktop + Mobile</div></div>
-    <div class="intro-item"><div class="label">Backend</div><div class="value">None (static JSON)</div></div>
+    <div class="intro-item"><div class="label">Lưu Trữ</div><div class="value">localStorage (admin) · JSON tĩnh (FE)</div></div>
   </div>
 
   <!-- ═══ 1. Project Overview ════════════════════════════ -->
   <section id="overview">
-    <h2 data-num="1">Project Overview</h2>
+    <h2 data-num="1">Giới Thiệu Dự Án</h2>
 
-    <h3>Business Goals</h3>
+    <h3>Mục Tiêu Kinh Doanh</h3>
     <table>
-      <thead><tr><th>Goal</th><th>Implementation</th></tr></thead>
+      <thead><tr><th>Mục Tiêu</th><th>Cách Thực Hiện</th></tr></thead>
       <tbody>
-        <tr><td>Generate qualified leads</td><td>Booking modal + contact form</td></tr>
-        <tr><td>Showcase property visually</td><td>VR360 panorama viewer (6 scenes)</td></tr>
-        <tr><td>Build buyer trust</td><td>Legal panel + testimonials + document checklist</td></tr>
-        <tr><td>Drive urgency</td><td>Countdown timer + urgency toasts + limited inventory</td></tr>
-        <tr><td>Support international buyers</td><td>5-language i18n (VI, EN, ZH, KO, JA)</td></tr>
-        <tr><td>Assist buyers 24/7</td><td>AI chatbot with voice recognition + TTS</td></tr>
-        <tr><td>Financial planning support</td><td>Loan calculator with amortization chart</td></tr>
+        <tr><td>Thu thập khách hàng tiềm năng (leads)</td><td>Form đặt cọc + biểu mẫu liên hệ</td></tr>
+        <tr><td>Trưng bày dự án trực quan</td><td>Trình xem panorama VR360 (6 cảnh)</td></tr>
+        <tr><td>Xây dựng niềm tin của khách</td><td>Bảng pháp lý + nhận xét + danh sách giấy tờ</td></tr>
+        <tr><td>Tạo sự khẩn cấp</td><td>Đồng hồ đếm ngược + thông báo urgency + số lượng giới hạn</td></tr>
+        <tr><td>Hỗ trợ khách quốc tế</td><td>5 ngôn ngữ (VI, EN, ZH, KO, JA)</td></tr>
+        <tr><td>Hỗ trợ khách 24/7</td><td>Trợ lý AI nhận diện giọng nói + đọc thành tiếng (TTS)</td></tr>
+        <tr><td>Hỗ trợ tính toán tài chính</td><td>Công cụ tính vay vốn kèm biểu đồ trả nợ</td></tr>
       </tbody>
     </table>
 
-    <h3>Project Data</h3>
+    <h3>Thông Tin Dự Án</h3>
     <table>
-      <thead><tr><th>Field</th><th>Value</th></tr></thead>
+      <thead><tr><th>Thông Tin</th><th>Giá Trị</th></tr></thead>
       <tbody>
-        <tr><td>Project Name</td><td><strong>Aurora Heights</strong></td></tr>
-        <tr><td>Location</td><td>Khu Tây Hồ Tây, Hà Nội</td></tr>
-        <tr><td>Developer</td><td>Aurora Land Holdings</td></tr>
-        <tr><td>Status</td><td><span class="badge-ok">Đang mở bán giai đoạn 2</span></td></tr>
-        <tr><td>Handover</td><td>Quý IV / 2027</td></tr>
-        <tr><td>Starting Price</td><td>Từ <strong>4.9 tỷ</strong> VND</td></tr>
-        <tr><td>Total Units</td><td>1,840</td></tr>
-        <tr><td>Towers</td><td>6</td></tr>
-        <tr><td>Floors</td><td>42</td></tr>
-        <tr><td>Available Units</td><td><span class="badge-warn">49 remaining</span></td></tr>
+        <tr><td>Tên Dự Án</td><td><strong>Aurora Heights</strong></td></tr>
+        <tr><td>Vị Trí</td><td>Khu Tây Hồ Tây, Hà Nội</td></tr>
+        <tr><td>Chủ Đầu Tư</td><td>Aurora Land Holdings</td></tr>
+        <tr><td>Trạng Thái</td><td><span class="badge-ok">Đang mở bán giai đoạn 2</span></td></tr>
+        <tr><td>Bàn Giao</td><td>Quý IV / 2027</td></tr>
+        <tr><td>Giá Khởi Điểm</td><td>Từ <strong>4.9 tỷ</strong> VND</td></tr>
+        <tr><td>Tổng Số Căn</td><td>1.840</td></tr>
+        <tr><td>Số Tòa</td><td>6</td></tr>
+        <tr><td>Số Tầng</td><td>42</td></tr>
+        <tr><td>Căn Còn Trống</td><td><span class="badge-warn">49 căn</span></td></tr>
         <tr><td>Hotline</td><td><code>0901 234 567</code></td></tr>
       </tbody>
     </table>
@@ -410,173 +423,194 @@
 
   <!-- ═══ 2. Tech Stack ══════════════════════════════════ -->
   <section id="techstack">
-    <h2 data-num="2">Tech Stack & Dependencies</h2>
+    <h2 data-num="2">Công Nghệ & Phụ Thuộc</h2>
 
-    <h3>Core Technologies</h3>
+    <h3>Công Nghệ Lõi</h3>
     <table>
-      <thead><tr><th>Layer</th><th>Technology</th><th>Version</th></tr></thead>
+      <thead><tr><th>Lớp</th><th>Công Nghệ</th><th>Phiên Bản</th></tr></thead>
       <tbody>
         <tr><td>Markup</td><td>HTML5</td><td>—</td></tr>
-        <tr><td>Styling</td><td>CSS3 (custom vars, grid, flex, animations)</td><td>—</td></tr>
+        <tr><td>Styling</td><td>CSS3 (biến tuỳ chỉnh, grid, flex, animation)</td><td>—</td></tr>
         <tr><td>Scripting</td><td>Vanilla JavaScript (ES2020+)</td><td>—</td></tr>
         <tr><td>3D Engine</td><td>Three.js (WebGL renderer)</td><td>r128 (CDN)</td></tr>
-        <tr><td>Fonts</td><td>Google Fonts (Cormorant Garamond, Inter, JetBrains Mono)</td><td>—</td></tr>
-        <tr><td>Data</td><td>JSON (single file)</td><td>—</td></tr>
+        <tr><td>Font Chữ</td><td>Google Fonts (Cormorant Garamond, Inter, JetBrains Mono)</td><td>—</td></tr>
+        <tr><td>Dữ Liệu</td><td>Một file JSON duy nhất</td><td>—</td></tr>
       </tbody>
     </table>
 
-    <h3>Browser APIs</h3>
+    <h3>API Trình Duyệt</h3>
     <table>
-      <thead><tr><th>API</th><th>Usage</th><th>Fallback</th></tr></thead>
+      <thead><tr><th>API</th><th>Mục Đích</th><th>Phương Án Dự Phòng</th></tr></thead>
       <tbody>
-        <tr><td>SpeechRecognition</td><td>Voice input in AI chat</td><td>Text-only mode</td></tr>
-        <tr><td>SpeechSynthesis</td><td>TTS reply in AI chat</td><td>Silent mode</td></tr>
-        <tr><td>AudioContext / AnalyserNode</td><td>Waveform visualizer</td><td>Hidden bars</td></tr>
-        <tr><td>Fullscreen API</td><td>VR fullscreen button</td><td>Button hidden</td></tr>
-        <tr><td>Intersection Observer</td><td>Lazy-load Google Maps</td><td>Immediate load</td></tr>
-        <tr><td>CSS Custom Properties</td><td>Design tokens / theming</td><td>Hardcoded fallbacks</td></tr>
-        <tr><td>sessionStorage</td><td>Language preference</td><td>Default language</td></tr>
+        <tr><td>SpeechRecognition</td><td>Nhập giọng nói trong AI chat</td><td>Chỉ dùng văn bản</td></tr>
+        <tr><td>SpeechSynthesis</td><td>Đọc trả lời AI thành tiếng (TTS)</td><td>Im lặng</td></tr>
+        <tr><td>AudioContext / AnalyserNode</td><td>Hiển thị sóng âm trực quan</td><td>Ẩn thanh sóng</td></tr>
+        <tr><td>Fullscreen API</td><td>Nút toàn màn hình VR</td><td>Ẩn nút</td></tr>
+        <tr><td>Intersection Observer</td><td>Tải Google Maps theo nhu cầu</td><td>Tải ngay</td></tr>
+        <tr><td>CSS Custom Properties</td><td>Token thiết kế / theme</td><td>Giá trị mặc định cứng</td></tr>
+        <tr><td>sessionStorage</td><td>Ghi nhớ ngôn ngữ</td><td>Dùng ngôn ngữ mặc định</td></tr>
       </tbody>
     </table>
 
-    <h3>External Services</h3>
+    <h3>Dịch Vụ Bên Ngoài</h3>
     <table>
-      <thead><tr><th>Service</th><th>Purpose</th><th>Load Strategy</th></tr></thead>
+      <thead><tr><th>Dịch Vụ</th><th>Mục Đích</th><th>Cách Tải</th></tr></thead>
       <tbody>
-        <tr><td>Google Fonts</td><td>Typography</td><td><code>&lt;link&gt;</code> in <code>&lt;head&gt;</code></td></tr>
-        <tr><td>cdnjs (Three.js)</td><td>3D renderer</td><td><code>&lt;script&gt;</code> in <code>&lt;head&gt;</code></td></tr>
-        <tr><td>Google Maps Embed</td><td>Location panel map</td><td>Lazy (on panel open)</td></tr>
-        <tr><td>Zalo Messaging</td><td>Contact shortcut button</td><td>Static anchor link</td></tr>
+        <tr><td>Google Fonts</td><td>Font chữ</td><td><code>&lt;link&gt;</code> trong <code>&lt;head&gt;</code></td></tr>
+        <tr><td>cdnjs (Three.js)</td><td>Bộ render 3D</td><td><code>&lt;script&gt;</code> trong <code>&lt;head&gt;</code></td></tr>
+        <tr><td>Google Maps Embed</td><td>Bản đồ vị trí</td><td>Lazy (mở panel mới tải)</td></tr>
+        <tr><td>Zalo Messaging</td><td>Nút liên hệ Zalo</td><td>Liên kết tĩnh</td></tr>
       </tbody>
     </table>
   </section>
 
   <!-- ═══ 3. File Structure ═════════════════════════════ -->
   <section id="structure">
-    <h2 data-num="3">File Structure</h2>
+    <h2 data-num="3">Cấu Trúc Thư Mục</h2>
     <pre>BDS/
-├── index.html                    <span class="c"># Single-page app entry (1,254 lines)</span>
-│                                 <span class="c"># Includes inlined mobile CSS + JS (mobilePatch IIFE)</span>
+├── index.html                    <span class="c"># Trang FE chính (1.351 dòng)</span>
+│                                 <span class="c"># Bao gồm CSS + JS mobile inline (mobilePatch IIFE)</span>
 │
 ├── data/
-│   └── project.json             <span class="c"># All content & configuration (825 lines)</span>
+│   └── project.json             <span class="c"># Toàn bộ nội dung & cấu hình FE (825 dòng)</span>
 │
-├── js/
-│   ├── i18n.js                  <span class="c"># Internationalization → window.I18n (1,025 lines)</span>
-│   ├── vr360.js                 <span class="c"># Three.js panorama viewer → window.VR360</span>
-│   ├── ai-panel.js              <span class="c"># AI chatbot → window.AiPanel</span>
-│   ├── main.js                  <span class="c"># Core UI orchestration (1,648 lines)</span>
-│   └── mobile-stepper.js        <span class="c"># Mobile floorplan carousel (i18n-aware)</span>
+├── js/                          <span class="c"># Runtime Front-end</span>
+│   ├── i18n.js                  <span class="c"># Đa ngôn ngữ → window.I18n (1.025 dòng)</span>
+│   ├── vr360.js                 <span class="c"># Trình xem panorama Three.js → window.VR360 (369 dòng)</span>
+│   ├── ai-panel.js              <span class="c"># Trợ lý AI → window.AiPanel (359 dòng)</span>
+│   ├── main.js                  <span class="c"># Điều phối UI chính (1.784 dòng)</span>
+│   └── mobile-stepper.js        <span class="c"># Carousel mặt bằng trên mobile (710 dòng, hỗ trợ i18n)</span>
 │
 ├── css/
-│   ├── style.css                <span class="c"># Complete design system (3,657 lines)</span>
-│   └── mobile-stepper.css       <span class="c"># Stepper component styles</span>
+│   ├── style.css                <span class="c"># Hệ thống thiết kế FE (3.816 dòng)</span>
+│   └── mobile-stepper.css       <span class="c"># Style cho carousel mobile (700 dòng)</span>
 │
 ├── img/
-│   ├── 1.png                    <span class="c"># AI avatar primary</span>
-│   ├── 2.png                    <span class="c"># AI avatar alternate</span>
-│   └── thietke-matbangduan.jpg  <span class="c"># Site map background</span>
+│   ├── 1.png                    <span class="c"># Avatar AI chính</span>
+│   ├── 2.png                    <span class="c"># Avatar AI phụ</span>
+│   ├── Icon_of_Zalo.svg         <span class="c"># Logo Zalo</span>
+│   └── thietke-matbangduan.jpg  <span class="c"># Ảnh nền bản đồ 2D</span>
+│
+├── admin/                       <span class="c"># Trang quản trị (MỚI ở v1.2)</span>
+│   ├── index.html               <span class="c"># Trang đăng nhập (mock auth → sessionStorage)</span>
+│   ├── owner.html               <span class="c"># Workspace Chủ Đầu Tư — CMS đầy đủ</span>
+│   ├── sales.html               <span class="c"># Workspace Sales — leads/booking/calendar</span>
+│   ├── css/
+│   │   └── admin.css            <span class="c"># Hệ thống thiết kế admin (642 dòng)</span>
+│   └── js/
+│       ├── admin.js             <span class="c"># Owner core: tổng quan/căn hộ/leads/cảnh/i18n/theme (2.123 dòng)</span>
+│       ├── admin-content.js     <span class="c"># Owner module nội dung: gallery/sitemap/tiện ích/tiến độ/pháp lý/vị trí (814 dòng)</span>
+│       └── sales.js             <span class="c"># Vai trò Sales: dashboard/leads/calendar/units/vr (963 dòng)</span>
+│
+├── note để hôm sau sửa.MD       <span class="c"># Ghi chú công việc còn dở</span>
 │
 └── docs/
-    ├── index.html               <span class="c"># This file — rendered spec</span>
-    ├── PROJECT_SPEC.md          <span class="c"># Full spec (markdown)</span>
-    ├── DASHBOARD_SPEC.md        <span class="c"># Admin dashboard spec</span>
+    ├── index.html               <span class="c"># File này — đặc tả dự án</span>
+    ├── huong-dan-khach.html     <span class="c"># HDSD cho khách tham quan VR</span>
+    ├── huong-dan-owner.html     <span class="c"># HDSD cho Chủ Đầu Tư</span>
+    ├── huong-dan-sales.html     <span class="c"># HDSD cho nhân viên Sales</span>
+    ├── DASHBOARD_SPEC.md        <span class="c"># Đặc tả trang quản trị</span>
+    ├── ADMIN_IMPROVEMENT_PROPOSAL.md <span class="c"># Đề xuất cải tiến admin</span>
     └── features/
-        ├── BOTCHAT_SPEC.md      <span class="c"># AI panel spec</span>
-        ├── HELPTOUR_SPEC.md     <span class="c"># Help tour spec</span>
-        ├── VRINFO_MOBILE_SPEC.md <span class="c"># Mobile behavior spec</span>
+        ├── BOTCHAT_SPEC.md      <span class="c"># Đặc tả panel AI</span>
+        ├── HELPTOUR_SPEC.md     <span class="c"># Đặc tả Help Tour</span>
+        ├── VRINFO_MOBILE_SPEC.md <span class="c"># Đặc tả hành vi mobile</span>
         └── aurora-heights-vr360-proposal.md</pre>
 
-    <h4>Script Load Order (Critical)</h4>
-    <pre><span class="c">&lt;!-- Must load in this exact order --&gt;</span>
-&lt;script src="js/i18n.js"&gt;&lt;/script&gt;          <span class="c"># Exposes window.I18n</span>
-&lt;script src="js/vr360.js"&gt;&lt;/script&gt;         <span class="c"># Exposes window.VR360</span>
-&lt;script src="js/ai-panel.js"&gt;&lt;/script&gt;      <span class="c"># Exposes window.AiPanel</span>
-&lt;script src="js/main.js"&gt;&lt;/script&gt;          <span class="c"># Depends on all above</span>
-&lt;script src="js/mobile-stepper.js"&gt;&lt;/script&gt; <span class="c"># Mobile floorplan IIFE</span>
-<span class="c">&lt;!-- Mobile CSS + JS (burger, drawer, project-card pill) inlined in index.html --&gt;</span></pre>
+    <h4>Thứ Tự Tải Script (Bắt Buộc)</h4>
+    <pre><span class="c">&lt;!-- Phải tải đúng theo thứ tự này --&gt;</span>
+&lt;script src="js/i18n.js"&gt;&lt;/script&gt;          <span class="c"># Xuất window.I18n</span>
+&lt;script src="js/vr360.js"&gt;&lt;/script&gt;         <span class="c"># Xuất window.VR360</span>
+&lt;script src="js/ai-panel.js"&gt;&lt;/script&gt;      <span class="c"># Xuất window.AiPanel</span>
+&lt;script src="js/main.js"&gt;&lt;/script&gt;          <span class="c"># Phụ thuộc tất cả module trên</span>
+&lt;script src="js/mobile-stepper.js"&gt;&lt;/script&gt; <span class="c"># IIFE carousel mobile</span>
+<span class="c">&lt;!-- CSS + JS mobile (burger, drawer, pill) được inline trong index.html --&gt;</span></pre>
 
     <div class="callout warn">
-      <strong>Removed in v1.1</strong>
-      <code>css/mobile-overrides.css</code> and <code>js/mobile-patch.js</code> have been removed — their content was already inlined in <code>index.html</code> (mobile <code>&lt;style&gt;</code> block + <code>mobilePatch()</code> IIFE script). They were orphaned with no <code>&lt;link&gt;</code>/<code>&lt;script&gt;</code> references.
+      <strong>Đã gỡ bỏ ở v1.1</strong>
+      <code>css/mobile-overrides.css</code> và <code>js/mobile-patch.js</code> đã được xoá — toàn bộ nội dung đã được inline vào <code>index.html</code> (block <code>&lt;style&gt;</code> mobile + IIFE <code>mobilePatch()</code>). Hai file này không còn thẻ <code>&lt;link&gt;</code>/<code>&lt;script&gt;</code> nào tham chiếu nên là file mồ côi.
     </div>
   </section>
 
   <!-- ═══ 4. Data Model ═════════════════════════════════ -->
   <section id="datamodel">
-    <h2 data-num="4">Data Model</h2>
+    <h2 data-num="4">Mô Hình Dữ Liệu</h2>
     <div class="callout">
-      <strong>Single Source of Truth</strong>
-      All content lives in <code>data/project.json</code>. No CMS, no database.
+      <strong>Nguồn dữ liệu duy nhất</strong>
+      Toàn bộ nội dung nằm trong <code>data/project.json</code>. Không có CMS, không có database.
     </div>
 
-    <h3>Root Object Structure</h3>
+    <h3>Cấu Trúc Đối Tượng Gốc</h3>
     <pre>{
-  <span class="str">"meta"</span>:             { ... },  <span class="c">// Project metadata</span>
-  <span class="str">"stats"</span>:            [ ... ],  <span class="c">// Key stats for display</span>
-  <span class="str">"amenities"</span>:        [ ... ],  <span class="c">// Quick amenity icon list</span>
-  <span class="str">"menuGroups"</span>:       { ... },  <span class="c">// Navigation accordion groups</span>
-  <span class="str">"scenes"</span>:           [ ... ],  <span class="c">// VR360 panorama scenes</span>
-  <span class="str">"floorplanUnits"</span>:   [ ... ],  <span class="c">// Unit inventory</span>
-  <span class="str">"siteMapPoints"</span>:    [ ... ],  <span class="c">// Clickable points on 2D map</span>
-  <span class="str">"gallery"</span>:          [ ... ],  <span class="c">// Photo gallery images</span>
-  <span class="str">"legal"</span>:            { ... },  <span class="c">// Legal & trust info</span>
-  <span class="str">"location"</span>:         { ... },  <span class="c">// Map & nearby POIs</span>
-  <span class="str">"amenitiesDetail"</span>:  { ... },  <span class="c">// Tabbed amenity detail</span>
-  <span class="str">"timeline"</span>:         [ ... ]   <span class="c">// Construction phases</span>
+  <span class="str">"project"</span>:          { ... },  <span class="c">// Thông tin dự án + amenities[] + stats[] (lồng bên trong)</span>
+  <span class="str">"menu"</span>:             { ... },  <span class="c">// 5 nhóm menu accordion</span>
+  <span class="str">"scenes"</span>:           [ ... ],  <span class="c">// Danh sách 6 cảnh panorama VR360</span>
+  <span class="str">"floorplan"</span>:        { units: [...] },  <span class="c">// Inventory căn hộ (9 căn mẫu)</span>
+  <span class="str">"siteMap"</span>:          { image, points: [...] },  <span class="c">// Bản đồ 2D + điểm bấm</span>
+  <span class="str">"gallery"</span>:          [ ... ],  <span class="c">// Thư viện ảnh (6 ảnh)</span>
+  <span class="str">"legal"</span>:            { developerStats, documents, banks, testimonials },
+  <span class="str">"location"</span>:         { lat, lng, mapSrc, nearby: [...] },
+  <span class="str">"amenitiesDetail"</span>:  { noiKhu, skyAmenity, dichVu, haTang },  <span class="c">// 4 tab tiện ích</span>
+  <span class="str">"timeline"</span>:         [ ... ]   <span class="c">// 8 giai đoạn thi công</span>
 }</pre>
+    <div class="callout warn">
+      <strong>Lưu ý về schema</strong>
+      Key chính là <code>project</code> (không phải <code>meta</code>), <code>menu</code> (không phải <code>menuGroups</code>), <code>floorplan.units</code> (không phải <code>floorplanUnits</code>), <code>siteMap.points</code> (không phải <code>siteMapPoints</code>). <code>amenities</code> và <code>stats</code> nằm bên trong <code>project</code>, không phải ở gốc.
+    </div>
 
     <section id="scenes">
-    <h3>Scenes (VR360)</h3>
+    <h3>Danh Sách Cảnh VR360</h3>
     <table>
-      <thead><tr><th>ID</th><th>Title</th><th>Type</th><th>Hotspots</th></tr></thead>
+      <thead><tr><th>ID</th><th>Tên Cảnh</th><th>Loại</th><th>Số Hotspot</th></tr></thead>
       <tbody>
-        <tr><td><code>sky-lounge</code></td><td>Sky Lounge Tầng 42</td><td>interior</td><td>3</td></tr>
-        <tr><td><code>penthouse</code></td><td>Penthouse Mẫu 3PN Duplex</td><td>interior</td><td>3</td></tr>
-        <tr><td><code>master-bedroom</code></td><td>Master Suite</td><td>interior</td><td>3</td></tr>
-        <tr><td><code>pool-deck</code></td><td>Bể Bơi Vô Cực Tầng 8</td><td>exterior</td><td>3</td></tr>
-        <tr><td><code>park</code></td><td>Công Viên Trung Tâm 12.4ha</td><td>exterior</td><td>3</td></tr>
-        <tr><td><code>aerial</code></td><td>Toàn Cảnh Dự Án</td><td>exterior</td><td>3</td></tr>
+        <tr><td><code>sky-lounge</code></td><td>Sky Lounge Tầng 42</td><td>Nội thất</td><td>3</td></tr>
+        <tr><td><code>penthouse</code></td><td>Penthouse Mẫu 3PN Duplex</td><td>Nội thất</td><td>3</td></tr>
+        <tr><td><code>master-bedroom</code></td><td>Master Suite</td><td>Nội thất</td><td>3</td></tr>
+        <tr><td><code>pool-deck</code></td><td>Bể Bơi Vô Cực Tầng 8</td><td>Ngoại cảnh</td><td>3</td></tr>
+        <tr><td><code>park</code></td><td>Công Viên Trung Tâm 12,4 ha</td><td>Ngoại cảnh</td><td>3</td></tr>
+        <tr><td><code>aerial</code></td><td>Toàn Cảnh Dự Án</td><td>Ngoại cảnh</td><td>3</td></tr>
       </tbody>
     </table>
 
-    <h4>Hotspot Object Schema</h4>
+    <h4>Schema Đối Tượng Hotspot</h4>
     <table>
-      <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+      <thead><tr><th>Trường</th><th>Kiểu</th><th>Mô Tả</th></tr></thead>
       <tbody>
-        <tr><td><code>id</code></td><td>string</td><td>Unique identifier</td></tr>
-        <tr><td><code>x</code></td><td>number 0–1</td><td>Equirectangular X position</td></tr>
-        <tr><td><code>y</code></td><td>number 0–1</td><td>Equirectangular Y position</td></tr>
-        <tr><td><code>type</code></td><td><code>"info"</code> | <code>"nav"</code></td><td>Info popup or scene navigation</td></tr>
-        <tr><td><code>label</code></td><td>string</td><td>Pin display text</td></tr>
-        <tr><td><code>desc</code></td><td>string</td><td>(info only) Tooltip description</td></tr>
-        <tr><td><code>target</code></td><td>string</td><td>(nav only) Target scene ID</td></tr>
+        <tr><td><code>id</code></td><td>string</td><td>Mã định danh duy nhất</td></tr>
+        <tr><td><code>x</code></td><td>số 0–1</td><td>Toạ độ X trên ảnh equirectangular</td></tr>
+        <tr><td><code>y</code></td><td>số 0–1</td><td>Toạ độ Y trên ảnh equirectangular</td></tr>
+        <tr><td><code>type</code></td><td><code>"info"</code> | <code>"nav"</code></td><td>Popup thông tin hoặc chuyển cảnh</td></tr>
+        <tr><td><code>label</code></td><td>string</td><td>Chữ hiển thị trên pin</td></tr>
+        <tr><td><code>desc</code></td><td>string</td><td>(chỉ với info) Mô tả tooltip</td></tr>
+        <tr><td><code>target</code></td><td>string</td><td>(chỉ với nav) ID cảnh đích</td></tr>
       </tbody>
     </table>
     </section>
 
     <section id="units">
-    <h3>Floor Plan Units</h3>
+    <h3>Danh Sách Căn Hộ</h3>
+    <p>Lưu tại <code>floorplan.units[]</code>. Mỗi căn có các trường <code>code · type · floor · area · direction · priceVal · price · pricePerM2 · available · total · status</code> (trạng thái: <code>available | holding | sold</code>).</p>
     <table>
-      <thead><tr><th>Code</th><th>Type</th><th>Floor</th><th>Area</th><th>Price</th><th>Status</th></tr></thead>
+      <thead><tr><th>Mã căn</th><th>Loại</th><th>Tầng</th><th>Diện Tích</th><th>Hướng</th><th>Giá</th><th>Trạng Thái</th></tr></thead>
       <tbody>
-        <tr><td><code>A-2BR-72-08</code></td><td>2PN</td><td>8</td><td>72m²</td><td>5.4 tỷ</td><td><span class="badge-ok">Available</span></td></tr>
-        <tr><td><code>A-2BR-85-15</code></td><td>2PN</td><td>15</td><td>85m²</td><td>6.4 tỷ</td><td><span class="badge-ok">Available</span></td></tr>
-        <tr><td><code>B-3BR-105-20</code></td><td>3PN</td><td>20</td><td>105m²</td><td>8.9 tỷ</td><td><span class="badge-ok">Available</span></td></tr>
-        <tr><td><code>B-3BR-118-25</code></td><td>3PN</td><td>25</td><td>118m²</td><td>10.4 tỷ</td><td><span class="badge-warn">Holding</span></td></tr>
-        <tr><td><code>C-3BRP-128-30</code></td><td>3PN+</td><td>30</td><td>128m²</td><td>12.5 tỷ</td><td><span class="badge-ok">Available</span></td></tr>
-        <tr><td><code>C-3BRP-135-35</code></td><td>3PN+</td><td>35</td><td>135m²</td><td>13.6 tỷ</td><td><span class="badge-warn">Holding</span></td></tr>
-        <tr><td><code>D-PH-180-40</code></td><td>Penthouse</td><td>40</td><td>180m²</td><td>—</td><td><span class="badge-err">Sold</span></td></tr>
-        <tr><td><code>D-PH-220-41</code></td><td>Penthouse</td><td>41</td><td>220m²</td><td>—</td><td><span class="badge-err">Sold</span></td></tr>
-        <tr><td><code>D-PH-280-42</code></td><td>Penthouse</td><td>42</td><td>280m²</td><td>14.2 tỷ</td><td><span class="badge-ok">Available</span></td></tr>
+        <tr><td><code>A-2BR-72-08</code></td><td>2PN</td><td>8</td><td>72m²</td><td>Đông Nam</td><td>5,4 tỷ</td><td><span class="badge-ok">Còn hàng</span></td></tr>
+        <tr><td><code>A-2BR-72-15</code></td><td>2PN</td><td>15</td><td>72m²</td><td>Đông Nam</td><td>5,6 tỷ</td><td><span class="badge-ok">Còn hàng</span></td></tr>
+        <tr><td><code>A-2BR1-86-12</code></td><td>2PN+1</td><td>12</td><td>86m²</td><td>Tây Nam</td><td>6,8 tỷ</td><td><span class="badge-ok">Còn hàng</span></td></tr>
+        <tr><td><code>A-2BR1-86-22</code></td><td>2PN+1</td><td>22</td><td>86m²</td><td>Tây Nam</td><td>7,1 tỷ</td><td><span class="badge-ok">Còn hàng</span></td></tr>
+        <tr><td><code>A-3BR-104-18</code></td><td>3PN</td><td>18</td><td>104m²</td><td>Đông Bắc</td><td>8,9 tỷ</td><td><span class="badge-ok">Còn hàng</span></td></tr>
+        <tr><td><code>A-3BR-104-28</code></td><td>3PN</td><td>28</td><td>104m²</td><td>Đông Bắc</td><td>9,1 tỷ</td><td><span class="badge-warn">Đang giữ chỗ</span></td></tr>
+        <tr><td><code>A-3BR-104-35</code></td><td>3PN</td><td>35</td><td>104m²</td><td>Đông Bắc</td><td>9,4 tỷ</td><td><span class="badge-ok">Còn hàng</span></td></tr>
+        <tr><td><code>A-DX-142-40</code></td><td>Duplex</td><td>40</td><td>142m²</td><td>Panorama</td><td>14,2 tỷ</td><td><span class="badge-ok">Còn hàng</span></td></tr>
+        <tr><td><code>A-DX-142-41</code></td><td>Duplex</td><td>41</td><td>142m²</td><td>Panorama</td><td>15,0 tỷ</td><td><span class="badge-err">Đã bán</span></td></tr>
       </tbody>
     </table>
     </section>
 
     <section id="menu">
-    <h3>Menu Groups</h3>
+    <h3>Nhóm Menu</h3>
+    <p>Lưu trong đối tượng gốc <code>menu</code>. Mỗi giá trị là một mảng <code>{ id, label, sceneId }</code>. Tên key + tên hiển thị được định nghĩa cứng trong <code>js/main.js</code> (<code>MENU_GROUPS</code>).</p>
     <table>
-      <thead><tr><th>Key</th><th>Label</th><th>Items</th></tr></thead>
+      <thead><tr><th>Key</th><th>Tên Hiển Thị</th><th>Số Mục</th></tr></thead>
       <tbody>
         <tr><td><code>tongQuan</code></td><td>Tổng Quan</td><td>6</td></tr>
         <tr><td><code>tienIchNoiKhu</code></td><td>Tiện Ích Nội Khu</td><td>6</td></tr>
@@ -590,53 +624,53 @@
 
   <!-- ═══ 5. Layout & Zones ══════════════════════════════ -->
   <section id="layout-zones">
-    <h2 data-num="5">Layout & Zones</h2>
+    <h2 data-num="5">Bố Cục & Khu Vực</h2>
 
     <pre>┌─────────────────────────────────────────────────────┐
-│  #loader  (Loading screen — fades out after boot)   │
+│  #loader  (Màn hình loading — mờ dần sau khi boot)  │
 └─────────────────────────────────────────────────────┘
 ┌─────────────────────────────────────────────────────┐
-│  #vr-stage  (Full-screen Three.js WebGL canvas)     │
-│  #hotspot-layer  (Absolute positioned VR hotspots)  │
+│  #vr-stage  (Canvas WebGL Three.js toàn màn hình)   │
+│  #hotspot-layer  (Lớp hotspot VR định vị tuyệt đối) │
 └─────────────────────────────────────────────────────┘
-┌──── #ui  (Overlay layer on top of VR) ──────────────┐
+┌──── #ui  (Lớp giao diện đè trên VR) ────────────────┐
 │  ┌─ #top-bar ──────────────────────────────────┐    │
-│  │  [Brand] [Map][Gallery][Amenity][Legal]     │    │
-│  │          [Location][Loan][Timeline][FP]     │    │
-│  │                           [Lang][Help]      │    │
+│  │  [Brand] [Bản đồ][Gallery][Tiện ích][PL]    │    │
+│  │          [Vị trí][Vay vốn][Tiến độ][MB]     │    │
+│  │                       [Ngôn ngữ][Trợ giúp]  │    │
 │  └─────────────────────────────────────────────┘    │
 │                                                     │
-│  ┌─ #nav-panel ──┐  ┌─ #project-card ──────────┐   │
-│  │ [Search]      │  │ [Stats grid]              │   │
-│  │ [Accordion]   │  │ [Price + countdown]       │   │
-│  │ [Menu items]  │  │ [Amenity icons]           │   │
-│  └───────────────┘  │ [CTA buttons]             │   │
-│                     └───────────────────────────┘   │
-│  ── Overlays (stacked) ─────────────────────────    │
+│  ┌─ #nav-panel ──┐  ┌─ #project-card ──────────┐    │
+│  │ [Tìm kiếm]    │  │ [Lưới chỉ số]            │    │
+│  │ [Accordion]   │  │ [Giá + đếm ngược]        │    │
+│  │ [Mục menu]    │  │ [Icon tiện ích]          │    │
+│  └───────────────┘  │ [Nút CTA]                │    │
+│                     └──────────────────────────┘    │
+│  ── Overlay (chồng tầng) ───────────────────────    │
 │  #sitemap-overlay  #gallery-overlay                 │
 │  #amenities-overlay  #legal-overlay                 │
 │  #location-overlay  #loan-overlay                   │
 │  #timeline-overlay  #floorplan-overlay              │
 │                                                     │
 │  ── Modal ──────────────────────────────────────    │
-│  #booking-modal  (Unit table + contact form)        │
+│  #booking-modal  (Bảng căn + form liên hệ)          │
 │                                                     │
-│  ── Floaters ───────────────────────────────────    │
-│  [AI Chat FAB]  [UI Restore]  [Urgency Toasts]      │
+│  ── Phần Tử Nổi ────────────────────────────────    │
+│  [AI Chat FAB]  [UI Restore]  [Toast Urgency]       │
 │                                                     │
-│  #tour-overlay  (Spotlight onboarding)              │
-│  #ai-panel      (Right-side chat panel)             │
+│  #tour-overlay  (Onboarding kiểu spotlight)         │
+│  #ai-panel      (Panel chat bên phải)               │
 └─────────────────────────────────────────────────────┘</pre>
 
-    <h3>Z-Index Stack</h3>
+    <h3>Thứ Tự Z-Index</h3>
     <table>
-      <thead><tr><th>z-index</th><th>Element</th></tr></thead>
+      <thead><tr><th>z-index</th><th>Phần Tử</th></tr></thead>
       <tbody>
         <tr><td>0</td><td>Canvas (#vr-stage)</td></tr>
         <tr><td>10</td><td>#hotspot-layer</td></tr>
         <tr><td>100</td><td>#nav-panel, #project-card</td></tr>
         <tr><td>110</td><td>#top-bar</td></tr>
-        <tr><td>200</td><td>All overlays (*-overlay)</td></tr>
+        <tr><td>200</td><td>Tất cả overlay (*-overlay)</td></tr>
         <tr><td>300</td><td>#booking-modal</td></tr>
         <tr><td>350</td><td>#ai-panel</td></tr>
         <tr><td>400</td><td>#tour-overlay</td></tr>
@@ -648,334 +682,334 @@
 
   <!-- ═══ 6. Feature Catalog ════════════════════════════ -->
   <section id="features">
-    <h2 data-num="6">Feature Catalog</h2>
+    <h2 data-num="6">Danh Mục Tính Năng</h2>
 
     <section id="vr">
-    <h3>6.1 VR360 Panorama Viewer</h3>
+    <h3>6.1 Trình Xem Panorama VR360</h3>
     <p>Module: <code>js/vr360.js</code> → <code>window.VR360</code></p>
     <table>
-      <thead><tr><th>Feature</th><th>Detail</th></tr></thead>
+      <thead><tr><th>Tính Năng</th><th>Chi Tiết</th></tr></thead>
       <tbody>
-        <tr><td>Renderer</td><td>Three.js WebGL, inverted sphere (r=500, 64 segments)</td></tr>
-        <tr><td>Panorama source</td><td>Procedurally generated canvas (2048×1024)</td></tr>
-        <tr><td>Navigation</td><td>Mouse drag → lon/lat rotation</td></tr>
-        <tr><td>Zoom</td><td>Scroll wheel → FOV 40°–95°</td></tr>
-        <tr><td>Auto-rotate</td><td>Toggle, pauses on drag interaction</td></tr>
-        <tr><td>Fullscreen</td><td>Native Fullscreen API</td></tr>
-        <tr><td>Scene count</td><td>6 scenes (3 interior, 3 exterior)</td></tr>
+        <tr><td>Renderer</td><td>Three.js WebGL, hình cầu úp ngược (r=500, 64 phân đoạn)</td></tr>
+        <tr><td>Nguồn panorama</td><td>Canvas sinh theo thủ tục (2048×1024)</td></tr>
+        <tr><td>Điều hướng</td><td>Kéo chuột → xoay theo kinh/vĩ độ</td></tr>
+        <tr><td>Zoom</td><td>Con lăn chuột → FOV 40°–95°</td></tr>
+        <tr><td>Tự xoay</td><td>Bật/tắt, tạm dừng khi người dùng kéo</td></tr>
+        <tr><td>Toàn màn hình</td><td>Fullscreen API gốc của trình duyệt</td></tr>
+        <tr><td>Số cảnh</td><td>6 cảnh (3 nội thất, 3 ngoại cảnh)</td></tr>
       </tbody>
     </table>
     <pre><span class="c">// VR360 Public API</span>
-<span class="fn">VR360.init</span>(container, opts)      <span class="c">// Setup renderer</span>
-<span class="fn">VR360.loadScene</span>(sceneData)       <span class="c">// Load panorama by scene object</span>
-<span class="fn">VR360.setAutoRotate</span>(bool)        <span class="c">// Toggle auto-spin</span>
-<span class="fn">VR360.zoomBy</span>(delta)              <span class="c">// Adjust FOV</span>
-<span class="fn">VR360.projectHotspot</span>(x, y)      <span class="c">// Equirect → screen coords</span>
-<span class="fn">VR360.getYaw</span>()                   <span class="c">// Current yaw angle</span>
-<span class="fn">VR360.lookAt</span>(x, y)               <span class="c">// Snap camera direction</span>
-<span class="fn">VR360.destroy</span>()                  <span class="c">// Cleanup WebGL context</span></pre>
+<span class="fn">VR360.init</span>(container, opts)      <span class="c">// Khởi tạo renderer</span>
+<span class="fn">VR360.loadScene</span>(sceneData)       <span class="c">// Nạp panorama theo đối tượng cảnh</span>
+<span class="fn">VR360.setAutoRotate</span>(bool)        <span class="c">// Bật/tắt tự xoay</span>
+<span class="fn">VR360.zoomBy</span>(delta)              <span class="c">// Thay đổi FOV</span>
+<span class="fn">VR360.projectHotspot</span>(x, y)      <span class="c">// Equirect → toạ độ màn hình</span>
+<span class="fn">VR360.getYaw</span>()                   <span class="c">// Góc yaw hiện tại</span>
+<span class="fn">VR360.lookAt</span>(x, y)               <span class="c">// Hướng camera tới điểm</span>
+<span class="fn">VR360.destroy</span>()                  <span class="c">// Dọn dẹp WebGL context</span></pre>
     </section>
 
     <section id="hotspots">
-    <h3>6.2 Hotspot System</h3>
+    <h3>6.2 Hệ Thống Hotspot</h3>
     <table>
-      <thead><tr><th>Type</th><th>Behavior</th></tr></thead>
+      <thead><tr><th>Loại</th><th>Hành Vi</th></tr></thead>
       <tbody>
-        <tr><td><code>info</code></td><td>Click → popup with label + description overlay</td></tr>
-        <tr><td><code>nav</code></td><td>Click → transition to target scene ID</td></tr>
+        <tr><td><code>info</code></td><td>Click → popup hiển thị label + mô tả</td></tr>
+        <tr><td><code>nav</code></td><td>Click → chuyển sang cảnh có ID đích</td></tr>
       </tbody>
     </table>
-    <p>Positions computed every animation frame via <code>VR360.projectHotspot()</code>. Hotspots hidden when behind camera (negative z).</p>
+    <p>Vị trí được tính lại mỗi animation frame qua <code>VR360.projectHotspot()</code>. Hotspot tự ẩn khi nằm sau camera (z âm).</p>
     </section>
 
     <section id="overlays">
-    <h3>6.3–6.9 Overlays</h3>
-    <p>All overlays share: full-screen coverage, close button, backdrop click to close, Escape key to close, fade-in animation.</p>
+    <h3>6.3–6.9 Các Overlay</h3>
+    <p>Mọi overlay đều có: phủ toàn màn hình, nút đóng, click backdrop để đóng, phím Escape để đóng, animation mờ dần.</p>
     <table>
-      <thead><tr><th>Overlay</th><th>Feature</th><th>Key Functionality</th></tr></thead>
+      <thead><tr><th>Overlay</th><th>Tính Năng</th><th>Chức Năng Chính</th></tr></thead>
       <tbody>
-        <tr><td><code>#sitemap-overlay</code></td><td>2D Site Map</td><td>7 clickable points → switch VR scene</td></tr>
-        <tr><td><code>#gallery-overlay</code></td><td>Photo Gallery</td><td>Grid + lightbox + arrow nav + keyboard</td></tr>
-        <tr><td><code>#amenities-overlay</code></td><td>Amenities Detail</td><td>4 tabs · 25 amenities with icons</td></tr>
-        <tr><td><code>#legal-overlay</code></td><td>Legal & Trust</td><td>Stats · docs checklist · banks · testimonials</td></tr>
-        <tr><td><code>#location-overlay</code></td><td>Location Map</td><td>Google Maps iframe · 9 POIs · category filter</td></tr>
-        <tr><td><code>#loan-overlay</code></td><td>Loan Calculator</td><td>Sliders · bank select · monthly payment · chart</td></tr>
-        <tr><td><code>#timeline-overlay</code></td><td>Construction Timeline</td><td>8 phases · progress bar · status badges</td></tr>
-        <tr><td><code>#floorplan-overlay</code></td><td>Floorplan & Pricing</td><td>9 units · filter/sort table · book CTA</td></tr>
+        <tr><td><code>#sitemap-overlay</code></td><td>Bản đồ 2D</td><td>7 điểm bấm → chuyển cảnh VR</td></tr>
+        <tr><td><code>#gallery-overlay</code></td><td>Thư viện ảnh</td><td>Lưới ảnh + lightbox + mũi tên + bàn phím</td></tr>
+        <tr><td><code>#amenities-overlay</code></td><td>Chi tiết tiện ích</td><td>4 tab · 25 tiện ích kèm icon</td></tr>
+        <tr><td><code>#legal-overlay</code></td><td>Pháp lý & uy tín</td><td>Chỉ số · checklist giấy tờ · ngân hàng · nhận xét</td></tr>
+        <tr><td><code>#location-overlay</code></td><td>Bản đồ vị trí</td><td>iframe Google Maps · 9 POI · lọc danh mục</td></tr>
+        <tr><td><code>#loan-overlay</code></td><td>Tính vay vốn</td><td>Thanh trượt · chọn ngân hàng · trả góp · biểu đồ</td></tr>
+        <tr><td><code>#timeline-overlay</code></td><td>Tiến độ xây dựng</td><td>8 giai đoạn · thanh tiến độ · badge trạng thái</td></tr>
+        <tr><td><code>#floorplan-overlay</code></td><td>Mặt bằng & bảng giá</td><td>9 căn · bảng có lọc/sắp xếp · nút đặt cọc</td></tr>
       </tbody>
     </table>
     </section>
 
     <section id="booking">
-    <h3>6.10 Booking Modal</h3>
+    <h3>6.10 Form Đặt Cọc</h3>
     <table>
-      <thead><tr><th>Field</th><th>Type</th><th>Required</th></tr></thead>
+      <thead><tr><th>Trường</th><th>Kiểu</th><th>Bắt Buộc</th></tr></thead>
       <tbody>
-        <tr><td>Họ và tên</td><td>text</td><td><span class="badge-err">Yes</span></td></tr>
-        <tr><td>Số điện thoại</td><td>tel</td><td><span class="badge-err">Yes</span></td></tr>
-        <tr><td>Email</td><td>email</td><td>No</td></tr>
-        <tr><td>Zalo</td><td>text</td><td>No</td></tr>
-        <tr><td>Căn hộ quan tâm</td><td>select</td><td>No</td></tr>
-        <tr><td>Ngân sách</td><td>select</td><td>No</td></tr>
-        <tr><td>Mục đích mua</td><td>select</td><td>No</td></tr>
-        <tr><td>Thời điểm mua</td><td>select</td><td>No</td></tr>
-        <tr><td>Đồng ý Zalo / SMS / ĐKBH</td><td>checkbox ×3</td><td>No</td></tr>
+        <tr><td>Họ và tên</td><td>text</td><td><span class="badge-err">Có</span></td></tr>
+        <tr><td>Số điện thoại</td><td>tel</td><td><span class="badge-err">Có</span></td></tr>
+        <tr><td>Email</td><td>email</td><td>Không</td></tr>
+        <tr><td>Zalo</td><td>text</td><td>Không</td></tr>
+        <tr><td>Căn hộ quan tâm</td><td>select</td><td>Không</td></tr>
+        <tr><td>Ngân sách</td><td>select</td><td>Không</td></tr>
+        <tr><td>Mục đích mua</td><td>select</td><td>Không</td></tr>
+        <tr><td>Thời điểm mua</td><td>select</td><td>Không</td></tr>
+        <tr><td>Đồng ý Zalo / SMS / ĐKBH</td><td>checkbox ×3</td><td>Không</td></tr>
       </tbody>
     </table>
     </section>
 
     <section id="loan">
-    <h3>6.11 Loan Calculator</h3>
+    <h3>6.11 Tính Vay Vốn</h3>
     <table>
-      <thead><tr><th>Input</th><th>Range</th></tr></thead>
+      <thead><tr><th>Đầu Vào</th><th>Phạm Vi</th></tr></thead>
       <tbody>
-        <tr><td>Property price</td><td>Slider 4.9–14.2 tỷ</td></tr>
-        <tr><td>Equity %</td><td>Slider 10–70%</td></tr>
-        <tr><td>Loan term</td><td>Select: 10, 15, 20, 25, 30 years</td></tr>
-        <tr><td>Bank</td><td>Select: Vietcombank, BIDV, Techcombank, VPBank</td></tr>
+        <tr><td>Giá căn hộ</td><td>Slider 4,9–14,2 tỷ</td></tr>
+        <tr><td>% Vốn tự có</td><td>Slider 10–70%</td></tr>
+        <tr><td>Thời hạn vay</td><td>Chọn: 10, 15, 20, 25, 30 năm</td></tr>
+        <tr><td>Ngân hàng</td><td>Chọn: Vietcombank, BIDV, Techcombank, VPBank</td></tr>
       </tbody>
     </table>
-    <pre><span class="c">// Annuity formula</span>
+    <pre><span class="c">// Công thức tính trả góp đều</span>
 M = P × [r(1+r)^n] / [(1+r)^n − 1]
-<span class="c">// P = principal, r = monthly rate, n = total months</span></pre>
+<span class="c">// P = gốc vay, r = lãi suất/tháng, n = tổng số tháng</span></pre>
     </section>
 
     <section id="ai">
-    <h3>6.12 AI Chatbot</h3>
+    <h3>6.12 Trợ Lý AI</h3>
     <p>Module: <code>js/ai-panel.js</code> → <code>window.AiPanel</code></p>
     <table>
-      <thead><tr><th>Mode</th><th>Description</th></tr></thead>
+      <thead><tr><th>Chế Độ</th><th>Mô Tả</th></tr></thead>
       <tbody>
-        <tr><td>Text mode</td><td>Type → submit → bot text reply</td></tr>
-        <tr><td>Voice mode</td><td>Mic → STT → bot reply → TTS → re-listen loop</td></tr>
-        <tr><td>Capsule mode</td><td>Panel morphs to pill during voice input</td></tr>
+        <tr><td>Chế độ văn bản</td><td>Gõ → gửi → bot trả lời bằng text</td></tr>
+        <tr><td>Chế độ giọng nói</td><td>Mic → STT → bot trả lời → TTS → tự lắng nghe lại</td></tr>
+        <tr><td>Chế độ viên (capsule)</td><td>Panel biến thành dạng viên khi đang nhập giọng nói</td></tr>
       </tbody>
     </table>
-    <div class="flow">State machine:
-idle ──── mic click ────▶ listening
-          (STT result)
+    <div class="flow">Máy trạng thái:
+idle ──── nhấn mic ────▶ listening
+          (có kết quả STT)
 listening ─────────────▶ thinking
-          (reply ready)
+          (đã có phản hồi)
 thinking ──────────────▶ speaking
-          (TTS ends)
-speaking ──────────────▶ listening  (loop)
-          (mic click)
+          (TTS đọc xong)
+speaking ──────────────▶ listening  (lặp)
+          (nhấn mic lần nữa)
 listening ─────────────▶ idle</div>
     </section>
 
     <section id="tour">
-    <h3>6.13 Help Tour (18 Steps)</h3>
+    <h3>6.13 Tour Hướng Dẫn (18 Bước)</h3>
     <table>
-      <thead><tr><th>#</th><th>Desktop Target</th><th>Mobile Target</th><th>Panel Action</th></tr></thead>
+      <thead><tr><th>#</th><th>Mục Tiêu Desktop</th><th>Mục Tiêu Mobile</th><th>Hành Động Panel</th></tr></thead>
       <tbody>
-        <tr><td>1</td><td><code>.brand</code></td><td>same</td><td>—</td></tr>
-        <tr><td>2</td><td><code>#btn-sitemap</code></td><td><code>#mob-sitemap-btn</code></td><td>Open drawer</td></tr>
-        <tr><td>3</td><td><code>#btn-gallery</code></td><td><code>#mob-gallery-btn</code></td><td>Open drawer</td></tr>
-        <tr><td>4</td><td><code>#open-modal</code></td><td><code>#mob-book-btn</code></td><td>Open drawer</td></tr>
-        <tr><td>5</td><td><code>#tb-ctrlgroup</code></td><td><em>auto-skip (hidden)</em></td><td>—</td></tr>
-        <tr><td>6</td><td><code>#ctrl-rotate</code></td><td><code>#mob-rotate</code></td><td>Open drawer</td></tr>
-        <tr><td>7</td><td><code>#ctrl-zoom-in</code></td><td><code>#mob-zoom-in</code></td><td>Open drawer</td></tr>
-        <tr><td>8</td><td><code>#ctrl-zoom-out</code></td><td><code>#mob-zoom-out</code></td><td>Open drawer</td></tr>
-        <tr><td>9</td><td><code>#ctrl-fullscreen</code></td><td><code>#mob-fs</code></td><td>Open drawer</td></tr>
-        <tr><td>10</td><td><code>#ctrl-lang-wrap</code></td><td><code>#mob-lang</code></td><td>Open drawer</td></tr>
-        <tr><td>11</td><td><code>#help-btn</code></td><td><code>#mob-help</code></td><td>Open drawer</td></tr>
-        <tr><td>12</td><td><code>#nav-panel</code></td><td>same</td><td>Close drawer · Open nav</td></tr>
-        <tr><td>13</td><td><code>#np-search-wrap</code></td><td>same</td><td>Open nav</td></tr>
-        <tr><td>14</td><td><code>#np-list</code></td><td>same</td><td>Open nav</td></tr>
-        <tr><td>15</td><td><code>#project-card</code></td><td>same</td><td>Expand project card</td></tr>
-        <tr><td>16</td><td><code>#bb-chat-btn</code></td><td>same</td><td>—</td></tr>
-        <tr><td>17</td><td><code>#ui-restore</code></td><td>same</td><td>—</td></tr>
-        <tr><td>18</td><td><code>.hotspot</code></td><td>same</td><td>—</td></tr>
+        <tr><td>1</td><td><code>.brand</code></td><td>như desktop</td><td>—</td></tr>
+        <tr><td>2</td><td><code>#btn-sitemap</code></td><td><code>#mob-sitemap-btn</code></td><td>Mở drawer</td></tr>
+        <tr><td>3</td><td><code>#btn-gallery</code></td><td><code>#mob-gallery-btn</code></td><td>Mở drawer</td></tr>
+        <tr><td>4</td><td><code>#open-modal</code></td><td><code>#mob-book-btn</code></td><td>Mở drawer</td></tr>
+        <tr><td>5</td><td><code>#tb-ctrlgroup</code></td><td><em>tự bỏ qua (ẩn)</em></td><td>—</td></tr>
+        <tr><td>6</td><td><code>#ctrl-rotate</code></td><td><code>#mob-rotate</code></td><td>Mở drawer</td></tr>
+        <tr><td>7</td><td><code>#ctrl-zoom-in</code></td><td><code>#mob-zoom-in</code></td><td>Mở drawer</td></tr>
+        <tr><td>8</td><td><code>#ctrl-zoom-out</code></td><td><code>#mob-zoom-out</code></td><td>Mở drawer</td></tr>
+        <tr><td>9</td><td><code>#ctrl-fullscreen</code></td><td><code>#mob-fs</code></td><td>Mở drawer</td></tr>
+        <tr><td>10</td><td><code>#ctrl-lang-wrap</code></td><td><code>#mob-lang</code></td><td>Mở drawer</td></tr>
+        <tr><td>11</td><td><code>#help-btn</code></td><td><code>#mob-help</code></td><td>Mở drawer</td></tr>
+        <tr><td>12</td><td><code>#nav-panel</code></td><td>như desktop</td><td>Đóng drawer · Mở nav</td></tr>
+        <tr><td>13</td><td><code>#np-search-wrap</code></td><td>như desktop</td><td>Mở nav</td></tr>
+        <tr><td>14</td><td><code>#np-list</code></td><td>như desktop</td><td>Mở nav</td></tr>
+        <tr><td>15</td><td><code>#project-card</code></td><td>như desktop</td><td>Mở rộng project card</td></tr>
+        <tr><td>16</td><td><code>#bb-chat-btn</code></td><td>như desktop</td><td>—</td></tr>
+        <tr><td>17</td><td><code>#ui-restore</code></td><td>như desktop</td><td>—</td></tr>
+        <tr><td>18</td><td><code>.hotspot</code></td><td>như desktop</td><td>—</td></tr>
       </tbody>
     </table>
-    <p>On mobile, <code>startTour()</code> does <em>not</em> pre-expand the nav panel. Each step opens the required panel lazily (drawer 420 ms delay · nav-panel 380 ms · project-card 500 ms). <code>endTour()</code> closes the drawer.</p>
+    <p>Trên mobile, <code>startTour()</code> <em>không</em> mở sẵn nav panel. Mỗi bước sẽ tự mở panel cần thiết (drawer 420 ms · nav-panel 380 ms · project-card 500 ms). <code>endTour()</code> sẽ đóng drawer.</p>
     </section>
   </section>
 
   <!-- ═══ 7. User Flows ═════════════════════════════════ -->
   <section id="flows">
-    <h2 data-num="7">User Flows</h2>
+    <h2 data-num="7">Luồng Người Dùng</h2>
 
-    <h3>Primary: Browse & Book</h3>
-    <div class="flow">Page Load
-  └── Loading Screen (fetch JSON + Three.js init)
-        ↓ ~2–3 seconds
-  └── VR Experience (default: sky-lounge scene)
-        ↓ user drags / clicks hotspots
-  └── Explore Scenes
-        ↓ user clicks "Xem Bảng Giá"
-  └── Floorplan Overlay (filter → select unit → "Đặt Cọc")
+    <h3>Luồng Chính: Tham Quan & Đặt Cọc</h3>
+    <div class="flow">Tải trang
+  └── Màn hình Loading (fetch JSON + khởi tạo Three.js)
+        ↓ ~2–3 giây
+  └── Trải nghiệm VR (mặc định: cảnh sky-lounge)
+        ↓ kéo / click hotspot
+  └── Khám phá các cảnh
+        ↓ click "Xem Bảng Giá"
+  └── Overlay Mặt Bằng (lọc → chọn căn → "Đặt Cọc")
         ↓
-  └── Booking Modal (pre-filled with unit data)
-        ↓ fill name + phone → submit
-  └── Success Screen → callback CTA</div>
+  └── Modal đặt cọc (đã điền sẵn thông tin căn)
+        ↓ điền họ tên + SĐT → gửi
+  └── Màn hình thành công → CTA gọi lại</div>
 
-    <h3>Loan Calculation</h3>
-    <div class="flow">Open Loan Calculator
-  ↓ adjust price slider
-  ↓ set equity % + term + bank
-  ↓ live output updates (monthly payment / total interest)
-  ↓ view amortization chart
+    <h3>Tính Vay Vốn</h3>
+    <div class="flow">Mở công cụ tính vay
+  ↓ kéo thanh giá căn
+  ↓ chọn % vốn tự có + thời hạn + ngân hàng
+  ↓ kết quả cập nhật trực tiếp (trả góp/tháng · tổng lãi)
+  ↓ xem biểu đồ trả nợ
   ↓ click "Tư Vấn Vay Vốn"
-  └── Booking Modal opens</div>
+  └── Mở modal đặt cọc</div>
 
-    <h3>Voice AI Chat</h3>
-    <div class="flow">Click AI FAB → panel slides in
-  ↓ demo bubbles appear
-  ↓ user clicks mic
-  └── Panel → capsule mode
-        ↓ mic permission granted
-        ↓ waveform appears, listening starts
-        ↓ user speaks
-        ↓ STT transcribes → user bubble
-        ↓ bot generates reply → bot bubble
-        ↓ TTS speaks reply
-        └── auto re-listen (loop until mic clicked again)</div>
+    <h3>Chat AI Bằng Giọng Nói</h3>
+    <div class="flow">Click FAB AI → panel trượt ra
+  ↓ hiện các bubble demo
+  ↓ người dùng nhấn mic
+  └── Panel → chế độ viên
+        ↓ cấp quyền mic
+        ↓ hiện sóng âm, bắt đầu nghe
+        ↓ người dùng nói
+        ↓ STT chuyển thành chữ → bubble user
+        ↓ bot sinh phản hồi → bubble bot
+        ↓ TTS đọc phản hồi
+        └── tự nghe lại (lặp cho tới khi nhấn mic lại)</div>
   </section>
 
   <!-- ═══ 8. Responsive ═════════════════════════════════ -->
   <section id="responsive">
-    <h2 data-num="8">Responsive Behavior</h2>
+    <h2 data-num="8">Hành Vi Responsive</h2>
     <table>
-      <thead><tr><th>Breakpoint</th><th>Width</th><th>Layout Mode</th></tr></thead>
+      <thead><tr><th>Breakpoint</th><th>Độ Rộng</th><th>Chế Độ Layout</th></tr></thead>
       <tbody>
-        <tr><td>Desktop</td><td>≥ 769px</td><td>Full sidebar layout (nav panel + project card visible)</td></tr>
-        <tr><td>Mobile/Tablet</td><td>≤ 768px</td><td>Burger menu + drawer + collapsed panels</td></tr>
-        <tr><td>Landscape Mobile</td><td>height ≤ 500px</td><td>Compact mode</td></tr>
+        <tr><td>Desktop</td><td>≥ 769px</td><td>Layout đầy đủ (nav panel + project card hiển thị)</td></tr>
+        <tr><td>Mobile/Tablet</td><td>≤ 768px</td><td>Menu burger + drawer + panel thu gọn</td></tr>
+        <tr><td>Mobile xoay ngang</td><td>height ≤ 500px</td><td>Chế độ compact</td></tr>
       </tbody>
     </table>
 
-    <h3>Mobile-Specific Components</h3>
+    <h3>Thành Phần Chỉ Có Trên Mobile</h3>
     <table>
-      <thead><tr><th>Component</th><th>Mobile Behavior</th></tr></thead>
+      <thead><tr><th>Thành Phần</th><th>Hành Vi Mobile</th></tr></thead>
       <tbody>
-        <tr><td>Burger menu (<code>#mobile-burger</code>)</td><td>Opens full-height slide-in drawer</td></tr>
-        <tr><td>Drawer (<code>#mobile-drawer</code>)</td><td>Contains all nav buttons + language switcher + controls</td></tr>
-        <tr><td>Nav panel</td><td>Collapsed by default; opened via <code>#np-expand</code> FAB</td></tr>
-        <tr><td>Project card</td><td>Collapsed pill at bottom; tap to expand. Mutually exclusive with nav panel</td></tr>
-        <tr><td>Info FAB (<code>#pc-info-fab</code>)</td><td>Shown when both nav panel and project card are collapsed</td></tr>
-        <tr><td>Floorplan</td><td>Horizontal stepper carousel (<code>mobile-stepper.js</code>)</td></tr>
+        <tr><td>Menu burger (<code>#mobile-burger</code>)</td><td>Mở drawer trượt từ cạnh, cao hết màn hình</td></tr>
+        <tr><td>Drawer (<code>#mobile-drawer</code>)</td><td>Chứa toàn bộ nút nav + chuyển ngôn ngữ + điều khiển</td></tr>
+        <tr><td>Nav panel</td><td>Thu gọn mặc định; mở qua FAB <code>#np-expand</code></td></tr>
+        <tr><td>Project card</td><td>Dạng viên ở đáy; bấm để mở rộng. Loại trừ với nav panel</td></tr>
+        <tr><td>FAB thông tin (<code>#pc-info-fab</code>)</td><td>Hiện khi cả nav panel và project card đều thu gọn</td></tr>
+        <tr><td>Mặt bằng</td><td>Stepper carousel ngang (<code>mobile-stepper.js</code>)</td></tr>
       </tbody>
     </table>
 
-    <h3>Desktop-Specific Components</h3>
+    <h3>Thành Phần Chỉ Có Trên Desktop</h3>
     <table>
-      <thead><tr><th>Component</th><th>Desktop Behavior</th></tr></thead>
+      <thead><tr><th>Thành Phần</th><th>Hành Vi Desktop</th></tr></thead>
       <tbody>
-        <tr><td><code>#pc-collapse</code></td><td>Collapses project card to 44×44px square</td></tr>
-        <tr><td><code>#pc-expand</code></td><td>Appears below collapsed project card to re-open it (<code>display: none</code> on mobile)</td></tr>
-        <tr><td><code>#np-collapse</code> / <code>#np-expand</code></td><td>Toggle nav panel collapse state</td></tr>
+        <tr><td><code>#pc-collapse</code></td><td>Thu project card về hình vuông 44×44px</td></tr>
+        <tr><td><code>#pc-expand</code></td><td>Hiện dưới project card đã thu để mở lại (<code>display: none</code> trên mobile)</td></tr>
+        <tr><td><code>#np-collapse</code> / <code>#np-expand</code></td><td>Bật/tắt trạng thái thu gọn nav panel</td></tr>
       </tbody>
     </table>
   </section>
 
   <!-- ═══ 9. i18n ═══════════════════════════════════════ -->
   <section id="i18n">
-    <h2 data-num="9">Internationalization</h2>
+    <h2 data-num="9">Đa Ngôn Ngữ (i18n)</h2>
     <p>Module: <code>js/i18n.js</code> → <code>window.I18n</code></p>
     <table>
-      <thead><tr><th>Code</th><th>Language</th><th>Flag</th></tr></thead>
+      <thead><tr><th>Mã</th><th>Ngôn Ngữ</th><th>Cờ</th></tr></thead>
       <tbody>
-        <tr><td><code>vi</code></td><td>Vietnamese (default)</td><td>🇻🇳</td></tr>
-        <tr><td><code>en</code></td><td>English</td><td>🇬🇧</td></tr>
-        <tr><td><code>zh</code></td><td>Chinese (Simplified)</td><td>🇨🇳</td></tr>
-        <tr><td><code>ko</code></td><td>Korean</td><td>🇰🇷</td></tr>
-        <tr><td><code>ja</code></td><td>Japanese</td><td>🇯🇵</td></tr>
+        <tr><td><code>vi</code></td><td>Tiếng Việt (mặc định)</td><td>🇻🇳</td></tr>
+        <tr><td><code>en</code></td><td>Tiếng Anh</td><td>🇬🇧</td></tr>
+        <tr><td><code>zh</code></td><td>Tiếng Trung (giản thể)</td><td>🇨🇳</td></tr>
+        <tr><td><code>ko</code></td><td>Tiếng Hàn</td><td>🇰🇷</td></tr>
+        <tr><td><code>ja</code></td><td>Tiếng Nhật</td><td>🇯🇵</td></tr>
       </tbody>
     </table>
     <pre><span class="c">// I18n API</span>
-<span class="fn">I18n.t</span>(<span class="str">'ui.bookNow'</span>, { n: <span class="num">3</span>, total: <span class="num">18</span> })  <span class="c">// Translate static key (with optional vars)</span>
-<span class="fn">I18n.tr</span>(<span class="str">'18 người đang xem'</span>)              <span class="c">// Translate dynamic Vietnamese string</span>
-<span class="fn">I18n.get</span>()                                 <span class="c">// Current lang code</span>
-<span class="fn">I18n.set</span>(<span class="str">'en'</span>)                             <span class="c">// Switch language (fires langchange event)</span>
-<span class="fn">I18n.langs</span>()                               <span class="c">// Available lang codes</span>
-<span class="fn">I18n.applyStatic</span>()                         <span class="c">// Bulk-translate DOM via data-i18n attributes</span></pre>
+<span class="fn">I18n.t</span>(<span class="str">'ui.bookNow'</span>, { n: <span class="num">3</span>, total: <span class="num">18</span> })  <span class="c">// Dịch key tĩnh (có thể truyền biến)</span>
+<span class="fn">I18n.tr</span>(<span class="str">'18 người đang xem'</span>)              <span class="c">// Dịch chuỗi tiếng Việt động</span>
+<span class="fn">I18n.get</span>()                                 <span class="c">// Mã ngôn ngữ hiện tại</span>
+<span class="fn">I18n.set</span>(<span class="str">'en'</span>)                             <span class="c">// Đổi ngôn ngữ (kích hoạt sự kiện langchange)</span>
+<span class="fn">I18n.langs</span>()                               <span class="c">// Mã các ngôn ngữ có sẵn</span>
+<span class="fn">I18n.applyStatic</span>()                         <span class="c">// Dịch hàng loạt DOM theo thuộc tính data-i18n</span></pre>
 
-    <h3>HTML Attribute Conventions</h3>
+    <h3>Quy Ước Thuộc Tính HTML</h3>
     <table>
-      <thead><tr><th>Attribute</th><th>Sets</th><th>Use case</th></tr></thead>
+      <thead><tr><th>Thuộc tính</th><th>Gán vào</th><th>Trường hợp dùng</th></tr></thead>
       <tbody>
-        <tr><td><code>data-i18n</code></td><td><code>textContent</code></td><td>Plain text labels</td></tr>
-        <tr><td><code>data-i18n-html</code></td><td><code>innerHTML</code></td><td>Labels containing <code>&lt;strong&gt;</code> or other tags</td></tr>
-        <tr><td><code>data-i18n-title</code></td><td><code>title</code></td><td>Tooltip text</td></tr>
-        <tr><td><code>data-i18n-placeholder</code></td><td><code>placeholder</code></td><td>Input placeholder</td></tr>
-        <tr><td><code>data-i18n-aria</code></td><td><code>aria-label</code></td><td>Accessibility label</td></tr>
+        <tr><td><code>data-i18n</code></td><td><code>textContent</code></td><td>Nhãn văn bản thuần</td></tr>
+        <tr><td><code>data-i18n-html</code></td><td><code>innerHTML</code></td><td>Nhãn có chứa <code>&lt;strong&gt;</code> hoặc thẻ khác</td></tr>
+        <tr><td><code>data-i18n-title</code></td><td><code>title</code></td><td>Tooltip</td></tr>
+        <tr><td><code>data-i18n-placeholder</code></td><td><code>placeholder</code></td><td>Placeholder của input</td></tr>
+        <tr><td><code>data-i18n-aria</code></td><td><code>aria-label</code></td><td>Nhãn cho accessibility</td></tr>
       </tbody>
     </table>
 
-    <h3>Key Namespaces</h3>
+    <h3>Không Gian Tên Key</h3>
     <table>
-      <thead><tr><th>Namespace</th><th>Covers</th></tr></thead>
+      <thead><tr><th>Namespace</th><th>Phạm Vi</th></tr></thead>
       <tbody>
-        <tr><td><code>ui.*</code></td><td>General UI labels, buttons, tooltips</td></tr>
-        <tr><td><code>modal.*</code></td><td>Booking modal — fields, validation, success</td></tr>
-        <tr><td><code>stepper.*</code></td><td>Mobile floorplan stepper — all steps</td></tr>
-        <tr><td><code>tour.*</code></td><td>Help tour step labels</td></tr>
-        <tr><td><code>ai.*</code></td><td>AI chatbot panel strings</td></tr>
+        <tr><td><code>ui.*</code></td><td>Nhãn UI chung, nút, tooltip</td></tr>
+        <tr><td><code>modal.*</code></td><td>Modal đặt cọc — trường, validate, thành công</td></tr>
+        <tr><td><code>stepper.*</code></td><td>Stepper mặt bằng mobile — toàn bộ bước</td></tr>
+        <tr><td><code>tour.*</code></td><td>Nhãn các bước Help Tour</td></tr>
+        <tr><td><code>ai.*</code></td><td>Chuỗi panel chatbot AI</td></tr>
       </tbody>
     </table>
-    <p>Dynamic strings (e.g. urgency toasts) are translated via <code>I18n.tr(viString)</code> using the <code>DYNAMIC</code> lookup table in <code>i18n.js</code>. The <code>langchange</code> event is fired on <code>window</code> when language changes; components listen to it to re-render dynamic content.</p>
+    <p>Chuỗi động (ví dụ thông báo urgency) được dịch qua <code>I18n.tr(viString)</code> bằng bảng tra <code>DYNAMIC</code> trong <code>i18n.js</code>. Khi đổi ngôn ngữ, sự kiện <code>langchange</code> được phát trên <code>window</code>; các component lắng nghe để render lại nội dung động.</p>
   </section>
 
   <!-- ═══ 10. Design System ════════════════════════════ -->
   <section id="design">
-    <h2 data-num="10">Design System</h2>
+    <h2 data-num="10">Hệ Thống Thiết Kế</h2>
 
-    <h3>CSS Design Tokens</h3>
+    <h3>Token CSS</h3>
     <pre><span class="kw">:root</span> {
-  <span class="c">/* Colors */</span>
-  --bg:       #0a0d12;                     <span class="c">/* Page background (near-black navy) */</span>
-  --fg:       #f5f1e8;                     <span class="c">/* Primary text (warm white) */</span>
-  --accent:   #e8c089;                     <span class="c">/* Gold accent (buttons, highlights) */</span>
-  --ok:       #7ad79a;                     <span class="c">/* Success / available */</span>
-  --danger:   #ff6b6b;                     <span class="c">/* Error / sold */</span>
-  --panel:    rgba(12,16,22, 0.62);       <span class="c">/* Glass panel background */</span>
-  --hairline: rgba(245,241,232, 0.14);    <span class="c">/* Subtle borders */</span>
+  <span class="c">/* Màu sắc */</span>
+  --bg:       #0a0d12;                     <span class="c">/* Nền trang (xanh đen sậm) */</span>
+  --fg:       #f5f1e8;                     <span class="c">/* Text chính (trắng ấm) */</span>
+  --accent:   #e8c089;                     <span class="c">/* Vàng nhấn (nút, highlight) */</span>
+  --ok:       #7ad79a;                     <span class="c">/* Thành công / còn hàng */</span>
+  --danger:   #ff6b6b;                     <span class="c">/* Lỗi / đã bán */</span>
+  --panel:    rgba(12,16,22, 0.62);       <span class="c">/* Nền glass cho panel */</span>
+  --hairline: rgba(245,241,232, 0.14);    <span class="c">/* Viền mỏng */</span>
 
   <span class="c">/* Typography */</span>
   --font-display: <span class="str">'Cormorant Garamond'</span>, serif;
   --font-sans:    <span class="str">'Inter'</span>, sans-serif;
   --font-mono:    <span class="str">'JetBrains Mono'</span>, monospace;
 
-  <span class="c">/* Spacing */</span>
+  <span class="c">/* Khoảng cách */</span>
   --gap: 1rem;    --gap2: 2rem;
 
-  <span class="c">/* Radius */</span>
+  <span class="c">/* Bo góc */</span>
   --r: 8px;       --r2: 16px;
 
-  <span class="c">/* Transition */</span>
+  <span class="c">/* Chuyển động */</span>
   --t: 0.25s ease;
 }</pre>
 
-    <h3>Typography Scale</h3>
+    <h3>Thang Typography</h3>
     <table>
-      <thead><tr><th>Role</th><th>Font</th><th>Size</th></tr></thead>
+      <thead><tr><th>Vai Trò</th><th>Font</th><th>Kích Thước</th></tr></thead>
       <tbody>
-        <tr><td>Hero / Brand</td><td>Cormorant Garamond 600</td><td>2.4rem</td></tr>
-        <tr><td>Heading 1</td><td>Cormorant Garamond 600</td><td>1.8rem</td></tr>
-        <tr><td>Heading 2</td><td>Cormorant Garamond 500</td><td>1.4rem</td></tr>
-        <tr><td>Body</td><td>Inter 400</td><td>0.875rem</td></tr>
-        <tr><td>Label / Caption</td><td>Inter 500</td><td>0.75rem</td></tr>
-        <tr><td>Price</td><td>Cormorant Garamond 700</td><td>2rem</td></tr>
-        <tr><td>Code / Data</td><td>JetBrains Mono 400</td><td>0.8rem</td></tr>
+        <tr><td>Hero / Brand</td><td>Cormorant Garamond 600</td><td>2,4rem</td></tr>
+        <tr><td>Heading 1</td><td>Cormorant Garamond 600</td><td>1,8rem</td></tr>
+        <tr><td>Heading 2</td><td>Cormorant Garamond 500</td><td>1,4rem</td></tr>
+        <tr><td>Body</td><td>Inter 400</td><td>0,875rem</td></tr>
+        <tr><td>Label / Caption</td><td>Inter 500</td><td>0,75rem</td></tr>
+        <tr><td>Giá</td><td>Cormorant Garamond 700</td><td>2rem</td></tr>
+        <tr><td>Code / Data</td><td>JetBrains Mono 400</td><td>0,8rem</td></tr>
       </tbody>
     </table>
   </section>
 
   <!-- ═══ 11. Architecture ══════════════════════════════ -->
   <section id="arch">
-    <h2 data-num="11">Module Architecture</h2>
+    <h2 data-num="11">Kiến Trúc Module</h2>
 
-    <h3>Dependency Graph</h3>
+    <h3>Sơ Đồ Phụ Thuộc</h3>
     <pre>window.I18n    ← i18n.js
 window.VR360   ← vr360.js
-window.AiPanel ← ai-panel.js  (uses I18n)
-main.js        ← depends on I18n, VR360, AiPanel
-                  loads data/project.json
-mobile-stepper.js ← independent IIFE (uses I18n, listens to langchange)
-mobilePatch()     ← inlined in index.html &lt;script&gt;, runs after DOMContentLoaded</pre>
+window.AiPanel ← ai-panel.js  (dùng I18n)
+main.js        ← phụ thuộc I18n, VR360, AiPanel
+                  tải data/project.json
+mobile-stepper.js ← IIFE độc lập (dùng I18n, lắng nghe langchange)
+mobilePatch()     ← inline trong &lt;script&gt; của index.html, chạy sau DOMContentLoaded</pre>
 
-    <h3>Boot Sequence</h3>
+    <h3>Trình Tự Khởi Động</h3>
     <pre><span class="fn">DOMContentLoaded</span>
   └── <span class="fn">boot</span>()
         ├── <span class="fn">fetch</span>(<span class="str">'data/project.json'</span>)
@@ -995,52 +1029,204 @@ mobilePatch()     ← inlined in index.html &lt;script&gt;, runs after DOMConten
         ├── <span class="fn">startCountdown</span>(meta.promoDeadline)
         ├── <span class="fn">bindSmartHide</span>()
         ├── <span class="fn">AiPanel.init</span>()
-        └── <span class="fn">startUrgencyToasts</span>()  <span class="c">← delayed 30s</span></pre>
+        └── <span class="fn">startUrgencyToasts</span>()  <span class="c">← trễ 30 giây</span></pre>
   </section>
 
   <!-- ═══ 12. Limitations ═══════════════════════════════ -->
   <section id="limits">
-    <h2 data-num="12">Known Limitations</h2>
+    <h2 data-num="12">Giới Hạn Hiện Tại</h2>
     <table>
-      <thead><tr><th>Issue</th><th>Impact</th><th>Mitigation</th></tr></thead>
+      <thead><tr><th>Vấn Đề</th><th>Ảnh Hưởng</th><th>Hướng Khắc Phục</th></tr></thead>
       <tbody>
-        <tr><td>No backend</td><td>Forms not persisted</td><td>Stub for CRM integration</td></tr>
-        <tr><td>Procedural panoramas</td><td>Not real project photos</td><td>Replace with actual 360° images</td></tr>
-        <tr><td>AI chat stub</td><td>Not a real AI</td><td>Integrate Claude / OpenAI API</td></tr>
-        <tr><td>Voice: Firefox/Safari</td><td>STT unreliable</td><td>Graceful fallback to text</td></tr>
-        <tr><td>No URL routing</td><td>No deep links to scenes</td><td>Add URL hash routing</td></tr>
-        <tr><td>No analytics</td><td>No visitor tracking</td><td>Add GA4 or Mixpanel</td></tr>
-        <tr><td>sessionStorage</td><td>Language lost on close</td><td>Switch to localStorage</td></tr>
-        <tr><td>Single JSON file</td><td>All data loaded upfront</td><td>Split for performance</td></tr>
-        <tr><td>No CDN</td><td>Direct image serving</td><td>Add CDN for production</td></tr>
-        <tr><td>No SSR</td><td>Poor initial SEO</td><td>Add OG meta tags</td></tr>
+        <tr><td>Không có backend</td><td>Form không được lưu</td><td>Stub để tích hợp CRM</td></tr>
+        <tr><td>Panorama tự sinh</td><td>Không phải ảnh thật của dự án</td><td>Thay bằng ảnh 360° thực tế</td></tr>
+        <tr><td>AI chat dạng stub</td><td>Chưa phải AI thật</td><td>Tích hợp Claude / OpenAI API</td></tr>
+        <tr><td>Giọng nói: Firefox/Safari</td><td>STT không ổn định</td><td>Quay về chế độ text</td></tr>
+        <tr><td>Không có URL routing</td><td>Không deep-link được tới cảnh</td><td>Thêm routing qua hash URL</td></tr>
+        <tr><td>Không có analytics</td><td>Không đo lường được visitor</td><td>Thêm GA4 hoặc Mixpanel</td></tr>
+        <tr><td>sessionStorage</td><td>Mất ngôn ngữ khi đóng tab</td><td>Đổi sang localStorage</td></tr>
+        <tr><td>Một file JSON duy nhất</td><td>Tải toàn bộ ngay từ đầu</td><td>Tách nhỏ để tối ưu</td></tr>
+        <tr><td>Không có CDN</td><td>Phục vụ ảnh trực tiếp</td><td>Thêm CDN cho production</td></tr>
+        <tr><td>Không có SSR</td><td>SEO khởi tạo kém</td><td>Thêm meta OG</td></tr>
       </tbody>
     </table>
   </section>
 
-  <!-- ═══ 13. Changelog ════════════════════════════════ -->
-  <section id="changelog">
-    <h2 data-num="13">Changelog</h2>
+  <!-- ═══ 13. Admin Dashboard ═══════════════════════════ -->
+  <section id="admin">
+    <h2 data-num="13">Trang Quản Trị (Admin)</h2>
+    <p>CMS nội bộ + workspace cho sales, đặt tại <code>/admin/</code>. Hai vai trò, đăng nhập mock, không có backend — mọi thay đổi lưu vào <code>localStorage</code>.</p>
 
-    <h3>v1.1 — 2026-05-14</h3>
+    <h3>Đăng Nhập & Điểm Vào</h3>
     <table>
-      <thead><tr><th>Area</th><th>Change</th></tr></thead>
+      <thead><tr><th>Trang</th><th>Mục Đích</th><th>Cơ Chế Bảo Vệ</th></tr></thead>
+      <tbody>
+        <tr><td><code>admin/index.html</code></td><td>Màn hình đăng nhập (mock — đối chiếu username/password với <code>USERS[]</code> trong file)</td><td>Nếu đã đăng nhập → tự chuyển sang trang theo vai trò</td></tr>
+        <tr><td><code>admin/owner.html</code></td><td>Workspace Chủ Đầu Tư (CMS đầy đủ)</td><td>IIFE inline kiểm tra <code>sessionStorage.ah_session.role === 'owner'</code>, nếu sai thì redirect về login</td></tr>
+        <tr><td><code>admin/sales.html</code></td><td>Workspace Sales</td><td>Cùng cơ chế, <code>role === 'sales'</code></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Tài Khoản Demo</h3>
+    <table>
+      <thead><tr><th>Vai Trò</th><th>Tên Đăng Nhập</th><th>Mật Khẩu</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge-info">owner</span></td><td><code>admin</code></td><td><code>aurora@2025</code></td></tr>
+        <tr><td><span class="badge-ok">sales</span></td><td><code>sales</code> / <code>sales2</code></td><td><code>sales@2025</code></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Thành Phần Layout Dùng Chung</h3>
+    <table>
+      <thead><tr><th>Phần Tử</th><th>Vai Trò</th></tr></thead>
+      <tbody>
+        <tr><td><code>#sidebar</code></td><td>Thanh nav trái với nhãn section + nav-item (thuộc tính <code>data-p</code> → key trang)</td></tr>
+        <tr><td><code>#topbar</code></td><td>Tiêu đề · thông báo · pill người dùng · đăng xuất. Trang Owner có thêm nút "Preview VR" mở FE trong slide panel.</td></tr>
+        <tr><td><code>#main</code></td><td>Chứa mỗi nav-item một <code>.page#p-{key}</code> — nội dung render theo nhu cầu qua <code>render()</code>.</td></tr>
+        <tr><td><code>.slide-panel</code></td><td>Drawer chỉnh sửa bên phải (<code>showPanel(title, html, onSave)</code> / <code>closePanel()</code>).</td></tr>
+        <tr><td><code>.modal-backdrop</code></td><td>Modal xác nhận cho hành động xoá (<code>confirmDel(title, sub, onOk)</code>).</td></tr>
+        <tr><td><code>#toast-wrap</code></td><td>Ngăn xếp toast ở đáy (<code>toast(msg, type)</code>).</td></tr>
+      </tbody>
+    </table>
+
+    <section id="admin-owner">
+    <h3>13.1 Module Chủ Đầu Tư (Owner)</h3>
+    <p>File: <code>admin/owner.html</code> + <code>admin/js/admin.js</code> (2.123 dòng) + <code>admin/js/admin-content.js</code> (814 dòng).</p>
+    <table>
+      <thead><tr><th>Key Trang</th><th>Nhãn Sidebar</th><th>Chức Năng</th></tr></thead>
+      <tbody>
+        <tr><td><code>overview</code></td><td>Tổng Quan</td><td>Thẻ KPI · biểu đồ visitor theo giờ · biểu đồ độ phổ biến của cảnh (Chart.js)</td></tr>
+        <tr><td><code>units</code></td><td>Căn Hộ</td><td>Bảng inventory · lọc theo trạng thái/loại · thêm/sửa/xoá căn · thống kê tổng quan</td></tr>
+        <tr><td><code>leads</code></td><td>Leads &amp; Booking</td><td>Danh sách lead (trạng thái, combobox nguồn, xuất CSV) · Booking xem theo tuần/list với lưới lịch</td></tr>
+        <tr><td><code>navpanel</code></td><td>Danh Sách VR</td><td>Sửa nhóm menu + card · kéo thả sắp xếp (<code>initNpDrag</code>) · tự điền liên kết cảnh</td></tr>
+        <tr><td><code>gallery</code></td><td>Thư Viện Ảnh</td><td>Lưới ảnh · kéo thả sắp xếp · vùng thả ảnh (URL hoặc base64, có giới hạn dung lượng)</td></tr>
+        <tr><td><code>sitemap</code></td><td>Bản Đồ 2D</td><td>Chọn ảnh nền · click canvas để thêm điểm · kéo điểm để chỉnh vị trí · gán cảnh</td></tr>
+        <tr><td><code>amenities</code></td><td>Tiện Ích</td><td>Card tiện ích nhanh (project.amenities) + 4 nhóm chi tiết (noiKhu/skyAmenity/dichVu/haTang)</td></tr>
+        <tr><td><code>timeline</code></td><td>Tiến Độ XD</td><td>Danh sách giai đoạn · trạng thái (done/active/upcoming) · kéo thả sắp xếp</td></tr>
+        <tr><td><code>legal</code></td><td>Pháp Lý</td><td>Các phần: developerStats · documents · banks · testimonials — đều CRUD được</td></tr>
+        <tr><td><code>location</code></td><td>Vị Trí &amp; POI</td><td>Lat/lng + src nhúng Google Maps · danh sách POI (trường học/bệnh viện/TTTM/giao thông/giải trí)</td></tr>
+        <tr><td><code>i18n</code></td><td>Ngôn Ngữ &amp; i18n</td><td>Bảng dịch mock theo từng ngôn ngữ · thêm/xoá ngôn ngữ</td></tr>
+        <tr><td><code>theme</code></td><td>Giao Diện &amp; Theme</td><td>Trình sửa token màu · 4 preset (Aurora mặc định + biến thể) · xuất ra CSS hoặc JSON</td></tr>
+        <tr><td><code>analytics</code></td><td>Analytics</td><td>Trang phân tích dạng tab với Chart.js (mock)</td></tr>
+        <tr><td><code>settings</code></td><td>Cài Đặt</td><td>Hồ sơ dự án · người dùng · backup (xuất/nhập JSON) · reset dữ liệu</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Các Nhóm Sidebar Của Owner</h4>
+    <pre>Quản Lý       → overview · units · leads
+Nội Dung VR   → navpanel · gallery · sitemap · amenities · timeline · legal · location · i18n
+Hệ Thống      → theme · analytics · settings</pre>
+    </section>
+
+    <section id="admin-sales">
+    <h3>13.2 Module Sales</h3>
+    <p>File: <code>admin/sales.js</code> (963 dòng). Dùng chung <code>admin.css</code> nhưng độc lập về logic.</p>
+    <table>
+      <thead><tr><th>Key Trang</th><th>Nhãn Sidebar</th><th>Chức Năng</th></tr></thead>
+      <tbody>
+        <tr><td><code>dashboard</code></td><td>Dashboard</td><td>Thẻ KPI cá nhân (lead mới/đang xử lý/đã chốt, lịch hẹn sắp tới)</td></tr>
+        <tr><td><code>leads</code></td><td>Leads &amp; Booking</td><td>CRUD lead với combobox nguồn · xoay nhanh trạng thái (<code>STATUS_CYCLE</code>) · panel đặt lịch hẹn</td></tr>
+        <tr><td><code>calendar</code></td><td>Lịch Hẹn</td><td>Xem theo tuần / list · điều hướng theo tuần · phím tắt về Hôm Nay</td></tr>
+        <tr><td><code>units</code></td><td>Tình Trạng Căn Hộ</td><td>Inventory chỉ đọc (badge còn hàng/đã đặt cọc/đã bán)</td></tr>
+        <tr><td><code>vr</code></td><td>Tour VR360</td><td>Mở FE trong slide panel qua <code>vrLink(sceneId)</code> để demo cho khách</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Từ Vựng Lead / Booking (Dùng Chung)</h4>
+    <table>
+      <thead><tr><th>Hằng Số</th><th>Giá Trị</th></tr></thead>
+      <tbody>
+        <tr><td><code>LEAD_STATUS</code></td><td>new · called · interested · closed · stopped</td></tr>
+        <tr><td><code>BOOKING_STATUS</code></td><td>pending · confirmed · done · cancelled</td></tr>
+        <tr><td><code>BOOKING_TYPES</code></td><td>Xem nhà mẫu · Tư vấn tại VP · Xem VR online · Khác</td></tr>
+        <tr><td><code>SOURCE_GROUPS</code></td><td>Online (Facebook · Zalo · Google · Website · TikTok) · Offline (Hotline · Walk-in · Sự kiện · Giới thiệu)</td></tr>
+      </tbody>
+    </table>
+    </section>
+
+    <section id="admin-storage">
+    <h3>13.3 Mô Hình Lưu Trữ</h3>
+    <p>Trang admin không gọi backend. Trạng thái đăng nhập nằm trong <code>sessionStorage</code>; mọi dữ liệu khác phản chiếu vào <code>localStorage</code>.</p>
+    <table>
+      <thead><tr><th>Key</th><th>Phạm Vi</th><th>Nội Dung</th></tr></thead>
+      <tbody>
+        <tr><td><code>ah_session</code></td><td>sessionStorage</td><td><code>{ role, name, title, username, loginAt }</code> — set khi login, được IIFE bảo vệ kiểm tra ở mỗi trang admin</td></tr>
+        <tr><td><code>ah_admin_data</code></td><td>localStorage</td><td>Bản sao có thể chỉnh sửa của <code>data/project.json</code> — khởi tạo bằng cách fetch JSON tĩnh ở lần đầu (<code>getFallbackData()</code>), sau đó được mọi thao tác CRUD cập nhật trực tiếp</td></tr>
+        <tr><td>Lead / booking mock</td><td>Bộ nhớ (<code>S.leads</code>, <code>S.bookings</code>)</td><td>Khởi tạo bởi <code>getMockLeads()</code> / <code>getMockBookings()</code> — không lưu khi reload</td></tr>
+      </tbody>
+    </table>
+    <div class="callout warn">
+      <strong>Ranh giới lưu trữ</strong>
+      FE (<code>index.html</code>) luôn tải <code>data/project.json</code> qua mạng — các thay đổi của Owner lưu vào <code>localStorage</code> <em>không</em> phản ánh lên trang public. Muốn publish thì phải có backend hoặc bước build.
+    </div>
+
+    <h4>Thư Viện Ngoài</h4>
+    <table>
+      <thead><tr><th>Thư Viện</th><th>Được Tải Bởi</th><th>Mục Đích</th></tr></thead>
+      <tbody>
+        <tr><td>Chart.js 4.4.0 (CDN)</td><td><code>owner.html</code>, <code>sales.html</code></td><td>Biểu đồ tổng quan / analytics / dashboard</td></tr>
+        <tr><td>Google Fonts (Inter + JetBrains Mono)</td><td>Mọi trang admin</td><td>Typography admin</td></tr>
+      </tbody>
+    </table>
+    </section>
+
+    <h3>Công Việc Còn Tồn Đọng</h3>
+    <p>Lưu trong <code>note để hôm sau sửa.MD</code>:</p>
+    <table>
+      <thead><tr><th>#</th><th>Hạng Mục</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Sales · Lịch Hẹn — cho phép đổi trạng thái ngay khi click lịch hẹn, không cần quay về Leads &amp; Booking</td></tr>
+        <tr><td>2</td><td>Owner · i18n — start with Vietnamese only; expose an "Add language" button to scaffold a new language table on demand</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ═══ 14. Changelog ════════════════════════════════ -->
+  <section id="changelog">
+    <h2 data-num="14">Nhật Ký Thay Đổi</h2>
+
+    <h3>v1.2 — 16-05-2026</h3>
+    <table class="table-changelog">
+      <thead><tr><th>Hạng Mục</th><th>Thay Đổi</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><span class="badge-ok">Tính năng</span></td>
+          <td><strong>Hoàn thiện trang quản trị</strong> — bổ sung thư mục <code>/admin/</code> với màn hình đăng nhập (<code>index.html</code>), workspace Chủ Đầu Tư (<code>owner.html</code> + <code>admin.js</code> + <code>admin-content.js</code>) và workspace Sales (<code>sales.html</code> + <code>sales.js</code>). Hai vai trò mock (owner/sales) được bảo vệ bằng IIFE kiểm tra session storage. Cho phép CRUD toàn bộ JSON dự án qua form slide-panel, lưu vào <code>localStorage</code> dưới key <code>ah_admin_data</code>. Dùng Chart.js cho biểu đồ tổng quan / analytics / độ phổ biến của cảnh.</td>
+        </tr>
+        <tr>
+          <td><span class="badge-info">Tài liệu</span></td>
+          <td><strong>Cập nhật mô hình dữ liệu</strong> — key gốc đã khớp với JSON thực tế: <code>project</code> (không phải <code>meta</code>; chứa <code>amenities</code> + <code>stats</code>), <code>menu</code> (không phải <code>menuGroups</code>), <code>floorplan.units</code> (không phải <code>floorplanUnits</code>), <code>siteMap.{image,points}</code> (không phải <code>siteMapPoints</code>). Bảng căn hộ thay bằng inventory 9 căn thực tế (2PN / 2PN+1 / 3PN / Duplex; trạng thái: <em>còn hàng</em>/<em>đang giữ chỗ</em>/<em>đã bán</em>).</td>
+        </tr>
+        <tr>
+          <td><span class="badge-info">Tài liệu</span></td>
+          <td>Đã cập nhật số dòng: <code>index.html</code> 1.351 · <code>main.js</code> 1.784 · <code>style.css</code> 3.816 · cùng các con số của admin. Bổ sung <code>img/Icon_of_Zalo.svg</code> vào cây thư mục. Thêm danh sách công việc còn tồn đọng lấy từ <code>note để hôm sau sửa.MD</code>.</td>
+        </tr>
+        <tr>
+          <td><span class="badge-ok">Việt hoá</span></td>
+          <td><strong>Việt hoá toàn bộ docs/index.html</strong> — toàn bộ tiêu đề, bảng, mô tả và changelog đã chuyển sang tiếng Việt; bổ sung liên kết tới 3 tài liệu hướng dẫn sử dụng mới (<code>huong-dan-khach.html</code>, <code>huong-dan-owner.html</code>, <code>huong-dan-sales.html</code>) trong sidebar.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>v1.1 — 14-05-2026</h3>
+    <table class="table-changelog">
+      <thead><tr><th>Hạng Mục</th><th>Thay Đổi</th></tr></thead>
       <tbody>
         <tr>
           <td><span class="badge-ok">i18n</span></td>
-          <td>Full i18n pass — all hardcoded Vietnamese strings in <code>index.html</code>, <code>main.js</code>, and <code>mobile-stepper.js</code> replaced with <code>I18n.t()</code> / <code>I18n.tr()</code> / <code>data-i18n</code> attributes. Added <code>data-i18n-html</code> support for elements with inner HTML (consent labels, success sub-text). Added 65+ new keys per language covering <code>modal.*</code>, <code>stepper.*</code>, <code>ui.*</code> namespaces. Added urgency toast strings to <code>DYNAMIC</code> table. <code>mobile-stepper.js</code> listens to <code>langchange</code> and re-renders dynamic content.</td>
+          <td>Hoàn thiện i18n — toàn bộ chuỗi tiếng Việt cứng trong <code>index.html</code>, <code>main.js</code> và <code>mobile-stepper.js</code> đã được thay bằng <code>I18n.t()</code> / <code>I18n.tr()</code> / thuộc tính <code>data-i18n</code>. Thêm hỗ trợ <code>data-i18n-html</code>, 65+ key mới cho mỗi ngôn ngữ và cơ chế re-render nội dung động qua sự kiện <code>langchange</code>.</td>
         </tr>
         <tr>
-          <td><span class="badge-err">Removed</span></td>
-          <td><code>css/mobile-overrides.css</code> and <code>js/mobile-patch.js</code> deleted — both were orphaned (no <code>&lt;link&gt;</code>/<code>&lt;script&gt;</code> references in <code>index.html</code>). Their functionality was already inlined: mobile CSS in an <code>index.html &lt;style&gt;</code> block, mobile JS in a <code>mobilePatch()</code> IIFE <code>&lt;script&gt;</code>.</td>
+          <td><span class="badge-err">Đã gỡ</span></td>
+          <td>Xoá <code>css/mobile-overrides.css</code> và <code>js/mobile-patch.js</code> — cả hai đều mồ côi. Toàn bộ chức năng đã được inline vào <code>index.html</code> (block <code>&lt;style&gt;</code> mobile + IIFE <code>mobilePatch()</code>).</td>
         </tr>
         <tr>
-          <td><span class="badge-ok">Fix</span></td>
-          <td><strong>Desktop project-card collapse/expand</strong> — added <code>#pc-expand</code> button to <code>index.html</code> (was styled in <code>style.css</code> but the element was missing from the DOM). Clicking <code>#pc-collapse</code> now correctly shows the expand button; clicking <code>#pc-expand</code> restores the full card. The element is hidden on mobile via <code>display: none !important</code>.</td>
+          <td><span class="badge-ok">Sửa lỗi</span></td>
+          <td><strong>Thu/mở project-card trên desktop</strong> — bổ sung phần tử <code>#pc-expand</code> bị thiếu trong DOM. Ẩn trên mobile bằng <code>display: none !important</code>.</td>
         </tr>
         <tr>
-          <td><span class="badge-ok">Feature</span></td>
-          <td><strong>Mobile help tour</strong> — tour now works on mobile. Each <code>HELP_ITEMS</code> entry carries <code>mobileTarget</code>, <code>openDrawer</code>, <code>openNav</code>, and <code>openPC</code> flags. <code>showTourStep()</code> opens the mobile drawer (420 ms delay), nav panel (380 ms), or project card (500 ms) as needed before measuring target rects. Desktop-only elements with no mobile equivalent (<code>#tb-ctrlgroup</code>) auto-skip via the existing zero-rect guard. <code>endTour()</code> closes the drawer.</td>
+          <td><span class="badge-ok">Tính năng</span></td>
+          <td><strong>Help Tour trên mobile</strong> — mỗi entry <code>HELP_ITEMS</code> mang thêm flag <code>mobileTarget</code>, <code>openDrawer</code>, <code>openNav</code>, <code>openPC</code>. Tự mở drawer (420 ms) / nav-panel (380 ms) / project-card (500 ms) trước khi đo toạ độ. Các phần tử chỉ có trên desktop sẽ tự bỏ qua nhờ kiểm tra rect rỗng.</td>
         </tr>
       </tbody>
     </table>
@@ -1048,7 +1234,7 @@ mobilePatch()     ← inlined in index.html &lt;script&gt;, runs after DOMConten
 
   <hr />
   <p style="color:var(--fg-muted);font-size:12px;text-align:center;padding-bottom:3rem">
-    Aurora Heights VR360 · Project Specification v1.1 · 2026-05-14
+    Aurora Heights VR360 · Đặc Tả Dự Án v1.2 · 16-05-2026
   </p>
 
 </main>
