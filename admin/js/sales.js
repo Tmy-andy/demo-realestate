@@ -193,14 +193,14 @@ async function loadData() {
 
 function getMockLeads() {
   return [
-    { id:1,  name:'Nguyễn Văn An',    phone:'0901234567', email:'an@gmail.com',    unitType:'3PN',        budget:'8–12 tỷ', purpose:'Ở thực',  timing:'Trong 3 tháng', source:'VR Web',      status:'new',        createdAt:'2026-05-15T08:30', assignee:'Sales A', notes:'',                       appt: null },
-    { id:2,  name:'Trần Thị Bích',    phone:'0912345678', email:'bich@gmail.com',  unitType:'2PN',        budget:'5–8 tỷ',  purpose:'Đầu tư',  timing:'Trong 6 tháng', source:'Zalo',        status:'called',     createdAt:'2026-05-14T14:00', assignee:'Sales B', notes:'Đã gọi lần 1',           appt: '2026-05-20T10:00' },
-    { id:3,  name:'Lê Minh Cường',    phone:'0923456789', email:'',               unitType:'Duplex 3PN', budget:'> 12 tỷ', purpose:'Ở thực',  timing:'Trong 1 tháng', source:'Giới thiệu',  status:'interested', createdAt:'2026-05-13T10:15', assignee:'Sales A', notes:'Khách VIP',              appt: '2026-05-17T14:30' },
-    { id:4,  name:'Phạm Thu Dung',    phone:'0934567890', email:'dung@mail.vn',   unitType:'3PN',        budget:'8–12 tỷ', purpose:'Cho thuê', timing:'Hơn 6 tháng', source:'Call',         status:'closed',     createdAt:'2026-05-12T16:00', assignee:'Sales C', notes:'Đã chốt căn A-3BR-104-35', appt: null },
-    { id:5,  name:'Hoàng Đức Em',     phone:'0945678901', email:'em@mail.com',    unitType:'2PN',        budget:'< 5 tỷ',  purpose:'Đầu tư',  timing:'Hơn 6 tháng', source:'VR Web',       status:'stopped',    createdAt:'2026-05-11T09:00', assignee:'Sales B', notes:'Không phù hợp ngân sách', appt: null },
-    { id:6,  name:'Vũ Thị Giang',     phone:'0956789012', email:'giang@vn.vn',   unitType:'3PN',        budget:'8–12 tỷ', purpose:'Ở thực',  timing:'Trong 3 tháng', source:'VR Web',       status:'new',        createdAt:'2026-05-15T10:00', assignee:'',       notes:'',                       appt: '2026-05-22T09:00' },
-    { id:7,  name:'Đoàn Quốc Hùng',   phone:'0967890123', email:'hung@corp.vn',  unitType:'2PN',        budget:'5–8 tỷ',  purpose:'Đầu tư',  timing:'Trong 3 tháng', source:'Giới thiệu',  status:'interested', createdAt:'2026-05-10T11:00', assignee:'Sales A', notes:'Cần xem căn mẫu',         appt: '2026-05-19T15:00' },
-    { id:8,  name:'Ngô Thanh Liêm',   phone:'0978901234', email:'liem@mail.com', unitType:'3PN',        budget:'8–12 tỷ', purpose:'Ở thực',  timing:'Trong 1 tháng', source:'Call',         status:'called',     createdAt:'2026-05-09T13:00', assignee:'Sales C', notes:'',                       appt: null },
+    { id:1,  name:'Nguyễn Văn An',    phone:'0901234567', email:'an@gmail.com',    zalo:'0901234567', unitType:'3PN',        budget:'8–12 tỷ', purpose:'Ở thực',  timing:'Trong 3 tháng', source:'VR Web',      status:'new',        createdAt:'2026-05-15T08:30', assignee:'Sales A', notes:'',                       appt: null },
+    { id:2,  name:'Trần Thị Bích',    phone:'0912345678', email:'bich@gmail.com',  zalo:'',           unitType:'2PN',        budget:'5–8 tỷ',  purpose:'Đầu tư',  timing:'Trong 6 tháng', source:'Zalo',        status:'called',     createdAt:'2026-05-14T14:00', assignee:'Sales B', notes:'Đã gọi lần 1',           appt: '2026-05-20T10:00' },
+    { id:3,  name:'Lê Minh Cường',    phone:'0923456789', email:'',               zalo:'0923456789', unitType:'Duplex 3PN', budget:'> 12 tỷ', purpose:'Ở thực',  timing:'Trong 1 tháng', source:'Giới thiệu',  status:'interested', createdAt:'2026-05-13T10:15', assignee:'Sales A', notes:'Khách VIP',              appt: '2026-05-17T14:30' },
+    { id:4,  name:'Phạm Thu Dung',    phone:'0934567890', email:'dung@mail.vn',   zalo:'0934567890', unitType:'3PN',        budget:'8–12 tỷ', purpose:'Cho thuê', timing:'Hơn 6 tháng', source:'Call',         status:'closed',     createdAt:'2026-05-12T16:00', assignee:'Sales C', notes:'Đã chốt căn A-3BR-104-35', appt: null },
+    { id:5,  name:'Hoàng Đức Em',     phone:'0945678901', email:'em@mail.com',    zalo:'',           unitType:'2PN',        budget:'< 5 tỷ',  purpose:'Đầu tư',  timing:'Hơn 6 tháng', source:'VR Web',       status:'stopped',    createdAt:'2026-05-11T09:00', assignee:'Sales B', notes:'Không phù hợp ngân sách', appt: null },
+    { id:6,  name:'Vũ Thị Giang',     phone:'0956789012', email:'giang@vn.vn',   zalo:'0956789012', unitType:'3PN',        budget:'8–12 tỷ', purpose:'Ở thực',  timing:'Trong 3 tháng', source:'VR Web',       status:'new',        createdAt:'2026-05-15T10:00', assignee:'',       notes:'',                       appt: '2026-05-22T09:00' },
+    { id:7,  name:'Đoàn Quốc Hùng',   phone:'0967890123', email:'hung@corp.vn',  zalo:'',           unitType:'2PN',        budget:'5–8 tỷ',  purpose:'Đầu tư',  timing:'Trong 3 tháng', source:'Giới thiệu',  status:'interested', createdAt:'2026-05-10T11:00', assignee:'Sales A', notes:'Cần xem căn mẫu',         appt: '2026-05-19T15:00' },
+    { id:8,  name:'Ngô Thanh Liêm',   phone:'0978901234', email:'liem@mail.com', zalo:'0978901234', unitType:'3PN',        budget:'8–12 tỷ', purpose:'Ở thực',  timing:'Trong 1 tháng', source:'Call',         status:'called',     createdAt:'2026-05-09T13:00', assignee:'Sales C', notes:'',                       appt: null },
   ];
 }
 
@@ -419,11 +419,15 @@ function leadRow(l, i) {
     <td><span class="badge ${SOURCE_BADGE[l.source]||'badge-muted'}">${l.source}</span></td>
     <td><span class="badge ${LEAD_BADGE[l.status]||'badge-muted'}">${LEAD_STATUS[l.status]||l.status}</span></td>
     <td>${apptDisplay}</td>
-    <td>
+    <td><div class="row-actions">
+      <a href="tel:${l.phone}" class="act-btn" title="Gọi điện">${ico('phone')}</a>
+      ${l.zalo
+        ? `<a href="https://zalo.me/${l.zalo}" target="_blank" class="act-btn act-btn-zalo" title="Mở Zalo"><img src="../img/Icon_of_Zalo.svg" alt="Zalo" width="14" height="14"></a>`
+        : `<span class="act-btn act-btn-zalo disabled" title="Chưa có Zalo" aria-disabled="true"><img src="../img/Icon_of_Zalo.svg" alt="Zalo" width="14" height="14"></span>`}
       <button class="act-btn" onclick="openEditLeadPanel(${l.id})" title="Sửa">${ico('edit')}</button>
       <button class="act-btn" onclick="quickStatus(${l.id})" title="Cập nhật trạng thái">${ico('refresh')}</button>
       <button class="act-btn" onclick="openApptPanel(${l.id})" title="Đặt lịch hẹn">${ico('calendar')}</button>
-    </td>
+    </div></td>
   </tr>`;
 }
 
@@ -572,20 +576,35 @@ function openApptPanel(id) {
       <input class="form-control" id="ap-dt" type="datetime-local" value="${current}">
     </div>
     <div class="form-group">
+      <label class="form-label">Trạng thái</label>
+      <select class="form-control" id="ap-status">
+        ${Object.entries(LEAD_STATUS).map(([k,v]) => `<option value="${k}" ${lead.status===k?'selected':''}>${v}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group">
       <label class="form-label">Ghi chú lịch hẹn</label>
       <textarea class="form-control" id="ap-note" rows="3" placeholder="Địa điểm, nội dung buổi gặp…">${lead.notes||''}</textarea>
     </div>
     ${current ? `<button class="btn btn-secondary btn-sm" onclick="clearAppt(${id})" style="margin-bottom:8px">${ico('trash')} Xoá lịch hẹn</button>` : ''}
   `, () => {
-    const dt   = document.getElementById('ap-dt').value;
-    const note = document.getElementById('ap-note').value.trim();
+    const dt     = document.getElementById('ap-dt').value;
+    const note   = document.getElementById('ap-note').value.trim();
+    const status = document.getElementById('ap-status').value;
     if (!dt) { toast('Chọn ngày giờ hẹn', 'warn'); return; }
     const idx = S.leads.findIndex(l => l.id === id);
-    S.leads[idx] = { ...lead, appt: dt, notes: note || lead.notes };
-    if (lead.status === 'new' || lead.status === 'called') S.leads[idx].status = 'called';
+    const statusChanged = status !== lead.status;
+    S.leads[idx] = { ...lead, appt: dt, notes: note || lead.notes, status };
+    if (!statusChanged && (lead.status === 'new' || lead.status === 'called')) {
+      S.leads[idx].status = 'called';
+    }
     closePanel();
-    render('leads', document.getElementById('p-leads'));
-    toast('Đã đặt lịch hẹn', 'ok');
+    const curPage = S.page || 'leads';
+    if (curPage === 'calendar') {
+      const c = document.getElementById('cal-card'); if (c) c.innerHTML = renderCalContent();
+    } else {
+      render('leads', document.getElementById('p-leads'));
+    }
+    toast(statusChanged ? `Đã cập nhật: ${LEAD_STATUS[status]}` : 'Đã đặt lịch hẹn', 'ok');
   });
 }
 
@@ -594,7 +613,11 @@ function clearAppt(id) {
   if (idx < 0) return;
   S.leads[idx].appt = null;
   closePanel();
-  render('leads', document.getElementById('p-leads'));
+  if ((S.page || 'leads') === 'calendar') {
+    const c = document.getElementById('cal-card'); if (c) c.innerHTML = renderCalContent();
+  } else {
+    render('leads', document.getElementById('p-leads'));
+  }
   toast('Đã xoá lịch hẹn', 'ok');
 }
 

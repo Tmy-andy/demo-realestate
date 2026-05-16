@@ -62,7 +62,8 @@ const S = {
   weekStart: null,
   analyticsTab: 'views',
   settingsTab: 'project',
-  i18nLang: 'EN',
+  i18nLang: 'VI',
+  i18nLangs: ['VI'],
   themeUnsaved: false,
   charts: {},
   dragSrc: null,
@@ -1542,19 +1543,79 @@ const i18n = {
   'ai.greeting':   { vi:'Xin chào! Tôi là trợ lý Aurora.', en:'Hello! I am Aurora assistant.', zh:'你好！我是Aurora助手。', ko:'' },
 };
 
+const I18N_LANG_NAMES = { VI:'Tiếng Việt', EN:'English', ZH:'中文', KO:'한국어', JA:'日本語', FR:'Français', DE:'Deutsch', ES:'Español', RU:'Русский', TH:'ไทย' };
+
+function addI18nLang() {
+  const existing = (S.i18nLangs || ['VI']).map(l => l.toUpperCase());
+  const choices = Object.keys(I18N_LANG_NAMES).filter(l => !existing.includes(l));
+  const opts = choices.map(l => `<option value="${l}">${l} — ${I18N_LANG_NAMES[l]}</option>`).join('');
+  showPanel('Thêm Ngôn Ngữ Mới', `
+    <div class="form-group">
+      <label class="form-label">Chọn ngôn ngữ có sẵn</label>
+      <select class="form-control" id="il-pick">
+        <option value="">— Chọn —</option>
+        ${opts}
+      </select>
+    </div>
+    <div style="text-align:center;color:var(--muted);font-size:12px;margin:8px 0">— hoặc —</div>
+    <div class="form-group">
+      <label class="form-label">Mã ngôn ngữ tuỳ chỉnh (2-3 ký tự)</label>
+      <input class="form-control" id="il-code" placeholder="VD: IT, PT, AR" maxlength="3">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Tên hiển thị (tuỳ chọn)</label>
+      <input class="form-control" id="il-name" placeholder="VD: Italiano">
+    </div>
+  `, () => {
+    const pick = document.getElementById('il-pick').value;
+    const code = (document.getElementById('il-code').value || '').trim().toUpperCase();
+    const name = document.getElementById('il-name').value.trim();
+    const lang = pick || code;
+    if (!lang) { toast('Chọn hoặc nhập mã ngôn ngữ', 'warn'); return; }
+    if ((S.i18nLangs || []).includes(lang)) { toast('Ngôn ngữ đã tồn tại', 'warn'); return; }
+    S.i18nLangs = [...(S.i18nLangs || ['VI']), lang];
+    if (name && !I18N_LANG_NAMES[lang]) I18N_LANG_NAMES[lang] = name;
+    const lk = lang.toLowerCase();
+    Object.values(i18n).forEach(vals => { if (!(lk in vals)) vals[lk] = ''; });
+    S.i18nLang = lang;
+    closePanel();
+    render('i18n', document.getElementById('p-i18n'));
+    toast(`Đã thêm ngôn ngữ ${lang}`, 'ok');
+  });
+}
+
+function removeI18nLang(lang) {
+  if (lang === 'VI') { toast('Không thể xoá ngôn ngữ gốc', 'warn'); return; }
+  confirmDel(`Xoá ngôn ngữ ${lang}?`, 'Toàn bộ bản dịch của ngôn ngữ này sẽ bị xoá.', () => {
+    S.i18nLangs = (S.i18nLangs || ['VI']).filter(l => l !== lang);
+    const lk = lang.toLowerCase();
+    Object.values(i18n).forEach(vals => { delete vals[lk]; });
+    if (S.i18nLang === lang) S.i18nLang = 'VI';
+    render('i18n', document.getElementById('p-i18n'));
+    toast(`Đã xoá ngôn ngữ ${lang}`, 'ok');
+  });
+}
+
 function renderI18n(el) {
+  if (!S.i18nLangs || !S.i18nLangs.length) S.i18nLangs = ['VI'];
+  if (!S.i18nLangs.includes(S.i18nLang)) S.i18nLang = 'VI';
   const lang = S.i18nLang;
   const lk   = lang.toLowerCase();
   el.innerHTML = `
     <div class="ph">
       <div class="ph-left"><div class="breadcrumb"><span>Dashboard</span> / Ngôn Ngữ</div><h1>Quản Lý Ngôn Ngữ & i18n</h1></div>
       <div class="btn-group">
+        <button class="btn btn-primary btn-sm" onclick="addI18nLang()">+ Thêm ngôn ngữ mới</button>
         <button class="btn btn-secondary btn-sm" onclick="toast('Đang dịch tự động…','info')">${ico('refresh',14)} Auto-translate thiếu</button>
         <button class="btn btn-secondary btn-sm" onclick="toast('Đang xuất JSON…','info')">${ico('download')} Export JSON</button>
       </div>
     </div>
     <div class="tabs">
-      ${['VI','EN','ZH','KO','JA'].map(l=>`<div class="tab ${lang===l?'active':''}" onclick="S.i18nLang='${l}';render('i18n',document.getElementById('p-i18n'))">${l}</div>`).join('')}
+      ${S.i18nLangs.map(l => `
+        <div class="tab ${lang===l?'active':''}" onclick="S.i18nLang='${l}';render('i18n',document.getElementById('p-i18n'))" title="${I18N_LANG_NAMES[l]||l}">
+          ${l}${l!=='VI' ? ` <span style="margin-left:6px;opacity:.55;cursor:pointer" onclick="event.stopPropagation();removeI18nLang('${l}')" title="Xoá">×</span>` : ''}
+        </div>
+      `).join('')}
     </div>
     <div class="card">
       <div class="table-wrap">
