@@ -2,24 +2,34 @@
 
 > Trang bán hàng bất động sản tương tác VR360 + hệ thống quản trị nội bộ — dự án căn hộ cao cấp **Aurora Heights** (Khu Tây Hồ Tây, Hà Nội).
 
-<!-- Trạng thái dự án -->
-![Status](https://img.shields.io/badge/status-production-success?style=flat-square)
-![Version](https://img.shields.io/badge/version-1.2-blue?style=flat-square)
-![Updated](https://img.shields.io/badge/cập_nhật-16--05--2026-lightgrey?style=flat-square)
-![Languages](https://img.shields.io/badge/i18n-VI%20·%20EN%20·%20ZH%20·%20KO%20·%20JA-orange?style=flat-square)
-![Responsive](https://img.shields.io/badge/responsive-desktop%20%2B%20mobile-9cf?style=flat-square)
-![Backend](https://img.shields.io/badge/backend-none%20(static%20JSON)-yellow?style=flat-square)
+<p align="center">
+  <!-- Dòng 1: Phiên bản & trạng thái -->
+  <img src="https://img.shields.io/badge/version-1.2-blue?style=flat-square" alt="Version" />
+  <img src="https://img.shields.io/badge/status-production-success?style=flat-square" alt="Status" />
+  <img src="https://img.shields.io/badge/cập_nhật-16--05--2026-lightgrey?style=flat-square" alt="Updated" />
+</p>
 
-<!-- Công nghệ sử dụng -->
-![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white)
-![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
-![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
-![Three.js](https://img.shields.io/badge/Three.js%20r128-000000?style=for-the-badge&logo=three.js&logoColor=white)
-![Chart.js](https://img.shields.io/badge/Chart.js%204.4-FF6384?style=for-the-badge&logo=chart.js&logoColor=white)
-![Web Speech API](https://img.shields.io/badge/Web%20Speech%20API-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white)
-![Google Fonts](https://img.shields.io/badge/Google%20Fonts-4285F4?style=for-the-badge&logo=googlefonts&logoColor=white)
+<p align="center">
+  <!-- Dòng 2: Đặc tính dự án -->
+  <img src="https://img.shields.io/badge/i18n-5_ngôn_ngữ-orange?style=flat-square" alt="i18n" />
+  <img src="https://img.shields.io/badge/responsive-desktop_%2B_mobile-9cf?style=flat-square" alt="Responsive" />
+  <img src="https://img.shields.io/badge/backend-none_(static_JSON)-yellow?style=flat-square" alt="Backend" />
+</p>
 
-**Phiên bản:** v1.2 · **Cập nhật:** 16-05-2026 · **Trạng thái:** Production
+<p align="center">
+  <!-- Dòng 3: Công nghệ lõi -->
+  <img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white" alt="HTML5" />
+  <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" alt="CSS3" />
+  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JavaScript" />
+</p>
+
+<p align="center">
+  <!-- Dòng 4: Thư viện & API -->
+  <img src="https://img.shields.io/badge/Three.js_r128-000000?style=for-the-badge&logo=three.js&logoColor=white" alt="Three.js" />
+  <img src="https://img.shields.io/badge/Chart.js_4.4-FF6384?style=for-the-badge&logo=chart.js&logoColor=white" alt="Chart.js" />
+  <img src="https://img.shields.io/badge/Web_Speech_API-4285F4?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Web Speech API" />
+  <img src="https://img.shields.io/badge/Google_Fonts-4285F4?style=for-the-badge&logo=googlefonts&logoColor=white" alt="Google Fonts" />
+</p>
 
 ---
 
