@@ -1867,6 +1867,129 @@ const mockUsers = [
   { name:'Phạm Dev',      email:'dev@aurora.vn',     role:'Developer',      status:'inactive', last:'2026-05-10 12:00' },
 ];
 
+/* ===== USER (Sales) MANAGEMENT ===== */
+function userAdd() {
+  const blank = { username: '', name: '', title: '', phone: '', zalo: '', facebook: '', email: '', avatar: '' };
+  userForm(blank, -1);
+}
+function userEdit(idx) {
+  const u = (S.data.sales || [])[idx];
+  if (!u) return;
+  userForm({ ...u }, idx);
+}
+function userDel(idx) {
+  const u = (S.data.sales || [])[idx];
+  if (!u) return;
+  confirmDel(
+    `Xoá nhân viên Sales <b>${esc(u.name||'')}</b>?`,
+    'Hành động này không thể hoàn tác.',
+    () => {
+      S.data.sales.splice(idx, 1);
+      saveData('Đã xoá nhân viên Sales');
+      render('settings', document.getElementById('p-settings'));
+    }
+  );
+}
+function userForm(u, idx) {
+  const isNew = idx < 0;
+  const body = `
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
+      <div id="u-avatar-prev" style="width:64px;height:64px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--muted);font-weight:700;font-size:20px">
+        ${u.avatar
+          ? `<img src="${esc(u.avatar)}" style="width:100%;height:100%;object-fit:cover">`
+          : esc((u.name||'?').trim().split(/\s+/).pop()[0] || '?')}
+      </div>
+      <div style="flex:1;min-width:0">
+        <div class="fw6" style="font-size:15px">${isNew ? 'Thêm nhân viên Sales' : esc(u.name||'')}</div>
+        <div class="c-muted" style="font-size:12px">${isNew ? 'Tạo tài khoản mới · login tại trang index' : 'Chỉnh sửa profile · hiển thị trên trang VR khi khách chọn liên hệ'}</div>
+      </div>
+    </div>
+
+    <div class="form-section">Tài khoản</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Username <span class="req">*</span></label>
+        <input class="form-control" id="u-username" value="${esc(u.username||'')}" placeholder="VD: sales" ${isNew?'':'readonly style="background:var(--surface2);color:var(--muted)"'}>
+        ${isNew ? '<small class="form-hint">Dùng để đăng nhập admin. Không đổi được sau khi tạo.</small>' : '<small class="form-hint c-muted">Username không thể chỉnh sửa.</small>'}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Họ và tên <span class="req">*</span></label>
+        <input class="form-control" id="u-name" value="${esc(u.name||'')}" placeholder="VD: Nguyễn Minh Anh">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Chức danh</label>
+      <input class="form-control" id="u-title" value="${esc(u.title||'')}" placeholder="VD: Chuyên viên tư vấn cao cấp">
+    </div>
+
+    <div class="form-section">Liên hệ</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Điện thoại</label>
+        <input class="form-control" id="u-phone" value="${esc(u.phone||'')}" placeholder="VD: 0911 222 333">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Zalo</label>
+        <input class="form-control" id="u-zalo" value="${esc(u.zalo||'')}" placeholder="VD: 0911222333">
+        <small class="form-hint">Số Zalo (không có dấu cách)</small>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input class="form-control" type="email" id="u-email" value="${esc(u.email||'')}" placeholder="ten@auroraheights.vn">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Facebook URL</label>
+      <input class="form-control" type="url" id="u-facebook" value="${esc(u.facebook||'')}" placeholder="https://facebook.com/...">
+    </div>
+
+    <div class="form-section">Ảnh đại diện</div>
+    ${imageField('u-avatar', 'Avatar', u.avatar||'')}
+  `;
+  showPanel(isNew ? 'Thêm nhân viên Sales' : 'Sửa thông tin Sales', body, () => userSave(idx));
+}
+
+function userSave(idx) {
+  const g = id => (document.getElementById(id)?.value || '').trim();
+  const isNew = idx < 0;
+
+  const username = g('u-username').toLowerCase();
+  const name = g('u-name');
+  if (!username) { toast('Vui lòng nhập Username', 'warn'); return; }
+  if (!name)     { toast('Vui lòng nhập Họ và tên', 'warn'); return; }
+  if (!/^[a-z0-9_.-]+$/.test(username)) { toast('Username chỉ dùng a-z, 0-9, _ . -', 'warn'); return; }
+
+  S.data.sales = S.data.sales || [];
+  if (isNew && S.data.sales.some(s => (s.username||'').toLowerCase() === username)) {
+    toast('Username đã tồn tại', 'err'); return;
+  }
+
+  const payload = {
+    username,
+    name,
+    title:    g('u-title'),
+    phone:    g('u-phone'),
+    zalo:     g('u-zalo'),
+    facebook: g('u-facebook'),
+    email:    g('u-email'),
+    avatar:   (document.getElementById('u-avatar-val')?.value || '').trim()
+  };
+
+  if (isNew) S.data.sales.push(payload);
+  else {
+    // Keep username immutable on edit
+    payload.username = S.data.sales[idx].username;
+    S.data.sales[idx] = payload;
+  }
+
+  closePanel();
+  saveData(isNew ? 'Đã thêm nhân viên Sales' : 'Đã cập nhật thông tin Sales');
+  render('settings', document.getElementById('p-settings'));
+}
+
 function renderSettings(el) {
   const p = proj();
   el.innerHTML = `
@@ -1875,7 +1998,7 @@ function renderSettings(el) {
     </div>
     <div class="vtab-layout">
       <div class="vtabs">
-        ${[['project',`${ico('hardhat',14)} Dự án`],['social',`${ico('link',14)} Mạng xã hội`],['api',`${ico('plug',14)} API & Tích hợp`],['users',`${ico('users',14)} Người dùng`],['backup',`${ico('harddrive',14)} Backup`]].map(([id,l])=>`
+        ${[['project',`${ico('hardhat',14)} Dự án`],['api',`${ico('plug',14)} API & Tích hợp`],['users',`${ico('users',14)} Người dùng`],['backup',`${ico('harddrive',14)} Backup`]].map(([id,l])=>`
           <div class="vtab ${S.settingsTab===id?'active':''}" onclick="S.settingsTab='${id}';render('settings',document.getElementById('p-settings'))">${l}</div>`).join('')}
       </div>
       <div class="vtab-content">${settingsTabHTML(p)}</div>
@@ -1884,6 +2007,8 @@ function renderSettings(el) {
 }
 
 function settingsTabHTML(p) {
+  const VALID_TABS = ['project','api','users','backup'];
+  if (!VALID_TABS.includes(S.settingsTab)) S.settingsTab = 'project';
   const t = S.settingsTab;
   if (t==='project') return `
     <div class="card" style="margin-bottom:16px">
@@ -1973,32 +2098,48 @@ function settingsTabHTML(p) {
         <div style="display:flex;justify-content:flex-end"><button class="btn btn-primary" onclick="toast('Đã lưu cài đặt API','ok')">${ico('save')} Lưu</button></div>
       </div>
     </div>`;
-  if (t==='users') return `
+  if (t==='users') {
+    const salesList = (S.data && S.data.sales) ? S.data.sales : [];
+    return `
     <div class="card">
       <div class="card-header">
         <span class="card-title">Quản Lý Người Dùng</span>
-        <button class="btn btn-primary btn-sm" onclick="toast('Tính năng sắp ra mắt','info')">+ Thêm User</button>
+        <button class="btn btn-primary btn-sm" onclick="userAdd()">${ico('plus')} Thêm Sales</button>
       </div>
-      <div class="table-wrap">
+      <div class="tbl-wrap">
         <table class="tbl">
-          <thead><tr><th>Người dùng</th><th>Email</th><th>Role</th><th>Trạng thái</th><th>Đăng nhập cuối</th><th>Thao tác</th></tr></thead>
+          <thead><tr>
+            <th>Sales</th><th>Username</th><th>Chức danh</th><th>Điện thoại</th><th>Zalo</th><th>Email</th><th>Facebook</th><th>Thao tác</th>
+          </tr></thead>
           <tbody>
-            ${mockUsers.map(u=>`<tr>
-              <td><div style="display:flex;align-items:center;gap:10px"><div class="user-av">${u.name.split(' ').pop()[0]}</div><span class="fw6">${u.name}</span></div></td>
-              <td class="mono c-muted" style="font-size:12px">${u.email}</td>
-              <td><span class="badge badge-primary">${u.role}</span></td>
-              <td><span class="badge ${u.status==='active'?'badge-ok':'badge-muted'}">${u.status==='active'?'Active':'Inactive'}</span></td>
-              <td class="c-muted">${u.last}</td>
-              <td><div class="row-actions">
-                <button class="act-btn" onclick="toast('Mở form sửa user','info')">${ico('edit')}</button>
-                <button class="act-btn" onclick="toast('Đặt lại mật khẩu','info')">${ico('key')}</button>
-                <button class="act-btn danger" onclick="toast('Đã vô hiệu hóa','warn')">${ico('ban')}</button>
-              </div></td>
-            </tr>`).join('')}
+            ${salesList.length === 0 ? `
+              <tr><td colspan="8" style="text-align:center;padding:32px;color:var(--muted)">Chưa có nhân viên Sales nào. Bấm <b>+ Thêm Sales</b> để bắt đầu.</td></tr>
+            ` : salesList.map((u,i)=>`
+              <tr>
+                <td>
+                  <div style="display:flex;align-items:center;gap:10px">
+                    ${u.avatar
+                      ? `<img src="${esc(u.avatar)}" alt="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0">`
+                      : `<div class="user-av">${esc((u.name||'?').trim().split(/\\s+/).pop()[0])}</div>`}
+                    <span class="fw6">${esc(u.name||'(chưa đặt tên)')}</span>
+                  </div>
+                </td>
+                <td class="mono" style="font-size:12px">${esc(u.username||'')}</td>
+                <td class="c-muted">${esc(u.title||'')}</td>
+                <td class="mono" style="font-size:12px">${esc(u.phone||'')}</td>
+                <td class="mono" style="font-size:12px">${esc(u.zalo||'')}</td>
+                <td class="mono c-muted" style="font-size:12px">${esc(u.email||'')}</td>
+                <td style="font-size:12px">${u.facebook ? `<a class="link" href="${esc(u.facebook)}" target="_blank" rel="noopener">${ico('link',12)} Facebook</a>` : '<span class="c-muted">—</span>'}</td>
+                <td><div class="row-actions">
+                  <button class="act-btn" title="Sửa thông tin" onclick="userEdit(${i})">${ico('edit')}</button>
+                  <button class="act-btn danger" title="Xoá" onclick="userDel(${i})">${ico('trash')}</button>
+                </div></td>
+              </tr>`).join('')}
           </tbody>
         </table>
       </div>
     </div>`;
+  }
   return `
     <div class="card">
       <div class="card-header"><span class="card-title">Backup & Restore</span></div>

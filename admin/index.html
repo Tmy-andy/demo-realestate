@@ -171,6 +171,21 @@
     .hint-cred { font-family: monospace; color: rgba(255,255,255,.5); }
 
     .footer { text-align: center; margin-top: 24px; font-size: 11px; color: rgba(255,255,255,.15); }
+
+    /* Mobile */
+    @media (max-width: 480px) {
+      body { padding: 16px; align-items: flex-start; padding-top: 32px; }
+      .brand { margin-bottom: 24px; }
+      .brand-logo { width: 46px; height: 46px; }
+      .brand-name { font-size: 20px; }
+      .login-card { padding: 22px 18px; border-radius: 16px; }
+      .card-sub { margin-bottom: 22px; }
+      .field input { height: 46px; font-size: 16px; /* prevents iOS zoom on focus */ }
+      .btn-login { height: 48px; }
+      .login-hint { padding: 12px; margin-top: 20px; }
+      .hint-cred { font-size: 11px; }
+      .footer { margin-top: 18px; }
+    }
   </style>
 </head>
 <body>
