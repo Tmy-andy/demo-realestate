@@ -1343,26 +1343,24 @@
       });
     }
 
-    /* pc-collapse btn */
-    var oldBtn = pc.querySelector('#pc-collapse');
-    if (oldBtn) {
-      var newBtn = oldBtn.cloneNode(true);
-      oldBtn.replaceWith(newBtn);
-      newBtn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        pc.classList.add('collapsed');
-        syncFabVisibility();
-      });
-    }
-
-    /* Tap outside → collapse pc */
-    document.addEventListener('click', function(e) {
-      if (isPcOpen() && !pc.contains(e.target) && e.target !== document.getElementById('pc-info-fab')) {
-        pc.classList.add('collapsed');
-        syncFabVisibility();
-      }
-    });
   }
+
+  /* pc-collapse btn — delegated on document so it works regardless of
+     init-time viewport, DOM rebuilds, or pointer/touch quirks on mobile */
+  document.addEventListener('click', function(e) {
+    if (!isMob.matches) return;
+    if (e.target.closest('#pc-collapse')) {
+      e.stopPropagation();
+      pc.classList.add('collapsed');
+      syncFabVisibility();
+      return;
+    }
+    /* Tap outside → collapse pc */
+    if (isPcOpen() && !pc.contains(e.target) && e.target !== document.getElementById('pc-info-fab')) {
+      pc.classList.add('collapsed');
+      syncFabVisibility();
+    }
+  });
 
 })();
 </script>
