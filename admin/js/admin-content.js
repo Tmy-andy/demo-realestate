@@ -197,68 +197,309 @@ function previewVR(url, title = 'Preview VR') {
 // ========================================================================
 // 1) GALLERY ─ thư viện ảnh
 // ========================================================================
+/* ---------- Gallery: state, helpers ---------- */
+S.galleryFolder ??= '__all'; // '__all' | '__none' | <folder name>
+
+function galleryListAll() {
+  // Normalize legacy items (no `type`) to image.
+  return (S.data.gallery || []).map(g => ({ type: 'image', ...g }));
+}
+function galleryFolders() {
+  const set = new Set();
+  galleryListAll().forEach(g => { if (g.folder) set.add(g.folder); });
+  return [...set].sort((a,b) => a.localeCompare(b, 'vi'));
+}
+function galleryFilteredIndexes() {
+  const f = S.galleryFolder;
+  return galleryListAll()
+    .map((g,i) => ({ g, i }))
+    .filter(({g}) => f === '__all' ? true : f === '__none' ? !g.folder : g.folder === f);
+}
+function galleryFolderCount(name) {
+  const all = galleryListAll();
+  if (name === '__all')  return all.length;
+  if (name === '__none') return all.filter(g => !g.folder).length;
+  return all.filter(g => g.folder === name).length;
+}
+
+/* Convert YouTube / Vimeo URL to embed URL; return null if not recognized. */
+function videoEmbedUrl(url) {
+  if (!url) return null;
+  let m;
+  if ((m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([\w-]{6,})/))) {
+    return `https://www.youtube.com/embed/${m[1]}`;
+  }
+  if ((m = url.match(/youtube\.com\/embed\/([\w-]+)/))) return url;
+  if ((m = url.match(/vimeo\.com\/(?:video\/)?(\d+)/))) {
+    return `https://player.vimeo.com/video/${m[1]}`;
+  }
+  if (url.startsWith('https://player.vimeo.com/')) return url;
+  return null;
+}
+function detectVideoSource(url) {
+  if (!url) return '';
+  if (/youtube\.com|youtu\.be/.test(url)) return 'youtube';
+  if (/vimeo\.com/.test(url))             return 'vimeo';
+  if (url.startsWith('blob:'))            return 'upload';
+  return 'mp4';
+}
+
+/* ---------- Render ---------- */
 function renderGalleryPage(el) {
-  const list = S.data.gallery || [];
-  el.innerHTML = pageHeader(['Dashboard','Nội Dung VR'], 'Thư Viện Ảnh',
-    `<button class="btn btn-primary btn-sm" onclick="galleryAdd()">${ico('plus')} Thêm ảnh</button>`)
+  const all = galleryListAll();
+  const folders = galleryFolders();
+  const filtered = galleryFilteredIndexes();
+  const cur = S.galleryFolder;
+  const curLabel = cur === '__all' ? 'Tất cả' : cur === '__none' ? 'Chưa phân loại' : cur;
+
+  el.innerHTML = pageHeader(['Dashboard','Nội Dung VR'], 'Thư Viện',
+    `<button class="btn btn-secondary btn-sm" onclick="galleryNewFolder()">${ico('plus')} Thư mục mới</button>
+     <button class="btn btn-secondary btn-sm" onclick="galleryAddVideo()">${ico('video')} Thêm video</button>
+     <button class="btn btn-primary btn-sm" onclick="galleryAddImage()">${ico('image')} Thêm ảnh</button>`)
   + `
-    <div class="card">
-      <div class="card-header">
-        <span class="card-title">${list.length} ảnh trong gallery</span>
-        <span class="card-subtitle">Click ảnh để xem · Kéo thả để sắp xếp · Frontend đọc trường <code>gallery[]</code></span>
+    <div style="display:grid;grid-template-columns:240px 1fr;gap:16px;align-items:flex-start">
+
+      <!-- Folder sidebar -->
+      <div class="card" style="position:sticky;top:16px">
+        <div class="card-header"><span class="card-title">${ico('folder',14)} Thư mục</span></div>
+        <div style="padding:8px">
+          ${folderRow('__all', 'Tất cả', 'navpanel', cur)}
+          ${folderRow('__none', 'Chưa phân loại', 'image', cur)}
+          ${folders.length ? `<div style="height:1px;background:var(--border);margin:6px 4px"></div>` : ''}
+          ${folders.map(f => folderRow(f, f, 'folder', cur, true)).join('')}
+        </div>
       </div>
-      <div class="card-body">
-        ${list.length===0 ? `<div style="text-align:center;padding:40px;color:var(--muted)">Chưa có ảnh nào. Bấm <b>Thêm ảnh</b> để bắt đầu.</div>` : `
-          <div class="gallery-grid" id="gallery-grid">
-            ${list.map((g,i)=>`
-              <div class="gal-card" draggable="true" data-i="${i}"
-                   ondragstart="galleryDragStart(${i})" ondragover="event.preventDefault()"
-                   ondrop="galleryDrop(${i})">
-                <div class="gal-thumb">
-                  <img src="${esc(g.src)}" alt="${esc(g.title||'')}" onerror="this.style.opacity=.2">
-                  <div class="gal-idx">#${i+1}</div>
-                </div>
-                <div class="gal-meta">
-                  <div class="gal-title">${esc(g.title||'(không tiêu đề)')}</div>
-                  <div class="gal-src">${esc(g.src||'')}</div>
-                </div>
-                <div class="gal-actions">
-                  <button class="act-btn" title="Sửa" onclick="galleryEdit(${i})">${ico('edit')}</button>
-                  <button class="act-btn danger" title="Xoá" onclick="galleryDel(${i})">${ico('trash')}</button>
-                </div>
-              </div>`).join('')}
-          </div>`}
+
+      <!-- Media grid -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">${esc(curLabel)} · ${filtered.length} mục</span>
+          <span class="card-subtitle">${all.length} tổng · ${all.filter(g=>g.type==='video').length} video · ${all.filter(g=>g.type!=='video').length} ảnh</span>
+        </div>
+        <div class="card-body">
+          ${filtered.length === 0 ? `
+            <div style="text-align:center;padding:40px;color:var(--muted)">
+              ${cur === '__all'
+                ? `Chưa có mục nào. Bấm <b>Thêm ảnh</b> hoặc <b>Thêm video</b> để bắt đầu.`
+                : `Không có mục nào trong thư mục này.`}
+            </div>` : `
+            <div class="gallery-grid" id="gallery-grid">
+              ${filtered.map(({g, i}) => mediaCardHTML(g, i)).join('')}
+            </div>`}
+        </div>
       </div>
     </div>`;
 }
 
-function galleryAdd() { galleryForm({ src:'', title:'', group:'' }, -1); }
-function galleryEdit(i) { galleryForm({ ...S.data.gallery[i] }, i); }
+function folderRow(value, label, iconName, current, deletable=false) {
+  const active = current === value;
+  const count = galleryFolderCount(value);
+  return `
+    <div onclick="galleryPickFolder('${value.replace(/'/g,"\\'")}')"
+         style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:13px;${active?'background:var(--primary-soft);color:var(--primary);font-weight:600':'color:var(--text)'}">
+      <span style="display:inline-flex;width:16px;height:16px;align-items:center;justify-content:center">${ico(iconName,14)}</span>
+      <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(label)}</span>
+      <span style="font-size:11px;color:var(--muted);background:var(--surface2);padding:2px 7px;border-radius:10px">${count}</span>
+      ${deletable ? `<button class="act-btn" title="Đổi tên" onclick="event.stopPropagation();galleryRenameFolder('${value.replace(/'/g,"\\'")}')" style="padding:2px;background:none;border:none;cursor:pointer;color:var(--muted)">${ico('edit',12)}</button>` : ''}
+    </div>`;
+}
+
+function mediaCardHTML(g, i) {
+  const isVideo = g.type === 'video';
+  const thumb = g.poster || g.src || '';
+  return `
+    <div class="gal-card" draggable="true" data-i="${i}"
+         ondragstart="galleryDragStart(${i})" ondragover="event.preventDefault()"
+         ondrop="galleryDrop(${i})">
+      <div class="gal-thumb" onclick="galleryOpenPreview(${i})" style="cursor:pointer;position:relative">
+        ${thumb
+          ? `<img src="${esc(thumb)}" alt="${esc(g.title||'')}" onerror="this.style.opacity=.2">`
+          : `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:#0f172a;color:#475569">${ico('video',32)}</div>`}
+        <div class="gal-idx">#${i+1}</div>
+        ${isVideo ? `
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.25);pointer-events:none">
+            <div style="width:42px;height:42px;border-radius:50%;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;color:#fff">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+          </div>
+          <div style="position:absolute;top:8px;left:8px;background:#ef4444;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;letter-spacing:.04em">VIDEO</div>
+        ` : ''}
+        ${g.folder ? `<div style="position:absolute;bottom:8px;left:8px;background:rgba(0,0,0,.6);color:#fff;font-size:10px;padding:3px 8px;border-radius:10px">${ico('folder',10)} ${esc(g.folder)}</div>` : ''}
+      </div>
+      <div class="gal-meta">
+        <div class="gal-title">${esc(g.title||'(không tiêu đề)')}</div>
+        <div class="gal-src">${esc(g.src||'')}</div>
+      </div>
+      <div class="gal-actions">
+        <button class="act-btn" title="Sửa" onclick="galleryEdit(${i})">${ico('edit')}</button>
+        <button class="act-btn danger" title="Xoá" onclick="galleryDel(${i})">${ico('trash')}</button>
+      </div>
+    </div>`;
+}
+
+/* ---------- Folder actions ---------- */
+function galleryPickFolder(name) {
+  S.galleryFolder = name;
+  go('gallery');
+}
+function galleryNewFolder() {
+  const name = prompt('Tên thư mục mới:');
+  if (!name) return;
+  const n = name.trim();
+  if (!n) return;
+  if (galleryFolders().includes(n)) { toast('Thư mục đã tồn tại', 'warn'); return; }
+  // Empty folder: persist by creating it via filter only — but we need at least one tag.
+  // Strategy: just switch view; folder appears after first item is assigned. So warn:
+  S.galleryFolder = n;
+  toast(`Đã chọn thư mục "${n}". Thêm mục mới hoặc gán mục cũ vào để thư mục hiển thị.`, 'info');
+  go('gallery');
+}
+function galleryRenameFolder(oldName) {
+  const next = prompt(`Đổi tên thư mục "${oldName}" thành:`, oldName);
+  if (!next) return;
+  const n = next.trim();
+  if (!n || n === oldName) return;
+  let changed = 0;
+  (S.data.gallery || []).forEach(g => { if (g.folder === oldName) { g.folder = n; changed++; } });
+  if (S.galleryFolder === oldName) S.galleryFolder = n;
+  saveData(`Đã đổi tên ${changed} mục sang thư mục "${n}"`);
+  go('gallery');
+}
+
+/* ---------- CRUD ---------- */
+function galleryAddImage() { galleryForm({ type:'image', src:'', title:'', folder: defaultFolderForNew() }, -1); }
+function galleryAddVideo() { galleryForm({ type:'video', src:'', title:'', folder: defaultFolderForNew(), videoSource:'youtube', poster:'' }, -1); }
+function galleryAdd()      { galleryAddImage(); } // back-compat
+function galleryEdit(i)    { galleryForm({ type:'image', ...S.data.gallery[i] }, i); }
+function defaultFolderForNew() {
+  const f = S.galleryFolder;
+  return (f === '__all' || f === '__none') ? '' : f;
+}
+
 function galleryForm(g, idx) {
-  showPanel(idx>=0?'Sửa ảnh':'Thêm ảnh mới', `
+  const isVideo = g.type === 'video';
+  const folders = galleryFolders();
+  const folderOptions = `
+    <option value="">— Chưa phân loại —</option>
+    ${folders.map(f => `<option value="${esc(f)}" ${g.folder===f?'selected':''}>${esc(f)}</option>`).join('')}
+    <option value="__new__">+ Tạo thư mục mới…</option>`;
+
+  const imageFields = `
     ${imageField('g-src', 'Ảnh', g.src, { required:true })}
+  `;
+  const videoFields = `
+    <div class="form-group">
+      <label class="form-label">Nguồn video</label>
+      <select class="form-control" id="g-vsource" onchange="onVideoSourceChange()">
+        <option value="youtube" ${g.videoSource==='youtube'?'selected':''}>YouTube</option>
+        <option value="vimeo"   ${g.videoSource==='vimeo'?'selected':''}>Vimeo</option>
+        <option value="mp4"     ${g.videoSource==='mp4'?'selected':''}>URL mp4/webm trực tiếp</option>
+        <option value="upload"  ${g.videoSource==='upload'?'selected':''}>Upload file (tạm thời, mất khi reload)</option>
+      </select>
+    </div>
+    <div class="form-group" id="g-url-wrap">
+      <label class="form-label">URL video *</label>
+      <input class="form-control" id="g-src" value="${esc(g.src||'')}" placeholder="VD: https://www.youtube.com/watch?v=...">
+      <small class="c-muted" id="g-url-hint">Dán link YouTube/Vimeo/mp4. Hệ thống sẽ tự chuyển sang embed.</small>
+    </div>
+    <div class="form-group" id="g-upload-wrap" style="display:none">
+      <label class="form-label">Chọn file video</label>
+      <input class="form-control" type="file" id="g-file" accept="video/*" onchange="onVideoFilePick(event)">
+      <small class="c-muted">File chỉ tồn tại trong phiên hiện tại (chưa có lưu trữ backend).</small>
+    </div>
+    ${imageField('g-poster', 'Ảnh thumbnail (tuỳ chọn)', g.poster||'')}
+  `;
+
+  showPanel(idx>=0 ? (isVideo?'Sửa video':'Sửa ảnh') : (isVideo?'Thêm video':'Thêm ảnh mới'), `
+    <input type="hidden" id="g-type" value="${isVideo?'video':'image'}">
+    ${isVideo ? videoFields : imageFields}
     <div class="form-group"><label class="form-label">Tiêu đề</label>
       <input class="form-control" id="g-title" value="${esc(g.title||'')}" placeholder="VD: Sky Lounge tầng 42"></div>
-    <div class="form-group"><label class="form-label">Nhóm (tuỳ chọn)</label>
-      <select class="form-control" id="g-group">
-        ${['','exterior','interior','amenity','view'].map(v=>`<option value="${v}" ${g.group===v?'selected':''}>${v||'— Không phân nhóm —'}</option>`).join('')}
-      </select></div>
+    <div class="form-group"><label class="form-label">Thư mục</label>
+      <select class="form-control" id="g-folder" onchange="onFolderSelectChange()">${folderOptions}</select>
+      <input class="form-control" id="g-folder-new" placeholder="Nhập tên thư mục mới" style="display:none;margin-top:6px">
+    </div>
   `, () => {
-    const src = imgFieldValue('g-src');
-    if (!src) { toast('Cần ảnh', 'warn'); return; }
-    const o = { src, title: document.getElementById('g-title').value.trim() };
-    const gr = document.getElementById('g-group').value; if (gr) o.group = gr;
+    const type = document.getElementById('g-type').value;
+    let folder = document.getElementById('g-folder').value;
+    if (folder === '__new__') folder = document.getElementById('g-folder-new').value.trim();
+
+    const title = document.getElementById('g-title').value.trim();
+    const o = { type, title };
+    if (folder) o.folder = folder;
+
+    if (type === 'video') {
+      const src = document.getElementById('g-src').value.trim();
+      if (!src) { toast('Cần URL video hoặc upload file', 'warn'); return false; }
+      const vs = document.getElementById('g-vsource').value;
+      o.src = src;
+      o.videoSource = vs;
+      const poster = imgFieldValue('g-poster');
+      if (poster) o.poster = poster;
+    } else {
+      const src = imgFieldValue('g-src');
+      if (!src) { toast('Cần ảnh', 'warn'); return false; }
+      o.src = src;
+    }
+
     if (idx>=0) S.data.gallery[idx] = o;
     else        S.data.gallery.push(o);
-    saveData(idx>=0?'Đã cập nhật ảnh':'Đã thêm ảnh');
+    saveData(idx>=0 ? 'Đã cập nhật' : (type==='video'?'Đã thêm video':'Đã thêm ảnh'));
     closePanel(); go('gallery');
   });
+
+  // Restore initial visibility for video form
+  if (isVideo) setTimeout(onVideoSourceChange, 0);
+}
+
+function onFolderSelectChange() {
+  const sel = document.getElementById('g-folder');
+  const inp = document.getElementById('g-folder-new');
+  if (!sel || !inp) return;
+  if (sel.value === '__new__') { inp.style.display = ''; inp.focus(); }
+  else { inp.style.display = 'none'; inp.value = ''; }
+}
+
+function onVideoSourceChange() {
+  const vs   = document.getElementById('g-vsource')?.value;
+  const urlW = document.getElementById('g-url-wrap');
+  const upW  = document.getElementById('g-upload-wrap');
+  const hint = document.getElementById('g-url-hint');
+  if (!vs || !urlW || !upW) return;
+  if (vs === 'upload') {
+    urlW.style.display = 'none';
+    upW.style.display = '';
+  } else {
+    urlW.style.display = '';
+    upW.style.display = 'none';
+    if (hint) hint.textContent =
+      vs === 'youtube' ? 'Dán link YouTube (watch?v=, youtu.be/, shorts/…). Tự chuyển sang embed.'
+    : vs === 'vimeo'   ? 'Dán link Vimeo (vimeo.com/123456). Tự chuyển sang player.vimeo.com/video/...'
+    :                    'Dán URL file .mp4 / .webm truy cập công khai.';
+  }
+}
+
+function onVideoFilePick(ev) {
+  const f = ev.target.files && ev.target.files[0];
+  if (!f) return;
+  const url = URL.createObjectURL(f);
+  // Stash blob URL into hidden #g-src so existing save flow picks it up
+  let srcInput = document.getElementById('g-src');
+  if (!srcInput) {
+    srcInput = document.createElement('input');
+    srcInput.type = 'hidden';
+    srcInput.id = 'g-src';
+    ev.target.parentElement.appendChild(srcInput);
+  }
+  srcInput.value = url;
+  toast(`Đã chọn file ${f.name}`, 'ok');
 }
 
 function galleryDel(i) {
-  confirmDel('Xoá ảnh này?', S.data.gallery[i].title || S.data.gallery[i].src, () => {
+  const item = S.data.gallery[i];
+  confirmDel(`Xoá ${item.type==='video'?'video':'ảnh'} này?`, item.title || item.src, () => {
     S.data.gallery.splice(i, 1);
-    saveData('Đã xoá ảnh'); go('gallery');
+    saveData('Đã xoá'); go('gallery');
   });
 }
 
@@ -272,6 +513,46 @@ function galleryDrop(target) {
   S.dragSrc = null;
   saveData('Đã sắp xếp lại'); go('gallery');
 }
+
+/* ---------- Preview modal ---------- */
+function galleryOpenPreview(i) {
+  const g = S.data.gallery[i];
+  if (!g) return;
+  const isVideo = g.type === 'video';
+  let playerHTML = '';
+  if (isVideo) {
+    const embed = videoEmbedUrl(g.src);
+    if (embed) {
+      playerHTML = `<iframe src="${esc(embed)}?autoplay=1" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen frameborder="0" style="width:100%;aspect-ratio:16/9;background:#000;border-radius:8px"></iframe>`;
+    } else {
+      playerHTML = `<video src="${esc(g.src)}" ${g.poster?`poster="${esc(g.poster)}"`:''} controls autoplay style="width:100%;max-height:78vh;background:#000;border-radius:8px"></video>`;
+    }
+  } else {
+    playerHTML = `<img src="${esc(g.src)}" alt="${esc(g.title||'')}" style="width:100%;max-height:78vh;object-fit:contain;background:#0f172a;border-radius:8px">`;
+  }
+  const back = document.createElement('div');
+  back.id = 'media-preview';
+  back.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,.88);z-index:9999;display:flex;align-items:center;justify-content:center;padding:24px;backdrop-filter:blur(6px)';
+  back.innerHTML = `
+    <div style="max-width:1100px;width:100%">
+      <div style="display:flex;align-items:center;justify-content:space-between;color:#fff;margin-bottom:10px;gap:12px">
+        <div style="min-width:0">
+          <div style="font-weight:700;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(g.title||'(không tiêu đề)')}</div>
+          <div style="font-size:12px;color:rgba(255,255,255,.55);margin-top:2px">${g.folder?`${ico('folder',12)} ${esc(g.folder)} · `:''}${isVideo?'Video':'Ảnh'}</div>
+        </div>
+        <button onclick="closeMediaPreview()" style="background:rgba(255,255,255,.1);border:none;color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:20px;flex-shrink:0">×</button>
+      </div>
+      ${playerHTML}
+    </div>`;
+  back.addEventListener('click', e => { if (e.target === back) closeMediaPreview(); });
+  document.body.appendChild(back);
+  document.addEventListener('keydown', mediaPreviewEsc);
+}
+function closeMediaPreview() {
+  document.getElementById('media-preview')?.remove();
+  document.removeEventListener('keydown', mediaPreviewEsc);
+}
+function mediaPreviewEsc(e) { if (e.key === 'Escape') closeMediaPreview(); }
 
 // ========================================================================
 // 2) SITE MAP 2D ─ ảnh nền + các điểm tương tác
@@ -545,9 +826,21 @@ const TL_STATUS = { done:'Hoàn thành', active:'Đang thực hiện', upcoming:
 
 function renderTimelinePage(el) {
   const tl = S.data.timeline || [];
+  const lastPulse = +localStorage.getItem('ah_timeline_pulse') || 0;
+  const pulseLabel = lastPulse
+    ? new Date(lastPulse).toLocaleString('vi-VN')
+    : 'chưa phát sóng';
   el.innerHTML = pageHeader(['Dashboard','Nội Dung VR'], 'Tiến Độ Xây Dựng',
-    `<button class="btn btn-primary btn-sm" onclick="tlAdd()">${ico('plus')} Thêm mốc</button>`)
+    `<button class="btn btn-secondary btn-sm" onclick="tlBroadcast()" title="Đẩy bản cập nhật ra trang VR ngay lập tức">${ico('refresh')} Phát sóng cập nhật</button>
+     <button class="btn btn-primary btn-sm" onclick="tlAdd()">${ico('plus')} Thêm mốc</button>`)
   + `
+    <div class="card" style="margin-bottom:12px;background:rgba(59,130,246,.06);border-color:rgba(59,130,246,.25)">
+      <div style="padding:10px 14px;display:flex;align-items:center;gap:10px;font-size:13px">
+        <span style="display:inline-flex;align-items:center;gap:6px;color:#60a5fa;font-weight:600">${ico('refresh',14)} Real-time</span>
+        <span class="c-muted">Lần phát sóng gần nhất: <b style="color:var(--text)">${pulseLabel}</b></span>
+        <span class="c-muted" style="margin-left:auto">Trang VR sẽ hiển thị badge "LIVE" và tự cập nhật cho khách đang xem.</span>
+      </div>
+    </div>` + `
     <div class="card">
       <div class="card-header">
         <span class="card-title">${tl.length} mốc tiến độ</span>
@@ -579,6 +872,16 @@ function renderTimelinePage(el) {
 }
 
 function tlAdd() { tlForm({ phase:'', date:'', status:'upcoming', desc:'' }, -1); }
+function tlBroadcast() {
+  try {
+    localStorage.setItem('ah_timeline_data', JSON.stringify(S.data.timeline || []));
+    localStorage.setItem('ah_timeline_pulse', String(Date.now()));
+    toast('Đã phát sóng cập nhật tiến độ tới trang VR', 'ok');
+    go('timeline');
+  } catch (e) {
+    toast('Không thể phát sóng: ' + e.message, 'err');
+  }
+}
 function tlEdit(i) { tlForm({ ...S.data.timeline[i] }, i); }
 function tlDel(i) {
   confirmDel('Xoá mốc này?', S.data.timeline[i].phase, () => {

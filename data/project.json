@@ -14,8 +14,6 @@
     "floors": "42 tầng",
     "density": "27%",
     "greenSpace": "12.4 ha công viên nội khu",
-    "hotline": "0901 234 567",
-    "zalo": "0901234567",
     "unitsLeft": 49,
     "totalUnitsForSale": 312,
     "promoDeadline": "2025-07-31T23:59:59",
@@ -76,6 +74,28 @@
       }
     ]
   },
+  "sales": [
+    {
+      "username": "sales",
+      "name": "Nguyễn Minh Anh",
+      "title": "Chuyên viên tư vấn cao cấp",
+      "phone": "0911 222 333",
+      "zalo": "0911222333",
+      "facebook": "https://facebook.com/sales.anh.aurora",
+      "email": "anh.nguyen@auroraheights.vn",
+      "avatar": ""
+    },
+    {
+      "username": "sales2",
+      "name": "Trần Bảo Khánh",
+      "title": "Chuyên viên tư vấn",
+      "phone": "0922 333 444",
+      "zalo": "0922333444",
+      "facebook": "https://facebook.com/sales.khanh.aurora",
+      "email": "khanh.tran@auroraheights.vn",
+      "avatar": ""
+    }
+  ],
   "menu": {
     "tongQuan": [
       {

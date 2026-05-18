@@ -4,6 +4,7 @@
 
 // ——— ICON HELPER ————————————————————————————————
 const ICO = {
+  folder:     '<path d="M4 4h5l2 3h9a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>',
   overview:   '<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',
   home:       '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
   leads:      '<rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/>',
@@ -159,7 +160,7 @@ function resetData() {
 // ——— FALLBACK DATA ————————————————————————————
 function getFallbackData() {
   return {
-    project: { name:'Aurora Heights', developer:'Aurora Land Holdings', location:'Khu Tây Hồ Tây, Hà Nội', status:'Đang mở bán GĐ 2', handover:'Quý IV / 2027', priceFrom:'Từ 4.9 tỷ', totalUnits:1840, hotline:'0901 234 567', zalo:'0901234567' },
+    project: { name:'Aurora Heights', developer:'Aurora Land Holdings', location:'Khu Tây Hồ Tây, Hà Nội', status:'Đang mở bán GĐ 2', handover:'Quý IV / 2027', priceFrom:'Từ 4.9 tỷ', totalUnits:1840 },
     menu: { tongQuan:[], tienIchNoiKhu:[], tienIchNgoaiKhu:[], matBangTang:[], view360Can:[] },
     scenes: [],
     floorplan: { units: [] },
@@ -202,7 +203,6 @@ function render(page, el) {
   switch (page) {
     case 'overview':  renderOverview(el); break;
     case 'units':     renderUnits(el); break;
-    case 'leads':     renderLeads(el); break;
     case 'navpanel':  renderNavPanel(el); break;
     case 'i18n':      renderI18n(el); break;
     case 'theme':     renderTheme(el); break;
@@ -235,8 +235,12 @@ function renderOverview(el) {
   const totalAvail = us.reduce((s,u)=>s+(u.available||0),0);
   const totalAll   = us.reduce((s,u)=>s+(u.total||0),0);
   const soldPct    = totalAll ? ((totalAll-totalAvail)/totalAll*100).toFixed(1) : 0;
-  const newLeads   = S.leads.filter(l=>l.status==='new').length;
   const p          = proj();
+  const gal        = (S.data.gallery||[]);
+  const galPending = gal.filter(g=>g && g.pending).length;
+  const tl         = (S.data.timeline||[]);
+  const tlActive   = tl.find(t=>t.status==='active');
+  const tlDue      = tl.filter(t=>t.status!=='done').length;
 
   el.innerHTML = `
     <div class="ph">
@@ -247,8 +251,8 @@ function renderOverview(el) {
       </div>
     </div>
     <div class="quick-row">
-      <button class="btn btn-secondary btn-sm" onclick="go('leads')">${ico('leads')} Xem Leads (${S.leads.length})</button>
-      <button class="btn btn-secondary btn-sm" onclick="exportLeadsCSV()">${ico('download')} Xuất Leads CSV</button>
+      <button class="btn btn-secondary btn-sm" onclick="go('gallery')">${ico('image')} Duyệt Thư Viện</button>
+      <button class="btn btn-secondary btn-sm" onclick="go('timeline')">${ico('calendar')} Cập Nhật Tiến Độ</button>
       <button class="btn btn-secondary btn-sm" onclick="go('navpanel')">${ico('navpanel')} Quản lý Danh Sách VR</button>
       <button class="btn btn-secondary btn-sm" onclick="toast('Đã làm mới','ok')">${ico('refresh')} Làm Mới</button>
     </div>
@@ -260,10 +264,10 @@ function renderOverview(el) {
         <div class="kpi-trend up">${ico('arrowup',10)}12.4% so hôm qua</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-icon orange">${ico('leads',18)}</div>
-        <div class="kpi-label">Leads mới (24h)</div>
-        <div class="kpi-value">${newLeads}</div>
-        <div class="kpi-trend up">${ico('arrowup',10)}3 so hôm qua</div>
+        <div class="kpi-icon orange">${ico('image',18)}</div>
+        <div class="kpi-label">Ảnh chờ duyệt</div>
+        <div class="kpi-value">${galPending}</div>
+        <div class="kpi-trend neutral">trong tổng ${gal.length} ảnh</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-icon green">${ico('home',18)}</div>
@@ -271,6 +275,14 @@ function renderOverview(el) {
         <div class="kpi-value">${totalAvail} <span style="font-size:16px;font-weight:500;color:var(--muted)">/ ${totalAll}</span></div>
         <div class="kpi-trend neutral">${p.status||'—'}</div>
       </div>
+      <div class="kpi-card">
+        <div class="kpi-icon purple">${ico('calendar',18)}</div>
+        <div class="kpi-label">Milestone tới hạn</div>
+        <div class="kpi-value">${tlDue}</div>
+        <div class="kpi-trend neutral">${tlActive ? 'Đang: '+tlActive.phase : 'Đã hoàn tất tiến độ'}</div>
+      </div>
+    </div>
+    <div class="kpi-grid" style="margin-top:12px">
       <div class="kpi-card">
         <div class="kpi-icon purple">${ico('trending',18)}</div>
         <div class="kpi-label">Tỷ lệ bán</div>
@@ -318,7 +330,6 @@ function renderOverview(el) {
           ['Trạng thái', p.status],
           ['Bàn giao', p.handover],
           ['Giá từ', p.priceFrom],
-          ['Hotline', p.hotline],
           ['Số tầng', p.floors],
           ['Tổng số căn', p.totalUnits],
           ['Diện tích', p.areaRange],
@@ -460,7 +471,6 @@ function unitRow(u) {
     <td><span class="badge ${bm[u.status]||'badge-muted'}">${bl[u.status]||u.status}</span></td>
     <td><div class="row-actions">
       <button class="act-btn" onclick="openUnitPanel('${u.code}')">${ico('edit')} Sửa</button>
-      <button class="act-btn" onclick="go('leads')">${ico('leads')}</button>
       <button class="act-btn danger" onclick="confirmDel('Xoá căn ${u.code}?','Hành động không thể hoàn tác.',()=>deleteUnit('${u.code}'))">${ico('trash')}</button>
     </div></td>
   </tr>`;
@@ -1695,7 +1705,7 @@ function renderTheme(el) {
         <div class="card">
           <div class="card-header"><span class="card-title">${ico('settings',16)} Hiệu Ứng</span></div>
           <div class="card-body">
-            ${[['backdropBlur','Blur backdrop panels',true],['hotspotPulse','Pulse animation hotspot',true],['vignetteVR','Vignette overlay VR',true],['autoRotate','Auto-rotate VR mặc định',false],['urgencyToast','Urgency toast',true],['countdown','Countdown timer',true]].map(([k,label,def])=>`
+            ${[['backdropBlur','Blur backdrop panels',true],['hotspotPulse','Pulse animation hotspot',true],['vignetteVR','Vignette overlay VR',true],['autoRotate','Auto-rotate VR mặc định',false],['urgencyToast','Urgency toast',true],['countdown','Countdown timer',true]].map(([,label,def])=>`
               <div class="toggle-wrap">
                 <div><div class="toggle-label">${label}</div></div>
                 <label class="toggle">
@@ -1891,15 +1901,11 @@ function settingsTabHTML(p) {
     </div>
 
     <div class="card" style="margin-bottom:16px">
-      <div class="card-header"><span class="card-title">Giá & Liên Hệ</span></div>
+      <div class="card-header"><span class="card-title">Giá Bán</span><span class="card-subtitle">Thông tin liên hệ trực tiếp lấy từ profile của từng Sale</span></div>
       <div class="card-body">
         <div class="form-row">
           <div class="form-group"><label class="form-label">Giá từ <small class="c-muted">(hiển thị lớn trên card)</small></label><input class="form-control" id="sp-priceFrom" value="${p.priceFrom||''}" placeholder="VD: Từ 4.9 tỷ"></div>
           <div class="form-group"><label class="form-label">Đơn vị giá</label><input class="form-control" id="sp-priceUnit" value="${p.priceUnit||''}" placeholder="VD: VND / căn"></div>
-        </div>
-        <div class="form-row">
-          <div class="form-group"><label class="form-label">Hotline <small class="c-muted">(nút gọi điện)</small></label><input class="form-control" id="sp-hotline" value="${p.hotline||''}" placeholder="0901 234 567"></div>
-          <div class="form-group"><label class="form-label">Zalo <small class="c-muted">(nút chat Zalo)</small></label><input class="form-control" id="sp-zalo" value="${p.zalo||''}" placeholder="0901234567"></div>
         </div>
         <div class="form-row">
           <div class="form-group"><label class="form-label">Số căn đang mở bán</label><input class="form-control" type="number" id="sp-totalUnitsForSale" value="${p.totalUnitsForSale||312}"></div>
@@ -2031,7 +2037,6 @@ function saveProjectSettings() {
     name: g('sp-name'), developer: g('sp-developer'), tagline: g('sp-tagline'),
     location: g('sp-location'), status: g('sp-status'), handover: g('sp-handover'),
     priceFrom: g('sp-priceFrom'), priceUnit: g('sp-priceUnit'),
-    hotline: g('sp-hotline'), zalo: g('sp-zalo'),
     totalUnitsForSale: gn('sp-totalUnitsForSale'), unitsLeft: gn('sp-unitsLeft'),
     promoDeadline: g('sp-promo'),
     totalUnits: gn('sp-totalUnits'), totalTowers: gn('sp-totalTowers'),

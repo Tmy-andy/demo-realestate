@@ -95,18 +95,58 @@ function buildProjectCard() {
     if (el) el.textContent = p.unitsLeft;
   }
 
-  // Hotline
-  if (p.hotline) {
-    const numEl = document.getElementById("pc-hotline-num");
-    const btnEl = document.getElementById("pc-hotline-btn");
-    if (numEl) numEl.textContent = p.hotline;
-    if (btnEl) btnEl.href = "tel:" + p.hotline.replace(/\s/g, "");
+  applySaleContact();
+}
+
+/* ------------------------------------------------------------------
+   Sale attribution: index.html?s=<username> selects which sale's
+   contact info (phone, zalo, facebook) is shown on the public VR site.
+   Without a valid ?s=, all direct-contact CTAs are hidden — the
+   project itself no longer exposes a default hotline/zalo.
+   ------------------------------------------------------------------ */
+function getActiveSale() {
+  const sales = (DATA && DATA.sales) || [];
+  if (!sales.length) return null;
+  const params = new URLSearchParams(location.search);
+  const u = (params.get("s") || "").trim().toLowerCase();
+  if (!u) return null;
+  return sales.find(s => (s.username || "").toLowerCase() === u) || null;
+}
+
+function applySaleContact() {
+  const sale = getActiveSale();
+  window.__activeSale = sale;
+
+  const contactRow = document.querySelector(".pc-contact-row");
+  const hotlineBtn = document.getElementById("pc-hotline-btn");
+  const hotlineNum = document.getElementById("pc-hotline-num");
+  const zaloBtn    = document.getElementById("pc-zalo-btn");
+  const lapZalo    = document.getElementById("lap-suc-zalo");
+  const formZalo   = document.getElementById("form-suc-zalo");
+
+  if (!sale) {
+    if (contactRow) contactRow.style.display = "none";
+    [lapZalo, formZalo].forEach(el => { if (el) el.style.display = "none"; });
+    return;
   }
 
-  // Zalo
-  if (p.zalo) {
-    const zEl = document.getElementById("pc-zalo-btn");
-    if (zEl) zEl.href = "https://zalo.me/" + p.zalo;
+  if (contactRow) contactRow.style.display = "";
+  [lapZalo, formZalo].forEach(el => { if (el) el.style.display = ""; });
+
+  if (sale.phone) {
+    if (hotlineNum) hotlineNum.textContent = sale.phone;
+    if (hotlineBtn) hotlineBtn.href = "tel:" + sale.phone.replace(/\s/g, "");
+  } else if (hotlineBtn) {
+    hotlineBtn.style.display = "none";
+  }
+
+  const zaloUrl = sale.zalo ? "https://zalo.me/" + sale.zalo.replace(/\s/g, "") : "";
+  if (sale.zalo) {
+    if (zaloBtn)  zaloBtn.href  = zaloUrl;
+    if (lapZalo)  lapZalo.href  = zaloUrl;
+    if (formZalo) formZalo.href = zaloUrl;
+  } else {
+    [zaloBtn, lapZalo, formZalo].forEach(el => { if (el) el.style.display = "none"; });
   }
 }
 
@@ -546,38 +586,119 @@ function buildSiteMap() {
   });
 }
 
+let galleryFolderFilter = '__all'; // '__all' | '__none' | folder name
+
+function visibleGalleryItems() {
+  const items = (DATA.gallery || []).map(g => ({ type: 'image', ...g }));
+  if (galleryFolderFilter === '__all')  return items;
+  if (galleryFolderFilter === '__none') return items.filter(g => !g.folder);
+  return items.filter(g => g.folder === galleryFolderFilter);
+}
+
 function buildGallery() {
   const grid = document.getElementById("gal-grid");
   if (!grid) return;
-  const items = DATA.gallery || [];
-  grid.innerHTML = items.map((g, i) => `
-    <div class="gal-item" data-idx="${i}">
-      <img src="${g.src}" alt="${_tr(g.title) || ''}"/>
-      ${g.title ? `<div class="gal-cap">${_tr(g.title)}</div>` : ''}
-    </div>
-  `).join("");
+  const allItems = (DATA.gallery || []).map(g => ({ type: 'image', ...g }));
+
+  // Build folder chip bar
+  const folders = [...new Set(allItems.map(g => g.folder).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'vi'));
+  let chipBar = document.getElementById('gal-folder-chips');
+  if (folders.length && !chipBar) {
+    chipBar = document.createElement('div');
+    chipBar.id = 'gal-folder-chips';
+    chipBar.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;padding:0 0 12px';
+    grid.parentNode.insertBefore(chipBar, grid);
+  }
+  if (chipBar) {
+    const chip = (val, label) => {
+      const active = galleryFolderFilter === val;
+      const count = val === '__all' ? allItems.length
+                  : val === '__none' ? allItems.filter(g => !g.folder).length
+                  : allItems.filter(g => g.folder === val).length;
+      return `<button data-folder="${val}" style="padding:6px 12px;border-radius:999px;border:1px solid ${active?'#3b82f6':'rgba(255,255,255,.18)'};background:${active?'rgba(59,130,246,.25)':'rgba(255,255,255,.04)'};color:${active?'#fff':'rgba(255,255,255,.7)'};font-size:12px;font-weight:600;cursor:pointer;transition:all .15s">${label} <span style="opacity:.6;font-weight:400">${count}</span></button>`;
+    };
+    chipBar.innerHTML = chip('__all', 'Tất cả')
+      + (allItems.some(g=>!g.folder) ? chip('__none', 'Chưa phân loại') : '')
+      + folders.map(f => chip(f, f)).join('');
+    chipBar.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        galleryFolderFilter = btn.dataset.folder;
+        buildGallery();
+      });
+    });
+  }
+
+  const items = visibleGalleryItems();
+  grid.innerHTML = items.map((g, i) => {
+    const thumb = g.poster || g.src || '';
+    const isVideo = g.type === 'video';
+    return `
+      <div class="gal-item" data-idx="${i}" style="position:relative">
+        ${thumb
+          ? `<img src="${thumb}" alt="${_tr(g.title) || ''}"/>`
+          : `<div style="aspect-ratio:1;background:#0f172a;display:flex;align-items:center;justify-content:center;color:#475569"><svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>`}
+        ${isVideo ? `
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none">
+            <div style="width:48px;height:48px;border-radius:50%;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;color:#fff">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            </div>
+          </div>
+          <div style="position:absolute;top:8px;left:8px;background:#ef4444;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;letter-spacing:.04em">VIDEO</div>` : ''}
+        ${g.title ? `<div class="gal-cap">${_tr(g.title)}</div>` : ''}
+      </div>`;
+  }).join("");
   grid.querySelectorAll(".gal-item").forEach(el => {
     el.addEventListener("click", () => openLightbox(parseInt(el.dataset.idx, 10)));
   });
 }
 
+function lbVideoEmbedUrl(url) {
+  if (!url) return null;
+  let m;
+  if ((m = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([\w-]{6,})/))) return `https://www.youtube.com/embed/${m[1]}`;
+  if (/youtube\.com\/embed\//.test(url)) return url;
+  if ((m = url.match(/vimeo\.com\/(?:video\/)?(\d+)/))) return `https://player.vimeo.com/video/${m[1]}`;
+  if (url.startsWith('https://player.vimeo.com/')) return url;
+  return null;
+}
+
+function setLightboxMedia(item) {
+  const host = document.getElementById('lb-media-host');
+  const cap  = document.getElementById('lb-cap');
+  if (!host) return;
+  host.innerHTML = '';
+  if (item.type === 'video') {
+    const embed = lbVideoEmbedUrl(item.src);
+    if (embed) {
+      const sep = embed.includes('?') ? '&' : '?';
+      host.innerHTML = `<iframe src="${embed}${sep}autoplay=1" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen frameborder="0" style="width:min(1100px,90vw);aspect-ratio:16/9;background:#000;border-radius:8px;max-height:80vh"></iframe>`;
+    } else {
+      host.innerHTML = `<video src="${item.src}" ${item.poster?`poster="${item.poster}"`:''} controls autoplay style="max-width:90vw;max-height:80vh;background:#000;border-radius:8px"></video>`;
+    }
+  } else {
+    host.innerHTML = `<img id="lb-img" src="${item.src}" alt="${_tr(item.title) || ''}"/>`;
+  }
+  if (cap) cap.textContent = _tr(item.title) || '';
+}
+
 let lbIdx = 0;
 function openLightbox(idx) {
-  lbIdx = idx;
-  const items = DATA.gallery || [];
+  const items = visibleGalleryItems();
   if (!items.length) return;
-  const lb = document.getElementById("lightbox");
-  document.getElementById("lb-img").src = items[lbIdx].src;
-  document.getElementById("lb-cap").textContent = _tr(items[lbIdx].title) || "";
-  lb.classList.add("open");
+  lbIdx = idx;
+  setLightboxMedia(items[lbIdx]);
+  document.getElementById("lightbox").classList.add("open");
 }
 function navLightbox(dir) {
-  const items = DATA.gallery || [];
+  const items = visibleGalleryItems();
+  if (!items.length) return;
   lbIdx = (lbIdx + dir + items.length) % items.length;
-  document.getElementById("lb-img").src = items[lbIdx].src;
-  document.getElementById("lb-cap").textContent = _tr(items[lbIdx].title) || "";
+  setLightboxMedia(items[lbIdx]);
 }
 function closeLightbox() {
+  // stop any playing video / iframe before hiding
+  const host = document.getElementById('lb-media-host');
+  if (host) host.innerHTML = '<img id="lb-img" src="" alt=""/>';
   document.getElementById("lightbox").classList.remove("open");
 }
 
@@ -1197,10 +1318,19 @@ function locCatIcon(cat) {
 function buildTimelinePanel() {
   if (!DATA.timeline) return;
 
-  const items   = DATA.timeline;
+  // Allow admin to broadcast real-time timeline updates via localStorage.
+  // Key `ah_timeline_data` = overriding array; `ah_timeline_pulse` = epoch ms of last update.
+  let items = DATA.timeline;
+  let pulseAt = 0;
+  try {
+    const override = JSON.parse(localStorage.getItem('ah_timeline_data') || 'null');
+    if (Array.isArray(override) && override.length) items = override;
+    pulseAt = +localStorage.getItem('ah_timeline_pulse') || 0;
+  } catch (e) {}
+
   const doneN   = items.filter(t => t.status === 'done').length;
   const total   = items.length;
-  const pct     = Math.round((doneN / total) * 100);
+  const pct     = total ? Math.round((doneN / total) * 100) : 0;
   const activeI = items.findIndex(t => t.status === 'active');
 
   // Overview bar
@@ -1214,13 +1344,16 @@ function buildTimelinePanel() {
         <span class="tlo-pct">${pct}% hoàn thành</span>
         <span class="tlo-count">${doneN} / ${total} mốc</span>
         ${activeI >= 0 ? `<span class="tlo-active-badge">● Đang thi công: ${items[activeI].phase}</span>` : ''}
+        ${pulseAt ? `<span class="tlo-live-badge" style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border-radius:999px;background:rgba(239,68,68,.14);color:#f87171;font-size:11px;font-weight:600"><span style="width:6px;height:6px;border-radius:50%;background:#ef4444;box-shadow:0 0 0 0 rgba(239,68,68,.6);animation:tlPulse 1.6s infinite"></span>LIVE · ${fmtRelativeTime(pulseAt)}</span>` : ''}
       </div>`;
   }
+  // expose items override for the track below
+  DATA.__timelineLive = items;
 
   // Track
   const trackEl = document.getElementById('tl-track');
   if (!trackEl) return;
-  trackEl.innerHTML = items.map((t, i) => {
+  trackEl.innerHTML = (DATA.__timelineLive || items).map((t, i) => {
     const cls = t.status === 'done' ? 'done'
               : t.status === 'active' ? 'active'
               : 'upcoming';
@@ -1247,6 +1380,43 @@ function buildTimelinePanel() {
         </div>
       </div>`;
   }).join('');
+}
+
+function fmtRelativeTime(ts) {
+  const diff = Math.max(0, Date.now() - ts);
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'vừa cập nhật';
+  if (m < 60) return `${m} phút trước`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h} giờ trước`;
+  return `${Math.floor(h / 24)} ngày trước`;
+}
+
+/* Real-time timeline: re-render when admin broadcasts an update */
+let _lastTimelinePulse = 0;
+function watchTimelinePulse() {
+  try {
+    const p = +localStorage.getItem('ah_timeline_pulse') || 0;
+    if (p && p !== _lastTimelinePulse) {
+      _lastTimelinePulse = p;
+      buildTimelinePanel();
+    } else if (p && document.querySelector('.tlo-live-badge')) {
+      // refresh the relative-time label
+      buildTimelinePanel();
+    }
+  } catch (e) {}
+}
+window.addEventListener('storage', e => {
+  if (e.key === 'ah_timeline_pulse' || e.key === 'ah_timeline_data') buildTimelinePanel();
+});
+setInterval(watchTimelinePulse, 30000);
+
+// Inject pulse keyframe once
+if (!document.getElementById('tl-pulse-style')) {
+  const st = document.createElement('style');
+  st.id = 'tl-pulse-style';
+  st.textContent = '@keyframes tlPulse{0%{box-shadow:0 0 0 0 rgba(239,68,68,.6)}70%{box-shadow:0 0 0 8px rgba(239,68,68,0)}100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}}';
+  document.head.appendChild(st);
 }
 
 // Bind open/close

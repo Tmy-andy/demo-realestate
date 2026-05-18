@@ -610,7 +610,9 @@
   <button class="lb-nav lb-prev" id="lb-prev">‹</button>
   <button class="lb-nav lb-next" id="lb-next">›</button>
   <figure class="lb-figure">
-    <img id="lb-img" src="" alt=""/>
+    <div id="lb-media-host" style="display:flex;align-items:center;justify-content:center;width:100%">
+      <img id="lb-img" src="" alt=""/>
+    </div>
     <figcaption id="lb-cap"></figcaption>
   </figure>
 </div>
@@ -869,7 +871,7 @@
       <div class="form-success-title">Đặt lịch thành công!</div>
       <div class="form-success-sub">Chuyên viên sẽ liên hệ xác nhận lịch trong <strong>vòng 30 phút</strong> giờ làm việc.</div>
       <div class="form-success-actions">
-        <a class="form-suc-btn form-suc-primary" href="https://zalo.me/0901234567" target="_blank" rel="noopener">
+        <a class="form-suc-btn form-suc-primary" id="lap-suc-zalo" href="https://zalo.me/0901234567" target="_blank" rel="noopener">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><text y="18" font-size="14" font-weight="bold">Z</text></svg>
           Chat Zalo ngay
         </a>

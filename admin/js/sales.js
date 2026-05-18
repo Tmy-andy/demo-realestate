@@ -48,11 +48,15 @@ const ICO = {
 function ico(name, size=14) {
   return `<svg class="ico" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0">${ICO[name]||''}</svg>`;
 }
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
 
 // ——— STATE ————————————————————————————————————
 const S = {
   page: 'dashboard', data: null, leads: [],
   charts: {}, calFilter: 'all', calView: 'list', weekStart: null,
+  settingsTab: 'profile',
+  exportFilter: { from:'', to:'', source:'', unitType:'', budget:'' },
+  exportCols: { name:true, phone:true, email:true, zalo:true, unitType:true, budget:true, purpose:true, source:true, status:true, createdAt:true, appt:false, assignee:false, notes:false },
 };
 
 // ——— LEAD STATUS ————————————————————————————————
@@ -238,8 +242,44 @@ function render(page, el) {
     calendar:  renderCalendar,
     units:     renderUnits,
     vr:        renderVR,
+    settings:  renderSettings,
   };
   if (map[page]) map[page](el);
+}
+
+/* ------------------------------------------------------------------
+   Sale profile — seeded from data/project.json (sales[]), then
+   per-sale overrides live in localStorage so each browser keeps
+   its own contact info private.
+   ------------------------------------------------------------------ */
+function currentUsername() {
+  const s = JSON.parse(sessionStorage.getItem('ah_session') || 'null');
+  return (s && s.username) ? s.username : '';
+}
+function profileKey(u) { return 'ah_sale_profile_' + (u || currentUsername()); }
+function getSaleProfile() {
+  const u = currentUsername();
+  if (!u) return null;
+  const seed = ((S.data && S.data.sales) || []).find(s => (s.username || '').toLowerCase() === u.toLowerCase()) || { username: u };
+  let override = {};
+  try { override = JSON.parse(localStorage.getItem(profileKey(u)) || '{}') || {}; } catch (e) {}
+  return { ...seed, ...override };
+}
+function saveSaleProfile(patch) {
+  const u = currentUsername();
+  if (!u) return;
+  const current = getSaleProfile() || {};
+  const next = { ...current, ...patch };
+  // strip seed-only fields we don't want to duplicate
+  delete next.username;
+  localStorage.setItem(profileKey(u), JSON.stringify(next));
+}
+function referralUrl() {
+  const u = currentUsername();
+  if (!u) return '';
+  // index.html lives one level up from /admin/
+  const base = location.origin + location.pathname.replace(/\/admin\/.*$/, '/index.html');
+  return base + '?s=' + encodeURIComponent(u);
 }
 
 // ——— DASHBOARD ————————————————————————————————
@@ -261,6 +301,8 @@ function renderDashboard(el) {
       </div>
       <div class="ph-right" style="font-size:13px;color:var(--muted)">${new Date().toLocaleDateString('vi-VN',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>
     </div>
+
+    ${renderReferralCard()}
 
     <div class="stat-row" style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
       ${statCard(ico('leads',22), 'Tổng Leads', total, '', 'primary')}
@@ -358,6 +400,389 @@ function statCard(icon, label, val, sub, type) {
       </div>
     </div>
   `;
+}
+
+// ——— REFERRAL LINK CARD ————————————————————————
+function renderReferralCard() {
+  const url = referralUrl();
+  const prof = getSaleProfile();
+  if (!url || !prof) return '';
+  const missing = !prof.phone && !prof.zalo;
+  return `
+    <div class="card" style="margin-bottom:16px;background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(59,130,246,.06));border-color:rgba(16,185,129,.25)">
+      <div style="padding:16px 18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <div style="flex:0 0 44px;width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#10b981,#059669);display:flex;align-items:center;justify-content:center;color:#fff">
+          ${ico('link',20)}
+        </div>
+        <div style="flex:1;min-width:240px">
+          <div style="font-size:11px;font-weight:700;color:#10b981;text-transform:uppercase;letter-spacing:.08em">Link giới thiệu của bạn</div>
+          <div class="mono" id="ref-url" style="font-size:13px;color:var(--text);margin-top:4px;word-break:break-all">${esc(url)}</div>
+          ${missing
+            ? `<div style="font-size:12px;color:#f59e0b;margin-top:6px">${ico('warning',12)} Chưa có SĐT/Zalo trong cài đặt — khách vào link sẽ không thấy nút liên hệ. <a href="#" onclick="nav('settings');return false" style="color:var(--primary);font-weight:600">Cập nhật ngay</a></div>`
+            : `<div style="font-size:12px;color:var(--muted);margin-top:4px">Khách truy cập link này sẽ thấy thông tin liên hệ của <b>${esc(prof.name||currentUsername())}</b>.</div>`}
+        </div>
+        <div style="display:flex;gap:8px;flex-shrink:0">
+          <button class="btn btn-secondary btn-sm" onclick="copyReferral()">${ico('link',13)} Sao chép</button>
+          <a class="btn btn-primary btn-sm" href="${esc(url)}" target="_blank" rel="noopener">${ico('globe',13)} Mở thử</a>
+        </div>
+      </div>
+    </div>`;
+}
+function copyReferral() {
+  const url = referralUrl();
+  if (!url) return;
+  (navigator.clipboard?.writeText(url) || Promise.reject()).then(
+    () => toast('Đã sao chép link vào clipboard', 'ok'),
+    () => {
+      const ta = document.createElement('textarea');
+      ta.value = url; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); toast('Đã sao chép', 'ok'); } catch { toast('Không thể sao chép', 'err'); }
+      ta.remove();
+    }
+  );
+}
+
+// ——— SETTINGS (sale profile) ——————————————————
+const SETTINGS_TABS = [
+  ['profile',  'Hồ sơ',           'users'],
+  ['contact',  'Liên hệ',         'phone'],
+  ['social',   'Mạng xã hội',     'link'],
+  ['referral', 'Link giới thiệu', 'globe'],
+  ['export',   'Export khách hàng','download'],
+];
+const SOCIAL_PLATFORMS = [
+  ['zalo',      'Zalo',      'Số Zalo (không khoảng trắng)', '0901234567'],
+  ['facebook',  'Facebook',  'URL trang/profile Facebook',   'https://facebook.com/your.page'],
+  ['tiktok',    'TikTok',    'URL kênh TikTok',              'https://tiktok.com/@yourname'],
+  ['instagram', 'Instagram', 'URL hồ sơ Instagram',          'https://instagram.com/yourname'],
+  ['youtube',   'YouTube',   'URL kênh YouTube',             'https://youtube.com/@yourchannel'],
+  ['linkedin',  'LinkedIn',  'URL hồ sơ LinkedIn',           'https://linkedin.com/in/yourname'],
+  ['telegram',  'Telegram',  'Username hoặc t.me link',      '@yourname hoặc https://t.me/yourname'],
+];
+
+function renderSettings(el) {
+  const p = getSaleProfile() || {};
+  el.innerHTML = `
+    <div class="ph">
+      <div class="ph-left">
+        <div class="breadcrumb"><span>Sales</span> / Cài Đặt</div>
+        <h1>Cài Đặt Cá Nhân</h1>
+      </div>
+    </div>
+
+    <div class="vtab-layout">
+      <div class="vtabs">
+        ${SETTINGS_TABS.map(([id,label,icn])=>`
+          <div class="vtab ${S.settingsTab===id?'active':''}" onclick="S.settingsTab='${id}';render('settings',document.getElementById('p-settings'))">${ico(icn,14)} ${label}</div>`).join('')}
+      </div>
+      <div class="vtab-content">${settingsTabHTML(p)}</div>
+    </div>
+  `;
+}
+
+function settingsTabHTML(p) {
+  const t = S.settingsTab;
+  const u = currentUsername();
+
+  if (t === 'profile') return `
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">${ico('users',16)} Hồ sơ cá nhân</span>
+        <span class="card-subtitle">Tên & chức danh hiển thị cho khách</span>
+      </div>
+      <div class="card-body">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Tên đăng nhập</label>
+            <input class="form-control" value="${esc(u)}" disabled style="opacity:.6"></div>
+          <div class="form-group"><label class="form-label">Họ tên hiển thị *</label>
+            <input class="form-control" id="sp-name" value="${esc(p.name||'')}" placeholder="VD: Nguyễn Minh Anh"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Chức danh</label>
+          <input class="form-control" id="sp-title" value="${esc(p.title||'')}" placeholder="VD: Chuyên viên tư vấn cao cấp"></div>
+        <div class="form-group"><label class="form-label">Avatar URL <small class="c-muted">(tuỳ chọn)</small></label>
+          <input class="form-control" id="sp-avatar" value="${esc(p.avatar||'')}" placeholder="https://..."></div>
+        ${saveBarHTML(['sp-name','sp-title','sp-avatar'])}
+      </div>
+    </div>`;
+
+  if (t === 'contact') return `
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">${ico('phone',16)} Thông tin liên hệ</span>
+        <span class="card-subtitle">Nút Hotline & Email hiển thị trên trang VR khi khách vào link của bạn</span>
+      </div>
+      <div class="card-body">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Số điện thoại *</label>
+            <input class="form-control" id="sp-phone" value="${esc(p.phone||'')}" placeholder="0901 234 567"></div>
+          <div class="form-group"><label class="form-label">Email</label>
+            <input class="form-control" id="sp-email" type="email" value="${esc(p.email||'')}" placeholder="ten@example.com"></div>
+        </div>
+        ${saveBarHTML(['sp-phone','sp-email'])}
+      </div>
+    </div>`;
+
+  if (t === 'social') return `
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">${ico('link',16)} Mạng xã hội</span>
+        <span class="card-subtitle">Các kênh khách có thể liên hệ ngoài hotline</span>
+      </div>
+      <div class="card-body">
+        ${SOCIAL_PLATFORMS.map(([key,label,hint,ph])=>`
+          <div class="form-group">
+            <label class="form-label">${label} <small class="c-muted">${hint}</small></label>
+            <input class="form-control" id="sp-soc-${key}" value="${esc(p[key]||'')}" placeholder="${ph}">
+          </div>`).join('')}
+        ${saveBarHTML(SOCIAL_PLATFORMS.map(p=>'sp-soc-'+p[0]))}
+      </div>
+    </div>`;
+
+  if (t === 'referral') return `
+    ${renderReferralCard()}
+    <div class="card";margin-top:12px">
+      <div class="card-header"><span class="card-title">${ico('info',16)} Cách dùng</span></div>
+      <div class="card-body" style="font-size:13px;color:var(--muted);line-height:1.7">
+        <div>1. Sao chép link trên và gửi cho khách qua Zalo / SMS / Email.</div>
+        <div>2. Khi khách mở link, trang VR sẽ <b>tự động hiển thị thông tin liên hệ của bạn</b> (hotline, Zalo, MXH) thay vì thông tin chung của dự án.</div>
+        <div>3. Mọi lead phát sinh từ link này sẽ được gắn nguồn về cho bạn.</div>
+        <div style="margin-top:8px;padding:10px 12px;background:rgba(245,158,11,.1);border-radius:6px;color:#b45309">${ico('warning',13)} Nếu chưa điền SĐT hoặc Zalo, các nút liên hệ sẽ không hiện cho khách.</div>
+      </div>
+    </div>`;
+
+  if (t === 'export') return renderExportLeadsTab();
+
+  return '';
+}
+
+function saveBarHTML() {
+  return `
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px;padding-top:12px;border-top:1px solid var(--border)">
+      <button class="btn btn-secondary" onclick="resetSaleProfile()">${ico('refresh',14)} Khôi phục mặc định</button>
+      <button class="btn btn-primary" onclick="saveSaleProfileFromForm()">${ico('save',14)} Lưu thay đổi</button>
+    </div>`;
+}
+
+function saveSaleProfileFromForm() {
+  const patch = {};
+  // Profile tab
+  ['name','title','avatar','phone','email'].forEach(k => {
+    const el = document.getElementById('sp-'+k);
+    if (el) patch[k] = el.value.trim();
+  });
+  // Social tab
+  SOCIAL_PLATFORMS.forEach(([key]) => {
+    const el = document.getElementById('sp-soc-'+key);
+    if (el) patch[key] = el.value.trim();
+  });
+  saveSaleProfile(patch);
+  toast('Đã lưu thông tin cá nhân', 'ok');
+  // refresh topbar name in case it changed
+  const _sess = JSON.parse(sessionStorage.getItem('ah_session') || 'null');
+  if (_sess && patch.name) {
+    _sess.name = patch.name;
+    if (patch.title) _sess.title = patch.title;
+    sessionStorage.setItem('ah_session', JSON.stringify(_sess));
+    const nm = document.getElementById('tb-name'); if (nm) nm.textContent = patch.name;
+    const rl = document.getElementById('tb-role'); if (rl && patch.title) rl.textContent = patch.title;
+    const av = document.getElementById('tb-avatar'); if (av) av.textContent = patch.name.slice(0,2).toUpperCase();
+  }
+  render('settings', document.getElementById('p-settings'));
+}
+
+function resetSaleProfile() {
+  if (!confirm('Khôi phục về thông tin mặc định? Các thay đổi cá nhân sẽ bị mất.')) return;
+  localStorage.removeItem(profileKey());
+  toast('Đã khôi phục mặc định', 'ok');
+  render('settings', document.getElementById('p-settings'));
+}
+
+// ——— EXPORT KHACH HANG ————————————————————————
+const EXPORT_COLUMNS = [
+  ['name',      'Họ tên'],
+  ['phone',     'Số điện thoại'],
+  ['email',     'Email'],
+  ['zalo',      'Zalo'],
+  ['unitType',  'Loại căn quan tâm'],
+  ['budget',    'Ngân sách'],
+  ['purpose',   'Mục đích'],
+  ['source',    'Nguồn'],
+  ['status',    'Trạng thái'],
+  ['createdAt', 'Ngày tạo'],
+  ['appt',      'Lịch hẹn'],
+  ['assignee',  'Người phụ trách'],
+  ['notes',     'Ghi chú'],
+];
+const UNIT_TYPES = ['1PN','2PN','3PN','Duplex 2PN','Duplex 3PN','Penthouse','Studio'];
+const BUDGETS    = ['< 5 tỷ','5–8 tỷ','8–12 tỷ','> 12 tỷ'];
+
+function filteredLeadsForExport() {
+  const f = S.exportFilter;
+  return S.leads.filter(l => {
+    if (f.from && l.createdAt && l.createdAt.slice(0,10) < f.from) return false;
+    if (f.to   && l.createdAt && l.createdAt.slice(0,10) > f.to)   return false;
+    if (f.source   && l.source   !== f.source)   return false;
+    if (f.unitType && l.unitType !== f.unitType) return false;
+    if (f.budget   && l.budget   !== f.budget)   return false;
+    return true;
+  });
+}
+
+function renderExportLeadsTab() {
+  const f = S.exportFilter;
+  const matched = filteredLeadsForExport();
+  const selectedCols = EXPORT_COLUMNS.filter(([k]) => S.exportCols[k]).length;
+
+  // Build source options grouped
+  const sourceOpts = Object.entries(SOURCE_GROUPS).map(([g, arr]) =>
+    `<optgroup label="${esc(g)}">${arr.map(s => `<option value="${esc(s)}" ${f.source===s?'selected':''}>${esc(s)}</option>`).join('')}</optgroup>`
+  ).join('');
+
+  return `
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-header">
+        <span class="card-title">${ico('download',16)} Export danh sách khách hàng</span>
+        <span class="card-subtitle">Lọc & chọn cột rồi tải xuống file CSV (mở bằng Excel)</span>
+      </div>
+      <div class="card-body">
+        <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px">Bộ lọc</div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Từ ngày</label>
+            <input class="form-control" type="date" id="ex-from" value="${esc(f.from)}" onchange="S.exportFilter.from=this.value;refreshExportPreview()"></div>
+          <div class="form-group"><label class="form-label">Đến ngày</label>
+            <input class="form-control" type="date" id="ex-to" value="${esc(f.to)}" onchange="S.exportFilter.to=this.value;refreshExportPreview()"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Nguồn</label>
+            <select class="form-control" onchange="S.exportFilter.source=this.value;refreshExportPreview()">
+              <option value="">— Tất cả nguồn —</option>
+              ${sourceOpts}
+            </select></div>
+          <div class="form-group"><label class="form-label">Loại căn</label>
+            <select class="form-control" onchange="S.exportFilter.unitType=this.value;refreshExportPreview()">
+              <option value="">— Tất cả loại —</option>
+              ${UNIT_TYPES.map(t=>`<option value="${esc(t)}" ${f.unitType===t?'selected':''}>${esc(t)}</option>`).join('')}
+            </select></div>
+          <div class="form-group"><label class="form-label">Ngân sách</label>
+            <select class="form-control" onchange="S.exportFilter.budget=this.value;refreshExportPreview()">
+              <option value="">— Tất cả mức —</option>
+              ${BUDGETS.map(b=>`<option value="${esc(b)}" ${f.budget===b?'selected':''}>${esc(b)}</option>`).join('')}
+            </select></div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-top:4px">
+          <button class="btn btn-secondary btn-sm" onclick="resetExportFilter()">${ico('refresh',13)} Xoá bộ lọc</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-header">
+        <span class="card-title">${ico('navpanel',16)} Chọn cột xuất</span>
+        <span class="card-subtitle">${selectedCols} / ${EXPORT_COLUMNS.length} cột được chọn</span>
+      </div>
+      <div class="card-body">
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <button class="btn btn-secondary btn-sm" onclick="setAllExportCols(true)">${ico('check',13)} Chọn tất cả</button>
+          <button class="btn btn-secondary btn-sm" onclick="setAllExportCols(false)">${ico('x',13)} Bỏ chọn tất cả</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px 14px">
+          ${EXPORT_COLUMNS.map(([k,label])=>`
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;padding:6px 0">
+              <input type="checkbox" ${S.exportCols[k]?'checked':''} onchange="S.exportCols['${k}']=this.checked;refreshExportPreview()" style="width:16px;height:16px;accent-color:var(--primary)">
+              ${esc(label)}
+            </label>`).join('')}
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">${ico('eye',16)} Xem trước</span>
+        <span class="badge ${matched.length?'badge-primary':'badge-muted'}" id="ex-count">${matched.length} khách</span>
+      </div>
+      <div class="card-body">
+        <div id="ex-preview">${exportPreviewHTML(matched)}</div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+          <span class="c-muted" style="font-size:12px;align-self:center;margin-right:auto">File sẽ được tải về dạng <b>.csv</b> (UTF-8, mở bằng Excel).</span>
+          <button class="btn btn-primary" onclick="doExportLeadsCSV()" ${matched.length?'':'disabled'}>${ico('download',14)} Tải xuống CSV (${matched.length})</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function exportPreviewHTML(rows) {
+  if (!rows.length) return `<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px">Không có khách hàng nào khớp bộ lọc.</div>`;
+  const cols = EXPORT_COLUMNS.filter(([k]) => S.exportCols[k]);
+  if (!cols.length) return `<div style="text-align:center;padding:24px;color:var(--muted);font-size:13px">Hãy chọn ít nhất 1 cột để xuất.</div>`;
+  const preview = rows.slice(0, 5);
+  return `
+    <div style="overflow:auto;border:1px solid var(--border);border-radius:8px">
+      <table class="tbl" style="margin:0;font-size:12px">
+        <thead><tr>${cols.map(([,l])=>`<th>${esc(l)}</th>`).join('')}</tr></thead>
+        <tbody>${preview.map(r=>`<tr>${cols.map(([k])=>`<td>${esc(formatCell(r,k))}</td>`).join('')}</tr>`).join('')}</tbody>
+      </table>
+    </div>
+    ${rows.length>5?`<div style="font-size:11px;color:var(--muted);margin-top:8px;text-align:center">… và ${rows.length-5} dòng nữa trong file CSV</div>`:''}`;
+}
+
+function formatCell(row, key) {
+  const v = row[key];
+  if (v == null || v === '') return '';
+  if (key === 'status')    return LEAD_STATUS[v] || v;
+  if (key === 'createdAt') return new Date(v).toLocaleString('vi-VN');
+  if (key === 'appt')      return v ? new Date(v).toLocaleString('vi-VN') : '';
+  return String(v);
+}
+
+function refreshExportPreview() {
+  const rows = filteredLeadsForExport();
+  const prev = document.getElementById('ex-preview');
+  const cnt  = document.getElementById('ex-count');
+  if (prev) prev.innerHTML = exportPreviewHTML(rows);
+  if (cnt)  { cnt.textContent = rows.length + ' khách'; cnt.className = 'badge ' + (rows.length?'badge-primary':'badge-muted'); }
+  // refresh download button count + disabled state without re-rendering the whole tab
+  const btn = document.querySelector('#p-settings .btn.btn-primary[onclick="doExportLeadsCSV()"]');
+  if (btn) {
+    btn.innerHTML = `${ico('download',14)} Tải xuống CSV (${rows.length})`;
+    btn.disabled = !rows.length;
+  }
+}
+
+function setAllExportCols(val) {
+  EXPORT_COLUMNS.forEach(([k]) => S.exportCols[k] = !!val);
+  render('settings', document.getElementById('p-settings'));
+}
+
+function resetExportFilter() {
+  S.exportFilter = { from:'', to:'', source:'', unitType:'', budget:'' };
+  render('settings', document.getElementById('p-settings'));
+}
+
+function doExportLeadsCSV() {
+  const rows = filteredLeadsForExport();
+  const cols = EXPORT_COLUMNS.filter(([k]) => S.exportCols[k]);
+  if (!rows.length) { toast('Không có khách nào để export', 'warn'); return; }
+  if (!cols.length) { toast('Hãy chọn ít nhất 1 cột', 'warn'); return; }
+
+  const csvEsc = v => {
+    const s = (v == null ? '' : String(v));
+    return /[",\n\r;]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s;
+  };
+  const header = cols.map(c => csvEsc(c[1])).join(',');
+  const body   = rows.map(r => cols.map(([k]) => csvEsc(formatCell(r,k))).join(',')).join('\r\n');
+  const csv    = '﻿' + header + '\r\n' + body; // BOM for Excel to detect UTF-8
+
+  const u    = currentUsername() || 'sale';
+  const date = new Date().toISOString().slice(0,10);
+  const fn   = `khach-hang_${u}_${date}.csv`;
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const a    = document.createElement('a');
+  a.href     = URL.createObjectURL(blob);
+  a.download = fn;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  toast(`Đã tải xuống ${rows.length} khách hàng (${fn})`, 'ok');
 }
 
 // ——— LEADS ————————————————————————————————————
