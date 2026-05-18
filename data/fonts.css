@@ -1,0 +1,42 @@
+@font-face {
+   font-family: "Raleway ExtraBold";
+   src: url("fonts/Raleway ExtraBold.woff2") format("woff2");
+   font-weight: bold;
+   font-style: normal;
+}
+@font-face {
+   font-family: "Roboto";
+   src: url("fonts/Roboto Bold.woff2") format("woff2");
+   font-weight: bold;
+   font-style: normal;
+}
+@font-face {
+   font-family: "Roboto";
+   src: url("fonts/Roboto.woff2") format("woff2");
+   font-weight: normal;
+   font-style: normal;
+}
+@font-face {
+   font-family: "Montserrat ExtraBold";
+   src: url("fonts/Montserrat ExtraBold.woff2") format("woff2");
+   font-weight: bold;
+   font-style: normal;
+}
+@font-face {
+   font-family: "Open Sans ExtraBold";
+   src: url("fonts/Open Sans ExtraBold.woff2") format("woff2");
+   font-weight: bold;
+   font-style: normal;
+}
+@font-face {
+   font-family: "Oswald";
+   src: url("fonts/Oswald Bold.woff2") format("woff2");
+   font-weight: bold;
+   font-style: normal;
+}
+@font-face {
+   font-family: "Oswald Regular";
+   src: url("fonts/Oswald Regular.woff2") format("woff2");
+   font-weight: normal;
+   font-style: normal;
+}
