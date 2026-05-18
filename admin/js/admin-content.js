@@ -199,27 +199,38 @@ function previewVR(url, title = 'Preview VR') {
 // ========================================================================
 /* ---------- Gallery: state, helpers ---------- */
 S.galleryFolder ??= '__all'; // '__all' | '__none' | <folder name>
+S.galleryTab    ??= 'image'; // 'image' | 'video'
 
 function galleryListAll() {
   // Normalize legacy items (no `type`) to image.
   return (S.data.gallery || []).map(g => ({ type: 'image', ...g }));
 }
+function galleryListByTab() {
+  return galleryListAll()
+    .map((g,i) => ({ g, i }))
+    .filter(({g}) => S.galleryTab === 'video' ? g.type === 'video' : g.type !== 'video');
+}
 function galleryFolders() {
   const set = new Set();
-  galleryListAll().forEach(g => { if (g.folder) set.add(g.folder); });
+  galleryListByTab().forEach(({g}) => { if (g.folder) set.add(g.folder); });
   return [...set].sort((a,b) => a.localeCompare(b, 'vi'));
 }
 function galleryFilteredIndexes() {
   const f = S.galleryFolder;
-  return galleryListAll()
-    .map((g,i) => ({ g, i }))
+  return galleryListByTab()
     .filter(({g}) => f === '__all' ? true : f === '__none' ? !g.folder : g.folder === f);
 }
 function galleryFolderCount(name) {
-  const all = galleryListAll();
+  const all = galleryListByTab();
   if (name === '__all')  return all.length;
-  if (name === '__none') return all.filter(g => !g.folder).length;
-  return all.filter(g => g.folder === name).length;
+  if (name === '__none') return all.filter(({g}) => !g.folder).length;
+  return all.filter(({g}) => g.folder === name).length;
+}
+function galleryPickTab(tab) {
+  if (S.galleryTab === tab) return;
+  S.galleryTab = tab;
+  S.galleryFolder = '__all'; // reset folder filter khi đổi tab
+  go('gallery');
 }
 
 /* Convert YouTube / Vimeo URL to embed URL; return null if not recognized. */
@@ -247,24 +258,46 @@ function detectVideoSource(url) {
 /* ---------- Render ---------- */
 function renderGalleryPage(el) {
   const all = galleryListAll();
+  const imgCount = all.filter(g => g.type !== 'video').length;
+  const vidCount = all.filter(g => g.type === 'video').length;
   const folders = galleryFolders();
   const filtered = galleryFilteredIndexes();
   const cur = S.galleryFolder;
+  const tab = S.galleryTab;
   const curLabel = cur === '__all' ? 'Tất cả' : cur === '__none' ? 'Chưa phân loại' : cur;
+  const tabLabel = tab === 'video' ? 'Video' : 'Ảnh';
+
+  const addBtn = tab === 'video'
+    ? `<button class="btn btn-primary btn-sm" onclick="galleryAddVideo()">${ico('video')} Thêm video</button>`
+    : `<button class="btn btn-primary btn-sm" onclick="galleryAddImage()">${ico('image')} Thêm ảnh</button>`;
+
+  const tabBtn = (key, label, iconName, count) => {
+    const active = tab === key;
+    return `<button onclick="galleryPickTab('${key}')"
+      style="display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border:none;border-bottom:2px solid ${active?'var(--primary)':'transparent'};background:none;cursor:pointer;font-family:inherit;font-size:13px;font-weight:${active?'600':'500'};color:${active?'var(--primary)':'var(--muted)'};transition:all .15s">
+      ${ico(iconName,14)} ${label} <span style="font-size:11px;background:${active?'var(--primary-soft)':'var(--surface2)'};color:${active?'var(--primary)':'var(--muted)'};padding:1px 8px;border-radius:10px">${count}</span>
+    </button>`;
+  };
 
   el.innerHTML = pageHeader(['Dashboard','Nội Dung VR'], 'Thư Viện',
-    `<button class="btn btn-secondary btn-sm" onclick="galleryNewFolder()">${ico('plus')} Thư mục mới</button>
-     <button class="btn btn-secondary btn-sm" onclick="galleryAddVideo()">${ico('video')} Thêm video</button>
-     <button class="btn btn-primary btn-sm" onclick="galleryAddImage()">${ico('image')} Thêm ảnh</button>`)
+    `<button class="btn btn-secondary btn-sm" onclick="resetData()" title="Xoá cache localStorage, đọc lại project.json">${ico('refresh')} Tải lại</button>
+     <button class="btn btn-secondary btn-sm" onclick="galleryNewFolder()">${ico('plus')} Thư mục mới</button>
+     ${addBtn}`)
   + `
+    <!-- Tabs Ảnh / Video -->
+    <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px;background:var(--surface);border-radius:8px 8px 0 0;padding:0 8px">
+      ${tabBtn('image', 'Ảnh',   'image', imgCount)}
+      ${tabBtn('video', 'Video', 'video', vidCount)}
+    </div>
+
     <div style="display:grid;grid-template-columns:240px 1fr;gap:16px;align-items:flex-start">
 
       <!-- Folder sidebar -->
       <div class="card" style="position:sticky;top:16px">
-        <div class="card-header"><span class="card-title">${ico('folder',14)} Thư mục</span></div>
+        <div class="card-header"><span class="card-title">${ico('folder',14)} Thư mục ${tabLabel}</span></div>
         <div style="padding:8px">
           ${folderRow('__all', 'Tất cả', 'navpanel', cur)}
-          ${folderRow('__none', 'Chưa phân loại', 'image', cur)}
+          ${folderRow('__none', 'Chưa phân loại', tab === 'video' ? 'video' : 'image', cur)}
           ${folders.length ? `<div style="height:1px;background:var(--border);margin:6px 4px"></div>` : ''}
           ${folders.map(f => folderRow(f, f, 'folder', cur, true)).join('')}
         </div>
@@ -273,14 +306,14 @@ function renderGalleryPage(el) {
       <!-- Media grid -->
       <div class="card">
         <div class="card-header">
-          <span class="card-title">${esc(curLabel)} · ${filtered.length} mục</span>
-          <span class="card-subtitle">${all.length} tổng · ${all.filter(g=>g.type==='video').length} video · ${all.filter(g=>g.type!=='video').length} ảnh</span>
+          <span class="card-title">${tabLabel} · ${esc(curLabel)} · ${filtered.length} mục</span>
+          <span class="card-subtitle">${all.length} tổng · ${vidCount} video · ${imgCount} ảnh</span>
         </div>
         <div class="card-body">
           ${filtered.length === 0 ? `
             <div style="text-align:center;padding:40px;color:var(--muted)">
               ${cur === '__all'
-                ? `Chưa có mục nào. Bấm <b>Thêm ảnh</b> hoặc <b>Thêm video</b> để bắt đầu.`
+                ? `Chưa có ${tabLabel.toLowerCase()} nào. Bấm <b>Thêm ${tab === 'video' ? 'video' : 'ảnh'}</b> để bắt đầu.`
                 : `Không có mục nào trong thư mục này.`}
             </div>` : `
             <div class="gallery-grid" id="gallery-grid">
@@ -367,8 +400,8 @@ function galleryRenameFolder(oldName) {
 }
 
 /* ---------- CRUD ---------- */
-function galleryAddImage() { galleryForm({ type:'image', src:'', title:'', folder: defaultFolderForNew() }, -1); }
-function galleryAddVideo() { galleryForm({ type:'video', src:'', title:'', folder: defaultFolderForNew(), videoSource:'youtube', poster:'' }, -1); }
+function galleryAddImage() { S.galleryTab = 'image'; galleryForm({ type:'image', src:'', title:'', folder: defaultFolderForNew() }, -1); }
+function galleryAddVideo() { S.galleryTab = 'video'; galleryForm({ type:'video', src:'', title:'', folder: defaultFolderForNew(), videoSource:'youtube', poster:'' }, -1); }
 function galleryAdd()      { galleryAddImage(); } // back-compat
 function galleryEdit(i)    { galleryForm({ type:'image', ...S.data.gallery[i] }, i); }
 function defaultFolderForNew() {
@@ -1113,5 +1146,111 @@ function poiForm(o, idx) {
     if (idx>=0) S.data.location.nearby[idx] = obj;
     else        S.data.location.nearby.push(obj);
     saveData('Đã lưu'); closePanel(); go('location');
+  });
+}
+
+// ========================================================================
+// 7) RESOURCES ─ Tài liệu bán hàng (Brochure, Sales kit, Brand kit, ...)
+// ========================================================================
+const RESOURCE_FIELDS = [
+  { key: 'brochure',     label: 'Brochure dự án',            defaultType: 'pdf' },
+  { key: 'salesKit',     label: 'Bộ bí kíp tư vấn (nội bộ)', defaultType: 'pdf' },
+  { key: 'brandKit',     label: 'Bộ nhận diện thương hiệu',  defaultType: 'folder' },
+  { key: 'priceList',    label: 'Bảng giá & chính sách',     defaultType: 'pdf' },
+  { key: 'floorPlanPdf', label: 'TMB mã căn & diện tích',    defaultType: 'pdf' },
+];
+
+const RESOURCE_TYPES = [
+  ['pdf',    'PDF'],
+  ['folder', 'Thư mục (Drive)'],
+  ['link',   'Liên kết khác'],
+  ['image',  'Ảnh'],
+  ['doc',    'Tài liệu Word/Doc'],
+  ['xls',    'Bảng tính Excel'],
+];
+
+function renderResourcesPage(el) {
+  const res = S.data.resources || (S.data.resources = {});
+  el.innerHTML = pageHeader(['Dashboard','Nội Dung VR'], 'Tài Liệu') + `
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header">
+        <span class="card-title">${ico('image',16)} Bộ tài liệu chính thức</span>
+        <span class="card-subtitle">${RESOURCE_FIELDS.filter(f => res[f.key]?.url).length}/${RESOURCE_FIELDS.length} đã có link</span>
+      </div>
+      <div class="card-body">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px">
+          ${RESOURCE_FIELDS.map(f => resourceCard(f, res[f.key] || {})).join('')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function resourceCard(field, item) {
+  const has = !!item.url;
+  const title = item.title || field.label;
+  const type = item.type || field.defaultType;
+  return `
+    <div style="border:1px solid var(--border);border-radius:10px;padding:14px;background:var(--surface)">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <div style="width:36px;height:36px;border-radius:8px;background:var(--primary-soft);color:var(--primary);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          ${ico('image',18)}
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(title)}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">
+            ${has ? `<span class="badge badge-ok">${esc(type.toUpperCase())}</span> đã cập nhật` : `<span class="badge badge-muted">Chưa có</span>`}
+          </div>
+        </div>
+      </div>
+      ${has ? `
+        <div style="font-size:11px;color:var(--muted);padding:6px 8px;background:var(--surface2);border-radius:6px;margin-bottom:10px;word-break:break-all;font-family:monospace">${esc(item.url)}</div>
+      ` : ''}
+      <div style="display:flex;gap:6px">
+        ${has ? `<a href="${esc(item.url)}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm" style="flex:1;text-align:center;text-decoration:none">${ico('globe',12)} Mở</a>` : ''}
+        <button class="btn btn-primary btn-sm" style="flex:1" onclick="resourceEdit('${field.key}')">${ico('edit',12)} ${has ? 'Sửa' : 'Thêm'}</button>
+        ${has ? `<button class="act-btn danger" title="Xoá liên kết" onclick="resourceClear('${field.key}')">${ico('trash')}</button>` : ''}
+      </div>
+    </div>`;
+}
+
+function resourceEdit(key) {
+  const field = RESOURCE_FIELDS.find(f => f.key === key);
+  if (!field) return;
+  const item = (S.data.resources && S.data.resources[key]) || {};
+  showPanel(`${item.url ? 'Sửa' : 'Thêm'} — ${field.label}`, `
+    <div class="form-group">
+      <label class="form-label">Tiêu đề hiển thị</label>
+      <input class="form-control" id="res-title" value="${esc(item.title || field.label)}" placeholder="${esc(field.label)}">
+    </div>
+    <div class="form-group">
+      <label class="form-label">URL / Link Drive *</label>
+      <input class="form-control" id="res-url" value="${esc(item.url || '')}" placeholder="https://drive.google.com/...">
+      <small class="c-muted">Dán link Google Drive, OneDrive hoặc URL trực tiếp.</small>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Loại</label>
+      <select class="form-control" id="res-type">
+        ${RESOURCE_TYPES.map(([v,l]) => `<option value="${v}" ${(item.type || field.defaultType) === v ? 'selected' : ''}>${l}</option>`).join('')}
+      </select>
+    </div>
+  `, () => {
+    const url = document.getElementById('res-url').value.trim();
+    if (!url) { toast('Cần nhập URL', 'warn'); return false; }
+    if (!S.data.resources) S.data.resources = {};
+    S.data.resources[key] = {
+      title: document.getElementById('res-title').value.trim() || field.label,
+      url,
+      type: document.getElementById('res-type').value,
+    };
+    saveData('Đã lưu tài liệu'); closePanel(); go('resources');
+  });
+}
+
+function resourceClear(key) {
+  const field = RESOURCE_FIELDS.find(f => f.key === key);
+  confirmDel('Xoá liên kết tài liệu?', field?.label || '', () => {
+    if (S.data.resources) delete S.data.resources[key];
+    saveData('Đã xoá liên kết'); go('resources');
   });
 }

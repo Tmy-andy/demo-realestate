@@ -242,6 +242,7 @@ function render(page, el) {
     calendar:  renderCalendar,
     units:     renderUnits,
     vr:        renderVR,
+    saleskit:  renderSalesKit,
     settings:  renderSettings,
   };
   if (map[page]) map[page](el);
@@ -1304,6 +1305,54 @@ const GROUP_META = {
 function vrLink(sceneId) {
   if (!sceneId) return '../index.html';
   return `../index.html?scene=${sceneId}`;
+}
+
+function renderSalesKit(el) {
+  const res = (S.data && S.data.resources) || {};
+  const kit = res.salesKit || {};
+  const has = !!kit.url;
+  const title = kit.title || 'Bộ Bí Kíp Tư Vấn';
+  const type = (kit.type || 'folder').toUpperCase();
+
+  el.innerHTML = `
+    <div class="ph">
+      <div class="ph-left"><div class="breadcrumb"><span>Sales</span> / Bí Kíp Tư Vấn</div><h1>Bí Kíp Tư Vấn</h1></div>
+    </div>
+    <div class="ph-sub" style="font-size:13px;color:var(--muted);margin-bottom:16px">
+      Tài liệu nội bộ dành riêng cho đội ngũ Sales. Không chia sẻ ra ngoài.
+    </div>
+
+    <div class="card">
+      <div style="padding:24px;display:flex;gap:18px;align-items:flex-start">
+        <div style="width:56px;height:56px;border-radius:12px;background:var(--primary-soft);color:var(--primary);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18v13H3z"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px">${esc(title)}</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:14px">
+            ${has
+              ? `<span class="badge badge-ok">${esc(type)}</span> Đã có tài liệu, sẵn sàng sử dụng.`
+              : `<span class="badge badge-muted">Chưa có</span> Owner chưa cập nhật tài liệu này. Liên hệ quản lý.`}
+          </div>
+          ${has ? `
+            <div class="mono" style="font-size:11px;color:var(--muted);padding:8px 10px;background:var(--surface2);border-radius:6px;word-break:break-all;margin-bottom:14px">${esc(kit.url)}</div>
+            <a href="${esc(kit.url)}" target="_blank" rel="noopener" class="btn btn-primary btn-sm">
+              ${ico('globe',13)} Mở tài liệu
+            </a>
+          ` : ''}
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px;border-style:dashed">
+      <div style="padding:16px 20px;font-size:12px;color:var(--muted);display:flex;gap:10px;align-items:flex-start">
+        <div style="flex-shrink:0;margin-top:2px">${ico('warning',14)}</div>
+        <div>
+          <b style="color:var(--text)">Lưu ý bảo mật:</b> Đây là tài liệu nội bộ. Không gửi link / nội dung cho khách hàng hay bên thứ ba dưới bất kỳ hình thức nào.
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 function renderVR(el) {

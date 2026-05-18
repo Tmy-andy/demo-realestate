@@ -78,7 +78,75 @@ input, select, textarea { font-family: inherit; font-size: inherit }
   font-size: 15px; cursor: pointer; transition: var(--t); position: relative;
 }
 .tb-icon-btn:hover { border-color: var(--border2); background: var(--bg) }
+.tb-icon-btn.is-open { border-color: var(--primary); background: var(--primary-soft); color: var(--primary) }
 .notif-dot { position: absolute; top: 6px; right: 6px; width: 7px; height: 7px; background: var(--danger); border-radius: 50%; border: 1.5px solid var(--surface) }
+
+/* ===== NOTIFICATION DROPDOWN ===== */
+.tb-dd-wrap { position: relative; display: inline-flex }
+.tb-dd {
+  position: absolute; top: calc(100% + 10px); right: 0; width: 360px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r2);
+  box-shadow: var(--shadow-md); z-index: 100;
+  opacity: 0; visibility: hidden; transform: translateY(-6px);
+  transition: opacity .18s ease, transform .18s ease, visibility .18s;
+  overflow: hidden;
+}
+.tb-dd.is-open { opacity: 1; visibility: visible; transform: translateY(0) }
+.tb-dd::before {
+  content: ""; position: absolute; top: -5px; right: 14px; width: 10px; height: 10px;
+  background: var(--surface); border-left: 1px solid var(--border); border-top: 1px solid var(--border);
+  transform: rotate(45deg);
+}
+.tb-dd-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px; border-bottom: 1px solid var(--border); background: var(--surface);
+  position: relative; z-index: 1;
+}
+.tb-dd-title { font-size: 13px; font-weight: 700; color: var(--fg); display: flex; align-items: center; gap: 8px }
+.tb-dd-count {
+  background: var(--primary); color: #fff; font-size: 10px; font-weight: 700;
+  padding: 2px 7px; border-radius: 10px; min-width: 18px; text-align: center;
+}
+.tb-dd-action {
+  font-size: 11px; font-weight: 600; color: var(--primary); padding: 4px 8px;
+  border-radius: var(--r); transition: var(--t);
+}
+.tb-dd-action:hover { background: var(--primary-soft) }
+.tb-dd-list { max-height: 360px; overflow-y: auto }
+.tb-dd-item {
+  display: flex; gap: 10px; padding: 11px 14px; cursor: pointer; transition: var(--t);
+  border-bottom: 1px solid var(--border); position: relative;
+}
+.tb-dd-item:last-child { border-bottom: none }
+.tb-dd-item:hover { background: var(--surface2) }
+.tb-dd-item.unread { background: var(--primary-soft) }
+.tb-dd-item.unread:hover { background: var(--primary-dim) }
+.tb-dd-item.unread::before {
+  content: ""; position: absolute; left: 5px; top: 18px; width: 6px; height: 6px;
+  background: var(--primary); border-radius: 50%;
+}
+.tb-dd-ico {
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 14px;
+}
+.tb-dd-ico.ok { background: var(--ok-soft); color: var(--ok) }
+.tb-dd-ico.info { background: var(--info-soft); color: var(--info) }
+.tb-dd-ico.warn { background: var(--warning-soft); color: var(--warning) }
+.tb-dd-ico.danger { background: var(--danger-soft); color: var(--danger) }
+.tb-dd-body { flex: 1; min-width: 0 }
+.tb-dd-text { font-size: 13px; color: var(--fg); line-height: 1.4; margin-bottom: 2px }
+.tb-dd-text strong { font-weight: 600 }
+.tb-dd-time { font-size: 11px; color: var(--muted) }
+.tb-dd-empty { padding: 32px 14px; text-align: center; color: var(--muted); font-size: 13px }
+.tb-dd-foot {
+  padding: 10px 14px; border-top: 1px solid var(--border); text-align: center;
+  background: var(--surface2);
+}
+.tb-dd-foot a {
+  font-size: 12px; font-weight: 600; color: var(--primary); display: inline-flex;
+  align-items: center; gap: 4px; transition: var(--t);
+}
+.tb-dd-foot a:hover { color: var(--primary-hover) }
 .user-pill {
   display: flex; align-items: center; gap: 8px; padding: 4px 12px 4px 4px;
   border: 1px solid var(--border); border-radius: 20px; cursor: pointer; transition: var(--t);

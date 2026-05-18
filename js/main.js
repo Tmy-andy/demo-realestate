@@ -33,6 +33,7 @@ async function boot() {
   buildAmenitiesDetail();
   buildLegalPanel();
   buildLocationPanel();
+  buildResourcesPanel();
   bindControls();
   bindModal();
   bindPanelCollapse();
@@ -587,9 +588,16 @@ function buildSiteMap() {
 }
 
 let galleryFolderFilter = '__all'; // '__all' | '__none' | folder name
+let galleryTabFilter = 'image';    // 'image' | 'video'
+
+function galleryItemsByTab() {
+  return (DATA.gallery || [])
+    .map(g => ({ type: 'image', ...g }))
+    .filter(g => galleryTabFilter === 'video' ? g.type === 'video' : g.type !== 'video');
+}
 
 function visibleGalleryItems() {
-  const items = (DATA.gallery || []).map(g => ({ type: 'image', ...g }));
+  const items = galleryItemsByTab();
   if (galleryFolderFilter === '__all')  return items;
   if (galleryFolderFilter === '__none') return items.filter(g => !g.folder);
   return items.filter(g => g.folder === galleryFolderFilter);
@@ -599,36 +607,74 @@ function buildGallery() {
   const grid = document.getElementById("gal-grid");
   if (!grid) return;
   const allItems = (DATA.gallery || []).map(g => ({ type: 'image', ...g }));
+  const imgCount = allItems.filter(g => g.type !== 'video').length;
+  const vidCount = allItems.filter(g => g.type === 'video').length;
+  const tabItems = galleryItemsByTab();
 
-  // Build folder chip bar
-  const folders = [...new Set(allItems.map(g => g.folder).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'vi'));
+  // Build tab bar (Image / Video)
+  let tabBar = document.getElementById('gal-type-tabs');
+  if (!tabBar) {
+    tabBar = document.createElement('div');
+    tabBar.id = 'gal-type-tabs';
+    tabBar.style.cssText = 'display:flex;gap:0;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:14px';
+    grid.parentNode.insertBefore(tabBar, grid);
+  }
+  const tabBtn = (key, label, count) => {
+    const active = galleryTabFilter === key;
+    const icon = key === 'video'
+      ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9l5 3-5 3V9z" fill="currentColor"/></svg>'
+      : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>';
+    return `<button data-tab="${key}" style="display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border:none;border-bottom:2px solid ${active?'#3b82f6':'transparent'};background:none;cursor:pointer;font-family:inherit;font-size:13px;font-weight:${active?'600':'500'};color:${active?'#fff':'rgba(255,255,255,.55)'};transition:all .15s">${icon} ${label} <span style="font-size:11px;background:${active?'rgba(59,130,246,.25)':'rgba(255,255,255,.06)'};color:${active?'#fff':'rgba(255,255,255,.5)'};padding:1px 8px;border-radius:10px">${count}</span></button>`;
+  };
+  tabBar.innerHTML = tabBtn('image', 'Ảnh', imgCount) + tabBtn('video', 'Video', vidCount);
+  tabBar.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (galleryTabFilter === btn.dataset.tab) return;
+      galleryTabFilter = btn.dataset.tab;
+      galleryFolderFilter = '__all';
+      buildGallery();
+    });
+  });
+
+  // Build folder chip bar (theo tab hiện hành)
+  const folders = [...new Set(tabItems.map(g => g.folder).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'vi'));
   let chipBar = document.getElementById('gal-folder-chips');
-  if (folders.length && !chipBar) {
+  if (!chipBar) {
     chipBar = document.createElement('div');
     chipBar.id = 'gal-folder-chips';
     chipBar.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;padding:0 0 12px';
     grid.parentNode.insertBefore(chipBar, grid);
   }
-  if (chipBar) {
+  if (folders.length || tabItems.some(g => !g.folder)) {
     const chip = (val, label) => {
       const active = galleryFolderFilter === val;
-      const count = val === '__all' ? allItems.length
-                  : val === '__none' ? allItems.filter(g => !g.folder).length
-                  : allItems.filter(g => g.folder === val).length;
+      const count = val === '__all' ? tabItems.length
+                  : val === '__none' ? tabItems.filter(g => !g.folder).length
+                  : tabItems.filter(g => g.folder === val).length;
       return `<button data-folder="${val}" style="padding:6px 12px;border-radius:999px;border:1px solid ${active?'#3b82f6':'rgba(255,255,255,.18)'};background:${active?'rgba(59,130,246,.25)':'rgba(255,255,255,.04)'};color:${active?'#fff':'rgba(255,255,255,.7)'};font-size:12px;font-weight:600;cursor:pointer;transition:all .15s">${label} <span style="opacity:.6;font-weight:400">${count}</span></button>`;
     };
     chipBar.innerHTML = chip('__all', 'Tất cả')
-      + (allItems.some(g=>!g.folder) ? chip('__none', 'Chưa phân loại') : '')
+      + (tabItems.some(g=>!g.folder) ? chip('__none', 'Chưa phân loại') : '')
       + folders.map(f => chip(f, f)).join('');
+    chipBar.style.display = 'flex';
     chipBar.querySelectorAll('button').forEach(btn => {
       btn.addEventListener('click', () => {
         galleryFolderFilter = btn.dataset.folder;
         buildGallery();
       });
     });
+  } else {
+    chipBar.innerHTML = '';
+    chipBar.style.display = 'none';
   }
 
   const items = visibleGalleryItems();
+  if (items.length === 0) {
+    grid.innerHTML = `<div style="grid-column:1/-1;padding:48px 20px;text-align:center;color:rgba(255,255,255,.5);font-size:14px">
+      ${galleryTabFilter === 'video' ? 'Chưa có video nào trong thư viện.' : 'Chưa có ảnh nào trong thư viện.'}
+    </div>`;
+    return;
+  }
   grid.innerHTML = items.map((g, i) => {
     const thumb = g.poster || g.src || '';
     const isVideo = g.type === 'video';
@@ -753,6 +799,16 @@ function bindOverlays() {
   });
   document.getElementById("gallery-overlay")?.addEventListener("click", (e) => {
     if (e.target.id === "gallery-overlay") e.currentTarget.classList.remove("open");
+  });
+
+  document.getElementById("btn-resources")?.addEventListener("click", () => {
+    document.getElementById("resources-overlay").classList.add("open");
+  });
+  document.getElementById("resources-close")?.addEventListener("click", () => {
+    document.getElementById("resources-overlay").classList.remove("open");
+  });
+  document.getElementById("resources-overlay")?.addEventListener("click", (e) => {
+    if (e.target.id === "resources-overlay") e.currentTarget.classList.remove("open");
   });
 
   document.getElementById("lb-close")?.addEventListener("click", closeLightbox);
@@ -1953,3 +2009,46 @@ document.addEventListener("DOMContentLoaded", boot);
 
   setTimeout(() => { showToast(); setInterval(showToast, INTERVAL); }, SHOW_AFTER);
 })();
+
+/* ============================================
+   RESOURCES PANEL
+   ============================================ */
+const RESOURCE_META = {
+  brochure:    { label: 'Brochure dự án',           icon: 'doc' },
+  brandKit:    { label: 'Bộ nhận diện thương hiệu', icon: 'brand' },
+  priceList:   { label: 'Bảng giá & chính sách',    icon: 'price' },
+  floorPlanPdf:{ label: 'TMB mã căn & diện tích',   icon: 'plan' }
+};
+
+const RES_ICONS = {
+  doc:   '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg>',
+  kit:   '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7h18v13H3z"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>',
+  brand: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg>',
+  price: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 12l-8 8-9-9V3h8z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg>',
+  plan:  '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18"/><path d="M3 9h18M9 3v18"/></svg>'
+};
+
+function buildResourcesPanel() {
+  const grid = document.getElementById('res-grid');
+  if (!grid) return;
+  const res = DATA.resources || {};
+  const keys = Object.keys(RESOURCE_META);
+  grid.innerHTML = keys.map(k => {
+    const item = res[k] || {};
+    const meta = RESOURCE_META[k];
+    const title = item.title || meta.label;
+    const has = !!item.url;
+    const typeTag = item.type ? `<span class="res-type">${item.type.toUpperCase()}</span>` : '';
+    return `
+      <a class="res-card ${has ? '' : 'res-disabled'}"
+         ${has ? `href="${item.url}" target="_blank" rel="noopener"` : ''}>
+        <div class="res-icon">${RES_ICONS[meta.icon] || RES_ICONS.doc}</div>
+        <div class="res-body">
+          <div class="res-title">${title}</div>
+          <div class="res-sub">${has ? 'Mở / Tải xuống' : 'Chưa cập nhật'}</div>
+        </div>
+        ${typeTag}
+      </a>
+    `;
+  }).join('');
+}

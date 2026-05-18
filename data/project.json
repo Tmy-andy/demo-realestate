@@ -343,30 +343,19 @@
     ]
   },
   "gallery": [
-    {
-      "src": "img/thietke-matbangduan.jpg",
-      "title": "Mặt bằng tổng thể"
-    },
-    {
-      "src": "img/thietke-matbangduan.jpg",
-      "title": "Phối cảnh tháp A"
-    },
-    {
-      "src": "img/thietke-matbangduan.jpg",
-      "title": "Sky Lounge tầng 42"
-    },
-    {
-      "src": "img/thietke-matbangduan.jpg",
-      "title": "Bể bơi vô cực"
-    },
-    {
-      "src": "img/thietke-matbangduan.jpg",
-      "title": "Công viên trung tâm"
-    },
-    {
-      "src": "img/thietke-matbangduan.jpg",
-      "title": "Phòng khách penthouse"
-    }
+    { "type": "image", "src": "img/thietke-matbangduan.jpg", "title": "Mặt bằng tổng thể",   "folder": "Mặt bằng" },
+    { "type": "image", "src": "img/thietke-matbangduan.jpg", "title": "Phối cảnh tháp A",     "folder": "Phối cảnh" },
+    { "type": "image", "src": "img/thietke-matbangduan.jpg", "title": "Sky Lounge tầng 42",   "folder": "Tiện ích" },
+    { "type": "image", "src": "img/thietke-matbangduan.jpg", "title": "Bể bơi vô cực",        "folder": "Tiện ích" },
+    { "type": "image", "src": "img/thietke-matbangduan.jpg", "title": "Công viên trung tâm",  "folder": "Tiện ích" },
+    { "type": "image", "src": "img/thietke-matbangduan.jpg", "title": "Phòng khách penthouse","folder": "Căn hộ mẫu" },
+
+    { "type": "video", "title": "TVC tổng dự án",          "folder": "TVC",                  "videoSource": "drive", "src": "https://drive.google.com/drive/folders/1OGSwVrNAKoWzFNx2OtEI0MZcJiJPtFVq", "poster": "" },
+    { "type": "video", "title": "Phim mood tổng dự án",    "folder": "Mood Film",            "videoSource": "drive", "src": "https://drive.google.com/drive/folders/1ZzEyImCqOdHKn5yp6HzWIkTD9HezvdgY", "poster": "" },
+    { "type": "video", "title": "Phim mood Bạch Vân",      "folder": "Mood Film",            "videoSource": "drive", "src": "https://drive.google.com/drive/folders/1FbkyzaHQLMXSgN5HpC8RXSwBRztGUOdK", "poster": "" },
+    { "type": "video", "title": "Phim FTZ phân tích giá trị", "folder": "Phân tích giá trị", "videoSource": "drive", "src": "https://drive.google.com/drive/folders/1jn66TIYpF3M1XBA6QjMXCD-qlMXcWfNF", "poster": "" },
+    { "type": "video", "title": "Phim vị trí & thị trường","folder": "Vị trí & thị trường",  "videoSource": "drive", "src": "https://drive.google.com/drive/folders/1Ku3ryWPXYxvcWNXsIs2j0PPRYycNnS46", "poster": "" },
+    { "type": "video", "title": "Chuỗi clip thị trường",   "folder": "Thị trường",           "videoSource": "drive", "src": "https://drive.google.com/drive/folders/10z8i_JEHAzmvdSBWJ5iJVGKiOEtdnzdD", "poster": "" }
   ],
   "scenes": [
     {
@@ -791,6 +780,29 @@
       { "icon": "parking", "name": "Bãi xe 5 tầng hầm", "desc": "1.840 chỗ đỗ xe ô tô + 3.000 xe máy, hệ thống tự động." },
       { "icon": "elevator", "name": "Thang máy tốc độ cao", "desc": "6 thang/tòa, tốc độ 4m/s, thang hàng riêng biệt." },
       { "icon": "power", "name": "Điện dự phòng 100%", "desc": "Máy phát điện dự phòng toàn bộ công suất." }
+    ]
+  },
+  "resources": {
+    "brochure":     { "url": "https://drive.google.com/drive/folders/1m_KyuIsFgP6RLIclH-GJSE82rC9wEy32", "title": "Tờ rơi dự án",                 "type": "folder" },
+    "salesKit":     { "url": "https://drive.google.com/drive/folders/1mY4CqH8I0FWKMCyx1nFYeQNdhhKL39Xi", "title": "Bộ bí kíp tư vấn (nội bộ)",   "type": "folder" },
+    "brandKit":     { "url": "https://drive.google.com/drive/folders/1NeXfCqSULl6mNqQn4YW-BtLi1M8ZmArf", "title": "Bộ nhận diện thương hiệu",    "type": "folder" },
+    "priceList":    { "url": "",                                                                          "title": "Bảng giá & chính sách bán hàng","type": "pdf" },
+    "floorPlanPdf": { "url": "https://drive.google.com/drive/folders/1H5CPAaedDai9qLku8m9p98VKcRitHL09", "title": "TMB mã căn & diện tích",       "type": "folder" }
+  },
+  "keyVisuals": {
+    "rumor":  [
+      { "title": "KV rumor dự án", "url": "https://drive.google.com/drive/folders/1GHkdq2bnEB8KlPJux9vyhHvX9PcFOdpP", "type": "folder" }
+    ],
+    "launch": [
+      { "title": "KV ra mắt dự án", "url": "https://drive.google.com/drive/folders/1yfbjeEV5-ybPjxVz6km0m4Mdf5orzkfy", "type": "folder" }
+    ],
+    "render": [
+      { "title": "Ảnh phối cảnh dự án", "url": "https://drive.google.com/drive/folders/1_4An_DjojZkiBQBvJxA0Tmq_0ARzjqX6", "type": "folder" }
+    ],
+    "maps": [
+      { "title": "Bản đồ vị trí dự án", "url": "https://drive.google.com/drive/folders/1CbbpR3pLqmekAKYQhxOLUaDIpAfVlrEJ", "type": "folder" },
+      { "title": "Bản đồ tiện ích dự án", "url": "https://drive.google.com/file/d/1sNKDKuIL0VBEiuV5gZf-1I6Fnx-5iJ7F/view", "type": "file" },
+      { "title": "Bản đồ hạ tầng",        "url": "https://drive.google.com/file/d/1huWsNlxNCt4QNrP8g7-q9VFAhDpldKqB/view", "type": "file" }
     ]
   },
   "timeline": [

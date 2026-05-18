@@ -107,6 +107,7 @@ async function loadData() {
   S.data.legal          ??= { documents: [], banks: [], developerStats: [], testimonials: [] };
   S.data.location       ??= { lat: 0, lng: 0, mapSrc: '', nearby: [] };
   S.data.amenitiesDetail??= { noiKhu: [], skyAmenity: [], dichVu: [], haTang: [] };
+  S.data.resources      ??= {};
   if (!S.data.project)  S.data.project = {};
   S.data.project.amenities ??= [];
 }
@@ -214,6 +215,7 @@ function render(page, el) {
     case 'timeline':  renderTimelinePage(el); break;
     case 'legal':     renderLegalPage(el); break;
     case 'location':  renderLocationPage(el); break;
+    case 'resources': renderResourcesPage(el); break;
   }
 }
 
