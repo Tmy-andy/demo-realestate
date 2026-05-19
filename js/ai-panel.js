@@ -1,52 +1,36 @@
 /* ============================================
-   AI PANEL — BotChat (voice + text)
-   Spec: BOTCHAT_SPEC.md
+   AI PANEL — BotChat (voice + text via Gemini Live)
+   Kết nối: ws://AI_BACKEND_WS → FastAPI backend → Gemini Live API
    ============================================ */
 window.AiPanel = (() => {
-  let panel = null;
-  let recognition = null;
-  let voiceActive = false;
-  let listening = false;
-  let speaking = false;
-  let lastTranscript = "";
-  let audioCtx = null;
-  let analyser = null;
-  let micStream = null;
-  let micSource = null;
-  let waveformRAF = null;
+  let panel          = null;
+  let geminiLive     = null;
+  let voiceActive    = false;
+  let _bridgeReady   = false;
 
   const sessionHistory = [];
 
   const DEFAULTS = {
-    title: "Trợ lý Aurora Heights",
-    active: "Đang hoạt động",
-    listening: "Đang lắng nghe…",
-    thinking: "Đang suy nghĩ…",
-    speaking: "Đang trả lời…",
+    title:       "Trợ lý Aurora Heights",
+    active:      "Đang hoạt động",
+    listening:   "Đang lắng nghe…",
+    thinking:    "Đang suy nghĩ…",
+    speaking:    "Đang trả lời…",
     placeholder: "Nhập câu hỏi…",
-    close: "Đóng",
-    noSR: "Trình duyệt chưa hỗ trợ nhận dạng giọng nói. Vui lòng dùng Chrome hoặc Edge.",
-    micDenied: "Bạn cần cho phép truy cập micro để dùng tính năng trò chuyện bằng giọng nói.",
-    networkErr: "Không thể kết nối dịch vụ nhận dạng giọng nói. Vui lòng thử lại sau.",
-    replyStub: 'Cảm ơn câu hỏi của bạn: "{q}". Đây là phản hồi mẫu — tích hợp LLM thật sẽ thay thế hàm generateReply().',
+    close:       "Đóng",
+    noSR:        "Trình duyệt không hỗ trợ âm thanh. Vui lòng dùng Chrome hoặc Edge.",
+    micDenied:   "Bạn cần cho phép truy cập micro để dùng trợ lý giọng nói.",
+    connecting:  "Đang kết nối…",
+    disconnected:"Mất kết nối. Nhấn micro để thử lại.",
   };
 
   const DEMO = [
     { role: "bot",  text: "Xin chào! Tôi là trợ lý AI của Aurora Heights. Bạn cần tìm hiểu về dự án nào?" },
-    { role: "user", text: "Cho tôi xem các căn 2 phòng ngủ còn trống." },
-    { role: "bot",  text: "Hiện có 23 căn 2PN diện tích 72m² giá từ 5.4 tỷ và 14 căn 2PN+1 86m² giá từ 6.8 tỷ. Bạn muốn xem mặt bằng chi tiết không?" },
-    { role: "user", text: "Tiện ích nội khu có gì nổi bật?" },
-    { role: "bot",  text: "Aurora Heights có bể bơi vô cực 50m, gym 1200m², spa & onsen, công viên 12.4ha và Sky Lounge tầng 42 với panorama hồ Tây." },
   ];
 
-  function t(key, vars) {
-    if (window.I18n && typeof window.I18n.t === "function") {
-      return window.I18n.t(key, vars);
-    }
-    const flat = key.replace(/^ai\./, "");
-    let str = DEFAULTS[flat] || key;
-    if (vars) Object.keys(vars).forEach(k => { str = str.replace("{" + k + "}", vars[k]); });
-    return str;
+  function t(key) {
+    if (window.I18n && typeof window.I18n.t === "function") return window.I18n.t(key);
+    return DEFAULTS[key.replace(/^ai\./, "")] || key;
   }
 
   function escapeHtml(s) {
@@ -59,6 +43,7 @@ window.AiPanel = (() => {
     return `<div class="ai-pn-bubble ${role}">${escapeHtml(text)}</div>`;
   }
 
+  /* ─── Build HTML shell ──────────────────────────────── */
   function buildShell() {
     if (panel) return panel;
     panel = document.createElement("div");
@@ -125,12 +110,12 @@ window.AiPanel = (() => {
     });
   }
 
+  /* ─── Chat rendering ────────────────────────────────── */
   function renderHistory() {
     if (!panel) return;
     const chat = panel.querySelector(".ai-pn-chat");
-    const html = DEMO.map(d => bubbleHtml(d.role, d.text)).join("")
-               + sessionHistory.map(d => bubbleHtml(d.role, d.text)).join("");
-    chat.innerHTML = html;
+    chat.innerHTML = DEMO.map(d => bubbleHtml(d.role, d.text)).join("")
+                   + sessionHistory.map(d => bubbleHtml(d.role, d.text)).join("");
     scrollChatToEnd();
   }
 
@@ -141,6 +126,7 @@ window.AiPanel = (() => {
   }
 
   function appendBubble(role, text) {
+    if (!text || !text.trim()) return;
     sessionHistory.push({ role, text });
     if (!panel) return;
     const chat = panel.querySelector(".ai-pn-chat");
@@ -148,27 +134,7 @@ window.AiPanel = (() => {
     scrollChatToEnd();
   }
 
-  function generateReply(q) {
-    return t("ai.replyStub", { q });
-  }
-
-  function sendTextQuestion(text) {
-    appendBubble("user", text);
-    setTimeout(() => appendBubble("bot", generateReply(text)), 450);
-  }
-
-  /* ─── Voice ─── */
-  function getRecognition() {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) return null;
-    const r = new SR();
-    r.continuous = false;
-    r.interimResults = true;
-    const lang = (document.documentElement.lang || "vi").toLowerCase().startsWith("en") ? "en-US" : "vi-VN";
-    r.lang = lang;
-    return r;
-  }
-
+  /* ─── Status bar ────────────────────────────────────── */
   function setVoiceState(state) {
     if (!panel) return;
     panel.classList.remove("listening", "thinking", "speaking");
@@ -177,169 +143,232 @@ window.AiPanel = (() => {
     if (sub) sub.textContent = t("ai." + (state || "active"));
   }
 
-  function enterVoiceMode() {
-    const r = getRecognition();
-    if (!r) { alert(t("ai.noSR")); return; }
-    recognition = r;
-    voiceActive = true;
-    document.body.classList.add("ai-voice-active");
-    startListening();
+  function setStatusText(text) {
+    if (!panel) return;
+    const sub = panel.querySelector(".ai-pn-status-text");
+    if (sub) sub.textContent = text;
   }
 
-  function startListening() {
-    if (!voiceActive || !recognition) return;
-    listening = true;
-    lastTranscript = "";
-    setVoiceState("listening");
-    startWaveform();
+  /* ─── VRBridge setup ────────────────────────────────── */
+  function _initVRBridge() {
+    if (_bridgeReady || !window.VRBridge) return;
+    _bridgeReady = true;
 
-    recognition.onresult = (e) => {
-      let txt = "";
-      for (let i = 0; i < e.results.length; i++) {
-        txt += e.results[i][0].transcript;
-      }
-      lastTranscript = txt.trim();
-    };
-    recognition.onend = () => {
-      listening = false;
-      if (!voiceActive) return;
-      if (lastTranscript && lastTranscript.length >= 2) {
-        handleVoicePrompt(lastTranscript);
-      } else {
-        setTimeout(() => startListening(), 400);
-      }
-    };
-    recognition.onerror = (e) => {
-      listening = false;
-      if (e.error === "not-allowed" || e.error === "service-not-allowed") {
-        alert(t("ai.micDenied"));
-        exitVoiceMode();
-      } else if (e.error === "network") {
-        alert(t("ai.networkErr"));
-        exitVoiceMode();
-      } else if (voiceActive) {
-        setTimeout(() => startListening(), 600);
-      }
+    /* Build pano→scene map from menu items */
+    const buildMap = (data) => {
+      if (!data || !data.menu) return;
+      const allItems = [];
+      Object.values(data.menu).forEach(group => {
+        if (Array.isArray(group)) allItems.push(...group);
+      });
+      if (allItems.length) window.VRBridge.setSceneMap(allItems);
     };
 
-    try { recognition.start(); } catch (_) {}
+    if (window.DATA) {
+      buildMap(window.DATA);
+    } else {
+      fetch("data/project.json")
+        .then(r => r.json())
+        .then(buildMap)
+        .catch(() => { /* silent — scene map not critical */ });
+    }
+
+    /* Notify backend when panorama changes */
+    window.VRBridge.onSceneChange(({ nodeId, sceneId }) => {
+      if (geminiLive) geminiLive.sendNodeChanged(nodeId, sceneId);
+    });
   }
 
-  function handleVoicePrompt(text) {
-    setVoiceState("thinking");
-    appendBubble("user", text);
-    setTimeout(() => {
-      const reply = generateReply(text);
-      appendBubble("bot", reply);
-      speak(reply);
-    }, 450);
+  /* ─── Gemini Live connection ─────────────────────────── */
+  function _ensureGeminiLive() {
+    if (geminiLive && geminiLive.isConnected()) return geminiLive;
+
+    const wsUrl = (typeof window.AI_BACKEND_WS !== "undefined")
+      ? window.AI_BACKEND_WS
+      : (location.protocol === "https:" ? "wss:" : "ws:") + "//" + location.hostname + ":8000/ws";
+
+    geminiLive = new GeminiLive({
+      wsUrl,
+
+      onOpen: () => {
+        setVoiceState("listening");
+        /* Start streaming mic immediately */
+        geminiLive.startRecording();
+        /* Tell backend current scene if known */
+        const panoId = window.VRBridge ? window.VRBridge.currentPanoId() : null;
+        if (panoId) geminiLive.sendNodeChanged(panoId, null);
+      },
+
+      onMessage: (role, text /*, audioUrl */) => {
+        if (text && text.trim()) {
+          appendBubble(role === "gemini" ? "bot" : "user", text);
+        }
+      },
+
+      onTranscript: (role, chunk) => {
+        if (role === "gemini") setVoiceState("speaking");
+      },
+
+      onNavigate: (nodeId) => {
+        if (window.VRBridge) window.VRBridge.navigateTo(nodeId);
+      },
+
+      onRecordingStart: () => {
+        setVoiceState("listening");
+        startWaveform();
+      },
+
+      onRecordingStop: () => {
+        setVoiceState("thinking");
+        stopWaveform();
+      },
+
+      onInterrupted: () => {
+        setVoiceState("listening");
+      },
+
+      onClose: () => {
+        voiceActive = false;
+        setVoiceState(null);
+        stopWaveform();
+        document.body.classList.remove("ai-voice-active");
+        if (panel) panel.classList.remove("listening", "thinking", "speaking");
+      },
+
+      onError: (e) => {
+        console.error("[AiPanel] Gemini Live error:", e);
+        setStatusText(t("ai.disconnected"));
+      },
+    });
+
+    geminiLive.connect();
+    return geminiLive;
   }
 
-  function speak(text) {
-    if (!("speechSynthesis" in window)) {
-      if (voiceActive) startListening();
+  /* ─── Voice mode (Gemini Live streaming) ────────────── */
+  async function enterVoiceMode() {
+    if (!window.GeminiLive) {
+      alert(t("ai.noSR"));
       return;
     }
-    speaking = true;
-    setVoiceState("speaking");
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = recognition ? recognition.lang : "vi-VN";
-    u.onend = () => { speaking = false; if (voiceActive) startListening(); };
-    u.onerror = () => { speaking = false; if (voiceActive) startListening(); };
-    try { window.speechSynthesis.speak(u); } catch (_) { speaking = false; }
+    voiceActive = true;
+    document.body.classList.add("ai-voice-active");
+    setStatusText(t("ai.connecting"));
+
+    try {
+      const gl = _ensureGeminiLive();
+      /* initAudio must be called in user gesture */
+      await gl.initAudio();
+    } catch (e) {
+      if (e && e.name === "NotAllowedError") {
+        alert(t("ai.micDenied"));
+        voiceActive = false;
+        document.body.classList.remove("ai-voice-active");
+      }
+    }
   }
 
   function exitVoiceMode() {
     voiceActive = false;
-    listening = false;
-    speaking = false;
     document.body.classList.remove("ai-voice-active");
     setVoiceState(null);
-    if (panel) {
-      const sub = panel.querySelector(".ai-pn-status-text");
-      if (sub) sub.textContent = t("ai.active");
-    }
-    try { recognition && recognition.abort(); } catch (_) {}
-    recognition = null;
-    try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (_) {}
-    teardownAudio();
-  }
-
-  /* ─── Waveform (realtime mic volume) ─── */
-  async function startWaveform() {
-    if (!panel) return;
-    if (analyser) { drawWaveform(); return; }
-    try {
-      micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      micSource = audioCtx.createMediaStreamSource(micStream);
-      analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 64;
-      analyser.smoothingTimeConstant = 0.6;
-      micSource.connect(analyser);
-      drawWaveform();
-    } catch (_) {
-      /* silent — bars will still pulse via CSS animation */
+    stopWaveform();
+    if (geminiLive) {
+      geminiLive.disconnect();
+      geminiLive = null;
     }
   }
 
-  function drawWaveform() {
-    if (!panel || !analyser) return;
+  /* ─── Text input ─────────────────────────────────────── */
+  function sendTextQuestion(text) {
+    appendBubble("user", text);
+    if (!window.GeminiLive) return;
+    if (geminiLive && geminiLive.isConnected()) {
+      geminiLive.sendText(text);
+      return;
+    }
+    /* Auto-connect for text-only mode */
+    const wsUrl = (typeof window.AI_BACKEND_WS !== "undefined")
+      ? window.AI_BACKEND_WS
+      : (location.protocol === "https:" ? "wss:" : "ws:") + "//" + location.hostname + ":8000/ws";
+    geminiLive = new GeminiLive({
+      wsUrl,
+      onOpen: () => {
+        geminiLive.sendText(text);
+        const panoId = window.VRBridge ? window.VRBridge.currentPanoId() : null;
+        if (panoId) geminiLive.sendNodeChanged(panoId, null);
+      },
+      onMessage: (role, t2) => {
+        if (t2 && t2.trim()) appendBubble(role === "gemini" ? "bot" : "user", t2);
+      },
+      onNavigate: (nodeId) => {
+        if (window.VRBridge) window.VRBridge.navigateTo(nodeId);
+      },
+      onError: (e) => console.error("[AiPanel]", e),
+    });
+    geminiLive.connect();
+    /* initAudio() in user-gesture context so AudioContext is ready for bot audio */
+    geminiLive.initAudio().catch(() => {});
+  }
+
+  /* ─── Waveform (CSS animation — no second getUserMedia) ────
+     GeminiLive already holds the mic stream; opening a second
+     getUserMedia causes browser warnings and may fail silently.
+     CSS-driven animation provides adequate visual feedback.
+  ─────────────────────────────────────────────────────────── */
+  let _waveRAF = null;
+
+  function startWaveform() {
+    if (!panel || _waveRAF) return;
     const bars = panel.querySelectorAll(".ai-pn-waveform span");
-    const data = new Uint8Array(analyser.frequencyBinCount);
-    const mid = bars.length / 2;
+    let t = 0;
     const tick = () => {
-      if (!analyser) return;
-      analyser.getByteFrequencyData(data);
+      t += 0.15;
+      const mid = bars.length / 2;
       bars.forEach((bar, i) => {
-        const binIdx = Math.floor(Math.abs(i - mid) * data.length / mid);
-        const v = data[Math.min(binIdx, data.length - 1)] || 0;
-        const scale = 0.15 + (v / 255) * 1.4;
+        const dist  = Math.abs(i - mid) / mid;
+        const phase = Math.sin(t + i * 0.4);
+        const scale = 0.15 + (1 - dist) * 0.7 * Math.max(0, phase);
         bar.style.transform = `scaleY(${scale})`;
-        bar.style.opacity = 0.4 + (v / 255) * 0.6;
+        bar.style.opacity   = String(0.3 + (1 - dist) * 0.6 * Math.max(0, phase));
         bar.style.animation = "none";
       });
-      waveformRAF = requestAnimationFrame(tick);
+      _waveRAF = requestAnimationFrame(tick);
     };
     tick();
   }
 
-  function teardownAudio() {
-    if (waveformRAF) cancelAnimationFrame(waveformRAF);
-    waveformRAF = null;
-    try { micSource && micSource.disconnect(); } catch (_) {}
-    try { analyser && analyser.disconnect(); } catch (_) {}
-    if (micStream) {
-      micStream.getTracks().forEach(tr => { try { tr.stop(); } catch (_) {} });
-    }
-    if (audioCtx && audioCtx.state !== "closed") {
-      try { audioCtx.close(); } catch (_) {}
-    }
-    micSource = null; analyser = null; micStream = null; audioCtx = null;
+  function _drawWave() { /* no-op, kept for compat */ }
+
+  function stopWaveform() {
+    if (_waveRAF) cancelAnimationFrame(_waveRAF);
+    _waveRAF = null;
     if (panel) {
-      const bars = panel.querySelectorAll(".ai-pn-waveform span");
-      bars.forEach((bar) => {
+      panel.querySelectorAll(".ai-pn-waveform span").forEach(bar => {
         bar.style.transform = "";
-        bar.style.opacity = "";
+        bar.style.opacity   = "";
         bar.style.animation = "";
       });
     }
   }
 
-  /* ─── Public API ─── */
+  /* ─── Public API ─────────────────────────────────────── */
   function open() {
     buildShell();
+    _initVRBridge();
     renderHistory();
     requestAnimationFrame(() => {
       panel.classList.add("open");
       document.body.classList.add("ai-panel-open");
     });
   }
+
   function close() {
     if (voiceActive) exitVoiceMode();
     if (panel) panel.classList.remove("open");
     document.body.classList.remove("ai-panel-open");
   }
+
   function toggle() {
     if (panel && panel.classList.contains("open")) close();
     else open();
@@ -347,11 +376,7 @@ window.AiPanel = (() => {
 
   window.addEventListener("langchange", () => {
     const wasOpen = panel && panel.classList.contains("open");
-    if (panel) {
-      if (voiceActive) exitVoiceMode();
-      panel.remove();
-      panel = null;
-    }
+    if (panel) { panel.remove(); panel = null; }
     if (wasOpen) open();
   });
 

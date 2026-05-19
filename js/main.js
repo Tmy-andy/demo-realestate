@@ -68,6 +68,7 @@ async function boot() {
 function goToPanorama(panoName) {
   if (!panoName) return;
   currentPanoramaId = panoName;
+  window.dispatchEvent(new CustomEvent('panoramaChange', { detail: { panoId: panoName } }));
   const iframe = document.getElementById("vr-iframe");
   if (iframe && iframe.contentWindow) {
     iframe.contentWindow.postMessage({ type: "goToPanorama", name: panoName }, "*");
