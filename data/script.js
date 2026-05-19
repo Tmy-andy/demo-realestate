@@ -279,6 +279,10 @@ function onMessage(event) {
         case 'importState':
             importTourState(data.state);
             break;
+        case 'goToPanorama':
+            if (data.name) setMediaByName(data.name);
+            else if (typeof data.index === 'number') setMediaByIndex(data.index);
+            break;
     }
 }
 

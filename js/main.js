@@ -3,7 +3,7 @@
    ============================================ */
 
 let DATA = null;
-let currentSceneId = null;
+let currentPanoramaId = null;
 let currentMenuItemId = null;
 const MENU_GROUPS = [
   { key: "tongQuan",        label: "Tổng quan",          short: "TQ" },
@@ -50,23 +50,64 @@ async function boot() {
     });
   }
 
-  const stage = document.getElementById("vr-stage");
-  VR360.init(stage, {
-    onYawChange: () => updateHotspotPositions()
-  });
-
-  // Pick first menu item whose sceneId matches the initial scene as the active highlight
-  const firstSceneId = DATA.scenes[0].id;
-  for (const g of MENU_GROUPS) {
-    const found = (DATA.menu?.[g.key] || []).find(m => m.sceneId === firstSceneId);
-    if (found) { currentMenuItemId = found.id; break; }
+  // Pick first menu item that has a panorama as the initial view
+  const firstGroup = DATA.menu?.[MENU_GROUPS[0].key] || [];
+  const firstItem = firstGroup.find(m => m.tdvPanoramaId) || firstGroup[0];
+  if (firstItem) {
+    currentMenuItemId = firstItem.id;
+    goToPanorama(firstItem.tdvPanoramaId);
   }
-  switchScene(firstSceneId);
 
   // Hide loader after first paint
   setTimeout(() => {
     document.getElementById("loader").classList.add("hidden");
   }, 900);
+}
+
+/** Send a postMessage to the 3DVista iframe to change panorama */
+function goToPanorama(panoName) {
+  if (!panoName) return;
+  currentPanoramaId = panoName;
+  const iframe = document.getElementById("vr-iframe");
+  if (iframe && iframe.contentWindow) {
+    iframe.contentWindow.postMessage({ type: "goToPanorama", name: panoName }, "*");
+  }
+  // Update scene info bar
+  const item = findMenuItemByPanorama(panoName);
+  if (item) {
+    const el = document.getElementById("scene-title");
+    if (el) el.textContent = _tr(item.label);
+    const sub = document.getElementById("scene-subtitle");
+    if (sub) sub.textContent = panoName;
+    const typ = document.getElementById("scene-type");
+    if (typ) typ.textContent = "";
+  }
+}
+
+/** Programmatic API: navigate by menu item id (for chatbot integration) */
+function goToMenuItem(menuItemId) {
+  for (const g of MENU_GROUPS) {
+    const item = (DATA.menu?.[g.key] || []).find(m => m.id === menuItemId);
+    if (item) {
+      currentMenuItemId = menuItemId;
+      openGroupKey = g.key;
+      if (item.tdvPanoramaId) goToPanorama(item.tdvPanoramaId);
+      renderNavList();
+      return true;
+    }
+  }
+  return false;
+}
+window.goToMenuItem = goToMenuItem;
+window.goToPanorama = goToPanorama;
+
+/** Find a menu item by its panorama ID */
+function findMenuItemByPanorama(panoName) {
+  for (const g of MENU_GROUPS) {
+    const item = (DATA.menu?.[g.key] || []).find(m => m.tdvPanoramaId === panoName);
+    if (item) return item;
+  }
+  return null;
 }
 
 function buildBrand() {
@@ -404,79 +445,13 @@ function openModalWithUnit(code, type) {
   }
 }
 
-function switchScene(id) {
-  const sc = DATA.scenes.find(s => s.id === id);
-  if (!sc) return;
-  currentSceneId = id;
-  VR360.loadScene(sc);
-
-  // update info panel
-  document.getElementById("scene-type").textContent = _tr(sc.type);
-  document.getElementById("scene-title").textContent = _tr(sc.title);
-  document.getElementById("scene-subtitle").textContent = _tr(sc.subtitle);
-
-  // mark active card in nav list (match by menu item id, not sceneId — many items may share a sceneId)
+/* switchScene kept as a thin wrapper for backward compat — now delegates to goToPanorama */
+function switchScene(panoramaId) {
+  if (!panoramaId) return;
+  goToPanorama(panoramaId);
   document.querySelectorAll(".np-card").forEach(c => {
     c.classList.toggle("active", c.dataset.id === currentMenuItemId);
   });
-
-  // Build hotspots
-  buildHotspots(sc.hotspots);
-  closePopup();
-}
-
-function buildHotspots(hotspots) {
-  const layer = document.getElementById("hotspot-layer");
-  layer.innerHTML = hotspots.map(h => `
-    <div class="hotspot" data-id="${h.id}" data-type="${h.type}" data-x="${h.x}" data-y="${h.y}">
-      <div class="hotspot-pin"></div>
-      <div class="hotspot-label">${_tr(h.label)}</div>
-    </div>
-  `).join("");
-  layer.querySelectorAll(".hotspot").forEach(el => {
-    el.addEventListener("click", (e) => {
-      e.stopPropagation();
-      const id = el.dataset.id;
-      const sc = DATA.scenes.find(s => s.id === currentSceneId);
-      const hs = sc.hotspots.find(h => h.id === id);
-      if (hs.type === "nav") {
-        switchScene(hs.target);
-      } else {
-        showPopup(hs, el);
-      }
-    });
-  });
-  updateHotspotPositions();
-}
-
-function updateHotspotPositions() {
-  const layer = document.getElementById("hotspot-layer");
-  if (!layer) return;
-  layer.querySelectorAll(".hotspot").forEach(el => {
-    const x = parseFloat(el.dataset.x);
-    const y = parseFloat(el.dataset.y);
-    const p = VR360.projectHotspot(x, y);
-    if (p.visible && p.x >= -50 && p.x <= window.innerWidth + 50) {
-      el.style.left = p.x + "px";
-      el.style.top = p.y + "px";
-      el.style.display = "";
-    } else {
-      el.style.display = "none";
-    }
-  });
-}
-
-function showPopup(hs, anchorEl) {
-  const popup = document.getElementById("hotspot-popup");
-  popup.querySelector("h4").textContent = _tr(hs.label);
-  popup.querySelector("p").textContent = _tr(hs.desc);
-  const r = anchorEl.getBoundingClientRect();
-  popup.style.left = (r.left + r.width / 2) + "px";
-  popup.style.top = (r.top - 12) + "px";
-  popup.classList.add("open");
-}
-function closePopup() {
-  document.getElementById("hotspot-popup").classList.remove("open");
 }
 
 function buildNavPanel() {
@@ -505,11 +480,11 @@ function renderNavList() {
     const cardsHtml = filtered.map((m, i) => {
       const isActive = m.id === currentMenuItemId;
       return `
-        <div class="np-card ${isActive ? 'active' : ''}" data-id="${m.id}" data-scene="${m.sceneId || ''}">
+        <div class="np-card ${isActive ? 'active' : ''}" data-id="${m.id}" data-panorama="${m.tdvPanoramaId || ''}">
           <div class="np-card-idx">${String(i + 1).padStart(2, '0')}</div>
           <div class="np-card-info">
             <div class="np-card-name">${_tr(m.label)}</div>
-            <div class="np-card-sub">${m.sceneId ? _t("ui.viewIn360") : _t("ui.nearbyAmenity")}</div>
+            <div class="np-card-sub">${m.tdvPanoramaId || _t("ui.nearbyAmenity")}</div>
           </div>
           <svg class="np-card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
         </div>
@@ -552,14 +527,12 @@ function renderNavList() {
     group.querySelectorAll(".np-card").forEach(card => {
       card.addEventListener("click", () => {
         currentMenuItemId = card.dataset.id;
-        const sceneId = card.dataset.scene;
-        if (sceneId) switchScene(sceneId);
-        else {
-          // No scene attached — just mark active manually
-          document.querySelectorAll(".np-card").forEach(c => {
-            c.classList.toggle("active", c.dataset.id === currentMenuItemId);
-          });
-        }
+        const panoId = card.dataset.panorama;
+        if (panoId) goToPanorama(panoId);
+        // Always update active state
+        document.querySelectorAll(".np-card").forEach(c => {
+          c.classList.toggle("active", c.dataset.id === currentMenuItemId);
+        });
       });
     });
   });
@@ -572,17 +545,17 @@ function buildSiteMap() {
   if (img && sm.image) img.src = sm.image;
   const points = document.getElementById("sm-points");
   points.innerHTML = (sm.points || []).map(p => `
-    <div class="sm-point" data-scene="${p.sceneId || ''}" style="left:${p.x}%; top:${p.y}%;">
+    <div class="sm-point" data-panorama="${p.tdvPanoramaId || p.sceneId || ''}" style="left:${p.x}%; top:${p.y}%;">
       <span class="sm-pin"></span>
       <span class="sm-label">${_tr(p.label)}</span>
     </div>
   `).join("");
   points.querySelectorAll(".sm-point").forEach(el => {
     el.addEventListener("click", () => {
-      const id = el.dataset.scene;
-      if (!id) return;
+      const pano = el.dataset.panorama;
+      if (!pano) return;
       document.getElementById("sitemap-overlay").classList.remove("open");
-      switchScene(id);
+      goToPanorama(pano);
     });
   });
 }
@@ -833,14 +806,13 @@ function bindBotchat() {
 }
 
 function bindControls() {
-  let rotating = false;
-  document.getElementById("ctrl-rotate").addEventListener("click", (e) => {
-    rotating = !rotating;
-    VR360.setAutoRotate(rotating);
-    e.currentTarget.classList.toggle("active", rotating);
-  });
-  document.getElementById("ctrl-zoom-in").addEventListener("click", () => VR360.zoomBy(-8));
-  document.getElementById("ctrl-zoom-out").addEventListener("click", () => VR360.zoomBy(8));
+  /* VR rotation/zoom controls removed — 3DVista has its own controls */
+  const ctrlRotate = document.getElementById("ctrl-rotate");
+  if (ctrlRotate) ctrlRotate.style.display = "none";
+  const ctrlZoomIn = document.getElementById("ctrl-zoom-in");
+  if (ctrlZoomIn) ctrlZoomIn.style.display = "none";
+  const ctrlZoomOut = document.getElementById("ctrl-zoom-out");
+  if (ctrlZoomOut) ctrlZoomOut.style.display = "none";
   document.getElementById("ctrl-fullscreen").addEventListener("click", () => {
     if (!document.fullscreenElement) document.documentElement.requestFullscreen();
     else document.exitFullscreen();
@@ -852,9 +824,6 @@ function bindControls() {
     }
   });
 
-  document.getElementById("hotspot-popup").querySelector(".close")
-    .addEventListener("click", closePopup);
-  document.getElementById("vr-stage").addEventListener("pointerdown", closePopup);
 }
 
 function bindModal() {
@@ -911,7 +880,7 @@ function bindPanelCollapse() {
 
 function bindSmartHide() {
   const ui = document.getElementById("ui");
-  const stage = document.getElementById("vr-stage");
+  const stage = document.getElementById("vr-iframe");
   const restore = document.getElementById("ui-restore");
   if (!ui || !stage) return;
 
@@ -986,14 +955,12 @@ function rebuildDynamic() {
   buildAmenities();
   buildTimelineAndUnits();
   renderNavList();
-  // Re-render scene-dependent labels (scene title/subtitle/type, hotspots)
-  if (currentSceneId) {
-    const sc = DATA.scenes.find(s => s.id === currentSceneId);
-    if (sc) {
-      document.getElementById("scene-type").textContent = _tr(sc.type);
-      document.getElementById("scene-title").textContent = _tr(sc.title);
-      document.getElementById("scene-subtitle").textContent = _tr(sc.subtitle);
-      buildHotspots(sc.hotspots);
+  // Re-render scene-dependent labels
+  if (currentPanoramaId) {
+    const item = findMenuItemByPanorama(currentPanoramaId);
+    if (item) {
+      const el = document.getElementById("scene-title");
+      if (el) el.textContent = _tr(item.label);
     }
   }
   // Re-render sitemap point labels & gallery captions
@@ -1024,7 +991,6 @@ const HELP_ITEMS = [
   { target: "#project-card",    openPC: true,                     labelKey: "tour.project" },
   { target: "#bb-chat-btn",     round: true,                      labelKey: "tour.bot" },
   { target: "#ui-restore",      labelKey: "tour.restore" },
-  { target: () => document.querySelector(".hotspot"),             labelKey: "tour.hotspot" },
 ];
 
 let tourIdx = -1;

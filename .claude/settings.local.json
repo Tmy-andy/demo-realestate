@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc -l /c/Users/ASUS/OneDrive/Desktop/BDS/js/*.js /c/Users/ASUS/OneDrive/Desktop/BDS/admin/js/*.js /c/Users/ASUS/OneDrive/Desktop/BDS/index.html /c/Users/ASUS/OneDrive/Desktop/BDS/data/project.json)",
+      "Bash(grep -oE \"panorama_[A-Fa-f0-9_]{20,}\" \"C:/Users/ASUS/OneDrive/Desktop/BDS/data/script.js\")",
+      "Bash(grep -oE \"panorama[^ ,'\\\\\"\\)]{5,50}\" \"C:/Users/ASUS/OneDrive/Desktop/BDS/data/script.js\")",
+      "Bash(grep -oE \"3F0[0-9A-Fa-f]{5,}\" \"C:/Users/ASUS/OneDrive/Desktop/BDS/data/script.js\")",
+      "Bash(dd:*)",
+      "Bash(grep -n \"setMediaByName\\\\|setMainMedia\\\\|setPanorama\\\\|getObjectById\" \"/c/Users/ASUS/OneDrive/Desktop/BDS/data/lib/\"*)",
+      "Bash(node:*)"
+    ]
+  }
+}

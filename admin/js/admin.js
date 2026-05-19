@@ -110,6 +110,8 @@ async function loadData() {
   S.data.resources      ??= {};
   if (!S.data.project)  S.data.project = {};
   S.data.project.amenities ??= [];
+  // Pre-load panorama list for nav panel editor
+  await fetchPanoramas();
 }
 
 function saveData(msg = 'Đã lưu') {
@@ -163,7 +165,6 @@ function getFallbackData() {
   return {
     project: { name:'Aurora Heights', developer:'Aurora Land Holdings', location:'Khu Tây Hồ Tây, Hà Nội', status:'Đang mở bán GĐ 2', handover:'Quý IV / 2027', priceFrom:'Từ 4.9 tỷ', totalUnits:1840 },
     menu: { tongQuan:[], tienIchNoiKhu:[], tienIchNgoaiKhu:[], matBangTang:[], view360Can:[] },
-    scenes: [],
     floorplan: { units: [] },
   };
 }
@@ -222,13 +223,44 @@ function render(page, el) {
 // ——— HELPERS —————————————————————————————————
 const d = S.data;
 const units  = () => S.data?.floorplan?.units  || [];
-const scenes = () => S.data?.scenes            || [];
 const proj   = () => S.data?.project           || {};
 const menu   = () => S.data?.menu              || {};
 
-function vrLink(sceneId) {
-  if (!sceneId) return '../index.html';
-  return `../index.html?scene=${sceneId}`;
+/** Dynamically discover available panoramas from the 3DVista locale file */
+let _panoramaCache = null;
+async function fetchPanoramas() {
+  if (_panoramaCache) return _panoramaCache;
+  try {
+    const res = await fetch('../data/locale/en.txt');
+    const txt = await res.text();
+    const list = [];
+    for (const line of txt.split('\n')) {
+      const m = line.match(/^(panorama_[A-F0-9_]+)\.label\s*=\s*(.+)$/);
+      if (m) {
+        list.push({
+          hexId: m[1],
+          name: m[2].trim(),
+          thumbnail: `../data/media/${m[1]}_t.webp`
+        });
+      }
+    }
+    // Sort by pano number
+    list.sort((a, b) => {
+      const na = parseInt(a.name.replace('pano-','')) || 0;
+      const nb = parseInt(b.name.replace('pano-','')) || 0;
+      return na - nb;
+    });
+    _panoramaCache = list;
+    return list;
+  } catch (e) {
+    console.warn('Could not fetch panorama list:', e);
+    return [];
+  }
+}
+
+function vrLink(panoName) {
+  if (!panoName) return '../index.html';
+  return `../index.html#pano=${panoName}`;
 }
 
 // ——— OVERVIEW ————————————————————————————————
@@ -396,9 +428,9 @@ function drawHourly() {
 
 function drawScenesBar() {
   const el = document.getElementById('ch-scenes'); if (!el || !window.Chart) return;
-  const sc = scenes();
-  const labels = sc.length ? sc.map(s=>s.title.split('—')[0].trim()) : ['Sky Lounge','Penthouse','Bể bơi','Công viên','Phòng ngủ','Toàn cảnh'];
-  const data   = sc.length ? sc.map((_,i)=>[1240,980,820,710,650,540][i]||300) : [1240,980,820,710,650,540];
+  const panos = _panoramaCache || [];
+  const labels = panos.length ? panos.slice(0,8).map(p=>p.name) : ['pano-01','pano-02','pano-03','pano-04','pano-05','pano-06'];
+  const data   = labels.map((_,i)=>[1240,980,820,710,650,540,480,400][i]||300);
   S.charts.scenes = new Chart(el, {
     type: 'bar',
     data: { labels, datasets: [{ data, backgroundColor: 'rgba(59,130,246,.55)', borderRadius: 4 }] },
@@ -1213,25 +1245,24 @@ function renderNpGroup(key, meta, items) {
 }
 
 function renderNpCard(groupKey, item) {
-  const hasScene = item.sceneId && scenes().find(s=>s.id===item.sceneId);
-  // Priority: customLink > auto from sceneId > none
-  const effectiveLink = item.customLink || (item.sceneId ? vrLink(item.sceneId) : null);
-  const linkDisplay   = item.customLink
-    ? item.customLink
-    : item.sceneId ? vrLink(item.sceneId) : 'Chưa có link';
+  const hasPano = !!item.tdvPanoramaId;
+  const panoDisplay = item.tdvPanoramaId || 'Chưa gán panorama';
+  const thumbSrc = hasPano && _panoramaCache
+    ? (_panoramaCache.find(p => p.name === item.tdvPanoramaId)?.thumbnail || '')
+    : '';
   return `
     <div class="np-card" draggable="true" data-group="${groupKey}" data-id="${item.id}">
       <span class="np-card-handle" title="Kéo để sắp xếp">${ico('grip',12)}</span>
-      <div class="np-card-icon">${hasScene || item.customLink ? ico('video',13) : ico('mappin',13)}</div>
+      ${thumbSrc ? `<img src="${thumbSrc}" class="np-card-thumb" alt="${item.tdvPanoramaId}" style="width:48px;height:32px;object-fit:cover;border-radius:4px;flex-shrink:0">` : `<div class="np-card-icon">${ico('mappin',13)}</div>`}
       <div class="np-card-info">
         <div class="np-card-label">${item.label}</div>
         <div class="np-card-scene mono" style="font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px"
-             title="${linkDisplay}">${linkDisplay}</div>
+             title="${panoDisplay}">${panoDisplay}</div>
       </div>
       <div class="np-card-actions">
-        ${effectiveLink
-          ? `<a href="${effectiveLink}" target="_blank" class="np-vr-btn">${ico('video')} Mở VR</a>`
-          : `<span class="badge badge-warning">${ico('warning')} Chưa có link</span>`}
+        ${hasPano
+          ? `<span class="badge" style="background:var(--accent-soft);color:var(--accent);font-size:10px">${ico('video',11)} ${item.tdvPanoramaId}</span>`
+          : `<span class="badge badge-warning">${ico('warning')} Chưa gán</span>`}
         <button class="act-btn" onclick="openEditCardPanel('${groupKey}','${item.id}')">${ico('edit')}</button>
         <button class="act-btn danger" onclick="deleteNpCard('${groupKey}','${item.id}')">${ico('trash')}</button>
       </div>
@@ -1271,41 +1302,38 @@ function openEditGroupPanel(key) {
   });
 }
 
-function openAddCardPanel(groupKey) {
-  const sc = scenes();
+async function openAddCardPanel(groupKey) {
+  const panos = await fetchPanoramas();
+  const panoOptions = panos.map(p =>
+    `<option value="${p.name}">${p.name}</option>`
+  ).join('');
   showPanel('Thêm Điểm VR360', `
     <div class="form-group">
       <label class="form-label">Tên hiển thị <span class="req">*</span></label>
       <input class="form-control" id="nc-label" placeholder="VD: Bể bơi vô cực">
     </div>
     <div class="form-group">
-      <label class="form-label">Chọn cảnh VR (scene)</label>
-      <select class="form-control form-select" id="nc-scene" onchange="autoFillCardLink()">
-        <option value="">— Không chọn scene —</option>
-        ${sc.map(s=>`<option value="${s.id}">${s.title}</option>`).join('')}
+      <label class="form-label">Chọn Panorama 3DVista</label>
+      <select class="form-control form-select" id="nc-pano" onchange="previewPano('nc')">
+        <option value="">— Chưa chọn panorama —</option>
+        ${panoOptions}
       </select>
-      <div class="form-hint">Chọn scene để tự động điền link VR bên dưới.</div>
+      <div class="form-hint">${panos.length} panorama có sẵn trong thư mục data/media.</div>
     </div>
-    <div class="form-group">
-      <label class="form-label">Link VR360</label>
-      <input class="form-control mono" id="nc-link" placeholder="https://... hoặc ../index.html?scene=...">
-      <div class="form-hint">
-        Tự động điền khi chọn scene ở trên. Có thể nhập tay để dùng link tùy chỉnh (ghi đè link tự động).
-      </div>
+    <div id="nc-pano-preview" style="margin:-4px 0 12px;border-radius:6px;overflow:hidden;display:none">
+      <img id="nc-pano-thumb" style="width:100%;height:120px;object-fit:cover;display:block" alt="">
     </div>
     <div class="form-group">
       <label class="form-label">ID định danh (tùy chọn)</label>
       <input class="form-control mono" id="nc-id" placeholder="vd: be-boi-tang-8">
     </div>
-    ${sc.length === 0 ? `<div class="badge badge-warning" style="padding:8px;width:100%;justify-content:center">${ico('warning')} Chưa có scene nào trong project.json — nhập link thủ công</div>` : ''}
+    ${panos.length === 0 ? `<div class="badge badge-warning" style="padding:8px;width:100%;justify-content:center">${ico('warning')} Không tìm thấy panorama nào trong data/locale/en.txt</div>` : ''}
   `, () => {
-    const label      = document.getElementById('nc-label').value.trim();
-    const sceneId    = document.getElementById('nc-scene').value;
-    const customLink = document.getElementById('nc-link').value.trim();
-    const idVal      = document.getElementById('nc-id').value.trim() || label.toLowerCase().replace(/\s+/g,'-').replace(/[^\w-]/g,'') || 'item-'+Date.now();
+    const label  = document.getElementById('nc-label').value.trim();
+    const panoId = document.getElementById('nc-pano').value;
+    const idVal  = document.getElementById('nc-id').value.trim() || label.toLowerCase().replace(/\s+/g,'-').replace(/[^\w-]/g,'') || 'item-'+Date.now();
     if (!label) { toast('Nhập tên hiển thị', 'warn'); return; }
-    if (!sceneId && !customLink) { toast('Chọn scene hoặc nhập link VR360', 'warn'); return; }
-    const newItem = { id: idVal, label, sceneId: sceneId||undefined, customLink: customLink||undefined };
+    const newItem = { id: idVal, label, tdvPanoramaId: panoId || undefined };
     if (!S.data.menu[groupKey]) S.data.menu[groupKey] = [];
     S.data.menu[groupKey].push(newItem);
     closePanel();
@@ -1314,60 +1342,60 @@ function openAddCardPanel(groupKey) {
   });
 }
 
-function autoFillCardLink() {
-  const sel  = document.getElementById('nc-scene');
-  const link = document.getElementById('nc-link');
-  if (sel && link && sel.value) link.value = vrLink(sel.value);
+function previewPano(prefix) {
+  const sel = document.getElementById(prefix + '-pano');
+  const preview = document.getElementById(prefix + '-pano-preview');
+  const thumb = document.getElementById(prefix + '-pano-thumb');
+  if (!sel || !preview || !thumb) return;
+  const panoName = sel.value;
+  if (!panoName || !_panoramaCache) { preview.style.display = 'none'; return; }
+  const p = _panoramaCache.find(x => x.name === panoName);
+  if (p) {
+    thumb.src = p.thumbnail;
+    thumb.alt = p.name;
+    preview.style.display = '';
+  } else {
+    preview.style.display = 'none';
+  }
 }
 
-function autoFillEditCardLink() {
-  const sel  = document.getElementById('ec-scene');
-  const link = document.getElementById('ec-link');
-  if (!sel || !link) return;
-  if (sel.value) link.value = vrLink(sel.value);
-  else link.value = '';
-}
-
-function openEditCardPanel(groupKey, itemId) {
+async function openEditCardPanel(groupKey, itemId) {
   const group = S.data.menu[groupKey]||[];
   const item  = group.find(x=>x.id===itemId); if (!item) return;
-  const sc    = scenes();
-  const currentLink = item.customLink || (item.sceneId ? vrLink(item.sceneId) : '');
+  const panos = await fetchPanoramas();
+  const panoOptions = panos.map(p =>
+    `<option value="${p.name}" ${item.tdvPanoramaId===p.name?'selected':''}>${p.name}</option>`
+  ).join('');
   showPanel('Sửa Điểm VR360', `
     <div class="form-group">
       <label class="form-label">Nhãn hiển thị <span class="req">*</span></label>
       <input class="form-control" id="ec-label" value="${item.label}">
     </div>
     <div class="form-group">
-      <label class="form-label">Chọn cảnh VR (scene)</label>
-      <select class="form-control form-select" id="ec-scene" onchange="autoFillEditCardLink()">
-        <option value="">— Không gắn scene —</option>
-        ${sc.map(s=>`<option value="${s.id}" ${item.sceneId===s.id?'selected':''}>${s.title}</option>`).join('')}
+      <label class="form-label">Chọn Panorama 3DVista</label>
+      <select class="form-control form-select" id="ec-pano" onchange="previewPano('ec')">
+        <option value="">— Không gắn panorama —</option>
+        ${panoOptions}
       </select>
-      <div class="form-hint">Chọn scene để tự động điền link VR bên dưới.</div>
+      <div class="form-hint">${panos.length} panorama có sẵn. Chọn để xem preview bên dưới.</div>
     </div>
-    <div class="form-group">
-      <label class="form-label">Link VR360</label>
-      <input class="form-control mono" id="ec-link" value="${currentLink}" placeholder="https://... hoặc ../index.html?scene=...">
-      <div class="form-hint">
-        Tự động điền khi chọn scene ở trên. Có thể nhập tay để dùng link tùy chỉnh (ghi đè link tự động).
-      </div>
+    <div id="ec-pano-preview" style="margin:-4px 0 12px;border-radius:6px;overflow:hidden;${item.tdvPanoramaId ? '' : 'display:none'}">
+      <img id="ec-pano-thumb" style="width:100%;height:120px;object-fit:cover;display:block"
+           src="${item.tdvPanoramaId && _panoramaCache ? (_panoramaCache.find(p=>p.name===item.tdvPanoramaId)?.thumbnail||'') : ''}" alt="${item.tdvPanoramaId||''}">
     </div>
     <div class="form-group">
       <label class="form-label">ID định danh</label>
       <input class="form-control mono" id="ec-id" value="${item.id}" readonly style="opacity:.6">
     </div>
-    ${sc.length === 0 ? `<div class="badge badge-warning" style="padding:8px;width:100%;justify-content:center">${ico('warning')} Chưa có scene nào trong project.json — nhập link thủ công</div>` : ''}
   `, () => {
     const idx = group.findIndex(x=>x.id===itemId);
     if (idx < 0) return;
-    const label      = document.getElementById('ec-label').value.trim() || item.label;
-    const sceneId    = document.getElementById('ec-scene').value;
-    const customLink = document.getElementById('ec-link').value.trim();
-    const autoLink   = sceneId ? vrLink(sceneId) : '';
-    const finalLink  = (customLink && customLink !== autoLink) ? customLink : undefined;
-    if (!sceneId && !customLink) { toast('Chọn scene hoặc nhập link VR360', 'warn'); return; }
-    group[idx] = { ...item, label, sceneId: sceneId||undefined, customLink: finalLink };
+    const label  = document.getElementById('ec-label').value.trim() || item.label;
+    const panoId = document.getElementById('ec-pano').value;
+    group[idx] = { ...item, label, tdvPanoramaId: panoId || undefined };
+    // Clean up old sceneId/customLink fields
+    delete group[idx].sceneId;
+    delete group[idx].customLink;
     closePanel();
     render('navpanel', document.getElementById('p-navpanel'));
     toast('Đã cập nhật điểm VR360', 'ok');
@@ -1454,92 +1482,49 @@ function initNpDrag() {
   });
 }
 
-// ——— SCENES ——————————————————————————————————
+// ——— PANORAMA BROWSER ——————————————————————————————————
 function renderScenes(el) {
-  const sc = scenes();
+  const panos = _panoramaCache || [];
+  // Collect which panoramas are currently assigned to menu items
+  const assigned = new Map();
+  for (const [gKey, items] of Object.entries(S.data.menu || {})) {
+    for (const item of items) {
+      if (item.tdvPanoramaId) {
+        if (!assigned.has(item.tdvPanoramaId)) assigned.set(item.tdvPanoramaId, []);
+        assigned.get(item.tdvPanoramaId).push(item.label);
+      }
+    }
+  }
   el.innerHTML = `
     <div class="ph">
-      <div class="ph-left"><div class="breadcrumb"><span>Dashboard</span> / Scenes VR</div><h1>Quản Lý Scenes VR</h1></div>
+      <div class="ph-left"><div class="breadcrumb"><span>Dashboard</span> / Panorama 3DVista</div><h1>Thư Viện Panorama (${panos.length})</h1></div>
       <div class="btn-group">
         <button class="btn btn-secondary btn-sm" onclick="go('navpanel')">${ico('navpanel')} Quản lý Nav Panel</button>
+        <button class="btn btn-secondary btn-sm" onclick="_panoramaCache=null;fetchPanoramas().then(()=>render('scenes',document.getElementById('p-scenes')))">${ico('refresh')} Tải lại</button>
       </div>
     </div>
-    ${sc.length === 0 ? `<div class="card"><div class="card-body"><div class="empty"><div class="empty-icon">${ico('video',40)}</div><p>Chưa có scene nào trong project.json</p></div></div></div>` : ''}
+    ${panos.length === 0 ? `<div class="card"><div class="card-body"><div class="empty"><div class="empty-icon">${ico('video',40)}</div><p>Không tìm thấy panorama. Kiểm tra data/locale/en.txt</p></div></div></div>` : ''}
     <div class="scene-grid">
-      ${sc.map(s => {
-        const grad = `linear-gradient(135deg, ${s.palette[0]}, ${s.palette[1]})`;
+      ${panos.map(p => {
+        const users = assigned.get(p.name) || [];
         return `
           <div class="scene-card">
-            <div class="scene-thumb">
-              <div class="scene-thumb-grad" style="background:${grad}"></div>
-              <div class="scene-thumb-icon">${ico('video',32)}</div>
-              <div class="scene-palette">${s.palette.map(c=>`<div class="scene-dot" style="background:${c}"></div>`).join('')}</div>
+            <div class="scene-thumb" style="position:relative;overflow:hidden">
+              <img src="${p.thumbnail}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">
+              <div class="scene-thumb-icon" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.3);opacity:.6">${ico('video',28)}</div>
             </div>
             <div class="scene-info">
-              <div class="scene-name">${s.title}</div>
-              <div class="scene-meta">${s.type||'interior'} · ${Array.isArray(s.hotspots)?s.hotspots.length:0} hotspots</div>
-              <div class="scene-actions">
-                <button class="btn btn-secondary btn-sm" onclick="openScenePanel('${s.id}')">${ico('edit')} Sửa</button>
-                <a href="${vrLink(s.id)}" target="_blank" class="btn btn-secondary btn-sm">${ico('video')} Mở VR</a>
+              <div class="scene-name">${p.name}</div>
+              <div class="scene-meta" style="font-size:11px;color:var(--muted)">
+                ${users.length ? `Gán cho: ${users.join(', ')}` : '<span style="color:var(--warning)">Chưa gán cho menu nào</span>'}
               </div>
+              <div class="scene-meta mono" style="font-size:9px;color:var(--muted);margin-top:2px;word-break:break-all">${p.hexId}</div>
             </div>
           </div>
         `;
       }).join('')}
     </div>
   `;
-}
-
-function openScenePanel(id) {
-  const s = scenes().find(x=>x.id===id); if (!s) return;
-  showPanel('Sửa Scene: '+s.title, `
-    <div class="form-section">Thông Tin Cơ Bản</div>
-    <div class="form-group"><label class="form-label">ID Scene</label><input class="form-control" value="${s.id}" readonly></div>
-    <div class="form-group"><label class="form-label">Tiêu đề</label><input class="form-control" id="sp-title" value="${s.title}"></div>
-    <div class="form-group"><label class="form-label">Tiêu đề phụ</label><input class="form-control" id="sp-sub" value="${s.subtitle||''}"></div>
-    <div class="form-group"><label class="form-label">Loại</label>
-      <select class="form-control form-select" id="sp-type">
-        <option value="interior" ${s.type==='interior'?'selected':''}>Interior</option>
-        <option value="exterior" ${s.type==='exterior'?'selected':''}>Exterior</option>
-        <option value="Căn hộ"   ${s.type==='Căn hộ'?'selected':''}>Căn hộ</option>
-        <option value="Tiện ích" ${s.type==='Tiện ích'?'selected':''}>Tiện ích</option>
-        <option value="Tổng thể" ${s.type==='Tổng thể'?'selected':''}>Tổng thể</option>
-      </select>
-    </div>
-    <div class="form-section">Ảnh Panorama 360°</div>
-    ${imageField('sp-pano', 'Ảnh panorama (equirectangular)', s.panoramaUrl||'')}
-    <div class="form-section">Link VR360</div>
-    <div style="padding:12px;background:var(--primary-soft);border:1px solid var(--primary-dim);border-radius:var(--r);margin-bottom:14px;display:flex;align-items:center;gap:8px">
-      <div style="flex:1;min-width:0">
-        <div style="font-size:12px;font-weight:600;color:var(--primary);margin-bottom:6px">${ico('link')} Link trực tiếp tới scene này:</div>
-        <a href="${vrLink(s.id)}" target="_blank" class="mono c-primary" style="font-size:12px;word-break:break-all">${vrLink(s.id)}</a>
-      </div>
-      <button class="btn btn-secondary btn-sm" type="button" onclick="previewVR('${vrLink(s.id)}','Preview: ${esc(s.title)}')">${ico('eye')} Preview</button>
-    </div>
-    <div class="form-section">Palette Màu</div>
-    <div style="display:flex;gap:10px;flex-wrap:wrap">
-      ${s.palette.map((c,i)=>`<div><label class="form-label">Màu ${i+1}</label><div class="color-swatch" style="width:40px;height:40px"><input type="color" value="${c}" id="sp-c${i}"></div></div>`).join('')}
-    </div>
-    <div class="form-section">Camera Mặc Định</div>
-    <div class="form-row">
-      <div class="form-group"><label class="form-label">Horizon Y (0–1)</label><input class="form-control" type="number" id="sp-hor" value="${s.horizonY||0.5}" step="0.01" min="0" max="1"></div>
-    </div>
-  `, () => {
-    const idx = S.data.scenes.findIndex(x=>x.id===id);
-    if (idx<0) return;
-    const pano = imgFieldValue('sp-pano');
-    S.data.scenes[idx] = { ...s,
-      title:    document.getElementById('sp-title').value,
-      subtitle: document.getElementById('sp-sub').value,
-      type:     document.getElementById('sp-type').value,
-      horizonY: parseFloat(document.getElementById('sp-hor').value)||s.horizonY,
-      palette:  [0,1,2,3].map(i=>{ const el=document.getElementById(`sp-c${i}`); return el?el.value:s.palette[i]; }),
-    };
-    if (pano) S.data.scenes[idx].panoramaUrl = pano;
-    else delete S.data.scenes[idx].panoramaUrl;
-    closePanel();
-    saveData('Đã lưu scene');
-  });
 }
 
 // ——— i18n ————————————————————————————————————
@@ -1846,12 +1831,12 @@ function drawAnalyticsCharts() {
   });
   const donut = { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'right', labels:{color:'#64748b',font:{size:11}} } } };
   const days = ['T2','T3','T4','T5','T6','T7','CN'];
-  const sc = scenes();
+  const panos = _panoramaCache || [];
   if (document.getElementById('ac-daily')) new Chart('ac-daily',{type:'line',data:{labels:days,datasets:[{label:'Sessions',data:[320,410,380,490,560,720,840],borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,.1)',tension:.4,fill:true}]},options:xOpts(false)});
   if (document.getElementById('ac-device')) new Chart('ac-device',{type:'doughnut',data:{labels:['Desktop','Mobile','Tablet'],datasets:[{data:[58,35,7],backgroundColor:['#3b82f6','#10b981','#f59e0b'],borderWidth:0}]},options:donut});
   if (document.getElementById('ac-scenes2')) {
-    const labels = sc.length ? sc.map(s=>s.title.split('—')[0].trim()) : ['Sky Lounge','Penthouse','Bể bơi','Công viên','Phòng ngủ'];
-    const data   = sc.length ? [1240,980,820,710,650].slice(0,sc.length) : [1240,980,820,710,650];
+    const labels = panos.length ? panos.slice(0,6).map(p=>p.name) : ['pano-01','pano-02','pano-03','pano-04','pano-05'];
+    const data   = [1240,980,820,710,650,540].slice(0,labels.length);
     new Chart('ac-scenes2',{type:'bar',data:{labels,datasets:[{data,backgroundColor:'rgba(59,130,246,.6)',borderRadius:4}]},options:{indexAxis:'y',...xOpts(false)}});
   }
   if (document.getElementById('ac-ai')) new Chart('ac-ai',{type:'doughnut',data:{labels:['Dùng Voice AI','Không dùng'],datasets:[{data:[32,68],backgroundColor:['#7c3aed','#e2e8f0'],borderWidth:0}]},options:donut});

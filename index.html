@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="css/style.css" />
 <link rel="stylesheet" href="css/mobile-stepper.css" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<!-- Three.js removed — using 3DVista iframe instead -->
 <style>
 /* ============================================================
    MOBILE OVERRIDES — burger + project-card pill animation
@@ -379,16 +379,8 @@
   </div>
 </div>
 
-<!-- VR 360 stage -->
-<div id="vr-stage"></div>
-<div id="hotspot-layer"></div>
-
-<!-- Hotspot popup -->
-<div class="hotspot-popup" id="hotspot-popup">
-  <button class="close">×</button>
-  <h4></h4>
-  <p></p>
-</div>
+<!-- VR 360 stage — 3DVista iframe -->
+<iframe id="vr-iframe" src="data/index.htm" allow="autoplay; fullscreen; xr-spatial-tracking" style="position:fixed;inset:0;width:100%;height:100%;border:none;z-index:0;"></iframe>
 
 <!-- ============ UI LAYER (auto-hide on 360 drag) ============ -->
 <div class="ui" id="ui">
@@ -1101,10 +1093,8 @@
 </div>
 
 <script src="js/i18n.js"></script>
-<script src="js/vr360.js"></script>
 <script src="js/ai-panel.js"></script>
 <script src="js/main.js"></script>
-<script src="js/vr360-tour.js"></script>
 <script src="js/mobile-stepper.js"></script>
 
 <!-- MOBILE DRAWER — phải nằm trong <body> để được parse -->
@@ -1209,14 +1199,7 @@
   $d('mob-loan-btn')      && $d('mob-loan-btn').addEventListener('click',      function() { closeDrawer(); $d('loan-overlay') && $d('loan-overlay').classList.add('open'); if(window.openLoanWithPrice) openLoanWithPrice(5.4); });
   $d('mob-timeline-btn')  && $d('mob-timeline-btn').addEventListener('click',  function() { closeDrawer(); $d('timeline-overlay') && $d('timeline-overlay').classList.add('open'); });
 
-  var mobRot = false;
-  $d('mob-rotate') && $d('mob-rotate').addEventListener('click', function() {
-    mobRot = !mobRot; VR360.setAutoRotate(mobRot);
-    this.classList.toggle('active', mobRot);
-    var dr = $d('ctrl-rotate'); if(dr) dr.classList.toggle('active', mobRot);
-  });
-  $d('mob-zoom-in')  && $d('mob-zoom-in').addEventListener('click',  function() { VR360.zoomBy(-8); });
-  $d('mob-zoom-out') && $d('mob-zoom-out').addEventListener('click', function() { VR360.zoomBy(8); });
+  /* VR controls removed — 3DVista handles its own controls */
   $d('mob-fs') && $d('mob-fs').addEventListener('click', function() {
     document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
   });
