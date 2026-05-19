@@ -1885,67 +1885,6 @@ document.addEventListener("DOMContentLoaded", boot);
 })();
 
 /* ============================================
-   URGENCY TOAST — Social proof (Bước 9)
-   ============================================ */
-(function initUrgencyToasts() {
-  const SVG = {
-    view:  `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`,
-    book:  `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>`,
-    alert: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>`,
-  };
-
-  const MESSAGES = [
-    { cls: "view",  title: "18 người đang xem",          sub: "dự án Vinhomes Hai Van Bay ngay lúc này" },
-    { cls: "book",  title: "Vừa đặt giữ 2PN+1 tầng 22", sub: "3 phút trước · Khách Hà Nội" },
-    { cls: "book",  title: "Vừa đặt giữ Duplex tầng 40", sub: "12 phút trước · Khách TP.HCM" },
-    { cls: "alert", title: "Còn 49 căn trong đợt này",   sub: "Ưu đãi 8% kết thúc sớm" },
-    { cls: "view",  title: "24 người đang xem",           sub: "dự án Vinhomes Hai Van Bay ngay lúc này" },
-    { cls: "book",  title: "Vừa đặt giữ 3PN tầng 35",   sub: "7 phút trước · Khách nước ngoài" },
-    { cls: "alert", title: "Căn 3PN tầng 28 vừa giữ",   sub: "Chỉ còn 9 căn 3PN" },
-    { cls: "view",  title: "31 người đang xem",           sub: "dự án Vinhomes Hai Van Bay ngay lúc này" },
-  ];
-
-  const wrap = document.createElement('div');
-  wrap.id = 'urgency-toast-wrap';
-  document.body.appendChild(wrap);
-
-  let msgIdx = 0;
-  const SHOW_AFTER  = 30 * 1000;
-  const INTERVAL    = 18 * 1000;
-  const VISIBLE_DUR =  6 * 1000;
-
-  function showToast() {
-    const msg = MESSAGES[msgIdx % MESSAGES.length];
-    msgIdx++;
-
-    const el = document.createElement('div');
-    el.className = 'urgency-toast';
-    el.innerHTML = `
-      <div class="toast-icon ${msg.cls}">${SVG[msg.cls]}</div>
-      <div class="toast-body">
-        <div class="toast-title">${I18n.tr(msg.title)}</div>
-        <div class="toast-sub">${I18n.tr(msg.sub)}</div>
-      </div>
-      <button class="toast-close" aria-label="${I18n.t('ai.close')}">×</button>
-    `;
-    wrap.appendChild(el);
-
-    const dismissTimer = setTimeout(() => dismiss(el), VISIBLE_DUR);
-    el.querySelector('.toast-close').addEventListener('click', () => { clearTimeout(dismissTimer); dismiss(el); });
-    el.addEventListener('click', (e) => {
-      if (!e.target.classList.contains('toast-close')) { clearTimeout(dismissTimer); dismiss(el); }
-    });
-  }
-
-  function dismiss(el) {
-    el.classList.add('hiding');
-    el.addEventListener('animationend', () => el.remove(), { once: true });
-  }
-
-  setTimeout(() => { showToast(); setInterval(showToast, INTERVAL); }, SHOW_AFTER);
-})();
-
-/* ============================================
    RESOURCES PANEL
    ============================================ */
 const RESOURCE_META = {
