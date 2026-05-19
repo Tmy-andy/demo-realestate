@@ -28,7 +28,6 @@ async function boot() {
   buildTimelineAndUnits();
   buildTimelinePanel();
   buildNavPanel();
-  buildSiteMap();
   buildGallery();
   buildAmenitiesDetail();
   buildLegalPanel();
@@ -542,38 +541,6 @@ function renderNavList() {
   });
 }
 
-let _smMap = null;
-function buildSiteMap() {
-  const sm = DATA.siteMap;
-  if (!sm) return;
-  /* Map will be initialized when overlay opens (Leaflet needs visible container) */
-}
-function initSiteMap() {
-  const sm = DATA.siteMap;
-  if (!sm || !window.L) return;
-  const mapEl = document.getElementById("sm-map");
-  if (!mapEl) return;
-  if (_smMap) { _smMap.invalidateSize(); return; }
-  const center = sm.center || [16.2130, 108.1200];
-  const zoom = sm.zoom || 15;
-  _smMap = L.map('sm-map', { scrollWheelZoom: true }).setView(center, zoom);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap',
-    maxZoom: 19
-  }).addTo(_smMap);
-  (sm.points || []).forEach(p => {
-    if (p.lat == null || p.lng == null) return;
-    const marker = L.marker([p.lat, p.lng]).addTo(_smMap);
-    const label = _tr(p.label) || p.id || '';
-    const pano = p.tdvPanoramaId || p.sceneId || '';
-    marker.bindPopup(`<div style="text-align:center;min-width:120px">
-      <b>${label}</b>
-      ${pano ? `<br><button onclick="document.getElementById('sitemap-overlay').classList.remove('open');goToPanorama('${pano}')" style="margin-top:6px;padding:4px 12px;border:none;background:#3b82f6;color:#fff;border-radius:6px;cursor:pointer;font-size:12px">Xem VR360 →</button>` : ''}
-    </div>`);
-    marker.bindTooltip(label, { permanent: false, direction: 'top' });
-  });
-}
-
 let galleryFolderFilter = '__all'; // '__all' | '__none' | folder name
 let galleryTabFilter = 'image';    // 'image' | 'video'
 
@@ -766,17 +733,6 @@ function bindOverlays() {
   });
   document.getElementById("location-overlay")?.addEventListener("click", (e) => {
     if (e.target.id === "location-overlay") e.currentTarget.classList.remove("open");
-  });
-
-  document.getElementById("btn-sitemap")?.addEventListener("click", () => {
-    document.getElementById("sitemap-overlay").classList.add("open");
-    setTimeout(() => initSiteMap(), 100);
-  });
-  document.getElementById("sm-close")?.addEventListener("click", () => {
-    document.getElementById("sitemap-overlay").classList.remove("open");
-  });
-  document.getElementById("sitemap-overlay")?.addEventListener("click", (e) => {
-    if (e.target.id === "sitemap-overlay") e.currentTarget.classList.remove("open");
   });
 
   document.getElementById("btn-gallery")?.addEventListener("click", () => {
@@ -978,8 +934,7 @@ function rebuildDynamic() {
       if (el) el.textContent = _tr(item.label);
     }
   }
-  // Re-render sitemap point labels & gallery captions
-  buildSiteMap();
+  // Re-render gallery captions
   buildGallery();
   // Refresh active tour step text if active
   if (tourActive) showTourStep();
@@ -990,7 +945,6 @@ function rebuildDynamic() {
    ============================================ */
 const HELP_ITEMS = [
   { target: ".brand",           labelKey: "tour.brand" },
-  { target: "#btn-sitemap",     mobileTarget: "#mob-sitemap-btn", openDrawer: true,  labelKey: "tour.sitemap" },
   { target: "#btn-gallery",     mobileTarget: "#mob-gallery-btn", openDrawer: true,  labelKey: "tour.gallery" },
   { target: "#open-modal",      mobileTarget: "#mob-book-btn",    openDrawer: true,  labelKey: "tour.book" },
   { target: "#tb-ctrlgroup",    labelKey: "tour.ctrlgroup" },

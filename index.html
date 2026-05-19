@@ -8,8 +8,6 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="css/style.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <link rel="stylesheet" href="css/mobile-stepper.css" />
 <!-- Three.js removed — using 3DVista iframe instead -->
 <style>
@@ -425,10 +423,6 @@
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20V4M5 12l7-8 7 8"/><path d="M5 20h14"/></svg>
         <span>Tiến độ</span>
       </button>
-      <button class="tb-btn" id="btn-sitemap" data-i18n-title="ui.sitemapTitle" title="Bản đồ 2D">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 4l-6 2v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>
-        <span data-i18n="ui.sitemap">Bản đồ 2D</span>
-      </button>
       <button class="tb-btn" id="btn-gallery" data-i18n-title="ui.galleryTitle" title="Thư viện ảnh">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
         <span data-i18n="ui.gallery">Thư viện</span>
@@ -574,18 +568,6 @@
   <div class="amen-grid" id="amen-grid"></div>
 </div>
 
-<!-- ============ SITE MAP OVERLAY (Interactive Map) ============ -->
-<div class="sitemap-overlay" id="sitemap-overlay">
-  <div class="sm-frame">
-    <button class="sm-close" id="sm-close">×</button>
-    <div class="sm-head">
-      <div class="sm-eyebrow" data-i18n="sitemap.eyebrow">Bản đồ dự án</div>
-      <h2 data-i18n="sitemap.title">Bản Đồ Vị Trí</h2>
-      <p data-i18n="sitemap.desc">Bấm vào các điểm trên bản đồ để vào không gian 360° tương ứng</p>
-    </div>
-    <div id="sm-map" style="width:100%;height:0;flex:1;min-height:400px;border-radius:12px;overflow:hidden;z-index:0"></div>
-  </div>
-</div>
 
 <!-- ============ GALLERY OVERLAY ============ -->
 <div class="gallery-overlay" id="gallery-overlay">
@@ -1109,10 +1091,6 @@
       </button>
     </div>
     <div class="mob-drawer-row">
-      <button class="mob-btn" id="mob-sitemap-btn">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 4l-6 2v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>
-        <span data-i18n="ui.sitemap">Bản đồ 2D</span>
-      </button>
       <button class="mob-btn" id="mob-gallery-btn">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
         <span data-i18n="ui.gallery">Thư viện</span>
@@ -1193,7 +1171,6 @@
   /* Drawer buttons */
   function $d(id) { return document.getElementById(id); }
   $d('mob-book-btn')      && $d('mob-book-btn').addEventListener('click',      function() { closeDrawer(); $d('modal-backdrop') && $d('modal-backdrop').classList.add('open'); });
-  $d('mob-sitemap-btn')   && $d('mob-sitemap-btn').addEventListener('click',   function() { closeDrawer(); $d('sitemap-overlay') && $d('sitemap-overlay').classList.add('open'); });
   $d('mob-gallery-btn')   && $d('mob-gallery-btn').addEventListener('click',   function() { closeDrawer(); $d('gallery-overlay') && $d('gallery-overlay').classList.add('open'); });
   $d('mob-amenities-btn') && $d('mob-amenities-btn').addEventListener('click', function() { closeDrawer(); $d('amenities-detail-overlay') && $d('amenities-detail-overlay').classList.add('open'); });
   $d('mob-legal-btn')     && $d('mob-legal-btn').addEventListener('click',     function() { closeDrawer(); $d('legal-overlay') && $d('legal-overlay').classList.add('open'); });
