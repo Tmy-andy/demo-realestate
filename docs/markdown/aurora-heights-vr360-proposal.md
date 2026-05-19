@@ -1,4 +1,4 @@
-# Aurora Heights VR360 — Đánh giá & Đề xuất chức năng
+# Vinhomes Hai Van Bay VR360 — Đánh giá & Đề xuất chức năng
 
 > Trang demo: https://demo-realestate-link.netlify.app/
 > Loại ứng dụng: **Full-screen VR360 web app** — không scroll, toàn bộ tương tác qua panel / modal overlay đè lên khung 360°

@@ -70,9 +70,9 @@ window.I18n = (() => {
       "sitemap.title": "Bản đồ thiết kế 2D",
       "sitemap.desc": "Bấm vào các điểm trên bản đồ để vào không gian 360° tương ứng",
       "gallery.eyebrow": "Thư viện hình ảnh",
-      "gallery.title": "Khám phá Aurora Heights",
+      "gallery.title": "Khám phá Vinhomes Hai Van Bay",
 
-      "ai.title": "Trợ lý Aurora Heights",
+      "ai.title": "Trợ lý Vinhomes Hai Van Bay",
       "ai.active": "Đang hoạt động",
       "ai.listening": "Đang lắng nghe…",
       "ai.thinking": "Đang suy nghĩ…",
@@ -225,9 +225,9 @@ window.I18n = (() => {
       "sitemap.title": "2D design map",
       "sitemap.desc": "Click points on the map to enter the corresponding 360° space",
       "gallery.eyebrow": "Image gallery",
-      "gallery.title": "Explore Aurora Heights",
+      "gallery.title": "Explore Vinhomes Hai Van Bay",
 
-      "ai.title": "Aurora Heights Assistant",
+      "ai.title": "Vinhomes Hai Van Bay Assistant",
       "ai.active": "Online",
       "ai.listening": "Listening…",
       "ai.thinking": "Thinking…",
@@ -380,9 +380,9 @@ window.I18n = (() => {
       "sitemap.title": "2D 设计图",
       "sitemap.desc": "点击地图上的点进入相应的 360° 空间",
       "gallery.eyebrow": "图片库",
-      "gallery.title": "探索 Aurora Heights",
+      "gallery.title": "探索 Vinhomes Hai Van Bay",
 
-      "ai.title": "Aurora Heights 助理",
+      "ai.title": "Vinhomes Hai Van Bay 助理",
       "ai.active": "在线",
       "ai.listening": "正在聆听…",
       "ai.thinking": "思考中…",
@@ -535,9 +535,9 @@ window.I18n = (() => {
       "sitemap.title": "2D 설계 지도",
       "sitemap.desc": "지도의 지점을 클릭하여 해당 360° 공간으로 이동",
       "gallery.eyebrow": "이미지 갤러리",
-      "gallery.title": "Aurora Heights 둘러보기",
+      "gallery.title": "Vinhomes Hai Van Bay 둘러보기",
 
-      "ai.title": "Aurora Heights 어시스턴트",
+      "ai.title": "Vinhomes Hai Van Bay 어시스턴트",
       "ai.active": "온라인",
       "ai.listening": "듣는 중…",
       "ai.thinking": "생각 중…",
@@ -690,9 +690,9 @@ window.I18n = (() => {
       "sitemap.title": "2D設計マップ",
       "sitemap.desc": "マップ上のポイントをクリックして対応する360°空間に入ります",
       "gallery.eyebrow": "画像ギャラリー",
-      "gallery.title": "Aurora Heightsを探索",
+      "gallery.title": "Vinhomes Hai Van Bayを探索",
 
-      "ai.title": "Aurora Heights アシスタント",
+      "ai.title": "Vinhomes Hai Van Bay アシスタント",
       "ai.active": "オンライン",
       "ai.listening": "聞いています…",
       "ai.thinking": "考え中…",
@@ -939,7 +939,7 @@ window.I18n = (() => {
     // Sitemap labels (overlap with menu)
 
     // Urgency toast messages
-    "dự án Aurora Heights ngay lúc này": { en: "Aurora Heights right now", zh: "Aurora Heights 项目正在热销", ko: "Aurora Heights 현재", ja: "Aurora Heights プロジェクトで今" },
+    "dự án Vinhomes Hai Van Bay ngay lúc này": { en: "Vinhomes Hai Van Bay right now", zh: "Vinhomes Hai Van Bay 项目正在热销", ko: "Vinhomes Hai Van Bay 현재", ja: "Vinhomes Hai Van Bay プロジェクトで今" },
     "18 người đang xem": { en: "18 people viewing", zh: "18人正在浏览", ko: "18명이 보는 중", ja: "18人が閲覧中" },
     "24 người đang xem": { en: "24 people viewing", zh: "24人正在浏览", ko: "24명이 보는 중", ja: "24人が閲覧中" },
     "31 người đang xem": { en: "31 people viewing", zh: "31人正在浏览", ko: "31명이 보는 중", ja: "31人が閲覧中" },

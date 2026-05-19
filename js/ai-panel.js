@@ -11,7 +11,7 @@ window.AiPanel = (() => {
   const sessionHistory = [];
 
   const DEFAULTS = {
-    title:       "Trợ lý Aurora Heights",
+    title:       "Trợ lý Vinhomes Hai Van Bay",
     active:      "Đang hoạt động",
     listening:   "Đang lắng nghe…",
     thinking:    "Đang suy nghĩ…",
@@ -25,7 +25,7 @@ window.AiPanel = (() => {
   };
 
   const DEMO = [
-    { role: "bot",  text: "Xin chào! Tôi là trợ lý AI của Aurora Heights. Bạn cần tìm hiểu về dự án nào?" },
+    { role: "bot",  text: "Xin chào! Tôi là trợ lý AI của Vinhomes Hai Van Bay. Bạn cần tìm hiểu về dự án nào?" },
   ];
 
   function t(key) {

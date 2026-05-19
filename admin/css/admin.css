@@ -1004,6 +1004,11 @@ textarea.form-control { resize: vertical; min-height: 80px }
 }
 .img-prev-clear:hover { background: var(--danger, #ef4444); transform: scale(1.1); }
 
+/* Logo management slots */
+.logo-slots .logo-slot .img-field { border: none; padding: 0; background: none; }
+.logo-slots .logo-slot .img-field-head { display: none; }
+.logo-slots .logo-slot .img-preview { display: none !important; }
+
 /* Slide panel wide mode (cho VR preview) */
 .slide-panel.sp-wide { width: min(960px, 90vw) !important; max-width: 90vw; }
 

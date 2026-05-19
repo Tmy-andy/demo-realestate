@@ -7,7 +7,10 @@
       "Bash(grep -oE \"3F0[0-9A-Fa-f]{5,}\" \"C:/Users/ASUS/OneDrive/Desktop/BDS/data/script.js\")",
       "Bash(dd:*)",
       "Bash(grep -n \"setMediaByName\\\\|setMainMedia\\\\|setPanorama\\\\|getObjectById\" \"/c/Users/ASUS/OneDrive/Desktop/BDS/data/lib/\"*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(grep -r \"AURORA\\\\|brand-mark\\\\|brand-logo\\\\|loader-mark\" /c/Users/ASUS/OneDrive/Desktop/BDS/*.html)",
+      "Bash(python -c \"from PIL import Image; print\\('Pillow OK'\\)\")",
+      "Bash(python -c ':*)"
     ]
   }
 }

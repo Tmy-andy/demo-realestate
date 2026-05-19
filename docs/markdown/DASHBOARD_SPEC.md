@@ -1,8 +1,8 @@
-# Aurora Heights VR360 — Admin Dashboard Specification
+# Vinhomes Hai Van Bay VR360 — Admin Dashboard Specification
 
 **Version:** 1.0  
 **Date:** 2026-05-14  
-**Scope:** Trang quản trị nội bộ cho Aurora Heights VR360 Experience  
+**Scope:** Trang quản trị nội bộ cho Vinhomes Hai Van Bay VR360 Experience  
 
 ---
 
@@ -97,7 +97,7 @@ Dashboard quản trị cho phép nhóm bán hàng, marketing và kỹ thuật:
 
 | Element | Detail |
 |---------|--------|
-| Logo | Aurora Heights brand mark |
+| Logo | Vinhomes Hai Van Bay brand mark |
 | Project selector | Dropdown (nếu multi-project) |
 | Notification bell | Badge với số chưa đọc |
 | User avatar | Tên + role badge |

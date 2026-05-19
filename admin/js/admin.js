@@ -102,7 +102,7 @@ async function loadData() {
   Object.keys(GROUP_META).forEach(k => { if (!S.data.menu[k]) S.data.menu[k] = []; });
   // Đảm bảo các nhánh nội dung tồn tại để không lỗi khi render lần đầu
   S.data.gallery        ??= [];
-  S.data.siteMap        ??= { image: '', points: [] };
+  S.data.siteMap        ??= { center: [16.2130, 108.1200], zoom: 14, points: [] };
   S.data.timeline       ??= [];
   S.data.legal          ??= { documents: [], banks: [], developerStats: [], testimonials: [] };
   S.data.location       ??= { lat: 0, lng: 0, mapSrc: '', nearby: [] };
@@ -163,7 +163,7 @@ function resetData() {
 // ——— FALLBACK DATA ————————————————————————————
 function getFallbackData() {
   return {
-    project: { name:'Aurora Heights', developer:'Aurora Land Holdings', location:'Khu Tây Hồ Tây, Hà Nội', status:'Đang mở bán GĐ 2', handover:'Quý IV / 2027', priceFrom:'Từ 4.9 tỷ', totalUnits:1840 },
+    project: { name:'Vinhomes Hai Van Bay', developer:'Vinhomes', location:'Hải Vân, Đà Nẵng', status:'Đang mở bán GĐ 2', handover:'Quý IV / 2027', priceFrom:'Từ 4.9 tỷ', totalUnits:1840 },
     menu: { tongQuan:[], tienIchNoiKhu:[], tienIchNgoaiKhu:[], matBangTang:[], view360Can:[] },
     floorplan: { units: [] },
   };
@@ -390,7 +390,7 @@ function renderOverview(el) {
         { icon:'hardhat',  label:'Mặt bằng / Tòa',    key:'matBangTang',      hint:'Layout & floorplan',  page:'navpanel' },
         { icon:'armchair', label:'View 360° Căn hộ',  key:'view360Can',       hint:'Tour căn mẫu',        page:'navpanel' },
         { icon:'image',    label:'Thư viện ảnh',       key:'gallery',          hint:'Gallery overlay',     page:'settings', action:'openGalleryPanel' },
-        { icon:'map',      label:'Bản đồ 2D',          key:'siteMap',          hint:'2D sitemap & điểm',  page:'settings', action:'openSiteMapPanel' },
+        { icon:'map',      label:'Bản đồ vị trí',       key:'siteMap',          hint:'Bản đồ & hotspot',   page:'settings', action:'openSiteMapPanel' },
         { icon:'calendar', label:'Tiến độ xây dựng',   key:'timeline',         hint:'Construction milestones', page:'settings', action:'openTimelinePanel' },
       ].map(c => {
         const data = S.data[c.key] || (c.key.startsWith('tien')||c.key==='tongQuan'||c.key==='matBangTang'||c.key==='view360Can' ? S.data.menu?.[c.key] : null);
@@ -1537,7 +1537,7 @@ const i18n = {
   'modal.phone':   { vi:'Số điện thoại',        en:'Phone Number',       zh:'电话号码', ko:'전화번호' },
   'modal.submit':  { vi:'Gửi đăng ký',          en:'Submit',             zh:'提交',    ko:'제출' },
   'tour.scene':    { vi:'Cảnh VR',              en:'VR Scene',           zh:'VR 场景', ko:'VR 장면' },
-  'ai.greeting':   { vi:'Xin chào! Tôi là trợ lý Aurora.', en:'Hello! I am Aurora assistant.', zh:'你好！我是Aurora助手。', ko:'' },
+  'ai.greeting':   { vi:'Xin chào! Tôi là trợ lý Vinhomes.', en:'Hello! I am Vinhomes assistant.', zh:'你好！我是Vinhomes助手。', ko:'' },
 };
 
 const I18N_LANG_NAMES = { VI:'Tiếng Việt', EN:'English', ZH:'中文', KO:'한국어', JA:'日本語', FR:'Français', DE:'Deutsch', ES:'Español', RU:'Русский', TH:'ไทย' };
@@ -1975,6 +1975,28 @@ function userSave(idx) {
   render('settings', document.getElementById('p-settings'));
 }
 
+function logoSlotHTML(id, label, currentValue, usedIn, bgMode) {
+  const bgStyle = bgMode === 'dark'
+    ? 'background:#1e293b;border-radius:10px;padding:16px;display:flex;align-items:center;justify-content:center;min-height:80px'
+    : 'background:#f1f5f9;border-radius:10px;padding:16px;display:flex;align-items:center;justify-content:center;min-height:80px';
+  return `
+    <div class="logo-slot" style="border:1px solid var(--border);border-radius:var(--r2);padding:16px;margin-bottom:14px">
+      <div style="display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap">
+        <div id="${id}-slot-bg" style="${bgStyle};flex:0 0 180px">
+          <img id="${id}-slot-img" src="${esc(currentValue||'')}" alt="${esc(label)}"
+               style="max-height:56px;max-width:150px;width:auto;object-fit:contain"
+               onerror="this.style.opacity=.2">
+        </div>
+        <div style="flex:1;min-width:200px">
+          <div class="fw6" style="margin-bottom:4px">${label}</div>
+          <div class="c-muted" style="font-size:12px;margin-bottom:10px">${ico('info',11)} Dùng tại: ${usedIn}</div>
+          ${imageField(id, '', currentValue)}
+        </div>
+      </div>
+    </div>`;
+}
+
+
 function renderSettings(el) {
   const p = proj();
   el.innerHTML = `
@@ -2053,10 +2075,14 @@ function settingsTabHTML(p) {
     </div>
 
     <div class="card" style="margin-bottom:16px">
-      <div class="card-header"><span class="card-title">Logo & Ảnh Đại Diện</span></div>
+      <div class="card-header"><span class="card-title">Logo & Thương Hiệu</span><span class="card-subtitle">Quản lý tất cả logo hiển thị trên website</span></div>
       <div class="card-body">
-        ${imageField('sp-logo', 'Logo dự án', p.logo||'')}
-        ${imageField('sp-hero', 'Ảnh hero (banner trang VR)', p.heroImg||'')}
+        <div class="logo-slots">
+          ${logoSlotHTML('sp-logoDark', 'Logo sáng (nền tối)', p.logoDark || '../img/logo/LOGO-LV (1).png',
+            'Sidebar admin, loader VR, brand topbar VR', 'dark')}
+          ${logoSlotHTML('sp-logoLight', 'Logo màu (nền sáng)', p.logoLight || '../img/logo/LOGO-LV (2).png',
+            'Topbar admin, trang đăng nhập', 'light')}
+        </div>
       </div>
     </div>
 
@@ -2172,10 +2198,10 @@ function saveProjectSettings() {
     density: g('sp-density'), greenSpace: g('sp-greenSpace'),
     stats,
   });
-  const logo = imgFieldValue('sp-logo');
-  const hero = imgFieldValue('sp-hero');
-  if (logo) S.data.project.logo = logo; else delete S.data.project.logo;
-  if (hero) S.data.project.heroImg = hero; else delete S.data.project.heroImg;
+  const logoDark  = imgFieldValue('sp-logoDark');
+  const logoLight = imgFieldValue('sp-logoLight');
+  if (logoDark)  S.data.project.logoDark  = logoDark;  else delete S.data.project.logoDark;
+  if (logoLight) S.data.project.logoLight = logoLight; else delete S.data.project.logoLight;
   saveData('Đã lưu thông tin dự án');
 }
 

@@ -5,6 +5,13 @@
                        confirmDel(), showPanel(), closePanel(), go()
    ============================================ */
 
+// Resolve relative asset paths from admin/ context
+function assetPath(p) {
+  if (!p) return '';
+  if (p.startsWith('data:') || p.startsWith('http') || p.startsWith('../')) return p;
+  return '../' + p;
+}
+
 // ——— Page header chung ————————————————————————
 function pageHeader(crumbs, title, actions = '') {
   return `
@@ -107,6 +114,9 @@ function imgFieldSyncURL(id, val) {
   const img  = prev.querySelector('img');
   if (val) { prev.style.display = ''; img.src = val; img.style.opacity = 1; }
   else     { prev.style.display = 'none'; }
+  /* sync logo-slot preview if present */
+  const si = document.getElementById(id+'-slot-img');
+  if (si) { si.src = val || ''; si.style.opacity = val ? 1 : .2; }
 }
 function imgFieldClear(id) {
   document.getElementById(id+'-val').value = '';
@@ -114,6 +124,9 @@ function imgFieldClear(id) {
   const f = document.getElementById(id+'-file'); if (f) f.value = '';
   const info = document.getElementById(id+'-info'); if (info) info.style.display = 'none';
   document.getElementById(id+'-prev').style.display = 'none';
+  /* sync logo-slot preview if present */
+  const si = document.getElementById(id+'-slot-img');
+  if (si) { si.src = ''; si.style.opacity = .2; }
 }
 function imgDzEnter(e, id) { e.preventDefault(); document.getElementById(id+'-dz').classList.add('dragover'); }
 function imgDzLeave(e, id) { e.preventDefault(); document.getElementById(id+'-dz').classList.remove('dragover'); }
@@ -165,6 +178,9 @@ function imgFieldReadFile(id, file) {
     prev.querySelector('img').style.opacity = 1;
     const bar = document.getElementById(id+'-bar'); if (bar) bar.style.width = '100%';
     info.querySelector('.dz-info-thumb').innerHTML = `<img src="${dataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:4px">`;
+    /* sync logo-slot preview if present */
+    const si = document.getElementById(id+'-slot-img');
+    if (si) { si.src = dataUrl; si.style.opacity = 1; }
     toast(`Đã tải ${fmtSize(file.size)}`, 'ok');
   };
   fr.readAsDataURL(file);
@@ -339,14 +355,14 @@ function folderRow(value, label, iconName, current, deletable=false) {
 
 function mediaCardHTML(g, i) {
   const isVideo = g.type === 'video';
-  const thumb = g.poster || g.src || '';
+  const thumb = assetPath(g.poster || g.thumb || g.src || '');
   return `
     <div class="gal-card" draggable="true" data-i="${i}"
          ondragstart="galleryDragStart(${i})" ondragover="event.preventDefault()"
          ondrop="galleryDrop(${i})">
       <div class="gal-thumb" onclick="galleryOpenPreview(${i})" style="cursor:pointer;position:relative">
         ${thumb
-          ? `<img src="${esc(thumb)}" alt="${esc(g.title||'')}" onerror="this.style.opacity=.2">`
+          ? `<img src="${esc(thumb)}" alt="${esc(g.title||'')}" loading="lazy" onerror="this.style.opacity=.2">`
           : `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:#0f172a;color:#475569">${ico('video',32)}</div>`}
         <div class="gal-idx">#${i+1}</div>
         ${isVideo ? `
@@ -561,7 +577,7 @@ function galleryOpenPreview(i) {
       playerHTML = `<video src="${esc(g.src)}" ${g.poster?`poster="${esc(g.poster)}"`:''} controls autoplay style="width:100%;max-height:78vh;background:#000;border-radius:8px"></video>`;
     }
   } else {
-    playerHTML = `<img src="${esc(g.src)}" alt="${esc(g.title||'')}" style="width:100%;max-height:78vh;object-fit:contain;background:#0f172a;border-radius:8px">`;
+    playerHTML = `<img src="${esc(assetPath(g.src))}" alt="${esc(g.title||'')}" style="width:100%;max-height:78vh;object-fit:contain;background:#0f172a;border-radius:8px">`;
   }
   const back = document.createElement('div');
   back.id = 'media-preview';
@@ -588,81 +604,127 @@ function closeMediaPreview() {
 function mediaPreviewEsc(e) { if (e.key === 'Escape') closeMediaPreview(); }
 
 // ========================================================================
-// 2) SITE MAP 2D ─ ảnh nền + các điểm tương tác
+// 2) SITE MAP 2D ─ Bản đồ tương tác (Leaflet) + hotspot
 // ========================================================================
+let _adminMap = null;
+let _adminMarkers = [];
+
 function renderSiteMapPage(el) {
   const sm = S.data.siteMap;
-  el.innerHTML = pageHeader(['Dashboard','Nội Dung VR'], 'Bản Đồ 2D — Mặt Bằng',
+  const center = sm.center || [16.2130, 108.1200];
+  el.innerHTML = pageHeader(['Dashboard','Nội Dung VR'], 'Bản Đồ Vị Trí',
     `<button class="btn btn-primary btn-sm" onclick="siteMapAddManual()">${ico('plus')} Thêm điểm</button>`)
   + `
     <div class="g21">
       <div class="card">
         <div class="card-header">
-          <span class="card-title">Preview & thả điểm</span>
-          <span class="card-subtitle">Click trên ảnh để thêm điểm · Kéo điểm để di chuyển</span>
+          <span class="card-title">Bản đồ & Hotspot</span>
+          <span class="card-subtitle">Click trên bản đồ để thêm điểm · Kéo marker để di chuyển</span>
         </div>
         <div class="card-body">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px">
-            <div style="font-size:12px;color:var(--muted);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
-              <b>Ảnh nền:</b> ${esc(sm.image ? (sm.image.startsWith('data:')?'(đã tải lên)':sm.image) : 'chưa đặt')}
+          <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+            <div class="form-group" style="flex:1;min-width:120px;margin:0">
+              <label class="form-label" style="margin-bottom:4px">Tâm bản đồ (Lat, Lng)</label>
+              <div style="display:flex;gap:6px">
+                <input class="form-control" id="sm-center-lat" type="number" step="0.0001" value="${center[0]}" style="flex:1" placeholder="Latitude">
+                <input class="form-control" id="sm-center-lng" type="number" step="0.0001" value="${center[1]}" style="flex:1" placeholder="Longitude">
+                <button class="btn btn-secondary btn-sm" onclick="siteMapUpdateCenter()" title="Cập nhật tâm">${ico('mappin')}</button>
+              </div>
             </div>
-            <button class="btn btn-secondary btn-sm" onclick="siteMapChangeBg()">${ico('upload')} Đổi ảnh nền</button>
           </div>
-          <div class="sm-canvas" id="sm-canvas" onclick="siteMapCanvasClick(event)">
-            <img id="sm-bg" src="${esc(sm.image||'')}" onerror="this.style.opacity=.1">
-            ${(sm.points||[]).map((p,i)=>`
-              <div class="sm-pt" style="left:${p.x}%;top:${p.y}%" data-i="${i}"
-                   onmousedown="siteMapDragBegin(event,${i})"
-                   title="${esc(p.label||'')}">
-                <span class="sm-pt-dot"></span>
-                <span class="sm-pt-label">${esc(p.label||'')}</span>
-              </div>`).join('')}
-          </div>
-          <div style="display:flex;justify-content:space-between;margin-top:8px">
-            <button class="btn btn-secondary btn-sm" onclick="saveData('Đã lưu')">${ico('save')} Lưu thay đổi</button>
-            <span class="c-muted" style="font-size:11px">Toạ độ tính theo % chiều rộng/cao ảnh</span>
+          <div id="admin-sm-map" style="width:100%;height:450px;border-radius:10px;border:1px solid var(--border);z-index:0"></div>
+          <div style="display:flex;justify-content:space-between;margin-top:8px;align-items:center">
+            <button class="btn btn-secondary btn-sm" onclick="saveData('Đã lưu bản đồ')">${ico('save')} Lưu thay đổi</button>
+            <span class="c-muted" style="font-size:11px">Click trên bản đồ = thêm hotspot · Kéo marker = di chuyển</span>
           </div>
         </div>
       </div>
       <div class="card">
         <div class="card-header"><span class="card-title">Danh sách điểm (${(sm.points||[]).length})</span></div>
         <div class="card-body p0">
-          ${(sm.points||[]).length===0 ? `<div style="text-align:center;padding:32px;color:var(--muted)">Chưa có điểm nào. Click trên ảnh để thêm.</div>` :
+          ${(sm.points||[]).length===0 ? `<div style="text-align:center;padding:32px;color:var(--muted)">Chưa có điểm nào. Click trên bản đồ để thêm.</div>` :
             `<div class="sm-list">${(sm.points||[]).map((p,i)=>`
               <div class="sm-item">
                 <div class="sm-item-info">
                   <div class="sm-item-title">${esc(p.label||'(chưa đặt tên)')}</div>
-                  <div class="sm-item-meta mono">id:${esc(p.id||'—')} · X:${p.x}% Y:${p.y}% · scene:${esc(p.sceneId||'—')}</div>
+                  <div class="sm-item-meta mono">id:${esc(p.id||'—')} · ${p.lat},${p.lng} · pano:${esc(p.tdvPanoramaId||'—')}</div>
                 </div>
+                <button class="act-btn" title="Tìm trên bản đồ" onclick="siteMapFlyTo(${i})">${ico('mappin')}</button>
                 <button class="act-btn" onclick="siteMapEdit(${i})">${ico('edit')}</button>
                 <button class="act-btn danger" onclick="siteMapDel(${i})">${ico('trash')}</button>
               </div>`).join('')}</div>`}
         </div>
       </div>
     </div>`;
+  /* Init Leaflet after DOM update */
+  setTimeout(() => siteMapInitAdmin(), 50);
 }
 
-function siteMapChangeBg() {
-  showPanel('Ảnh nền bản đồ 2D',
-    imageField('sm-img', 'Ảnh nền', S.data.siteMap.image, { placeholder:'img/thietke-matbangduan.jpg' }),
-    () => {
-      S.data.siteMap.image = imgFieldValue('sm-img');
-      saveData('Đã đổi ảnh nền'); closePanel(); go('sitemap');
+function siteMapInitAdmin() {
+  const sm = S.data.siteMap;
+  const center = sm.center || [16.2130, 108.1200];
+  const zoom = sm.zoom || 14;
+  const mapEl = document.getElementById('admin-sm-map');
+  if (!mapEl || !window.L) return;
+  if (_adminMap) { _adminMap.remove(); _adminMap = null; }
+  _adminMarkers = [];
+  _adminMap = L.map('admin-sm-map').setView(center, zoom);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap', maxZoom: 19
+  }).addTo(_adminMap);
+  /* Add existing markers */
+  (sm.points || []).forEach((p, i) => {
+    if (p.lat == null || p.lng == null) return;
+    const marker = L.marker([p.lat, p.lng], { draggable: true }).addTo(_adminMap);
+    marker.bindTooltip(esc(p.label || p.id), { permanent: false, direction: 'top' });
+    marker.on('dragend', () => {
+      const ll = marker.getLatLng();
+      S.data.siteMap.points[i].lat = +ll.lat.toFixed(6);
+      S.data.siteMap.points[i].lng = +ll.lng.toFixed(6);
+      toast(`Đã di chuyển "${p.label}" → ${ll.lat.toFixed(4)}, ${ll.lng.toFixed(4)}`, 'ok');
     });
+    _adminMarkers.push(marker);
+  });
+  /* Click on map to add */
+  _adminMap.on('click', (e) => {
+    siteMapOpenForm({
+      lat: +e.latlng.lat.toFixed(6),
+      lng: +e.latlng.lng.toFixed(6),
+      id: 'p' + Date.now().toString(36),
+      label: '', tdvPanoramaId: ''
+    }, -1);
+  });
+  /* Save zoom/center on move */
+  _adminMap.on('moveend', () => {
+    const c = _adminMap.getCenter();
+    S.data.siteMap.center = [+c.lat.toFixed(6), +c.lng.toFixed(6)];
+    S.data.siteMap.zoom = _adminMap.getZoom();
+  });
 }
 
-function siteMapCanvasClick(e) {
-  if (S.smDragging) { S.smDragging = false; return; }
-  if (e.target.closest('.sm-pt')) return; // click vào điểm có sẵn
-  const canvas = document.getElementById('sm-canvas');
-  const r = canvas.getBoundingClientRect();
-  const x = +(((e.clientX - r.left) / r.width) * 100).toFixed(1);
-  const y = +(((e.clientY - r.top) / r.height) * 100).toFixed(1);
-  siteMapOpenForm({ x, y, id: 'p' + Date.now().toString(36), label: '', sceneId: '' }, -1);
+function siteMapUpdateCenter() {
+  const lat = parseFloat(document.getElementById('sm-center-lat').value);
+  const lng = parseFloat(document.getElementById('sm-center-lng').value);
+  if (isNaN(lat) || isNaN(lng)) { toast('Toạ độ không hợp lệ', 'warn'); return; }
+  S.data.siteMap.center = [lat, lng];
+  if (_adminMap) _adminMap.setView([lat, lng], _adminMap.getZoom());
+  toast(`Tâm bản đồ: ${lat}, ${lng}`, 'ok');
+}
+
+function siteMapFlyTo(i) {
+  const p = S.data.siteMap.points[i];
+  if (_adminMap && p.lat != null) {
+    _adminMap.flyTo([p.lat, p.lng], 17);
+    if (_adminMarkers[i]) _adminMarkers[i].openTooltip();
+  }
 }
 
 function siteMapAddManual() {
-  siteMapOpenForm({ x: 50, y: 50, id: 'p' + Date.now().toString(36), label: '', sceneId: '' }, -1);
+  const center = S.data.siteMap.center || [16.2130, 108.1200];
+  siteMapOpenForm({
+    lat: center[0], lng: center[1],
+    id: 'p' + Date.now().toString(36), label: '', tdvPanoramaId: ''
+  }, -1);
 }
 
 function siteMapEdit(i) { siteMapOpenForm({ ...S.data.siteMap.points[i] }, i); }
@@ -672,36 +734,45 @@ function siteMapDel(i) {
   });
 }
 
-function siteMapOpenForm(pt, idx) {
-  const scenes = (S.data.scenes||[]).map(s => s.id);
+async function siteMapOpenForm(pt, idx) {
+  const panos = await fetchPanoramas();
   showPanel(idx>=0 ? 'Sửa điểm' : 'Thêm điểm', `
     <div class="form-row">
       <div class="form-group"><label class="form-label">ID</label>
         <input class="form-control" id="pt-id" value="${esc(pt.id||'')}"></div>
-      <div class="form-group"><label class="form-label">Scene đích</label>
-        <div style="display:flex;gap:6px">
-          <select class="form-control" id="pt-scene" style="flex:1">
-            <option value="">— Không liên kết —</option>
-            ${scenes.map(s=>`<option value="${s}" ${s===pt.sceneId?'selected':''}>${s}</option>`).join('')}
-          </select>
-          <button type="button" class="btn btn-secondary btn-sm" onclick="previewVR('../index.html?scene='+document.getElementById('pt-scene').value,'Preview Scene')">${ico('eye')}</button>
-        </div></div>
+      <div class="form-group"><label class="form-label">Panorama VR</label>
+        <select class="form-control" id="pt-pano" style="flex:1">
+          <option value="">— Không liên kết —</option>
+          ${panos.map(p=>`<option value="${p.name}" ${p.name===pt.tdvPanoramaId?'selected':''}>${p.name}</option>`).join('')}
+        </select></div>
     </div>
     <div class="form-group"><label class="form-label">Nhãn hiển thị *</label>
       <input class="form-control" id="pt-label" value="${esc(pt.label||'')}" placeholder="VD: Tòa The Park (I2)"></div>
+    <div class="form-section" style="margin:12px 0 6px">Toạ độ</div>
     <div class="form-row">
-      <div class="form-group"><label class="form-label">X (%)</label>
-        <input class="form-control" type="number" step="0.1" id="pt-x" value="${pt.x}"></div>
-      <div class="form-group"><label class="form-label">Y (%)</label>
-        <input class="form-control" type="number" step="0.1" id="pt-y" value="${pt.y}"></div>
+      <div class="form-group"><label class="form-label">Latitude</label>
+        <input class="form-control" type="number" step="0.000001" id="pt-lat" value="${pt.lat||''}"></div>
+      <div class="form-group"><label class="form-label">Longitude</label>
+        <input class="form-control" type="number" step="0.000001" id="pt-lng" value="${pt.lng||''}"></div>
+    </div>
+    <div class="form-section" style="margin:8px 0 6px">Hoặc nhập địa chỉ</div>
+    <div class="form-group">
+      <div style="display:flex;gap:6px">
+        <input class="form-control" id="pt-address" placeholder="VD: Làng Vân, Đà Nẵng" style="flex:1">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="siteMapGeocode()">${ico('mappin')} Tìm</button>
+      </div>
+      <div id="pt-geocode-status" style="font-size:11px;color:var(--muted);margin-top:4px"></div>
     </div>
   `, () => {
+    const lat = parseFloat(document.getElementById('pt-lat').value);
+    const lng = parseFloat(document.getElementById('pt-lng').value);
+    if (isNaN(lat) || isNaN(lng)) { toast('Cần nhập toạ độ hợp lệ', 'warn'); return; }
     const o = {
       id: document.getElementById('pt-id').value.trim() || 'p'+Date.now().toString(36),
       label: document.getElementById('pt-label').value.trim(),
-      sceneId: document.getElementById('pt-scene').value || undefined,
-      x: +parseFloat(document.getElementById('pt-x').value).toFixed(1),
-      y: +parseFloat(document.getElementById('pt-y').value).toFixed(1),
+      tdvPanoramaId: document.getElementById('pt-pano').value || undefined,
+      lat: +lat.toFixed(6),
+      lng: +lng.toFixed(6),
     };
     if (!o.label) { toast('Cần nhập nhãn', 'warn'); return; }
     if (idx>=0) S.data.siteMap.points[idx] = o;
@@ -711,26 +782,24 @@ function siteMapOpenForm(pt, idx) {
   });
 }
 
-function siteMapDragBegin(ev, i) {
-  ev.stopPropagation();
-  const canvas = document.getElementById('sm-canvas');
-  const r = canvas.getBoundingClientRect();
-  const move = me => {
-    S.smDragging = true;
-    const x = Math.max(0, Math.min(100, ((me.clientX - r.left)/r.width)*100));
-    const y = Math.max(0, Math.min(100, ((me.clientY - r.top)/r.height)*100));
-    S.data.siteMap.points[i].x = +x.toFixed(1);
-    S.data.siteMap.points[i].y = +y.toFixed(1);
-    const dot = canvas.querySelector(`.sm-pt[data-i="${i}"]`);
-    if (dot) { dot.style.left = x+'%'; dot.style.top = y+'%'; }
-  };
-  const up = () => {
-    document.removeEventListener('mousemove', move);
-    document.removeEventListener('mouseup', up);
-    if (S.smDragging) { saveData('Đã di chuyển điểm'); go('sitemap'); }
-  };
-  document.addEventListener('mousemove', move);
-  document.addEventListener('mouseup', up);
+async function siteMapGeocode() {
+  const addr = document.getElementById('pt-address').value.trim();
+  const status = document.getElementById('pt-geocode-status');
+  if (!addr) { status.textContent = 'Nhập địa chỉ trước'; return; }
+  status.textContent = 'Đang tìm…';
+  try {
+    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(addr)}&limit=1`, {
+      headers: { 'Accept-Language': 'vi' }
+    });
+    const data = await res.json();
+    if (data.length === 0) { status.innerHTML = '<span style="color:var(--danger)">Không tìm thấy. Thử nhập cụ thể hơn.</span>'; return; }
+    const r = data[0];
+    document.getElementById('pt-lat').value = (+r.lat).toFixed(6);
+    document.getElementById('pt-lng').value = (+r.lon).toFixed(6);
+    status.innerHTML = `<span style="color:var(--success)">✓ ${esc(r.display_name).slice(0,80)}</span>`;
+  } catch (e) {
+    status.innerHTML = '<span style="color:var(--danger)">Lỗi kết nối. Thử lại sau.</span>';
+  }
 }
 
 // ========================================================================

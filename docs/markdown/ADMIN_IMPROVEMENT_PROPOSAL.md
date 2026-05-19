@@ -1,4 +1,4 @@
-# Đề Xuất Hoàn Thiện Dashboard Admin — Aurora Heights
+# Đề Xuất Hoàn Thiện Dashboard Admin — Vinhomes Hai Van Bay
 
 > Phân tích & đề xuất các hạng mục cần bổ sung / cải tiến cho admin dashboard để vận hành sales bất động sản (BĐS) chuẩn chỉnh, đồng bộ với trang VR người dùng (`index.html`) và cấu trúc `data/project.json`.
 

@@ -1,9 +1,9 @@
 {
   "project": {
-    "name": "Aurora Heights",
+    "name": "Vinhomes Hai Van Bay",
     "tagline": "Sống trên tầng mây — Đô thị sinh thái cao cấp",
-    "location": "Khu Tây Hồ Tây, Hà Nội",
-    "developer": "Aurora Land Holdings",
+    "location": "Làng Vân, Hải Vân, Đà Nẵng",
+    "developer": "Vinhomes",
     "status": "Đang mở bán giai đoạn 2",
     "handover": "Quý IV / 2027",
     "priceFrom": "Từ 4.9 tỷ",
@@ -299,54 +299,55 @@
     ]
   },
   "siteMap": {
-    "image": "img/thietke-matbangduan.jpg",
+    "center": [16.2130, 108.1200],
+    "zoom": 14,
     "points": [
       {
         "id": "i1",
-        "x": 78,
-        "y": 62,
+        "lat": 16.2155,
+        "lng": 108.1180,
         "label": "Tòa The Lake Premium (I1)",
         "tdvPanoramaId": "pano-01"
       },
       {
         "id": "i2",
-        "x": 62,
-        "y": 66,
+        "lat": 16.2145,
+        "lng": 108.1210,
         "label": "Tòa The Park (I2)",
-        "tdvPanoramaId": "pano-01"
+        "tdvPanoramaId": "pano-05"
       },
       {
         "id": "i3",
-        "x": 48,
-        "y": 64,
+        "lat": 16.2135,
+        "lng": 108.1230,
         "label": "Tòa The Central (I3)",
-        "tdvPanoramaId": "pano-01"
+        "tdvPanoramaId": "pano-10"
       },
       {
         "id": "i4",
-        "x": 33,
-        "y": 62,
+        "lat": 16.2120,
+        "lng": 108.1195,
         "label": "Tòa Nguyệt Quế (I4)",
-        "tdvPanoramaId": "pano-01"
+        "tdvPanoramaId": "pano-15"
       },
       {
         "id": "i5",
-        "x": 22,
-        "y": 66,
+        "lat": 16.2110,
+        "lng": 108.1220,
         "label": "Tòa Thảo Mộc (I5)",
-        "tdvPanoramaId": "pano-01"
+        "tdvPanoramaId": "pano-20"
       },
       {
         "id": "park",
-        "x": 52,
-        "y": 38,
+        "lat": 16.2140,
+        "lng": 108.1160,
         "label": "Công viên trung tâm",
         "tdvPanoramaId": "pano-08"
       },
       {
         "id": "pool",
-        "x": 70,
-        "y": 42,
+        "lat": 16.2125,
+        "lng": 108.1245,
         "label": "Bể bơi vô cực",
         "tdvPanoramaId": "pano-13"
       }
@@ -355,39 +356,66 @@
   "gallery": [
     {
       "type": "image",
-      "src": "img/thietke-matbangduan.jpg",
-      "title": "Mặt bằng tổng thể",
-      "folder": "Mặt bằng"
+      "src": "img/TBM/TMB-OVERVIEW-VHLV/30032026-MB TONG HAI VAN BAY - PREVIEW-02.jpg",
+      "thumb": "img/TBM/_thumbs/30032026-MB TONG HAI VAN BAY -_853cec018c.jpg",
+      "title": "Mặt bằng tổng thể Hai Van Bay",
+      "folder": "Tổng quan"
     },
     {
       "type": "image",
-      "src": "img/thietke-matbangduan.jpg",
-      "title": "Phối cảnh tháp A",
-      "folder": "Phối cảnh"
+      "src": "img/TBM/PK BẠCH VÂN/TMB BẠCH VÂN.jpg",
+      "thumb": "img/TBM/_thumbs/TMB BẠCH VÂN_563994d411.jpg",
+      "title": "Mặt bằng Bạch Vân",
+      "folder": "PK Bạch Vân"
     },
     {
       "type": "image",
-      "src": "img/thietke-matbangduan.jpg",
-      "title": "Sky Lounge tầng 42",
-      "folder": "Tiện ích"
+      "src": "img/TBM/PK BẠCH VÂN/2403-FULL-BACH VAN .jpg",
+      "thumb": "img/TBM/_thumbs/2403-FULL-BACH VAN _943059a63b.jpg",
+      "title": "Mặt bằng chi tiết Bạch Vân",
+      "folder": "PK Bạch Vân"
     },
     {
       "type": "image",
-      "src": "img/thietke-matbangduan.jpg",
-      "title": "Bể bơi vô cực",
-      "folder": "Tiện ích"
+      "src": "img/TBM/PK BẠCH VÂN/bACHvAN.jpg",
+      "thumb": "img/TBM/_thumbs/bACHvAN_9419a115f6.jpg",
+      "title": "Phối cảnh Bạch Vân",
+      "folder": "PK Bạch Vân"
     },
     {
       "type": "image",
-      "src": "img/thietke-matbangduan.jpg",
-      "title": "Công viên trung tâm",
-      "folder": "Tiện ích"
+      "src": "img/TBM/PK BẠCH VÂN/TMB LÀNG VÂN.jpg",
+      "thumb": "img/TBM/_thumbs/TMB LÀNG VÂN_d9ced65047.jpg",
+      "title": "Mặt bằng Làng Vân",
+      "folder": "PK Bạch Vân"
     },
     {
       "type": "image",
-      "src": "img/thietke-matbangduan.jpg",
-      "title": "Phòng khách penthouse",
-      "folder": "Căn hộ mẫu"
+      "src": "img/TBM/PK BẠCH VÂN/TMB-ALLIN-TIENTICH- BACH VAN-01.jpg",
+      "thumb": "img/TBM/_thumbs/TMB-ALLIN-TIENTICH- BACH VAN-0_ae693a7fc1.jpg",
+      "title": "Tiện ích khu Bạch Vân",
+      "folder": "PK Bạch Vân"
+    },
+    {
+      "type": "image",
+      "src": "img/TBM/PK ĐẢO NGỌC/CUT-TMB-DAONGOC-VHLV.jpg",
+      "thumb": "img/TBM/_thumbs/CUT-TMB-DAONGOC-VHLV_3c984368ee.jpg",
+      "title": "Mặt bằng Đảo Ngọc",
+      "folder": "PK Đảo Ngọc"
+    },
+    {
+      "type": "image",
+      "src": "img/TBM/PK TINH VÂN/CUT-TMB-TINHVAN-VHLV.JPG",
+      "thumb": "img/TBM/_thumbs/CUT-TMB-TINHVAN-VHLV_4514f3afca.jpg",
+      "title": "Mặt bằng Tinh Vân",
+      "folder": "PK Tinh Vân"
+    },
+    {
+      "type": "image",
+      "src": "img/TBM/PK VỊNH MÂY/CUT-TMB-VINHMAY-VHLV.jpg",
+      "thumb": "img/TBM/_thumbs/CUT-TMB-VINHMAY-VHLV_448f467bee.jpg",
+      "title": "Mặt bằng Vịnh Mây",
+      "folder": "PK Vịnh Mây"
     },
     {
       "type": "video",
@@ -658,8 +686,8 @@
     ]
   },
   "location": {
-    "lat": 21.0631,
-    "lng": 105.8194,
+    "lat": 16.2130,
+    "lng": 108.1200,
     "mapSrc": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3723.5!2d105.8194!3d21.0631!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjHCsDAzJzQ3LjIiTiAxMDXCsDQ5JzA5LjgiRQ!5e0!3m2!1svi!2svn!4v1234567890",
     "nearby": [
       {

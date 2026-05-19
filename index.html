@@ -3,11 +3,13 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Aurora Heights — VR360 Experience</title>
+<title>Vinhomes Hai Van Bay — VR360 Experience</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <link rel="stylesheet" href="css/mobile-stepper.css" />
 <!-- Three.js removed — using 3DVista iframe instead -->
 <style>
@@ -372,8 +374,8 @@
 <!-- Loading screen -->
 <div class="loader" id="loader">
   <div class="loader-inner">
-    <div class="loader-mark"></div>
-    <div class="loader-text">AURORA HEIGHTS</div>
+    <img src="img/logo/LOGO-LV (1).png" alt="Vinhomes Hai Van Bay" class="loader-logo">
+    <div class="loader-text">VINHOMES HAI VAN BAY</div>
     <div class="loader-sub" data-i18n="ui.loaderSub">Đang khởi tạo không gian 360°</div>
     <div class="loader-bar"></div>
   </div>
@@ -388,10 +390,10 @@
   <!-- ─── TOP BAR ─── -->
   <header class="top-bar">
     <div class="brand">
-      <div class="brand-mark"><span>A</span></div>
+      <img src="img/logo/LOGO-LV (1).png" alt="Vinhomes Hai Van Bay" class="brand-logo-img">
       <div class="brand-text">
-        <div class="name">AURORA</div>
-        <div class="sub" data-i18n="ui.vrExperience">VR360 EXPERIENCE</div>
+        <div class="name">VINHOMES</div>
+        <div class="sub" data-i18n="ui.vrExperience">HAI VAN BAY</div>
       </div>
     </div>
 
@@ -502,7 +504,7 @@
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
         </button>
       </div>
-      <h3 id="pc-title">Aurora Heights</h3>
+      <h3 id="pc-title">Vinhomes Hai Van Bay</h3>
       <div class="loc" id="pc-loc"></div>
     </div>
 
@@ -572,19 +574,16 @@
   <div class="amen-grid" id="amen-grid"></div>
 </div>
 
-<!-- ============ SITE MAP OVERLAY (2D top-down) ============ -->
+<!-- ============ SITE MAP OVERLAY (Interactive Map) ============ -->
 <div class="sitemap-overlay" id="sitemap-overlay">
   <div class="sm-frame">
     <button class="sm-close" id="sm-close">×</button>
     <div class="sm-head">
-      <div class="sm-eyebrow" data-i18n="sitemap.eyebrow">Mặt bằng tổng thể</div>
-      <h2 data-i18n="sitemap.title">Bản đồ thiết kế 2D</h2>
+      <div class="sm-eyebrow" data-i18n="sitemap.eyebrow">Bản đồ dự án</div>
+      <h2 data-i18n="sitemap.title">Bản Đồ Vị Trí</h2>
       <p data-i18n="sitemap.desc">Bấm vào các điểm trên bản đồ để vào không gian 360° tương ứng</p>
     </div>
-    <div class="sm-canvas" id="sm-canvas">
-      <img src="img/thietke-matbangduan.jpg" alt="Mặt bằng dự án" id="sm-img" draggable="false"/>
-      <div class="sm-points" id="sm-points"></div>
-    </div>
+    <div id="sm-map" style="width:100%;height:0;flex:1;min-height:400px;border-radius:12px;overflow:hidden;z-index:0"></div>
   </div>
 </div>
 
@@ -594,7 +593,7 @@
     <button class="gal-close" id="gal-close">×</button>
     <div class="gal-head">
       <div class="sm-eyebrow" data-i18n="gallery.eyebrow">Thư viện hình ảnh</div>
-      <h2 data-i18n="gallery.title">Khám phá Aurora Heights</h2>
+      <h2 data-i18n="gallery.title">Khám phá Vinhomes Hai Van Bay</h2>
     </div>
     <div class="gal-grid" id="gal-grid"></div>
   </div>
@@ -638,7 +637,7 @@
   <div class="adv-frame">
     <button class="adv-close" id="amenities-detail-close">×</button>
     <div class="adv-head">
-      <div class="adv-eyebrow">Tiện ích Aurora Heights</div>
+      <div class="adv-eyebrow">Tiện ích Vinhomes Hai Van Bay</div>
       <h2>Hệ thống tiện ích đẳng cấp</h2>
     </div>
     <div class="adv-tabs" id="amenity-tabs">

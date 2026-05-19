@@ -112,8 +112,11 @@ function findMenuItemByPanorama(panoName) {
 }
 
 function buildBrand() {
-  document.querySelector(".brand-text .name").textContent = DATA.project.name;
-  document.querySelector(".brand-text .sub").textContent = I18n.t("ui.vrExperience");
+  const parts = DATA.project.name.split(' ');
+  const nameEl = document.querySelector(".brand-text .name");
+  const subEl = document.querySelector(".brand-text .sub");
+  if (nameEl) nameEl.textContent = parts[0] || DATA.project.name;
+  if (subEl) subEl.textContent = parts.slice(1).join(' ') || I18n.t("ui.vrExperience");
 }
 
 function buildProjectCard() {
@@ -539,25 +542,35 @@ function renderNavList() {
   });
 }
 
+let _smMap = null;
 function buildSiteMap() {
   const sm = DATA.siteMap;
   if (!sm) return;
-  const img = document.getElementById("sm-img");
-  if (img && sm.image) img.src = sm.image;
-  const points = document.getElementById("sm-points");
-  points.innerHTML = (sm.points || []).map(p => `
-    <div class="sm-point" data-panorama="${p.tdvPanoramaId || p.sceneId || ''}" style="left:${p.x}%; top:${p.y}%;">
-      <span class="sm-pin"></span>
-      <span class="sm-label">${_tr(p.label)}</span>
-    </div>
-  `).join("");
-  points.querySelectorAll(".sm-point").forEach(el => {
-    el.addEventListener("click", () => {
-      const pano = el.dataset.panorama;
-      if (!pano) return;
-      document.getElementById("sitemap-overlay").classList.remove("open");
-      goToPanorama(pano);
-    });
+  /* Map will be initialized when overlay opens (Leaflet needs visible container) */
+}
+function initSiteMap() {
+  const sm = DATA.siteMap;
+  if (!sm || !window.L) return;
+  const mapEl = document.getElementById("sm-map");
+  if (!mapEl) return;
+  if (_smMap) { _smMap.invalidateSize(); return; }
+  const center = sm.center || [16.2130, 108.1200];
+  const zoom = sm.zoom || 15;
+  _smMap = L.map('sm-map', { scrollWheelZoom: true }).setView(center, zoom);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap',
+    maxZoom: 19
+  }).addTo(_smMap);
+  (sm.points || []).forEach(p => {
+    if (p.lat == null || p.lng == null) return;
+    const marker = L.marker([p.lat, p.lng]).addTo(_smMap);
+    const label = _tr(p.label) || p.id || '';
+    const pano = p.tdvPanoramaId || p.sceneId || '';
+    marker.bindPopup(`<div style="text-align:center;min-width:120px">
+      <b>${label}</b>
+      ${pano ? `<br><button onclick="document.getElementById('sitemap-overlay').classList.remove('open');goToPanorama('${pano}')" style="margin-top:6px;padding:4px 12px;border:none;background:#3b82f6;color:#fff;border-radius:6px;cursor:pointer;font-size:12px">Xem VR360 →</button>` : ''}
+    </div>`);
+    marker.bindTooltip(label, { permanent: false, direction: 'top' });
   });
 }
 
@@ -650,12 +663,12 @@ function buildGallery() {
     return;
   }
   grid.innerHTML = items.map((g, i) => {
-    const thumb = g.poster || g.src || '';
+    const thumb = g.poster || g.thumb || g.src || '';
     const isVideo = g.type === 'video';
     return `
       <div class="gal-item" data-idx="${i}" style="position:relative">
         ${thumb
-          ? `<img src="${thumb}" alt="${_tr(g.title) || ''}"/>`
+          ? `<img src="${thumb}" alt="${_tr(g.title) || ''}" loading="lazy"/>`
           : `<div style="aspect-ratio:1;background:#0f172a;display:flex;align-items:center;justify-content:center;color:#475569"><svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>`}
         ${isVideo ? `
           <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none">
@@ -757,6 +770,7 @@ function bindOverlays() {
 
   document.getElementById("btn-sitemap")?.addEventListener("click", () => {
     document.getElementById("sitemap-overlay").classList.add("open");
+    setTimeout(() => initSiteMap(), 100);
   });
   document.getElementById("sm-close")?.addEventListener("click", () => {
     document.getElementById("sitemap-overlay").classList.remove("open");
@@ -1927,14 +1941,14 @@ document.addEventListener("DOMContentLoaded", boot);
   };
 
   const MESSAGES = [
-    { cls: "view",  title: "18 người đang xem",          sub: "dự án Aurora Heights ngay lúc này" },
+    { cls: "view",  title: "18 người đang xem",          sub: "dự án Vinhomes Hai Van Bay ngay lúc này" },
     { cls: "book",  title: "Vừa đặt giữ 2PN+1 tầng 22", sub: "3 phút trước · Khách Hà Nội" },
     { cls: "book",  title: "Vừa đặt giữ Duplex tầng 40", sub: "12 phút trước · Khách TP.HCM" },
     { cls: "alert", title: "Còn 49 căn trong đợt này",   sub: "Ưu đãi 8% kết thúc sớm" },
-    { cls: "view",  title: "24 người đang xem",           sub: "dự án Aurora Heights ngay lúc này" },
+    { cls: "view",  title: "24 người đang xem",           sub: "dự án Vinhomes Hai Van Bay ngay lúc này" },
     { cls: "book",  title: "Vừa đặt giữ 3PN tầng 35",   sub: "7 phút trước · Khách nước ngoài" },
     { cls: "alert", title: "Căn 3PN tầng 28 vừa giữ",   sub: "Chỉ còn 9 căn 3PN" },
-    { cls: "view",  title: "31 người đang xem",           sub: "dự án Aurora Heights ngay lúc này" },
+    { cls: "view",  title: "31 người đang xem",           sub: "dự án Vinhomes Hai Van Bay ngay lúc này" },
   ];
 
   const wrap = document.createElement('div');
