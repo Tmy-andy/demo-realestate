@@ -1071,3 +1071,63 @@ textarea.form-control { resize: vertical; min-height: 80px }
 .cal-event.s-done .ev-time { color: var(--ok, #10b981); }
 .cal-event.s-cancelled { background: rgba(148,163,184,.15); border-left-color: var(--dim); opacity: .6; text-decoration: line-through; }
 
+
+
+/* ============================================================
+   MASTERPLAN EDITOR — vùng ảnh tương tác (#4 / #6)
+   ============================================================ */
+.mp-edit-stage {
+  position: relative;
+  width: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: #0b1220;
+  cursor: crosshair;
+  user-select: none;
+}
+.mp-edit-stage img {
+  display: block;
+  width: 100%;
+  height: auto;
+  pointer-events: none;
+}
+.mp-edit-markers {
+  position: absolute;
+  inset: 0;
+}
+.mp-edit-marker {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 9px 4px 5px;
+  border-radius: 999px;
+  background: rgba(8, 12, 20, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: grab;
+  transition: transform 0.12s;
+}
+.mp-edit-marker:hover {
+  transform: translate(-50%, -50%) scale(1.08);
+  border-color: #f4c97d;
+}
+.mp-edit-marker:active { cursor: grabbing; }
+.mp-edit-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #f4c97d;
+  flex-shrink: 0;
+}
+.mp-edit-dot-phankhu { background: #a78bfa; }
+.mp-edit-dot-hatang  { background: #60a5fa; }
+.mp-edit-dot-tienich { background: #34d399; }
+.mp-edit-dot-phuchop { background: #f4c97d; }
+.mp-edit-dot-cangbien { background: #38bdf8; }
+.mp-edit-dot-marina  { background: #22d3ee; }

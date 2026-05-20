@@ -22,6 +22,16 @@ async function boot() {
   DATA = await res.json();
   window.DATA = DATA; // expose for mobile-stepper.js
 
+  // Đồng bộ nguồn dữ liệu: properties là nguồn duy nhất.
+  // Bảng giá (floorplan.units) và modal BĐS (properties) dùng chung.
+  if (Array.isArray(DATA.properties) && DATA.properties.length) {
+    DATA.floorplan = DATA.floorplan || {};
+    DATA.floorplan.units = DATA.properties;
+  } else {
+    DATA.floorplan = DATA.floorplan || { units: [] };
+    DATA.properties = DATA.floorplan.units || (DATA.floorplan.units = []);
+  }
+
   buildBrand();
   buildProjectCard();
   if (DATA.project.promoDeadline) startCountdown(DATA.project.promoDeadline);
@@ -551,12 +561,13 @@ function buildFpProgressBars() {
   const wrap = document.getElementById("fp-progress-wrap");
   if (!wrap) return;
   const units = DATA.floorplan.units;
-  // Group by type
+  // Group by type — dùng nhãn loại nếu có
   const typeMap = {};
   units.forEach(u => {
-    if (!typeMap[u.type]) typeMap[u.type] = { available: 0, total: 0 };
-    typeMap[u.type].available += (u.available || 0);
-    typeMap[u.type].total     += (u.total || u.available || 1);
+    const key = u.typeLabel || u.type || "Khác";
+    if (!typeMap[key]) typeMap[key] = { available: 0, total: 0 };
+    typeMap[key].available += (u.available || 0);
+    typeMap[key].total     += (u.total || u.available || 1);
   });
   wrap.innerHTML = Object.entries(typeMap).map(([type, d]) => {
     const pct = d.total > 0 ? Math.round((d.available / d.total) * 100) : 0;
@@ -575,10 +586,14 @@ function buildFpProgressBars() {
 function buildFpTypeTags() {
   const wrap = document.getElementById("fp-type-tags");
   if (!wrap) return;
-  const types = [...new Set(DATA.floorplan.units.map(u => u.type))];
-  wrap.innerHTML = types.map(t => `
+  // Loại duy nhất theo id, kèm nhãn hiển thị
+  const seen = {};
+  DATA.floorplan.units.forEach(u => {
+    if (u.type && !(u.type in seen)) seen[u.type] = u.typeLabel || u.type;
+  });
+  wrap.innerHTML = Object.entries(seen).map(([t, label]) => `
     <button class="fp-tag ${fpState.activeTypes.has(t) ? 'active' : ''}" data-type="${t}">
-      ${_tr(t)}
+      ${_tr(label)}
     </button>
   `).join("");
   wrap.querySelectorAll(".fp-tag").forEach(btn => {
@@ -663,20 +678,33 @@ function renderFpTable() {
   }
 
   const statusLabel = { available: "Còn trống", holding: "Đang giữ", sold: "Đã bán" };
+  /* properties lưu giá dạng số ("5400000000") — chuyển sang "5.4 tỷ" */
+  const fpMoney = (v) => {
+    if (v == null || v === "") return "—";
+    const s = String(v);
+    if (/tỷ|triệu|tr\//i.test(s)) return s; // đã định dạng sẵn
+    const n = parseInt(s.replace(/\D/g, ""), 10);
+    if (!n) return s;
+    if (n >= 1e9) return (n / 1e9).toFixed(2).replace(/\.?0+$/, "") + " tỷ";
+    if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.?0+$/, "") + " tr/m²";
+    return s;
+  };
   tbody.innerHTML = units.map(u => {
     const isSold = u.status === "sold";
+    const typeLabel = u.typeLabel || u.type || "—";
+    const availTxt = u.available != null ? `${u.available} ${_t("ui.units")}` : "—";
     return `
       <tr class="${isSold ? 'row-sold' : ''}">
         <td><span class="fp-code">${u.code}</span></td>
-        <td>${_tr(u.type)}</td>
+        <td>${_tr(typeLabel)}</td>
         <td>${u.floor || "—"}</td>
         <td>${u.area} m²</td>
         <td>${u.direction || "—"}</td>
-        <td class="fp-price">${u.price}</td>
-        <td class="fp-ppm2">${u.pricePerM2 || "—"}</td>
-        <td class="fp-avail">${u.available} ${_t("ui.units")}</td>
+        <td class="fp-price">${fpMoney(u.price)}</td>
+        <td class="fp-ppm2">${fpMoney(u.pricePerM2)}</td>
+        <td class="fp-avail">${availTxt}</td>
         <td><span class="fp-badge ${u.status}">${statusLabel[u.status] || u.status}</span></td>
-        <td>${isSold ? "" : `<button class="fp-interest-btn" data-code="${u.code}" data-type="${_tr(u.type)}">Quan tâm</button>`}</td>
+        <td>${isSold ? "" : `<button class="fp-interest-btn" data-code="${u.code}" data-type="${_tr(typeLabel)}">Quan tâm</button>`}</td>
       </tr>`;
   }).join("");
 
@@ -902,7 +930,11 @@ function buildGallery() {
     return;
   }
   grid.innerHTML = items.map((g, i) => {
-    const thumb = g.poster || g.thumb || g.src || '';
+    let thumb = g.poster || g.thumb || '';
+    // Link Google Drive → thumbnail tự động qua API thumbnail của Drive
+    const did = driveFileId(g.src);
+    if (!thumb && did) thumb = `https://drive.google.com/thumbnail?id=${did}&sz=w640`;
+    if (!thumb) thumb = g.src || '';
     const isVideo = g.type === 'video';
     return `
       <div class="gal-item" data-idx="${i}" style="position:relative">
@@ -924,6 +956,15 @@ function buildGallery() {
   });
 }
 
+/* Trích FILE_ID từ link Google Drive (file hoặc ?id=) */
+function driveFileId(url) {
+  if (!url || !/drive\.google\.com|docs\.google\.com/.test(url)) return null;
+  let m;
+  if ((m = url.match(/\/file\/d\/([\w-]+)/))) return m[1];
+  if ((m = url.match(/[?&]id=([\w-]+)/))) return m[1];
+  return null;
+}
+
 function lbVideoEmbedUrl(url) {
   if (!url) return null;
   let m;
@@ -931,6 +972,9 @@ function lbVideoEmbedUrl(url) {
   if (/youtube\.com\/embed\//.test(url)) return url;
   if ((m = url.match(/vimeo\.com\/(?:video\/)?(\d+)/))) return `https://player.vimeo.com/video/${m[1]}`;
   if (url.startsWith('https://player.vimeo.com/')) return url;
+  // Google Drive — dùng trang preview để xem video/ảnh trực tiếp
+  const did = driveFileId(url);
+  if (did) return `https://drive.google.com/file/d/${did}/preview`;
   return null;
 }
 
@@ -948,7 +992,13 @@ function setLightboxMedia(item) {
       host.innerHTML = `<video src="${item.src}" ${item.poster?`poster="${item.poster}"`:''} controls autoplay style="max-width:90vw;max-height:80vh;background:#000;border-radius:8px"></video>`;
     }
   } else {
-    host.innerHTML = `<img id="lb-img" src="${item.src}" alt="${_tr(item.title) || ''}"/>`;
+    // Ảnh Google Drive: link /file/d/.../view không hiển thị trực tiếp
+    // trong <img> → chuyển sang dạng thumbnail kích thước lớn.
+    const did = driveFileId(item.src);
+    const imgSrc = did
+      ? `https://drive.google.com/thumbnail?id=${did}&sz=w1600`
+      : item.src;
+    host.innerHTML = `<img id="lb-img" src="${imgSrc}" alt="${_tr(item.title) || ''}"/>`;
   }
   if (cap) cap.textContent = _tr(item.title) || '';
 }
@@ -1122,24 +1172,43 @@ function bindSmartHide() {
   if (!ui || !stage) return;
 
   let hideTimer = null;
-  let isDragging = false;
 
-  const hide = () => ui.classList.add("hidden");
-  const show = () => {
-    ui.classList.remove("hidden");
+  const hide = () => {
+    ui.classList.add("hidden");
+    document.body.classList.add("ux-hidden");
     clearTimeout(hideTimer);
   };
-
-  stage.addEventListener("pointerdown", () => {
-    isDragging = true;
-    hide();
+  const show = () => {
+    ui.classList.remove("hidden");
+    document.body.classList.remove("ux-hidden");
     clearTimeout(hideTimer);
+  };
+  window.__uxShow = show;
+  window.__uxHide = hide;
+
+  /* Tương tác trực tiếp trên lớp UI (nút, panel) → vẫn hiện UI bình thường */
+  let pointerInUI = false;
+  ui.addEventListener("pointerenter", () => { pointerInUI = true; });
+  ui.addEventListener("pointerleave", () => { pointerInUI = false; });
+
+  /* Iframe 3DVista nuốt mọi sự kiện chuột nên pointerdown trên #vr-iframe
+     không fire. Dùng window "blur": khi người dùng nhấn vào iframe, focus
+     chuyển sang iframe → window mất focus → ta biết họ đang xem VR. */
+  window.addEventListener("blur", () => {
+    if (pointerInUI) return; // đang thao tác trên UI, không phải vào VR
+    if (document.activeElement === stage) hide();
   });
-  window.addEventListener("pointerup", () => {
-    if (!isDragging) return;
-    isDragging = false;
-    hideTimer = setTimeout(show, 2200);
+
+  /* Quay lại trang chủ (rê chuột ra khỏi iframe) → hiện lại UI */
+  window.addEventListener("focus", () => {
+    hideTimer = setTimeout(show, 400);
   });
+  document.addEventListener("mouseenter", show);
+
+  /* Chạm trực tiếp lên khung VR (mobile) — iframe pointer events vẫn nuốt,
+     nhưng touchstart trên document phía ngoài iframe có thể bắt được khi
+     người dùng chạm mép. Dự phòng: nút Unhide luôn sẵn. */
+  stage.addEventListener("pointerdown", hide);
 
   restore?.addEventListener("click", show);
 }

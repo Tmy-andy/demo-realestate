@@ -12,6 +12,21 @@ function assetPath(p) {
   return '../' + p;
 }
 
+/* Trích FILE_ID từ link Google Drive */
+function adminDriveFileId(url) {
+  if (!url || !/drive\.google\.com|docs\.google\.com/.test(url)) return null;
+  let m;
+  if ((m = url.match(/\/file\/d\/([\w-]+)/))) return m[1];
+  if ((m = url.match(/[?&]id=([\w-]+)/))) return m[1];
+  return null;
+}
+/* Thumbnail hiển thị được cho 1 asset (xử lý link Drive) */
+function thumbPath(p) {
+  const did = adminDriveFileId(p);
+  if (did) return 'https://drive.google.com/thumbnail?id=' + did + '&sz=w640';
+  return assetPath(p);
+}
+
 // ——— Page header chung ————————————————————————
 function pageHeader(crumbs, title, actions = '') {
   return `
@@ -261,12 +276,15 @@ function videoEmbedUrl(url) {
     return `https://player.vimeo.com/video/${m[1]}`;
   }
   if (url.startsWith('https://player.vimeo.com/')) return url;
+  const did = adminDriveFileId(url);
+  if (did) return `https://drive.google.com/file/d/${did}/preview`;
   return null;
 }
 function detectVideoSource(url) {
   if (!url) return '';
   if (/youtube\.com|youtu\.be/.test(url)) return 'youtube';
   if (/vimeo\.com/.test(url))             return 'vimeo';
+  if (/drive\.google\.com|docs\.google\.com/.test(url)) return 'drive';
   if (url.startsWith('blob:'))            return 'upload';
   return 'mp4';
 }
@@ -355,7 +373,10 @@ function folderRow(value, label, iconName, current, deletable=false) {
 
 function mediaCardHTML(g, i) {
   const isVideo = g.type === 'video';
-  const thumb = assetPath(g.poster || g.thumb || g.src || '');
+  // Ưu tiên poster/thumb; nếu không có, đọc thumbnail từ link (gồm Drive)
+  const thumb = (g.poster || g.thumb)
+    ? assetPath(g.poster || g.thumb)
+    : thumbPath(g.src || '');
   return `
     <div class="gal-card" draggable="true" data-i="${i}"
          ondragstart="galleryDragStart(${i})" ondragover="event.preventDefault()"
@@ -442,6 +463,7 @@ function galleryForm(g, idx) {
       <select class="form-control" id="g-vsource" onchange="onVideoSourceChange()">
         <option value="youtube" ${g.videoSource==='youtube'?'selected':''}>YouTube</option>
         <option value="vimeo"   ${g.videoSource==='vimeo'?'selected':''}>Vimeo</option>
+        <option value="drive"   ${g.videoSource==='drive'?'selected':''}>Google Drive</option>
         <option value="mp4"     ${g.videoSource==='mp4'?'selected':''}>URL mp4/webm trực tiếp</option>
         <option value="upload"  ${g.videoSource==='upload'?'selected':''}>Upload file (tạm thời, mất khi reload)</option>
       </select>
@@ -524,6 +546,7 @@ function onVideoSourceChange() {
     if (hint) hint.textContent =
       vs === 'youtube' ? 'Dán link YouTube (watch?v=, youtu.be/, shorts/…). Tự chuyển sang embed.'
     : vs === 'vimeo'   ? 'Dán link Vimeo (vimeo.com/123456). Tự chuyển sang player.vimeo.com/video/...'
+    : vs === 'drive'   ? 'Dán link file Google Drive (drive.google.com/file/d/…). File cần ở chế độ chia sẻ công khai. Thumbnail tự đọc.'
     :                    'Dán URL file .mp4 / .webm truy cập công khai.';
   }
 }
@@ -577,7 +600,11 @@ function galleryOpenPreview(i) {
       playerHTML = `<video src="${esc(g.src)}" ${g.poster?`poster="${esc(g.poster)}"`:''} controls autoplay style="width:100%;max-height:78vh;background:#000;border-radius:8px"></video>`;
     }
   } else {
-    playerHTML = `<img src="${esc(assetPath(g.src))}" alt="${esc(g.title||'')}" style="width:100%;max-height:78vh;object-fit:contain;background:#0f172a;border-radius:8px">`;
+    const did = adminDriveFileId(g.src);
+    const imgSrc = did
+      ? `https://drive.google.com/thumbnail?id=${did}&sz=w1600`
+      : assetPath(g.src);
+    playerHTML = `<img src="${esc(imgSrc)}" alt="${esc(g.title||'')}" style="width:100%;max-height:78vh;object-fit:contain;background:#0f172a;border-radius:8px">`;
   }
   const back = document.createElement('div');
   back.id = 'media-preview';
@@ -1324,40 +1351,70 @@ function resourceClear(key) {
   });
 }
 
+
+
 /* ============================================================
    ADMIN — MASTERPLAN (#4 / #6)
-   Quản lý ảnh quy hoạch, danh mục, marker và schema bộ lọc.
+   Tải ảnh quy hoạch + thêm/dời marker trực quan trên ảnh.
    ============================================================ */
 function renderMasterplanPage(el) {
   const mp = S.data.masterplan || (S.data.masterplan = {
     image: "", intro: "", categories: [], markers: [], filterSchema: {}
   });
   const markers = mp.markers || [];
-  const cats = mp.categories || [];
+  const imgSrc = mpResolveImg(mp.image);
 
   el.innerHTML = pageHeader(["Dashboard", "Nội Dung VR"], "Masterplan") + `
     <div class="card" style="margin-bottom:16px">
       <div class="card-header">
-        <span class="card-title">${ico("image", 16)} Ảnh quy hoạch & giới thiệu</span>
+        <span class="card-title">${ico("image", 16)} Ảnh quy hoạch</span>
+        <span class="card-subtitle">Click trên ảnh để thêm marker · Kéo marker để di chuyển</span>
       </div>
       <div class="card-body">
-        <div class="form-group">
-          <label class="form-label">Đường dẫn ảnh masterplan</label>
-          <input class="form-control" id="mp-image" value="${esc(mp.image || "")}" placeholder="img/TBM/...jpg">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+          <button class="btn btn-primary btn-sm" onclick="document.getElementById('mp-upload').click()">
+            ${ico("upload", 12)} Tải ảnh lên
+          </button>
+          <input type="file" id="mp-upload" accept="image/*" style="display:none" onchange="mpUploadImage(this)">
+          <button class="btn btn-secondary btn-sm" onclick="mpSetImageUrl()">${ico("globe", 12)} Nhập link ảnh</button>
+          <button class="btn btn-secondary btn-sm" onclick="mpMarkerEdit(-1)">${ico("plus", 12)} Thêm marker thủ công</button>
         </div>
-        <div class="form-group">
-          <label class="form-label">Mô tả giới thiệu</label>
-          <textarea class="form-control" id="mp-intro" rows="3" placeholder="Tổng quan quy hoạch...">${esc(mp.intro || "")}</textarea>
+
+        ${imgSrc ? `
+        <div class="mp-edit-stage" id="mp-edit-stage">
+          <img src="${imgSrc}" id="mp-edit-img" alt="Masterplan" draggable="false">
+          <div class="mp-edit-markers" id="mp-edit-markers">
+            ${markers.map((m, i) => `
+              <div class="mp-edit-marker" data-idx="${i}"
+                   style="left:${m.x}%;top:${m.y}%">
+                <span class="mp-edit-dot mp-edit-dot-${esc(m.cat || "phankhu")}"></span>
+                <span class="mp-edit-tag">${esc(m.label || "—")}</span>
+              </div>`).join("")}
+          </div>
         </div>
-        ${mp.image ? `<img src="../${esc(mp.image)}" style="width:100%;max-height:220px;object-fit:cover;border-radius:8px;margin-top:6px" alt="">` : ""}
-        <button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="saveMasterplanInfo()">${ico("save", 12)} Lưu thông tin</button>
+        <p class="c-muted" style="font-size:12px;margin-top:8px">
+          ${markers.length} marker · Click vào marker để sửa, kéo để di chuyển.
+        </p>
+        ` : `
+        <div style="padding:48px;text-align:center;border:1px dashed var(--border);border-radius:10px;color:var(--muted)">
+          Chưa có ảnh quy hoạch. Nhấn "Tải ảnh lên" hoặc "Nhập link ảnh".
+        </div>`}
       </div>
     </div>
 
     <div class="card" style="margin-bottom:16px">
       <div class="card-header">
-        <span class="card-title">${ico("mappin", 16)} Marker trên bản đồ</span>
-        <button class="btn btn-secondary btn-sm" onclick="mpMarkerEdit(-1)">+ Thêm marker</button>
+        <span class="card-title">${ico("book", 16)} Mô tả giới thiệu</span>
+      </div>
+      <div class="card-body">
+        <textarea class="form-control" id="mp-intro" rows="3" placeholder="Tổng quan quy hoạch...">${esc(mp.intro || "")}</textarea>
+        <button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="saveMasterplanIntro()">${ico("save", 12)} Lưu mô tả</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header">
+        <span class="card-title">${ico("navpanel", 16)} Danh sách marker (${markers.length})</span>
       </div>
       <div class="card-body">
         ${markers.length ? markers.map((m, i) => `
@@ -1368,57 +1425,247 @@ function renderMasterplanPage(el) {
             </div>
             <button class="act-btn" onclick="mpMarkerEdit(${i})">${ico("edit")}</button>
             <button class="act-btn danger" onclick="mpMarkerDelete(${i})">${ico("trash")}</button>
-          </div>`).join("") : `<div class="c-muted" style="font-size:13px">Chưa có marker. Nhấn "+ Thêm marker".</div>`}
+          </div>`).join("") : `<div class="c-muted" style="font-size:13px">Chưa có marker.</div>`}
       </div>
     </div>
 
     <div class="card">
       <div class="card-header">
         <span class="card-title">${ico("settings", 16)} Cấu hình bộ lọc</span>
+        <button class="btn btn-secondary btn-sm" onclick="mpAddFilterGroup()">${ico("plus",12)} Thêm nhóm lọc</button>
       </div>
       <div class="card-body">
-        <p class="c-muted" style="font-size:13px;margin-bottom:10px">
-          Bộ lọc Masterplan ở trang VR đọc cấu hình này. Chỉnh sửa trực tiếp dạng JSON.
+        <p class="c-muted" style="font-size:13px;margin-bottom:12px">
+          Các nhóm lọc hiển thị ở bộ lọc Masterplan trên trang VR.
         </p>
-        <textarea class="form-control mono" id="mp-schema" rows="14" style="font-size:12px">${esc(JSON.stringify(mp.filterSchema || {}, null, 2))}</textarea>
+        <div id="mp-schema-body">${mpFilterSchemaHTML(mp.filterSchema || {})}</div>
         <button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="saveMasterplanSchema()">${ico("save", 12)} Lưu bộ lọc</button>
       </div>
     </div>
   `;
+
+  if (imgSrc) setTimeout(mpInitEditStage, 30);
 }
 
-function saveMasterplanInfo() {
-  const mp = S.data.masterplan;
-  mp.image = document.getElementById("mp-image").value.trim();
-  mp.intro = document.getElementById("mp-intro").value.trim();
-  saveData("Đã lưu thông tin Masterplan");
-  go("masterplan");
+/* Tên hiển thị của các nhóm lọc chuẩn */
+const MP_GROUP_LABELS = {
+  phanKhu: "Phân khu", loaiHienThi: "Loại hiển thị",
+  batDongSan: "Bất động sản", trangThai: "Trạng thái",
+};
+
+function mpFilterSchemaHTML(schema) {
+  const keys = Object.keys(schema || {});
+  if (!keys.length) {
+    return `<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">Chưa có nhóm lọc nào.</div>`;
+  }
+  return keys.map(key => {
+    const opts = schema[key] || [];
+    return `
+      <div class="mp-fg-card" data-fg="${esc(key)}" style="border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <input class="form-control" data-fg-name="${esc(key)}" value="${esc(MP_GROUP_LABELS[key]||key)}"
+                 style="flex:1;font-weight:600" placeholder="Tên nhóm lọc">
+          <span class="c-muted mono" style="font-size:11px">${esc(key)}</span>
+          <button class="act-btn" title="Thêm mục" onclick="mpAddFilterOption('${esc(key)}')">${ico('plus',12)}</button>
+          <button class="act-btn danger" title="Xoá nhóm" onclick="mpRemoveFilterGroup('${esc(key)}')">${ico('trash',12)}</button>
+        </div>
+        <div data-fg-opts="${esc(key)}">
+          ${opts.map((o,i)=>mpFilterOptionRow(key,o,i)).join('') ||
+            `<div class="c-muted" style="font-size:12px;padding:4px">Chưa có mục — nhấn + để thêm.</div>`}
+        </div>
+      </div>`;
+  }).join('');
+}
+function mpFilterOptionRow(key, o, i) {
+  return `
+    <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px" data-fg-row="${i}">
+      <input class="form-control" data-opt-id="${esc(key)}|${i}" value="${esc(o.id||'')}"
+             placeholder="mã" style="flex:0 0 130px;font-family:monospace;font-size:12px">
+      <input class="form-control" data-opt-label="${esc(key)}|${i}" value="${esc(o.label||'')}"
+             placeholder="Tên hiển thị" style="flex:1">
+      <input type="color" data-opt-color="${esc(key)}|${i}" value="${esc(o.color||'#f4c97d')}"
+             title="Màu (tuỳ chọn)" style="width:38px;height:34px;padding:2px;border:1px solid var(--border);border-radius:6px;cursor:pointer">
+      <button class="act-btn danger" onclick="mpRemoveFilterOption('${esc(key)}',${i})">${ico('trash',12)}</button>
+    </div>`;
+}
+/* Đọc toàn bộ schema từ DOM */
+function mpReadSchemaFromDom() {
+  const body = document.getElementById('mp-schema-body');
+  const schema = {};
+  if (!body) return schema;
+  body.querySelectorAll('.mp-fg-card').forEach(card => {
+    const key = card.dataset.fg;
+    const optsWrap = card.querySelector(`[data-fg-opts="${key}"]`);
+    const opts = [];
+    optsWrap && optsWrap.querySelectorAll('[data-fg-row]').forEach(row => {
+      const idEl = row.querySelector('[data-opt-id]');
+      const labelEl = row.querySelector('[data-opt-label]');
+      const colorEl = row.querySelector('[data-opt-color]');
+      const id = (idEl?.value || '').trim();
+      if (!id) return;
+      const o = { id, label: (labelEl?.value || '').trim() };
+      if (colorEl && colorEl.value) o.color = colorEl.value;
+      opts.push(o);
+    });
+    schema[key] = opts;
+  });
+  return schema;
+}
+function mpAddFilterGroup() {
+  const schema = mpReadSchemaFromDom();
+  const key = 'nhom' + (Object.keys(schema).length + 1);
+  schema[key] = [];
+  S.data.masterplan.filterSchema = schema;
+  document.getElementById('mp-schema-body').innerHTML = mpFilterSchemaHTML(schema);
+}
+function mpRemoveFilterGroup(key) {
+  const schema = mpReadSchemaFromDom();
+  delete schema[key];
+  S.data.masterplan.filterSchema = schema;
+  document.getElementById('mp-schema-body').innerHTML = mpFilterSchemaHTML(schema);
+}
+function mpAddFilterOption(key) {
+  const schema = mpReadSchemaFromDom();
+  schema[key] = schema[key] || [];
+  schema[key].push({ id: '', label: '', color: '#f4c97d' });
+  S.data.masterplan.filterSchema = schema;
+  document.getElementById('mp-schema-body').innerHTML = mpFilterSchemaHTML(schema);
+}
+function mpRemoveFilterOption(key, i) {
+  const schema = mpReadSchemaFromDom();
+  if (schema[key]) schema[key].splice(i, 1);
+  S.data.masterplan.filterSchema = schema;
+  document.getElementById('mp-schema-body').innerHTML = mpFilterSchemaHTML(schema);
+}
+
+/* Đường dẫn ảnh: data URL giữ nguyên, đường dẫn tương đối thêm "../" */
+function mpResolveImg(src) {
+  if (!src) return "";
+  if (/^(data:|https?:|\/\/)/.test(src)) return src;
+  return "../" + src;
+}
+
+/* Tải ảnh lên — đọc thành data URL lưu vào masterplan.image */
+function mpUploadImage(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    S.data.masterplan.image = reader.result; // data URL
+    saveData("Đã tải ảnh quy hoạch");
+    go("masterplan");
+  };
+  reader.readAsDataURL(file);
+}
+
+function mpSetImageUrl() {
+  const cur = S.data.masterplan.image || "";
+  showPanel("Nhập link ảnh quy hoạch", `
+    <div class="form-group">
+      <label class="form-label">URL ảnh *</label>
+      <input class="form-control" id="mp-img-url" value="${esc(/^data:/.test(cur) ? "" : cur)}"
+             placeholder="https://... hoặc img/masterplan/...png">
+      <small class="c-muted">Dán link ảnh trực tiếp hoặc đường dẫn trong thư mục dự án.</small>
+    </div>
+  `, () => {
+    const url = document.getElementById("mp-img-url").value.trim();
+    if (!url) { toast("Nhập URL ảnh", "warn"); return false; }
+    S.data.masterplan.image = url;
+    saveData("Đã cập nhật ảnh quy hoạch");
+    closePanel();
+    go("masterplan");
+  });
+}
+
+/* Khởi tạo vùng ảnh tương tác: click thêm marker, kéo marker */
+function mpInitEditStage() {
+  const stage = document.getElementById("mp-edit-stage");
+  if (!stage) return;
+  const markers = S.data.masterplan.markers || [];
+
+  /* Click trên ảnh (không trúng marker) → thêm marker mới tại vị trí đó */
+  stage.addEventListener("click", (e) => {
+    if (e.target.closest(".mp-edit-marker")) return;
+    const r = stage.getBoundingClientRect();
+    const x = +(((e.clientX - r.left) / r.width) * 100).toFixed(2);
+    const y = +(((e.clientY - r.top) / r.height) * 100).toFixed(2);
+    mpMarkerEdit(-1, { x, y });
+  });
+
+  /* Mỗi marker: click để sửa, kéo để di chuyển */
+  stage.querySelectorAll(".mp-edit-marker").forEach((el) => {
+    const idx = +el.dataset.idx;
+    let dragging = false, moved = false;
+
+    el.addEventListener("mousedown", (e) => {
+      e.preventDefault();
+      dragging = true; moved = false;
+    });
+    window.addEventListener("mousemove", (e) => {
+      if (!dragging) return;
+      moved = true;
+      const r = stage.getBoundingClientRect();
+      let x = ((e.clientX - r.left) / r.width) * 100;
+      let y = ((e.clientY - r.top) / r.height) * 100;
+      x = Math.max(0, Math.min(100, x));
+      y = Math.max(0, Math.min(100, y));
+      el.style.left = x + "%";
+      el.style.top = y + "%";
+      el.dataset.x = x.toFixed(2);
+      el.dataset.y = y.toFixed(2);
+    });
+    window.addEventListener("mouseup", () => {
+      if (!dragging) return;
+      dragging = false;
+      if (moved && markers[idx]) {
+        markers[idx].x = +(el.dataset.x || markers[idx].x);
+        markers[idx].y = +(el.dataset.y || markers[idx].y);
+        saveData("Đã di chuyển marker");
+      }
+    });
+    el.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (!moved) mpMarkerEdit(idx);
+    });
+  });
+}
+
+function saveMasterplanIntro() {
+  S.data.masterplan.intro = document.getElementById("mp-intro").value.trim();
+  saveData("Đã lưu mô tả Masterplan");
 }
 
 function saveMasterplanSchema() {
-  const raw = document.getElementById("mp-schema").value;
-  try {
-    S.data.masterplan.filterSchema = JSON.parse(raw);
-  } catch (e) {
-    toast("JSON không hợp lệ: " + e.message, "warn");
-    return;
-  }
+  S.data.masterplan.filterSchema = mpReadSchemaFromDom();
   saveData("Đã lưu cấu hình bộ lọc");
   go("masterplan");
 }
 
-function mpMarkerEdit(idx) {
+/* Thêm / sửa marker. preset = { x, y } khi tạo từ click trên ảnh */
+function mpMarkerEdit(idx, preset) {
   const mp = S.data.masterplan;
   const markers = mp.markers || (mp.markers = []);
-  const m = idx >= 0 ? markers[idx] : { id: "m-" + Date.now().toString(36), label: "", cat: "phankhu", x: 50, y: 50, desc: "", menuItemId: "" };
+  const m = idx >= 0 ? markers[idx] : {
+    id: "m-" + Date.now().toString(36),
+    label: "", cat: "phankhu",
+    x: preset ? preset.x : 50,
+    y: preset ? preset.y : 50,
+    desc: "", menuItemId: ""
+  };
   const cats = mp.categories || [];
-  const catOpts = (cats.length ? cats : [{ id: "phankhu", label: "Phân khu" }])
+  const catList = cats.length ? cats : [
+    { id: "phankhu", label: "Phân khu" },
+    { id: "hatang", label: "Hạ tầng" },
+    { id: "tienich", label: "Tiện ích" },
+    { id: "phuchop", label: "Khu phức hợp" }
+  ];
+  const catOpts = catList
     .map((c) => `<option value="${esc(c.id)}" ${c.id === m.cat ? "selected" : ""}>${esc(c.label)}</option>`)
     .join("");
-  // Danh sách menu item phân khu để liên kết
   const pkItems = (S.data.menu && S.data.menu.phanKhu) || [];
   const pkOpts = '<option value="">— Không liên kết —</option>' +
     pkItems.map((it) => `<option value="${esc(it.id)}" ${it.id === m.menuItemId ? "selected" : ""}>${esc(it.label)}</option>`).join("");
+
   showPanel((idx >= 0 ? "Sửa" : "Thêm") + " marker", `
     <div class="form-group">
       <label class="form-label">Tên marker *</label>
@@ -1435,11 +1682,11 @@ function mpMarkerEdit(idx) {
     <div style="display:flex;gap:10px">
       <div class="form-group" style="flex:1">
         <label class="form-label">Vị trí X (%)</label>
-        <input class="form-control" id="mk-x" type="number" min="0" max="100" value="${m.x}">
+        <input class="form-control" id="mk-x" type="number" min="0" max="100" step="0.1" value="${m.x}">
       </div>
       <div class="form-group" style="flex:1">
         <label class="form-label">Vị trí Y (%)</label>
-        <input class="form-control" id="mk-y" type="number" min="0" max="100" value="${m.y}">
+        <input class="form-control" id="mk-y" type="number" min="0" max="100" step="0.1" value="${m.y}">
       </div>
     </div>
     <div class="form-group">
@@ -1473,3 +1720,570 @@ function mpMarkerDelete(idx) {
     go("masterplan");
   });
 }
+
+
+
+/* ============================================================
+   ADMIN — BẤT ĐỘNG SẢN (#4)
+   Panel danh sách + trang chi tiết (chỉnh sửa đầy đủ).
+   Nguồn dữ liệu duy nhất: S.data.properties
+   ============================================================ */
+const PROP_STATUS = [
+  { id: "available", label: "Đang mở bán" },
+  { id: "holding",   label: "Đang giữ chỗ" },
+  { id: "sold",      label: "Đã bán" },
+];
+const PROP_TYPES = [
+  { id: "can-ho",    label: "Căn hộ" },
+  { id: "shophouse", label: "Shophouse" },
+  { id: "biet-thu",  label: "Biệt thự" },
+  { id: "nha-pho",   label: "Nhà phố" },
+  { id: "dat-nen",   label: "Đất nền" },
+];
+
+/* index sản phẩm đang mở ở trang chi tiết */
+let propDetailIdx = -1;
+
+/* Đường dẫn ảnh: data/http giữ nguyên, tương đối thêm ../ */
+function propImg(src) {
+  if (!src) return "";
+  if (/^(data:|https?:|\/\/)/.test(src)) return src;
+  return "../" + src;
+}
+function propStatusBadge(s) {
+  const map = {
+    available: ["badge-ok", "Đang mở bán"],
+    holding: ["badge-warning", "Đang giữ chỗ"],
+    sold: ["badge-muted", "Đã bán"],
+  };
+  const [cls, txt] = map[s] || ["badge-muted", s || "—"];
+  return `<span class="badge ${cls}">${txt}</span>`;
+}
+
+/* ============================================================
+   PANEL DANH SÁCH
+   ============================================================ */
+let propFilter = { search: "", type: "", status: "" };
+
+function renderPropertiesPage(el) {
+  const list = S.data.properties || (S.data.properties = []);
+  const filtered = propFilteredList();
+  el.innerHTML = pageHeader(["Dashboard", "Quản Lý"], "Bất Động Sản",
+    `<button class="btn btn-primary btn-sm" onclick="propOpenDetail(-1)">${ico("plus")} Thêm sản phẩm</button>`)
+  + `
+    <div class="card">
+      <div class="filter-bar">
+        <input class="fi" style="min-width:220px" placeholder="Tìm mã căn, tên sản phẩm…"
+               value="${esc(propFilter.search)}" oninput="propFilter.search=this.value;propReloadGrid()">
+        <select class="fi fi-select" onchange="propFilter.type=this.value;propReloadGrid()">
+          <option value="">Tất cả loại hình</option>
+          ${PROP_TYPES.map(t => `<option value="${t.id}" ${propFilter.type===t.id?'selected':''}>${t.label}</option>`).join('')}
+        </select>
+        <select class="fi fi-select" onchange="propFilter.status=this.value;propReloadGrid()">
+          <option value="">Tất cả trạng thái</option>
+          ${PROP_STATUS.map(s => `<option value="${s.id}" ${propFilter.status===s.id?'selected':''}>${s.label}</option>`).join('')}
+        </select>
+        <div class="filter-spacer"></div>
+        <span class="c-muted" style="font-size:12px" id="prop-count">${filtered.length} sản phẩm</span>
+      </div>
+      <div class="card-body">
+        <div id="prop-grid">${propGridHTML(filtered)}</div>
+      </div>
+    </div>
+  `;
+}
+
+function propFilteredList() {
+  return (S.data.properties || []).filter(p => {
+    const q = propFilter.search.toLowerCase();
+    if (q && !((p.code||'') + ' ' + (p.name||'')).toLowerCase().includes(q)) return false;
+    if (propFilter.type && p.type !== propFilter.type) return false;
+    if (propFilter.status && p.status !== propFilter.status) return false;
+    return true;
+  });
+}
+function propGridHTML(list) {
+  if (!list.length) {
+    return `<div style="padding:40px;text-align:center;color:var(--muted)">Không có sản phẩm phù hợp.</div>`;
+  }
+  return `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px">
+    ${list.map(p => propCard(p)).join("")}
+  </div>`;
+}
+function propReloadGrid() {
+  const g = document.getElementById("prop-grid");
+  const c = document.getElementById("prop-count");
+  const filtered = propFilteredList();
+  if (g) g.innerHTML = propGridHTML(filtered);
+  if (c) c.textContent = filtered.length + " sản phẩm";
+}
+
+function propCard(p) {
+  const realIdx = (S.data.properties || []).indexOf(p);
+  const img = (p.images && p.images[0]) || "";
+  const imgSrc = propImg(img);
+  return `
+    <div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--surface);cursor:pointer"
+         onclick="propOpenDetail(${realIdx})">
+      <div style="aspect-ratio:16/10;background:#0b1220;position:relative">
+        ${imgSrc ? `<img src="${esc(imgSrc)}" style="width:100%;height:100%;object-fit:cover" alt="" onerror="this.style.opacity=.2">` : ''}
+        <div style="position:absolute;top:8px;left:8px">${propStatusBadge(p.status)}</div>
+      </div>
+      <div style="padding:12px">
+        <div style="font-size:11px;color:var(--muted);font-family:monospace">${esc(p.code || p.id || "—")}</div>
+        <div style="font-weight:700;font-size:14px;color:var(--text);margin:2px 0 4px">${esc(p.name || "—")}</div>
+        <div style="font-size:13px;color:var(--primary);font-weight:600">${esc(propMoney(p.price))}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">
+          ${esc(p.phanKhuLabel || "—")} · ${esc(p.typeLabel || "—")} · ${p.area || "—"}m²
+        </div>
+        <div style="display:flex;gap:6px;margin-top:10px" onclick="event.stopPropagation()">
+          <button class="btn btn-secondary btn-sm" style="flex:1" onclick="propOpenDetail(${realIdx})">${ico("edit", 12)} Xem & sửa</button>
+          <button class="act-btn danger" onclick="propDelete(${realIdx})">${ico("trash")}</button>
+        </div>
+      </div>
+    </div>`;
+}
+function propMoney(v) {
+  if (v == null || v === "") return "—";
+  const s = String(v);
+  if (/tỷ|triệu/i.test(s)) return s;
+  const n = parseInt(s.replace(/\D/g, ""), 10);
+  if (!n) return s;
+  return (n / 1e9).toFixed(2).replace(/\.?0+$/, "") + " tỷ";
+}
+
+function propDelete(idx) {
+  const list = S.data.properties || [];
+  const p = list[idx];
+  confirmDel("Xoá sản phẩm này?", p ? p.name : "", () => {
+    list.splice(idx, 1);
+    saveData("Đã xoá sản phẩm");
+    go("properties");
+  });
+}
+
+/* ============================================================
+   TRANG CHI TIẾT — chỉnh sửa đầy đủ
+   ============================================================ */
+function propOpenDetail(idx) {
+  propDetailIdx = idx;
+  window.__propDraft = null; // reset bản nháp cho sản phẩm mới
+  go("property-detail");
+}
+
+function propBlank() {
+  return {
+    id: "", code: "", name: "", phanKhu: "", phanKhuLabel: "",
+    type: "can-ho", typeLabel: "Căn hộ", price: "", pricePerM2: "",
+    priceVal: 0, area: 0, bedrooms: 0, bathrooms: 0,
+    floor: undefined, available: undefined, total: undefined,
+    direction: "", status: "available", statusLabel: "Đang mở bán",
+    legal: "", handover: "", desc: "",
+    saleUsername: "",
+    highlights: [], images: [], thumbsFloor: [],
+    policies: [], docs: [], progress: [],
+  };
+}
+
+function renderPropertyDetailPage(el) {
+  const list = S.data.properties || (S.data.properties = []);
+  const isNew = propDetailIdx < 0;
+  const p = isNew ? propBlank() : (list[propDetailIdx] || propBlank());
+  const sales = S.data.sales || [];
+
+  const pkItems = (S.data.menu && S.data.menu.phanKhu) || [];
+  const pkOpts = '<option value="">— Chọn phân khu —</option>' +
+    pkItems.map(it => `<option value="${esc(it.id)}" ${it.id===p.phanKhu?'selected':''}>${esc(it.label)}</option>`).join('');
+  const typeOpts = PROP_TYPES.map(t => `<option value="${t.id}" ${t.id===p.type?'selected':''}>${t.label}</option>`).join('');
+  const statusOpts = PROP_STATUS.map(s => `<option value="${s.id}" ${s.id===p.status?'selected':''}>${s.label}</option>`).join('');
+  const saleOpts = '<option value="">— Chưa gán nhân viên —</option>' +
+    sales.map(s => `<option value="${esc(s.username)}" ${s.username===p.saleUsername?'selected':''}>${esc(s.name)} (${esc(s.username)})</option>`).join('');
+
+  el.innerHTML = pageHeader(["Dashboard", "Bất Động Sản"], isNew ? "Thêm sản phẩm" : (p.name || "Chi tiết sản phẩm"),
+    `<button class="btn btn-secondary btn-sm" onclick="go('properties')">${ico('x',12)} Quay lại</button>
+     <button class="btn btn-primary btn-sm" onclick="propSaveDetail()">${ico('save',12)} Lưu sản phẩm</button>`)
+  + `
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:flex-start">
+
+    <!-- ── Thông tin cơ bản ── -->
+    <div class="card">
+      <div class="card-header"><span class="card-title">${ico('home',16)} Thông tin cơ bản</span></div>
+      <div class="card-body">
+        <div style="display:flex;gap:10px">
+          <div class="form-group" style="flex:1"><label class="form-label">Mã căn *</label>
+            <input class="form-control" id="pd-code" value="${esc(p.code||'')}" placeholder="VM-SH-06.03"></div>
+          <div class="form-group" style="flex:1"><label class="form-label">Tên sản phẩm *</label>
+            <input class="form-control" id="pd-name" value="${esc(p.name||'')}"></div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <div class="form-group" style="flex:1"><label class="form-label">Phân khu</label>
+            <select class="form-control" id="pd-pk">${pkOpts}</select></div>
+          <div class="form-group" style="flex:1"><label class="form-label">Loại hình</label>
+            <select class="form-control" id="pd-type">${typeOpts}</select></div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <div class="form-group" style="flex:1"><label class="form-label">Diện tích (m²)</label>
+            <input class="form-control" type="number" id="pd-area" value="${p.area||0}"></div>
+          <div class="form-group" style="flex:1"><label class="form-label">Phòng ngủ</label>
+            <input class="form-control" type="number" id="pd-bed" value="${p.bedrooms||0}"></div>
+          <div class="form-group" style="flex:1"><label class="form-label">Phòng tắm</label>
+            <input class="form-control" type="number" id="pd-bath" value="${p.bathrooms||0}"></div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <div class="form-group" style="flex:1"><label class="form-label">Tầng</label>
+            <input class="form-control" type="number" id="pd-floor" value="${p.floor!=null?p.floor:''}" placeholder="—"></div>
+          <div class="form-group" style="flex:1"><label class="form-label">Số lượng còn</label>
+            <input class="form-control" type="number" id="pd-avail" value="${p.available!=null?p.available:''}" placeholder="—"></div>
+          <div class="form-group" style="flex:1"><label class="form-label">Số lượng tổng</label>
+            <input class="form-control" type="number" id="pd-total" value="${p.total!=null?p.total:''}" placeholder="—"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Hướng</label>
+          <input class="form-control" id="pd-dir" value="${esc(p.direction||'')}"></div>
+        <div class="form-group"><label class="form-label">Mô tả</label>
+          <textarea class="form-control" id="pd-desc" rows="3">${esc(p.desc||'')}</textarea></div>
+      </div>
+    </div>
+
+    <!-- ── Giá & pháp lý ── -->
+    <div class="card">
+      <div class="card-header"><span class="card-title">${ico('leads',16)} Giá & pháp lý</span></div>
+      <div class="card-body">
+        <div style="display:flex;gap:10px">
+          <div class="form-group" style="flex:1"><label class="form-label">Giá (số, vd 5400000000)</label>
+            <input class="form-control" id="pd-price" value="${esc(p.price||'')}"></div>
+          <div class="form-group" style="flex:1"><label class="form-label">Giá/m²</label>
+            <input class="form-control" id="pd-ppm" value="${esc(p.pricePerM2||'')}"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Trạng thái</label>
+          <select class="form-control" id="pd-status">${statusOpts}</select></div>
+        <div style="display:flex;gap:10px">
+          <div class="form-group" style="flex:1"><label class="form-label">Pháp lý</label>
+            <input class="form-control" id="pd-legal" value="${esc(p.legal||'')}"></div>
+          <div class="form-group" style="flex:1"><label class="form-label">Dự kiến bàn giao</label>
+            <input class="form-control" id="pd-handover" value="${esc(p.handover||'')}"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nhân viên Sales phụ trách</label>
+          <select class="form-control" id="pd-sale">${saleOpts}</select>
+          <div class="form-hint">Hotline / Zalo / email tư vấn lấy từ thông tin nhân viên này.</div>
+        </div>
+        <div id="pd-sale-info">${propSaleInfoHTML(p.saleUsername)}</div>
+      </div>
+    </div>
+
+    <!-- ── Hình ảnh ── -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">${ico('image',16)} Hình ảnh sản phẩm</span>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-secondary btn-sm" onclick="document.getElementById('pd-img-file').click()">${ico('upload',12)} Tải lên</button>
+          <button class="btn btn-secondary btn-sm" onclick="propAddMedia('images')">${ico('globe',12)} Dán link</button>
+          <input type="file" id="pd-img-file" accept="image/*" multiple style="display:none" onchange="propUploadMedia(this,'images')">
+        </div>
+      </div>
+      <div class="card-body"><div id="pd-images-grid">${propMediaGridHTML(p.images, 'images')}</div></div>
+    </div>
+
+    <!-- ── Ảnh mặt bằng ── -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">${ico('hardhat',16)} Ảnh mặt bằng</span>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-secondary btn-sm" onclick="document.getElementById('pd-floor-file').click()">${ico('upload',12)} Tải lên</button>
+          <button class="btn btn-secondary btn-sm" onclick="propAddMedia('thumbsFloor')">${ico('globe',12)} Dán link</button>
+          <input type="file" id="pd-floor-file" accept="image/*" multiple style="display:none" onchange="propUploadMedia(this,'thumbsFloor')">
+        </div>
+      </div>
+      <div class="card-body"><div id="pd-thumbsFloor-grid">${propMediaGridHTML(p.thumbsFloor, 'thumbsFloor')}</div></div>
+    </div>
+
+    <!-- ── Điểm nổi bật ── -->
+    <div class="card">
+      <div class="card-header"><span class="card-title">${ico('check',16)} Điểm nổi bật</span></div>
+      <div class="card-body">
+        <div class="form-hint" style="margin-bottom:6px">Mỗi dòng một ý.</div>
+        <textarea class="form-control" id="pd-highlights" rows="5" placeholder="View trực diện vịnh biển&#10;Bàn giao nội thất cơ bản">${esc((p.highlights||[]).join('\n'))}</textarea>
+      </div>
+    </div>
+
+    <!-- ── Chính sách ── -->
+    <div class="card">
+      <div class="card-header"><span class="card-title">${ico('book',16)} Chính sách bán hàng</span></div>
+      <div class="card-body">
+        <div class="form-hint" style="margin-bottom:6px">Mỗi dòng một chính sách.</div>
+        <textarea class="form-control" id="pd-policies" rows="5" placeholder="Chiết khấu 8% thanh toán sớm&#10;Hỗ trợ lãi suất 0% trong 18 tháng">${esc((p.policies||[]).join('\n'))}</textarea>
+      </div>
+    </div>
+
+    <!-- ── Tài liệu ── -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">${ico('book',16)} Tài liệu</span>
+        <button class="btn btn-secondary btn-sm" onclick="propAddDoc()">${ico('plus',12)} Thêm tài liệu</button>
+      </div>
+      <div class="card-body"><div id="pd-docs-list">${propDocsHTML(p.docs)}</div></div>
+    </div>
+
+    <!-- ── Tiến độ ── -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">${ico('calendar',16)} Tiến độ</span>
+        <button class="btn btn-secondary btn-sm" onclick="propAddProgress()">${ico('plus',12)} Thêm mốc</button>
+      </div>
+      <div class="card-body"><div id="pd-progress-list">${propProgressHTML(p.progress)}</div></div>
+    </div>
+
+  </div>
+  <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:16px">
+    <button class="btn btn-secondary" onclick="go('properties')">Huỷ</button>
+    <button class="btn btn-primary" onclick="propSaveDetail()">${ico('save')} Lưu sản phẩm</button>
+  </div>`;
+
+  // Bind: đổi sale → cập nhật thông tin sale
+  const saleSel = document.getElementById('pd-sale');
+  if (saleSel) saleSel.addEventListener('change', () => {
+    document.getElementById('pd-sale-info').innerHTML = propSaleInfoHTML(saleSel.value);
+  });
+}
+
+/* Hiển thị thông tin sale đầy đủ */
+function propSaleInfoHTML(username) {
+  const sale = (S.data.sales || []).find(s => s.username === username);
+  if (!sale) return '';
+  return `
+    <div style="border:1px solid var(--border);border-radius:8px;padding:12px;background:var(--surface2);margin-top:4px">
+      <div style="font-weight:700;font-size:13px;color:var(--text)">${esc(sale.name||'')}</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:8px">${esc(sale.title||'')}</div>
+      <div style="display:grid;gap:4px;font-size:12px">
+        ${sale.phone ? `<div>${ico('leads',12)} Hotline: <b>${esc(sale.phone)}</b></div>` : ''}
+        ${sale.zalo ? `<div>${ico('globe',12)} Zalo: <b>${esc(sale.zalo)}</b></div>` : ''}
+        ${sale.email ? `<div>${ico('book',12)} Email: <b>${esc(sale.email)}</b></div>` : ''}
+        ${sale.facebook ? `<div>${ico('globe',12)} Facebook: <b>${esc(sale.facebook)}</b></div>` : ''}
+      </div>
+    </div>`;
+}
+
+/* ── Media grid (ảnh / mặt bằng) ── */
+function propMediaGridHTML(arr, field) {
+  arr = arr || [];
+  if (!arr.length) {
+    return `<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">Chưa có ảnh.</div>`;
+  }
+  return `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px">
+    ${arr.map((src, i) => `
+      <div style="position:relative;border:1px solid var(--border);border-radius:8px;overflow:hidden;aspect-ratio:4/3;background:#0b1220">
+        <img src="${esc(propImg(src))}" style="width:100%;height:100%;object-fit:cover" alt="" onerror="this.style.opacity=.2">
+        <button class="act-btn danger" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.6)"
+                onclick="propRemoveMedia('${field}',${i})">${ico('trash',12)}</button>
+      </div>`).join('')}
+  </div>`;
+}
+/* Lấy bản nháp sản phẩm đang chỉnh (từ form) — chỉ dùng cho thao tác media động */
+function propCurrent() {
+  const list = S.data.properties || [];
+  if (propDetailIdx >= 0 && list[propDetailIdx]) return list[propDetailIdx];
+  // sản phẩm mới: dùng object tạm gắn vào window
+  if (!window.__propDraft) window.__propDraft = propBlank();
+  return window.__propDraft;
+}
+function propRefreshMedia(field) {
+  const host = document.getElementById('pd-' + field + '-grid');
+  if (host) host.innerHTML = propMediaGridHTML(propCurrent()[field], field);
+}
+function propUploadMedia(input, field) {
+  const files = Array.from(input.files || []);
+  if (!files.length) return;
+  const p = propCurrent();
+  p[field] = p[field] || [];
+  let pending = files.length;
+  files.forEach(f => {
+    const r = new FileReader();
+    r.onload = () => {
+      p[field].push(r.result);
+      if (--pending === 0) propRefreshMedia(field);
+    };
+    r.readAsDataURL(f);
+  });
+}
+function propAddMedia(field) {
+  showPanel("Dán link ảnh", `
+    <div class="form-group">
+      <label class="form-label">URL ảnh *</label>
+      <input class="form-control" id="pm-url" placeholder="https://... hoặc img/...">
+    </div>`, () => {
+    const url = document.getElementById('pm-url').value.trim();
+    if (!url) { toast('Nhập URL', 'warn'); return false; }
+    const p = propCurrent();
+    p[field] = p[field] || [];
+    p[field].push(url);
+    propRefreshMedia(field);
+    closePanel();
+  });
+}
+function propRemoveMedia(field, i) {
+  const p = propCurrent();
+  if (p[field]) { p[field].splice(i, 1); propRefreshMedia(field); }
+}
+
+/* ── Tài liệu (form) ── */
+function propDocsHTML(docs) {
+  docs = docs || [];
+  if (!docs.length) {
+    return `<div style="padding:16px;text-align:center;color:var(--muted);font-size:13px">Chưa có tài liệu.</div>`;
+  }
+  return docs.map((d, i) => `
+    <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:8px">
+      <div class="form-group" style="flex:2;margin:0">
+        <label class="form-label">Tên tài liệu</label>
+        <input class="form-control" data-doc-name="${i}" value="${esc(d.name||'')}">
+      </div>
+      <div class="form-group" style="flex:1;margin:0">
+        <label class="form-label">Loại</label>
+        <input class="form-control" data-doc-type="${i}" value="${esc(d.type||'PDF')}">
+      </div>
+      <div class="form-group" style="flex:2;margin:0">
+        <label class="form-label">Link (tuỳ chọn)</label>
+        <input class="form-control" data-doc-url="${i}" value="${esc(d.url||'')}">
+      </div>
+      <button class="act-btn danger" onclick="propRemoveDoc(${i})">${ico('trash')}</button>
+    </div>`).join('');
+}
+function propAddDoc() {
+  propSyncDocsFromDom();
+  const p = propCurrent();
+  p.docs = p.docs || [];
+  p.docs.push({ name: '', type: 'PDF', url: '' });
+  document.getElementById('pd-docs-list').innerHTML = propDocsHTML(p.docs);
+}
+function propRemoveDoc(i) {
+  propSyncDocsFromDom();
+  const p = propCurrent();
+  if (p.docs) { p.docs.splice(i, 1); document.getElementById('pd-docs-list').innerHTML = propDocsHTML(p.docs); }
+}
+function propSyncDocsFromDom() {
+  const p = propCurrent();
+  const host = document.getElementById('pd-docs-list');
+  if (!host) return;
+  const docs = [];
+  host.querySelectorAll('[data-doc-name]').forEach(inp => {
+    const i = inp.dataset.docName;
+    docs.push({
+      name: inp.value.trim(),
+      type: (host.querySelector(`[data-doc-type="${i}"]`)?.value || 'PDF').trim(),
+      url: (host.querySelector(`[data-doc-url="${i}"]`)?.value || '').trim(),
+    });
+  });
+  p.docs = docs;
+}
+
+/* ── Tiến độ (form) ── */
+function propProgressHTML(prog) {
+  prog = prog || [];
+  if (!prog.length) {
+    return `<div style="padding:16px;text-align:center;color:var(--muted);font-size:13px">Chưa có mốc tiến độ.</div>`;
+  }
+  return prog.map((t, i) => `
+    <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:8px">
+      <div class="form-group" style="flex:2;margin:0">
+        <label class="form-label">Giai đoạn</label>
+        <input class="form-control" data-prog-phase="${i}" value="${esc(t.phase||'')}">
+      </div>
+      <div class="form-group" style="flex:1;margin:0">
+        <label class="form-label">Thời gian</label>
+        <input class="form-control" data-prog-date="${i}" value="${esc(t.date||'')}">
+      </div>
+      <label class="form-group" style="flex:0 0 auto;margin:0;display:flex;align-items:center;gap:6px;padding-bottom:8px">
+        <input type="checkbox" data-prog-done="${i}" ${t.done?'checked':''}> Hoàn thành
+      </label>
+      <button class="act-btn danger" onclick="propRemoveProgress(${i})">${ico('trash')}</button>
+    </div>`).join('');
+}
+function propAddProgress() {
+  propSyncProgressFromDom();
+  const p = propCurrent();
+  p.progress = p.progress || [];
+  p.progress.push({ phase: '', date: '', done: false });
+  document.getElementById('pd-progress-list').innerHTML = propProgressHTML(p.progress);
+}
+function propRemoveProgress(i) {
+  propSyncProgressFromDom();
+  const p = propCurrent();
+  if (p.progress) { p.progress.splice(i, 1); document.getElementById('pd-progress-list').innerHTML = propProgressHTML(p.progress); }
+}
+function propSyncProgressFromDom() {
+  const p = propCurrent();
+  const host = document.getElementById('pd-progress-list');
+  if (!host) return;
+  const prog = [];
+  host.querySelectorAll('[data-prog-phase]').forEach(inp => {
+    const i = inp.dataset.progPhase;
+    prog.push({
+      phase: inp.value.trim(),
+      date: (host.querySelector(`[data-prog-date="${i}"]`)?.value || '').trim(),
+      done: !!host.querySelector(`[data-prog-done="${i}"]`)?.checked,
+    });
+  });
+  p.progress = prog;
+}
+
+/* ── Lưu sản phẩm ── */
+function propSaveDetail() {
+  const list = S.data.properties || (S.data.properties = []);
+  const isNew = propDetailIdx < 0;
+  const cur = isNew ? (window.__propDraft || propBlank()) : list[propDetailIdx];
+
+  const gv = (id) => (document.getElementById(id)?.value || '').trim();
+  const gn = (id) => { const v = gv(id); return v === '' ? undefined : (parseFloat(v) || 0); };
+  const code = gv('pd-code'), name = gv('pd-name');
+  if (!code || !name) { toast('Nhập mã căn và tên sản phẩm', 'warn'); return; }
+
+  propSyncDocsFromDom();
+  propSyncProgressFromDom();
+
+  const pkSel = document.getElementById('pd-pk');
+  const typeSel = document.getElementById('pd-type');
+  const statusSel = document.getElementById('pd-status');
+  const priceStr = gv('pd-price');
+  const priceNum = parseInt(priceStr.replace(/\D/g, ''), 10) || 0;
+  const lines = (id) => gv(id).split('\n').map(s => s.trim()).filter(Boolean);
+
+  const data = {
+    id: cur.id || code.replace(/[^\w]/g, '-'),
+    code, name,
+    phanKhu: pkSel.value,
+    phanKhuLabel: pkSel.value ? pkSel.options[pkSel.selectedIndex].text : '',
+    type: typeSel.value,
+    typeLabel: typeSel.options[typeSel.selectedIndex].text,
+    price: priceStr,
+    priceVal: priceNum ? +(priceNum / 1e9).toFixed(2) : (cur.priceVal || 0),
+    pricePerM2: gv('pd-ppm'),
+    area: gn('pd-area') || 0,
+    bedrooms: gn('pd-bed') || 0,
+    bathrooms: gn('pd-bath') || 0,
+    floor: gn('pd-floor'),
+    available: gn('pd-avail'),
+    total: gn('pd-total'),
+    direction: gv('pd-dir'),
+    status: statusSel.value,
+    statusLabel: statusSel.options[statusSel.selectedIndex].text,
+    legal: gv('pd-legal'),
+    handover: gv('pd-handover'),
+    desc: gv('pd-desc'),
+    saleUsername: document.getElementById('pd-sale').value || '',
+    images: (cur.images || []).slice(),
+    thumbsFloor: (cur.thumbsFloor || []).slice(),
+    highlights: lines('pd-highlights'),
+    policies: lines('pd-policies'),
+    docs: (cur.docs || []).filter(d => d.name),
+    progress: (cur.progress || []).filter(t => t.phase),
+  };
+
+  if (isNew) { list.push(data); propDetailIdx = list.length - 1; }
+  else { list[propDetailIdx] = data; }
+  window.__propDraft = null;
+  saveData(isNew ? 'Đã thêm sản phẩm' : 'Đã cập nhật sản phẩm');
+  go('properties');
+}
+
+/* Alias tương thích: propEdit cũ → mở trang chi tiết */
+function propEdit(idx){ propOpenDetail(idx); }

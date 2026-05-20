@@ -291,6 +291,43 @@
   }
 
   /* ── Cột phải chi tiết (ảnh 10) ── */
+  /* Card liên hệ tư vấn — dùng thông tin nhân viên Sales.
+     Ưu tiên: sale gán cho sản phẩm (saleUsername) → sale theo ?s= URL
+     → sale đầu tiên trong danh sách. */
+  function resolveSale(p) {
+    const sales = (window.DATA && window.DATA.sales) || [];
+    if (!sales.length) return null;
+    if (p && p.saleUsername) {
+      const s = sales.find(x => x.username === p.saleUsername);
+      if (s) return s;
+    }
+    if (window.__activeSale) return window.__activeSale;
+    return sales[0];
+  }
+  function buildContactCard(p) {
+    const s = resolveSale(p);
+    if (!s) return "";
+    const phoneSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014 2h3a2 2 0 012 1.7c.1.9.3 1.8.6 2.6a2 2 0 01-.5 2.1L7.1 9.9a16 16 0 006 6l1.5-1.5a2 2 0 012.1-.5c.8.3 1.7.5 2.6.6A2 2 0 0122 16.9z"/></svg>';
+    const mailSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></svg>';
+    const zaloSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><text y="18" font-size="14" font-weight="bold">Z</text></svg>';
+    return (
+      '<div class="pd-side-card">' +
+        '<div class="pd-side-label">Nhân viên tư vấn</div>' +
+        '<div class="pd-sale-name">' + (s.name || "") + "</div>" +
+        (s.title ? '<div class="pd-sale-title">' + s.title + "</div>" : "") +
+        (s.phone ? '<a class="pd-contact pd-contact-phone" href="tel:' +
+          String(s.phone).replace(/\s/g, "") + '">' + phoneSvg + s.phone + "</a>" : "") +
+        (s.zalo ? '<a class="pd-contact" href="https://zalo.me/' +
+          String(s.zalo).replace(/\s/g, "") + '" target="_blank" rel="noopener">' + zaloSvg + "Zalo: " + s.zalo + "</a>" : "") +
+        (s.email ? '<a class="pd-contact pd-contact-mail" href="mailto:' +
+          s.email + '">' + mailSvg + s.email + "</a>" : "") +
+        (s.facebook ? '<a class="pd-contact" href="' + s.facebook +
+          '" target="_blank" rel="noopener">' + mailSvg + "Facebook" + "</a>" : "") +
+        '<button class="pd-side-cta pd-side-cta-soft" id="pd-book">Đặt lịch tư vấn</button>' +
+      "</div>"
+    );
+  }
+
   function buildSidebar(p) {
     return (
       '<aside class="pd-side">' +
@@ -306,19 +343,7 @@
           "</div>" +
           '<button class="pd-side-cta" id="pd-quote">Nhận báo giá chi tiết</button>' +
         "</div>" +
-        '<div class="pd-side-card">' +
-          '<div class="pd-side-label">Liên hệ tư vấn</div>' +
-          '<div class="pd-side-note">Để nhận thông tin chi tiết và tư vấn 1:1</div>' +
-          (p.consultPhone ? '<a class="pd-contact pd-contact-phone" href="tel:' +
-            String(p.consultPhone).replace(/\s/g, "") + '">' +
-            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014 2h3a2 2 0 012 1.7c.1.9.3 1.8.6 2.6a2 2 0 01-.5 2.1L7.1 9.9a16 16 0 006 6l1.5-1.5a2 2 0 012.1-.5c.8.3 1.7.5 2.6.6A2 2 0 0122 16.9z"/></svg>' +
-            p.consultPhone + "</a>" : "") +
-          (p.consultEmail ? '<a class="pd-contact pd-contact-mail" href="mailto:' +
-            p.consultEmail + '">' +
-            '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></svg>' +
-            p.consultEmail + "</a>" : "") +
-          '<button class="pd-side-cta pd-side-cta-soft" id="pd-book">Đặt lịch tư vấn</button>' +
-        "</div>" +
+        buildContactCard(p) +
         '<div class="pd-side-card">' +
           '<div class="pd-side-label">Vị trí</div>' +
           '<div class="pd-side-loc">' + tr(p.phanKhuLabel || "") +

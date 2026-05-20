@@ -109,10 +109,19 @@ async function loadData() {
   S.data.location       ??= { lat: 0, lng: 0, mapSrc: '', nearby: [] };
   S.data.amenitiesDetail??= { noiKhu: [], skyAmenity: [], dichVu: [], haTang: [] };
   S.data.resources      ??= {};
+  S.data.properties     ??= [];
   if (!S.data.project)  S.data.project = {};
   S.data.project.amenities ??= [];
+  migrateUnitsToProperties();
   // Pre-load panorama list for nav panel editor
   await fetchPanoramas();
+}
+
+/* properties là nguồn dữ liệu Bất Động Sản duy nhất.
+   floorplan.units cũ không còn dùng — trỏ về properties để tương thích. */
+function migrateUnitsToProperties() {
+  S.data.floorplan = S.data.floorplan || {};
+  S.data.floorplan.units = S.data.properties;
 }
 
 function saveData(msg = 'Đã lưu') {
@@ -205,7 +214,8 @@ function render(page, el) {
   S.charts = {};
   switch (page) {
     case 'overview':  renderOverview(el); break;
-    case 'units':     renderUnits(el); break;
+    case 'properties': renderPropertiesPage(el); break;
+    case 'property-detail': renderPropertyDetailPage(el); break;
     case 'navpanel':  renderNavPanel(el); break;
     case 'masterplan': renderMasterplanPage(el); break;
     case 'i18n':      renderI18n(el); break;
@@ -389,13 +399,16 @@ function renderOverview(el) {
         { icon:'leaf',     label:'Tiện ích nội khu',   key:'tienIchNoiKhu',   hint:'Amenities overlay',   page:'navpanel' },
         { icon:'mappin',   label:'Tiện ích ngoại khu', key:'tienIchNgoaiKhu', hint:'Tiện ích lân cận',     page:'navpanel' },
         { icon:'building', label:'Tổng quan dự án',   key:'tongQuan',         hint:'VR Tổng quan',        page:'navpanel' },
+        { icon:'mappin',   label:'Phân khu',           key:'phanKhu',          hint:'VR theo phân khu',    page:'navpanel' },
+        { icon:'home',     label:'Bất động sản',       key:'properties',       hint:'Sản phẩm BĐS',        page:'properties' },
         { icon:'hardhat',  label:'Mặt bằng / Tòa',    key:'matBangTang',      hint:'Layout & floorplan',  page:'navpanel' },
         { icon:'armchair', label:'View 360° Căn hộ',  key:'view360Can',       hint:'Tour căn mẫu',        page:'navpanel' },
         { icon:'image',    label:'Thư viện ảnh',       key:'gallery',          hint:'Gallery overlay',     page:'settings', action:'openGalleryPanel' },
-        { icon:'map',      label:'Bản đồ vị trí',       key:'siteMap',          hint:'Bản đồ & hotspot',   page:'settings', action:'openSiteMapPanel' },
+        { icon:'map',      label:'Masterplan',          key:'masterplan',       hint:'Quy hoạch & marker',  page:'masterplan' },
         { icon:'calendar', label:'Tiến độ xây dựng',   key:'timeline',         hint:'Construction milestones', page:'settings', action:'openTimelinePanel' },
       ].map(c => {
-        const data = S.data[c.key] || (c.key.startsWith('tien')||c.key==='tongQuan'||c.key==='matBangTang'||c.key==='view360Can' ? S.data.menu?.[c.key] : null);
+        const isMenuKey = ['tienIchNoiKhu','tienIchNgoaiKhu','tongQuan','phanKhu','matBangTang','view360Can'].includes(c.key);
+        const data = isMenuKey ? S.data.menu?.[c.key] : S.data[c.key];
         const count = Array.isArray(data) ? data.length : (data?.points?.length ?? (data ? 1 : 0));
         const onclick = c.action ? `onclick="${c.action}()"` : `onclick="go('${c.page}')"`;
         return `
@@ -451,7 +464,7 @@ function renderUnits(el) {
       <div class="ph-left"><div class="breadcrumb"><span>Dashboard</span> / Căn Hộ</div><h1>Quản Lý Căn Hộ</h1></div>
       <div class="btn-group">
         <button class="btn btn-secondary btn-sm" onclick="toast('Đang xuất Excel…','info')">${ico('download')} Xuất Excel</button>
-        <button class="btn btn-primary btn-sm" onclick="openUnitPanel(null)">${ico('plus')} Thêm Căn</button>
+        <button class="btn btn-primary btn-sm" onclick="propEdit(-1)">${ico('plus')} Thêm Sản Phẩm</button>
       </div>
     </div>
     <div class="card">
@@ -495,19 +508,22 @@ function renderUnits(el) {
 function unitRow(u) {
   const bm = { available:'badge-ok', holding:'badge-warning', sold:'badge-danger' };
   const bl = { available:'Còn hàng', holding:'Đang giữ', sold:'Đã bán' };
+  const idx = units().indexOf(u);
+  const avail = (u.available != null || u.total != null)
+    ? `${u.available ?? '—'} / ${u.total ?? '—'}` : '—';
   return `<tr>
-    <td class="mono fw6">${u.code}</td>
-    <td><span class="badge badge-primary">${u.type}</span></td>
-    <td>${u.floor}</td>
-    <td>${u.area} m²</td>
-    <td>${u.direction}</td>
-    <td class="mono">${u.pricePerM2}</td>
-    <td class="mono fw6 c-primary">${u.price}</td>
-    <td>${u.available} / ${u.total}</td>
+    <td class="mono fw6">${esc(u.code||'—')}</td>
+    <td><span class="badge badge-primary">${esc(u.typeLabel||u.type||'—')}</span></td>
+    <td>${u.floor ?? '—'}</td>
+    <td>${u.area||0} m²</td>
+    <td>${esc(u.direction||'—')}</td>
+    <td class="mono">${esc(u.pricePerM2||'—')}</td>
+    <td class="mono fw6 c-primary">${esc(u.price||'—')}</td>
+    <td>${avail}</td>
     <td><span class="badge ${bm[u.status]||'badge-muted'}">${bl[u.status]||u.status}</span></td>
     <td><div class="row-actions">
-      <button class="act-btn" onclick="openUnitPanel('${u.code}')">${ico('edit')} Sửa</button>
-      <button class="act-btn danger" onclick="confirmDel('Xoá căn ${u.code}?','Hành động không thể hoàn tác.',()=>deleteUnit('${u.code}'))">${ico('trash')}</button>
+      <button class="act-btn" onclick="propEdit(${idx})">${ico('edit')} Sửa</button>
+      <button class="act-btn danger" onclick="propDelete(${idx})">${ico('trash')}</button>
     </div></td>
   </tr>`;
 }
@@ -535,7 +551,7 @@ function unitStats() {
   const total = us.reduce((s,u)=>s+(u.total||0),0);
   const sold  = us.filter(u=>u.status==='sold').reduce((s,u)=>s+(u.total||0),0);
   const hold  = us.filter(u=>u.status==='holding').length;
-  const avg   = us.length ? (us.reduce((s,u)=>s+u.priceVal,0)/us.length).toFixed(1) : 0;
+  const avg   = us.length ? (us.reduce((s,u)=>s+(u.priceVal||0),0)/us.length).toFixed(1) : 0;
   return { total, avail, sold, hold, pct: total?(((total-avail)/total)*100).toFixed(1):0, avg };
 }
 
@@ -1401,16 +1417,66 @@ async function openEditCardPanel(groupKey, itemId) {
       <div class="form-hint">Khi click hotspot này trên VR360, mục này sẽ tự động được chọn ở Danh Sách VR.</div>
     </div>
     ${groupKey === 'phanKhu' ? `
-    <div class="form-group">
-      <label class="form-label">Dữ liệu phân khu (subdivision · JSON)</label>
-      <textarea class="form-control mono" id="ec-subdivision" rows="12" style="font-size:12px">${esc(JSON.stringify(item.subdivision || {}, null, 2))}</textarea>
-      <div class="form-hint">Thông tin hiển thị trong project-card: name, video, cover, desc, facts[], points[].</div>
+    <div class="form-group" style="border:1px solid var(--border);border-radius:8px;padding:12px;background:var(--surface2)">
+      <label class="form-label" style="font-weight:700">Media phân khu (hiển thị ở project-card)</label>
+      <div class="form-hint" style="margin-bottom:10px">Ảnh bìa & video giới thiệu — tải lên hoặc dán link.</div>
+      <label class="form-label">Ảnh bìa (cover)</label>
+      <div style="display:flex;gap:8px;margin-bottom:6px">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('ec-cover-file').click()">${ico('upload',12)} Tải ảnh lên</button>
+        <input type="file" id="ec-cover-file" accept="image/*" style="display:none" onchange="subdivPickCover(this)">
+      </div>
+      <input class="form-control" id="ec-sub-cover" value="${esc((item.subdivision&&item.subdivision.cover)||'')}" placeholder="https://... hoặc img/...">
+      <img id="ec-cover-preview" src="${(item.subdivision&&item.subdivision.cover)?(/^(data:|https?:)/.test(item.subdivision.cover)?item.subdivision.cover:'../'+item.subdivision.cover):''}" style="${(item.subdivision&&item.subdivision.cover)?'':'display:none;'}width:100%;max-height:140px;object-fit:cover;border-radius:6px;margin-top:8px" alt="">
+      <label class="form-label" style="margin-top:12px">Link video giới thiệu</label>
+      <input class="form-control" id="ec-sub-video" value="${esc((item.subdivision&&item.subdivision.video)||'')}" placeholder="https://youtube.com/... hoặc link mp4">
+      <div class="form-hint">Hỗ trợ YouTube, Vimeo hoặc link video trực tiếp.</div>
+    </div>
+    <div class="form-group" id="ec-sub-fields">
+      <label class="form-label">Tên phân khu</label>
+      <input class="form-control" id="ec-sub-name" value="${esc((item.subdivision&&item.subdivision.name)||item.label||'')}" placeholder="VD: Phân khu Bạch Vân">
+
+      <label class="form-label" style="margin-top:12px">Mô tả</label>
+      <textarea class="form-control" id="ec-sub-desc" rows="3" placeholder="Giới thiệu phân khu...">${esc((item.subdivision&&item.subdivision.desc)||'')}</textarea>
+
+      <label class="form-label" style="margin-top:12px">Thông tin tổng quan</label>
+      <div class="form-hint" style="margin-bottom:6px">Mỗi dòng một mục, dạng <b>Nhãn | Giá trị</b>. VD: Quy mô | ~ 320 ha</div>
+      <textarea class="form-control" id="ec-sub-facts" rows="5" placeholder="Quy mô | ~ 320 ha&#10;Định hướng | Logistics & cảng biển">${esc(((item.subdivision&&item.subdivision.facts)||[]).map(f=>`${f.label||''} | ${f.value||''}`).join('\n'))}</textarea>
+
+      <label class="form-label" style="margin-top:12px">Điểm nhấn nổi bật</label>
+      <div class="form-hint" style="margin-bottom:6px">Mỗi dòng một ý.</div>
+      <textarea class="form-control" id="ec-sub-points" rows="5" placeholder="Trung tâm logistics quốc tế&#10;Cảng Liên Chiểu chiến lược">${esc(((item.subdivision&&item.subdivision.points)||[]).join('\n'))}</textarea>
     </div>` : ''}
-    ${item.detail !== undefined || groupKey !== 'phanKhu' ? `
-    <div class="form-group">
-      <label class="form-label">Chi tiết điểm đến (detail · JSON, tùy chọn)</label>
-      <textarea class="form-control mono" id="ec-detail" rows="10" style="font-size:12px">${esc(JSON.stringify(item.detail || {}, null, 2))}</textarea>
-      <div class="form-hint">Để trống ({}) → project-card hiển thị chế độ tổng quan. Có dữ liệu → chế độ chi tiết.</div>
+    ${groupKey !== 'phanKhu' ? `
+    <div class="form-group" id="ec-detail-fields" style="border:1px solid var(--border);border-radius:8px;padding:12px;background:var(--surface2)">
+      <label class="form-label" style="font-weight:700">Chi tiết điểm đến (tùy chọn)</label>
+      <div class="form-hint" style="margin-bottom:10px">Điền để project-card hiện chế độ chi tiết. Bỏ trống tất cả → chế độ tổng quan.</div>
+
+      <label class="form-label">Tiêu đề</label>
+      <input class="form-control" id="ec-dt-title" value="${esc((item.detail&&item.detail.title)||'')}" placeholder="VD: Bệnh viện Quốc tế Vinmec">
+
+      <div style="display:flex;gap:10px">
+        <div style="flex:1"><label class="form-label" style="margin-top:10px">Nhãn phụ</label>
+          <input class="form-control" id="ec-dt-subtitle" value="${esc((item.detail&&item.detail.subtitle)||'')}" placeholder="VD: Bệnh viện"></div>
+        <div style="flex:1"><label class="form-label" style="margin-top:10px">Danh mục</label>
+          <input class="form-control" id="ec-dt-category" value="${esc((item.detail&&item.detail.category)||'')}" placeholder="VD: Hạ tầng trọng điểm"></div>
+      </div>
+
+      <label class="form-label" style="margin-top:10px">Mô tả</label>
+      <textarea class="form-control" id="ec-dt-desc" rows="3" placeholder="Mô tả điểm đến...">${esc((item.detail&&item.detail.description)||'')}</textarea>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:10px">
+        <label class="form-label" style="margin:0">Ảnh</label>
+        <div style="display:flex;gap:6px">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('ec-dt-img-file').click()">${ico('upload',12)} Tải lên</button>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="ecMediaAddLink()">${ico('globe',12)} Dán link</button>
+          <input type="file" id="ec-dt-img-file" accept="image/*" multiple style="display:none" onchange="ecMediaUpload(this)">
+        </div>
+      </div>
+      <div id="ec-dt-images-grid" style="margin-top:6px">${ecMediaGridHTML((item.detail&&item.detail.images)||[])}</div>
+
+      <label class="form-label" style="margin-top:10px">Thông số nổi bật</label>
+      <div class="form-hint" style="margin-bottom:6px">Mỗi dòng dạng <b>Nhãn | Giá trị</b>. VD: Quy mô | 12 ha</div>
+      <textarea class="form-control" id="ec-dt-specs" rows="5" placeholder="Quy mô | 12 ha&#10;Khoảng cách | 1.2 km">${esc(((item.detail&&item.detail.specs)||[]).map(s=>`${s.label||''} | ${s.value||''}`).join('\n'))}</textarea>
     </div>` : ''}
   `, () => {
     const idx = group.findIndex(x=>x.id===itemId);
@@ -1419,21 +1485,59 @@ async function openEditCardPanel(groupKey, itemId) {
     const panoId = document.getElementById('ec-pano').value;
     const hotspot = document.getElementById('ec-hotspot').value.trim();
     const next = { ...item, label, tdvPanoramaId: panoId || undefined, hotspotId: hotspot || undefined };
-    // Subdivision JSON (cat Phân Khu)
-    const subEl = document.getElementById('ec-subdivision');
-    if (subEl) {
-      try {
-        const obj = JSON.parse(subEl.value || '{}');
-        next.subdivision = Object.keys(obj).length ? obj : undefined;
-      } catch (e) { toast('JSON phân khu không hợp lệ: ' + e.message, 'warn'); return false; }
+    // Subdivision (cat Phân Khu) — đọc từ các ô nhập có cấu trúc
+    const subFields = document.getElementById('ec-sub-fields');
+    if (subFields) {
+      const gv = (id) => (document.getElementById(id)?.value || '').trim();
+      // facts: mỗi dòng "Nhãn | Giá trị"
+      const facts = gv('ec-sub-facts').split('\n')
+        .map(line => {
+          const i = line.indexOf('|');
+          if (i < 0) return line.trim() ? { label: line.trim(), value: '' } : null;
+          return { label: line.slice(0, i).trim(), value: line.slice(i + 1).trim() };
+        })
+        .filter(Boolean);
+      const points = gv('ec-sub-points').split('\n')
+        .map(s => s.trim()).filter(Boolean);
+      const cover = gv('ec-sub-cover');
+      const video = gv('ec-sub-video');
+      const sub = { ...(item.subdivision || {}) };
+      sub.name = gv('ec-sub-name');
+      sub.desc = gv('ec-sub-desc');
+      sub.facts = facts;
+      sub.points = points;
+      if (cover) sub.cover = cover; else delete sub.cover;
+      if (video) sub.video = video; else delete sub.video;
+      // Bỏ field rỗng để dữ liệu gọn
+      Object.keys(sub).forEach(k => {
+        if (sub[k] === '' || (Array.isArray(sub[k]) && !sub[k].length)) delete sub[k];
+      });
+      next.subdivision = Object.keys(sub).length ? sub : undefined;
     }
-    // Detail JSON
-    const detEl = document.getElementById('ec-detail');
-    if (detEl) {
-      try {
-        const obj = JSON.parse(detEl.value || '{}');
-        next.detail = Object.keys(obj).length ? obj : undefined;
-      } catch (e) { toast('JSON chi tiết không hợp lệ: ' + e.message, 'warn'); return false; }
+    // Detail — đọc từ các ô nhập có cấu trúc
+    const detFields = document.getElementById('ec-detail-fields');
+    if (detFields) {
+      const gv = (id) => (document.getElementById(id)?.value || '').trim();
+      const specs = gv('ec-dt-specs').split('\n')
+        .map(line => {
+          const i = line.indexOf('|');
+          if (!line.trim()) return null;
+          if (i < 0) return { label: line.trim(), value: '' };
+          return { label: line.slice(0, i).trim(), value: line.slice(i + 1).trim() };
+        })
+        .filter(Boolean);
+      const det = {
+        title: gv('ec-dt-title'),
+        subtitle: gv('ec-dt-subtitle'),
+        category: gv('ec-dt-category'),
+        description: gv('ec-dt-desc'),
+        images: (window.__ecImages || []).slice(),
+        specs: specs,
+      };
+      Object.keys(det).forEach(k => {
+        if (det[k] === '' || (Array.isArray(det[k]) && !det[k].length)) delete det[k];
+      });
+      next.detail = Object.keys(det).length ? det : undefined;
     }
     group[idx] = next;
     // Clean up old sceneId/customLink fields
@@ -1443,6 +1547,81 @@ async function openEditCardPanel(groupKey, itemId) {
     closePanel();
     render('navpanel', document.getElementById('p-navpanel'));
   });
+}
+
+/* ── Media grid cho ảnh "Chi tiết điểm đến" trong form sửa card VR ──
+   Lưu vào mảng tạm window.__ecImages; đọc lại khi lưu form. */
+function ecResolveImg(src) {
+  if (!src) return '';
+  if (/^(data:|https?:|\/\/)/.test(src)) return src;
+  return '../' + src;
+}
+function ecMediaGridHTML(arr) {
+  window.__ecImages = (arr || []).slice();
+  return ecMediaRender();
+}
+function ecMediaRender() {
+  const arr = window.__ecImages || [];
+  if (!arr.length) {
+    return `<div style="padding:16px;text-align:center;color:var(--muted);font-size:12px;border:1px dashed var(--border);border-radius:8px">Chưa có ảnh.</div>`;
+  }
+  return `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px">
+    ${arr.map((src, i) => `
+      <div style="position:relative;border:1px solid var(--border);border-radius:8px;overflow:hidden;aspect-ratio:4/3;background:#0b1220">
+        <img src="${esc(ecResolveImg(src))}" style="width:100%;height:100%;object-fit:cover" alt="" onerror="this.style.opacity=.2">
+        <button type="button" class="act-btn danger" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.6)"
+                onclick="ecMediaRemove(${i})">${ico('trash',12)}</button>
+      </div>`).join('')}
+  </div>`;
+}
+function ecMediaRefresh() {
+  const host = document.getElementById('ec-dt-images-grid');
+  if (host) host.innerHTML = ecMediaRender();
+}
+function ecMediaUpload(input) {
+  const files = Array.from(input.files || []);
+  if (!files.length) return;
+  window.__ecImages = window.__ecImages || [];
+  let pending = files.length;
+  files.forEach(f => {
+    const r = new FileReader();
+    r.onload = () => {
+      window.__ecImages.push(r.result);
+      if (--pending === 0) ecMediaRefresh();
+    };
+    r.readAsDataURL(f);
+  });
+}
+function ecMediaAddLink() {
+  showPanel('Dán link ảnh', `
+    <div class="form-group">
+      <label class="form-label">URL ảnh *</label>
+      <input class="form-control" id="ecm-url" placeholder="https://... hoặc img/...">
+    </div>`, () => {
+    const url = document.getElementById('ecm-url').value.trim();
+    if (!url) { toast('Nhập URL', 'warn'); return false; }
+    window.__ecImages = window.__ecImages || [];
+    window.__ecImages.push(url);
+    ecMediaRefresh();
+    closePanel();
+  });
+}
+function ecMediaRemove(i) {
+  if (window.__ecImages) { window.__ecImages.splice(i, 1); ecMediaRefresh(); }
+}
+
+/* Upload ảnh bìa phân khu — đọc thành data URL, điền vào ô + preview */
+function subdivPickCover(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    const inp = document.getElementById('ec-sub-cover');
+    const img = document.getElementById('ec-cover-preview');
+    if (inp) inp.value = reader.result;
+    if (img) { img.src = reader.result; img.style.display = ''; }
+  };
+  reader.readAsDataURL(file);
 }
 
 function deleteNpCard(groupKey, itemId) {
@@ -2118,6 +2297,33 @@ function settingsTabHTML(p) {
     </div>
 
     <div class="card" style="margin-bottom:16px">
+      <div class="card-header">
+        <span class="card-title">Project Card — Chế độ tổng quan</span>
+        <span class="card-subtitle">Nội dung hiển thị ở project-card khi xem tổng quan dự án</span>
+      </div>
+      <div class="card-body">
+        <div class="form-group">
+          <label class="form-label">Mô tả tổng quan</label>
+          <textarea class="form-control" id="sp-co-desc" rows="3" placeholder="Trung tâm logistics và cảng biển hiện đại...">${esc((p.cardOverview&&p.cardOverview.description)||'')}</textarea>
+        </div>
+        <div class="form-group">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <label class="form-label" style="margin:0">Thông tin nổi bật</label>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="coAddHighlight()">${ico('plus',12)} Thêm</button>
+          </div>
+          <div id="sp-co-hl-list">${coHighlightsHTML((p.cardOverview&&p.cardOverview.highlights)||[])}</div>
+        </div>
+        <div class="form-group">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+            <label class="form-label" style="margin:0">Liên kết nhanh</label>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="coAddLink()">${ico('plus',12)} Thêm</button>
+          </div>
+          <div id="sp-co-link-list">${coLinksHTML((p.cardOverview&&p.cardOverview.quickLinks)||[])}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
       <div class="card-header"><span class="card-title">Logo & Thương Hiệu</span><span class="card-subtitle">Quản lý tất cả logo hiển thị trên website</span></div>
       <div class="card-body">
         <div class="logo-slots">
@@ -2224,6 +2430,90 @@ function openGalleryPanel()  { go('gallery'); }
 function openSiteMapPanel()  { go('sitemap'); }
 function openTimelinePanel() { go('timeline'); }
 
+/* ── Project Card tổng quan — Thông tin nổi bật ── */
+const CO_ICONS = ['area','port','transit','road','leaf','map','grid','home','doc','pin'];
+const CO_ACTIONS = [
+  { id: 'open-masterplan', label: 'Mở Masterplan' },
+  { id: 'open-phankhu',    label: 'Mở danh sách Phân khu' },
+  { id: 'open-properties', label: 'Mở Bất động sản' },
+  { id: 'open-modal',      label: 'Mở form đặt lịch' },
+];
+function coIconSelect(attr, cur) {
+  return `<select class="form-control" ${attr} style="flex:0 0 110px">
+    ${CO_ICONS.map(ic => `<option ${ic===cur?'selected':''}>${ic}</option>`).join('')}
+  </select>`;
+}
+function coHighlightsHTML(list) {
+  list = list || [];
+  if (!list.length) return `<div class="c-muted" style="font-size:12px;padding:4px">Chưa có mục.</div>`;
+  return list.map((h,i)=>`
+    <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px" data-co-hl="${i}">
+      ${coIconSelect(`data-hl-icon="${i}"`, h.icon||'pin')}
+      <input class="form-control" data-hl-label="${i}" value="${esc(h.label||'')}" placeholder="Nhãn" style="flex:1">
+      <input class="form-control" data-hl-value="${i}" value="${esc(h.value||'')}" placeholder="Giá trị" style="flex:1">
+      <button class="act-btn danger" onclick="coRemoveHighlight(${i})">${ico('trash',12)}</button>
+    </div>`).join('');
+}
+function coLinksHTML(list) {
+  list = list || [];
+  if (!list.length) return `<div class="c-muted" style="font-size:12px;padding:4px">Chưa có liên kết.</div>`;
+  return list.map((l,i)=>`
+    <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px" data-co-link="${i}">
+      ${coIconSelect(`data-link-icon="${i}"`, l.icon||'doc')}
+      <input class="form-control" data-link-label="${i}" value="${esc(l.label||'')}" placeholder="Nhãn nút" style="flex:1">
+      <select class="form-control" data-link-id="${i}" style="flex:0 0 190px">
+        ${CO_ACTIONS.map(a=>`<option value="${a.id}" ${a.id===l.id?'selected':''}>${a.label}</option>`).join('')}
+      </select>
+      <button class="act-btn danger" onclick="coRemoveLink(${i})">${ico('trash',12)}</button>
+    </div>`).join('');
+}
+function coReadHighlights() {
+  const host = document.getElementById('sp-co-hl-list');
+  const out = [];
+  host && host.querySelectorAll('[data-co-hl]').forEach(row => {
+    const i = row.dataset.coHl;
+    out.push({
+      icon: host.querySelector(`[data-hl-icon="${i}"]`)?.value || 'pin',
+      label: (host.querySelector(`[data-hl-label="${i}"]`)?.value || '').trim(),
+      value: (host.querySelector(`[data-hl-value="${i}"]`)?.value || '').trim(),
+    });
+  });
+  return out.filter(h => h.label || h.value);
+}
+function coReadLinks() {
+  const host = document.getElementById('sp-co-link-list');
+  const out = [];
+  host && host.querySelectorAll('[data-co-link]').forEach(row => {
+    const i = row.dataset.coLink;
+    out.push({
+      id: host.querySelector(`[data-link-id="${i}"]`)?.value || 'open-modal',
+      icon: host.querySelector(`[data-link-icon="${i}"]`)?.value || 'doc',
+      label: (host.querySelector(`[data-link-label="${i}"]`)?.value || '').trim(),
+    });
+  });
+  return out.filter(l => l.label);
+}
+function coAddHighlight() {
+  const list = coReadHighlights();
+  list.push({ icon: 'pin', label: '', value: '' });
+  document.getElementById('sp-co-hl-list').innerHTML = coHighlightsHTML(list);
+}
+function coRemoveHighlight(i) {
+  const list = coReadHighlights();
+  list.splice(i, 1);
+  document.getElementById('sp-co-hl-list').innerHTML = coHighlightsHTML(list);
+}
+function coAddLink() {
+  const list = coReadLinks();
+  list.push({ id: 'open-modal', icon: 'doc', label: '' });
+  document.getElementById('sp-co-link-list').innerHTML = coLinksHTML(list);
+}
+function coRemoveLink(i) {
+  const list = coReadLinks();
+  list.splice(i, 1);
+  document.getElementById('sp-co-link-list').innerHTML = coLinksHTML(list);
+}
+
 function saveProjectSettings() {
   const g = id => { const el = document.getElementById(id); return el ? el.value.trim() : undefined; };
   const gn = id => { const el = document.getElementById(id); return el ? (parseFloat(el.value)||0) : undefined; };
@@ -2245,6 +2535,15 @@ function saveProjectSettings() {
   const logoLight = imgFieldValue('sp-logoLight');
   if (logoDark)  S.data.project.logoDark  = logoDark;  else delete S.data.project.logoDark;
   if (logoLight) S.data.project.logoLight = logoLight; else delete S.data.project.logoLight;
+
+  // Project Card — chế độ tổng quan (cardOverview)
+  const coDescEl = document.getElementById('sp-co-desc');
+  if (coDescEl) {
+    const co = S.data.project.cardOverview || (S.data.project.cardOverview = {});
+    co.description = coDescEl.value.trim();
+    co.highlights = coReadHighlights();
+    co.quickLinks = coReadLinks();
+  }
   saveData('Đã lưu thông tin dự án');
 }
 
