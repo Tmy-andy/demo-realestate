@@ -73,6 +73,7 @@ const S = {
 // ——— GROUP META ———————————————————————————————
 const GROUP_META = {
   tongQuan:        { label: 'Tổng Quan',           icon: 'building' },
+  phanKhu:         { label: 'Phân Khu',            icon: 'mappin' },
   tienIchNoiKhu:   { label: 'Tiện Ích Nội Khu',    icon: 'leaf' },
   tienIchNgoaiKhu: { label: 'Tiện Ích Ngoại Khu',  icon: 'mappin' },
   matBangTang:     { label: 'Mặt Bằng / Tòa',      icon: 'hardhat' },
@@ -206,6 +207,7 @@ function render(page, el) {
     case 'overview':  renderOverview(el); break;
     case 'units':     renderUnits(el); break;
     case 'navpanel':  renderNavPanel(el); break;
+    case 'masterplan': renderMasterplanPage(el); break;
     case 'i18n':      renderI18n(el); break;
     case 'theme':     renderTheme(el); break;
     case 'analytics': renderAnalytics(el); break;
@@ -1327,13 +1329,19 @@ async function openAddCardPanel(groupKey) {
       <label class="form-label">ID định danh (tùy chọn)</label>
       <input class="form-control mono" id="nc-id" placeholder="vd: be-boi-tang-8">
     </div>
+    <div class="form-group">
+      <label class="form-label">ID Hotspot 3DVista (tùy chọn)</label>
+      <input class="form-control mono" id="nc-hotspot" placeholder="vd: hs-be-boi">
+      <div class="form-hint">Khi người dùng click hotspot này trên VR360, mục tương ứng ở Danh Sách VR sẽ tự động được chọn.</div>
+    </div>
     ${panos.length === 0 ? `<div class="badge badge-warning" style="padding:8px;width:100%;justify-content:center">${ico('warning')} Không tìm thấy panorama nào trong data/locale/en.txt</div>` : ''}
   `, () => {
     const label  = document.getElementById('nc-label').value.trim();
     const panoId = document.getElementById('nc-pano').value;
+    const hotspot = document.getElementById('nc-hotspot').value.trim();
     const idVal  = document.getElementById('nc-id').value.trim() || label.toLowerCase().replace(/\s+/g,'-').replace(/[^\w-]/g,'') || 'item-'+Date.now();
     if (!label) { toast('Nhập tên hiển thị', 'warn'); return; }
-    const newItem = { id: idVal, label, tdvPanoramaId: panoId || undefined };
+    const newItem = { id: idVal, label, tdvPanoramaId: panoId || undefined, hotspotId: hotspot || undefined };
     if (!S.data.menu[groupKey]) S.data.menu[groupKey] = [];
     S.data.menu[groupKey].push(newItem);
     closePanel();
@@ -1387,18 +1395,53 @@ async function openEditCardPanel(groupKey, itemId) {
       <label class="form-label">ID định danh</label>
       <input class="form-control mono" id="ec-id" value="${item.id}" readonly style="opacity:.6">
     </div>
+    <div class="form-group">
+      <label class="form-label">ID Hotspot 3DVista (tùy chọn)</label>
+      <input class="form-control mono" id="ec-hotspot" value="${item.hotspotId||''}" placeholder="vd: hs-be-boi">
+      <div class="form-hint">Khi click hotspot này trên VR360, mục này sẽ tự động được chọn ở Danh Sách VR.</div>
+    </div>
+    ${groupKey === 'phanKhu' ? `
+    <div class="form-group">
+      <label class="form-label">Dữ liệu phân khu (subdivision · JSON)</label>
+      <textarea class="form-control mono" id="ec-subdivision" rows="12" style="font-size:12px">${esc(JSON.stringify(item.subdivision || {}, null, 2))}</textarea>
+      <div class="form-hint">Thông tin hiển thị trong project-card: name, video, cover, desc, facts[], points[].</div>
+    </div>` : ''}
+    ${item.detail !== undefined || groupKey !== 'phanKhu' ? `
+    <div class="form-group">
+      <label class="form-label">Chi tiết điểm đến (detail · JSON, tùy chọn)</label>
+      <textarea class="form-control mono" id="ec-detail" rows="10" style="font-size:12px">${esc(JSON.stringify(item.detail || {}, null, 2))}</textarea>
+      <div class="form-hint">Để trống ({}) → project-card hiển thị chế độ tổng quan. Có dữ liệu → chế độ chi tiết.</div>
+    </div>` : ''}
   `, () => {
     const idx = group.findIndex(x=>x.id===itemId);
     if (idx < 0) return;
     const label  = document.getElementById('ec-label').value.trim() || item.label;
     const panoId = document.getElementById('ec-pano').value;
-    group[idx] = { ...item, label, tdvPanoramaId: panoId || undefined };
+    const hotspot = document.getElementById('ec-hotspot').value.trim();
+    const next = { ...item, label, tdvPanoramaId: panoId || undefined, hotspotId: hotspot || undefined };
+    // Subdivision JSON (cat Phân Khu)
+    const subEl = document.getElementById('ec-subdivision');
+    if (subEl) {
+      try {
+        const obj = JSON.parse(subEl.value || '{}');
+        next.subdivision = Object.keys(obj).length ? obj : undefined;
+      } catch (e) { toast('JSON phân khu không hợp lệ: ' + e.message, 'warn'); return false; }
+    }
+    // Detail JSON
+    const detEl = document.getElementById('ec-detail');
+    if (detEl) {
+      try {
+        const obj = JSON.parse(detEl.value || '{}');
+        next.detail = Object.keys(obj).length ? obj : undefined;
+      } catch (e) { toast('JSON chi tiết không hợp lệ: ' + e.message, 'warn'); return false; }
+    }
+    group[idx] = next;
     // Clean up old sceneId/customLink fields
     delete group[idx].sceneId;
     delete group[idx].customLink;
+    saveData('Đã cập nhật điểm VR360');
     closePanel();
     render('navpanel', document.getElementById('p-navpanel'));
-    toast('Đã cập nhật điểm VR360', 'ok');
   });
 }
 

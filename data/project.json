@@ -72,7 +72,59 @@
         "unit": "tầng",
         "label": "Tầm view panorama"
       }
-    ]
+    ],
+    "cardOverview": {
+      "description": "Trung tâm logistics và cảng biển hiện đại, kết nối trực tiếp Cảng Liên Chiểu, đường sắt LRT và hệ thống cao tốc liên vùng, thúc đẩy giao thương quốc tế và chuỗi cung ứng toàn cầu.",
+      "highlights": [
+        {
+          "icon": "area",
+          "label": "Diện tích phát triển",
+          "value": "1.200 ha"
+        },
+        {
+          "icon": "port",
+          "label": "Cảng biển nước sâu",
+          "value": "Liên Chiểu"
+        },
+        {
+          "icon": "transit",
+          "label": "Kết nối LRT",
+          "value": "Tuyến Liên Chiểu – Đà Nẵng"
+        },
+        {
+          "icon": "road",
+          "label": "Cao tốc liên vùng",
+          "value": "Đà Nẵng – Huế"
+        },
+        {
+          "icon": "leaf",
+          "label": "Định hướng phát triển",
+          "value": "Logistics xanh & bền vững"
+        }
+      ],
+      "quickLinks": [
+        {
+          "id": "open-masterplan",
+          "icon": "map",
+          "label": "Xem Masterplan tổng thể"
+        },
+        {
+          "id": "open-phankhu",
+          "icon": "grid",
+          "label": "Khám phá 4 phân khu"
+        },
+        {
+          "id": "open-properties",
+          "icon": "home",
+          "label": "Danh sách sản phẩm"
+        },
+        {
+          "id": "open-modal",
+          "icon": "doc",
+          "label": "Nhận tư vấn dự án"
+        }
+      ]
+    }
   },
   "sales": [
     {
@@ -133,7 +185,35 @@
       {
         "id": "be-boi",
         "label": "Bể bơi",
-        "tdvPanoramaId": "pano-13"
+        "tdvPanoramaId": "pano-13",
+        "detail": {
+          "category": "Tiện ích nội khu",
+          "subtitle": "Thư giãn",
+          "title": "Bể bơi vô cực",
+          "images": [
+            "img/1.png",
+            "img/2.png"
+          ],
+          "description": "Bể bơi vô cực tầm nhìn panorama hướng vịnh, thiết kế tràn bờ tinh tế, khu vực bể riêng cho trẻ em và hệ thống lọc nước thông minh.",
+          "specs": [
+            {
+              "label": "Diện tích mặt nước",
+              "value": "850 m²"
+            },
+            {
+              "label": "Độ sâu",
+              "value": "0.6 – 1.6 m"
+            },
+            {
+              "label": "Vị trí",
+              "value": "Tầng 5 khối đế"
+            },
+            {
+              "label": "Giờ mở cửa",
+              "value": "06:00 – 22:00"
+            }
+          ]
+        }
       },
       {
         "id": "duong-dao-bo",
@@ -165,7 +245,35 @@
       {
         "id": "metro-6",
         "label": "Tuyến Metro 6",
-        "tdvPanoramaId": "pano-38"
+        "tdvPanoramaId": "pano-38",
+        "detail": {
+          "category": "Hạ tầng giao thông",
+          "subtitle": "Kết nối",
+          "title": "Tuyến Metro số 6",
+          "images": [
+            "img/1.png",
+            "img/2.png"
+          ],
+          "description": "Tuyến đường sắt đô thị kết nối trực tiếp khu đô thị với trung tâm thành phố và sân bay, rút ngắn thời gian di chuyển, gia tăng giá trị bất động sản khu vực.",
+          "specs": [
+            {
+              "label": "Chiều dài tuyến",
+              "value": "23 km"
+            },
+            {
+              "label": "Số ga",
+              "value": "18 ga"
+            },
+            {
+              "label": "Ga gần nhất",
+              "value": "450 m"
+            },
+            {
+              "label": "Dự kiến vận hành",
+              "value": "2027"
+            }
+          ]
+        }
       },
       {
         "id": "duong-as",
@@ -175,7 +283,35 @@
       {
         "id": "vinmec",
         "label": "Bệnh viện Quốc tế Vinmec",
-        "tdvPanoramaId": "pano-43"
+        "tdvPanoramaId": "pano-43",
+        "detail": {
+          "category": "Hạ tầng trọng điểm",
+          "subtitle": "Bệnh viện",
+          "title": "Bệnh viện Quốc tế Vinmec",
+          "images": [
+            "img/1.png",
+            "img/2.png"
+          ],
+          "description": "Bệnh viện đa khoa quốc tế tiêu chuẩn 5 sao, trang thiết bị hiện đại, đội ngũ chuyên gia đầu ngành, phục vụ chăm sóc sức khỏe toàn diện cho cư dân khu đô thị.",
+          "specs": [
+            {
+              "label": "Quy mô",
+              "value": "12 ha"
+            },
+            {
+              "label": "Số giường bệnh",
+              "value": "600 giường"
+            },
+            {
+              "label": "Khoảng cách",
+              "value": "1.2 km"
+            },
+            {
+              "label": "Tiêu chuẩn",
+              "value": "JCI Quốc tế"
+            }
+          ]
+        }
       },
       {
         "id": "zen-park",
@@ -296,51 +432,198 @@
         "label": "3 phòng ngủ - 75.6m²",
         "tdvPanoramaId": "pano-28"
       }
+    ],
+    "phanKhu": [
+      {
+        "id": "pk-bach-van",
+        "label": "Phân khu Bạch Vân",
+        "subdivision": {
+          "name": "Phân khu Bạch Vân",
+          "video": "",
+          "cover": "img/2.png",
+          "desc": "Bạch Vân là trung tâm logistics và cảng biển chiến lược của khu đô thị, kết nối trực tiếp Cảng Liên Chiểu, đường sắt LRT và hệ thống cao tốc liên vùng – Tây và cao tốc Bắc – Nam, định hướng phát triển kinh tế biển và thương mại.",
+          "facts": [
+            {
+              "label": "Quy mô",
+              "value": "~ 320 ha"
+            },
+            {
+              "label": "Định hướng",
+              "value": "Logistics & cảng biển quốc tế"
+            },
+            {
+              "label": "Lô trí kết nối",
+              "value": "210 ha"
+            },
+            {
+              "label": "Định hướng phát triển",
+              "value": "Logistics & Công nghiệp"
+            }
+          ],
+          "points": [
+            "Trung tâm logistics quốc tế cấp vùng",
+            "Cảng Liên Chiểu – cửa ngõ hàng hải chiến lược",
+            "Khu công nghiệp Hải Vân Bay",
+            "Depot & LRT – Trung tâm vận tải đa phương thức",
+            "Tuyến LRT kết nối nội khu & Đà Nẵng",
+            "Liên kết trực tiếp cao tốc La Sơn – Túy Loan"
+          ]
+        },
+        "tdvPanoramaId": "pano-29"
+      },
+      {
+        "id": "pk-vinh-may",
+        "label": "Phân khu Vịnh Mây",
+        "subdivision": {
+          "name": "Phân khu Vịnh Mây",
+          "video": "",
+          "cover": "img/2.png",
+          "desc": "Vịnh Mây là phân khu nghỉ dưỡng cao cấp ven biển, sở hữu đường bờ vịnh riêng, hệ tiện ích resort và mật độ xây dựng thấp, mang đến không gian sống xanh đẳng cấp.",
+          "facts": [
+            {
+              "label": "Quy mô",
+              "value": "~ 260 ha"
+            },
+            {
+              "label": "Định hướng",
+              "value": "Nghỉ dưỡng ven biển"
+            },
+            {
+              "label": "Mật độ xây dựng",
+              "value": "22%"
+            },
+            {
+              "label": "Loại hình chủ đạo",
+              "value": "Biệt thự & Shophouse"
+            }
+          ],
+          "points": [
+            "Đường bờ vịnh riêng dài 2.4 km",
+            "Bến du thuyền quốc tế",
+            "Hệ tiện ích resort 5 sao",
+            "Công viên ven biển sinh thái"
+          ]
+        },
+        "tdvPanoramaId": "pano-30"
+      },
+      {
+        "id": "pk-dao-ngoc",
+        "label": "Phân khu Đảo Ngọc",
+        "subdivision": {
+          "name": "Phân khu Đảo Ngọc",
+          "video": "",
+          "cover": "img/2.png",
+          "desc": "Đảo Ngọc là phân khu compound khép kín trên đảo, kết nối bằng cầu cảnh quan, định vị cộng đồng cư dân tinh hoa với an ninh và riêng tư tuyệt đối.",
+          "facts": [
+            {
+              "label": "Quy mô",
+              "value": "~ 95 ha"
+            },
+            {
+              "label": "Định hướng",
+              "value": "Compound đảo khép kín"
+            },
+            {
+              "label": "Mật độ xây dựng",
+              "value": "18%"
+            },
+            {
+              "label": "Loại hình chủ đạo",
+              "value": "Biệt thự đảo"
+            }
+          ],
+          "points": [
+            "Compound khép kín an ninh 3 lớp",
+            "Cầu cảnh quan kết nối đất liền",
+            "Clubhouse & bến du thuyền nội khu",
+            "Công viên trung tâm đảo"
+          ]
+        },
+        "tdvPanoramaId": "pano-32"
+      },
+      {
+        "id": "pk-tinh-van",
+        "label": "Phân khu Tịnh Vân",
+        "subdivision": {
+          "name": "Phân khu Tịnh Vân",
+          "video": "",
+          "cover": "img/2.png",
+          "desc": "Tịnh Vân là phân khu đô thị thương mại sầm uất, tập trung shophouse và căn hộ thương mại, là trung tâm mua sắm – dịch vụ của toàn khu đô thị.",
+          "facts": [
+            {
+              "label": "Quy mô",
+              "value": "~ 180 ha"
+            },
+            {
+              "label": "Định hướng",
+              "value": "Đô thị thương mại"
+            },
+            {
+              "label": "Mật độ xây dựng",
+              "value": "35%"
+            },
+            {
+              "label": "Loại hình chủ đạo",
+              "value": "Shophouse & Căn hộ"
+            }
+          ],
+          "points": [
+            "Trục phố thương mại trung tâm",
+            "Quảng trường lễ hội",
+            "Tổ hợp TTTM & giải trí",
+            "Kết nối trực tiếp tuyến LRT"
+          ]
+        },
+        "tdvPanoramaId": "pano-34"
+      }
     ]
   },
   "siteMap": {
-    "center": [16.2130, 108.1200],
+    "center": [
+      16.213,
+      108.12
+    ],
     "zoom": 14,
     "points": [
       {
         "id": "i1",
         "lat": 16.2155,
-        "lng": 108.1180,
+        "lng": 108.118,
         "label": "Tòa The Lake Premium (I1)",
         "tdvPanoramaId": "pano-01"
       },
       {
         "id": "i2",
         "lat": 16.2145,
-        "lng": 108.1210,
+        "lng": 108.121,
         "label": "Tòa The Park (I2)",
         "tdvPanoramaId": "pano-05"
       },
       {
         "id": "i3",
         "lat": 16.2135,
-        "lng": 108.1230,
+        "lng": 108.123,
         "label": "Tòa The Central (I3)",
         "tdvPanoramaId": "pano-10"
       },
       {
         "id": "i4",
-        "lat": 16.2120,
+        "lat": 16.212,
         "lng": 108.1195,
         "label": "Tòa Nguyệt Quế (I4)",
         "tdvPanoramaId": "pano-15"
       },
       {
         "id": "i5",
-        "lat": 16.2110,
-        "lng": 108.1220,
+        "lat": 16.211,
+        "lng": 108.122,
         "label": "Tòa Thảo Mộc (I5)",
         "tdvPanoramaId": "pano-20"
       },
       {
         "id": "park",
-        "lat": 16.2140,
-        "lng": 108.1160,
+        "lat": 16.214,
+        "lng": 108.116,
         "label": "Công viên trung tâm",
         "tdvPanoramaId": "pano-08"
       },
@@ -686,9 +969,9 @@
     ]
   },
   "location": {
-    "lat": 16.2130,
-    "lng": 108.1200,
-    "mapSrc": "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3723.5!2d105.8194!3d21.0631!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjHCsDAzJzQ3LjIiTiAxMDXCsDQ5JzA5LjgiRQ!5e0!3m2!1svi!2svn!4v1234567890",
+    "lat": 16.213,
+    "lng": 108.12,
+    "mapSrc": "https://www.google.com/maps?q=16.213,108.12&z=14&hl=vi&output=embed",
     "nearby": [
       {
         "cat": "school",
@@ -946,6 +1229,699 @@
       "date": "Q4 / 2027",
       "status": "upcoming",
       "desc": "Bàn giao toàn bộ 920 căn tháp A kèm sổ hồng dự kiến cấp Q2/2028."
+    }
+  ],
+  "masterplan": {
+    "image": "img/masterplan/masterplane.png",
+    "intro": "Tổng quan quy hoạch khu đô thị Vinhomes Hai Van Bay — 4 phân khu chức năng kết nối đồng bộ hạ tầng, cảng biển và tiện ích.",
+    "categories": [
+      {
+        "id": "all",
+        "label": "Tất cả",
+        "icon": "grid"
+      },
+      {
+        "id": "phankhu",
+        "label": "Phân khu",
+        "icon": "map"
+      },
+      {
+        "id": "bds",
+        "label": "Bất động sản",
+        "icon": "home"
+      },
+      {
+        "id": "tienich",
+        "label": "Tiện ích",
+        "icon": "leaf"
+      },
+      {
+        "id": "hatang",
+        "label": "Hạ tầng",
+        "icon": "road"
+      },
+      {
+        "id": "phuchop",
+        "label": "Khu phức hợp",
+        "icon": "transit"
+      }
+    ],
+    "markers": [
+      {
+        "id": "m-bach-van",
+        "cat": "phankhu",
+        "label": "Bạch Vân",
+        "desc": "Phân khu logistics & cảng biển",
+        "x": 26,
+        "y": 42,
+        "menuItemId": "pk-bach-van"
+      },
+      {
+        "id": "m-vinh-may",
+        "cat": "phankhu",
+        "label": "Vịnh Mây",
+        "desc": "Phân khu nghỉ dưỡng ven biển",
+        "x": 58,
+        "y": 34,
+        "menuItemId": "pk-vinh-may"
+      },
+      {
+        "id": "m-dao-ngoc",
+        "cat": "phankhu",
+        "label": "Đảo Ngọc",
+        "desc": "Compound đảo khép kín",
+        "x": 72,
+        "y": 58,
+        "menuItemId": "pk-dao-ngoc"
+      },
+      {
+        "id": "m-tinh-van",
+        "cat": "phankhu",
+        "label": "Tịnh Vân",
+        "desc": "Đô thị thương mại",
+        "x": 44,
+        "y": 66,
+        "menuItemId": "pk-tinh-van"
+      },
+      {
+        "id": "m-cang",
+        "cat": "hatang",
+        "label": "Cảng Liên Chiểu",
+        "desc": "Cảng biển nước sâu",
+        "x": 14,
+        "y": 30
+      },
+      {
+        "id": "m-lrt",
+        "cat": "hatang",
+        "label": "Ga LRT trung tâm",
+        "desc": "Đường sắt đô thị",
+        "x": 40,
+        "y": 50
+      },
+      {
+        "id": "m-tttm",
+        "cat": "phuchop",
+        "label": "TTTM Hai Van Bay",
+        "desc": "Tổ hợp thương mại",
+        "x": 50,
+        "y": 60
+      },
+      {
+        "id": "m-cv",
+        "cat": "tienich",
+        "label": "Công viên trung tâm",
+        "desc": "Công viên sinh thái 12ha",
+        "x": 52,
+        "y": 46
+      },
+      {
+        "id": "m-marina",
+        "cat": "tienich",
+        "label": "Bến du thuyền",
+        "desc": "Marina quốc tế",
+        "x": 66,
+        "y": 44
+      }
+    ],
+    "filterSchema": {
+      "phanKhu": [
+        {
+          "id": "pk-bach-van",
+          "label": "Bạch Vân"
+        },
+        {
+          "id": "pk-vinh-may",
+          "label": "Vịnh Mây"
+        },
+        {
+          "id": "pk-dao-ngoc",
+          "label": "Đảo Ngọc"
+        },
+        {
+          "id": "pk-tinh-van",
+          "label": "Tịnh Vân"
+        }
+      ],
+      "loaiHienThi": [
+        {
+          "id": "tienich",
+          "label": "Tiện ích",
+          "color": "#f4c97d"
+        },
+        {
+          "id": "phuchop",
+          "label": "Khu phức hợp",
+          "color": "#a78bfa"
+        },
+        {
+          "id": "hatang",
+          "label": "Hạ tầng",
+          "color": "#60a5fa"
+        },
+        {
+          "id": "congvien",
+          "label": "Công viên cây xanh",
+          "color": "#34d399"
+        },
+        {
+          "id": "cangbien",
+          "label": "Cảng biển",
+          "color": "#38bdf8"
+        },
+        {
+          "id": "marina",
+          "label": "Bến du thuyền",
+          "color": "#22d3ee"
+        }
+      ],
+      "batDongSan": [
+        {
+          "id": "biet-thu",
+          "label": "Biệt thự"
+        },
+        {
+          "id": "can-ho",
+          "label": "Căn hộ"
+        },
+        {
+          "id": "shophouse",
+          "label": "Shophouse"
+        },
+        {
+          "id": "dat-nen",
+          "label": "Đất nền"
+        },
+        {
+          "id": "nha-pho",
+          "label": "Nhà phố"
+        }
+      ],
+      "trangThai": [
+        {
+          "id": "da-hien",
+          "label": "Đã hiện",
+          "color": "#34d399"
+        },
+        {
+          "id": "trien-khai",
+          "label": "Đang triển khai",
+          "color": "#f4c97d"
+        },
+        {
+          "id": "quy-hoach",
+          "label": "Quy hoạch",
+          "color": "#94a3b8"
+        }
+      ]
+    }
+  },
+  "properties": [
+    {
+      "images": [
+        "img/2.png",
+        "img/1.png",
+        "img/2.png"
+      ],
+      "thumbsFloor": [
+        "img/1.png",
+        "img/2.png",
+        "img/1.png",
+        "img/2.png"
+      ],
+      "policies": [
+        "Chiết khấu 8% thanh toán sớm",
+        "Hỗ trợ lãi suất 0% trong 18 tháng",
+        "Cam kết mua lại 7%/năm",
+        "Tặng gói nội thất cao cấp"
+      ],
+      "docs": [
+        {
+          "name": "Brochure dự án",
+          "type": "PDF"
+        },
+        {
+          "name": "Bảng giá chi tiết",
+          "type": "PDF"
+        },
+        {
+          "name": "Hợp đồng mẫu",
+          "type": "PDF"
+        }
+      ],
+      "progress": [
+        {
+          "phase": "Khởi công",
+          "date": "Q1/2024",
+          "done": true
+        },
+        {
+          "phase": "Hoàn thiện móng",
+          "date": "Q3/2024",
+          "done": true
+        },
+        {
+          "phase": "Xây thô",
+          "date": "Q2/2025",
+          "done": false
+        },
+        {
+          "phase": "Bàn giao",
+          "date": "Q4/2026",
+          "done": false
+        }
+      ],
+      "consultPhone": "1900 1234",
+      "consultEmail": "tuvanduan@haivanbay.vn",
+      "id": "HV5-12-08",
+      "code": "HV5-12.08",
+      "name": "Căn hộ Hải Vân 5",
+      "phanKhu": "pk-vinh-may",
+      "phanKhuLabel": "Vịnh Mây",
+      "type": "can-ho",
+      "typeLabel": "Căn hộ",
+      "priceVal": 5.4,
+      "price": "5.400.000.000",
+      "pricePerM2": "75.000.000",
+      "area": 72,
+      "bedrooms": 2,
+      "bathrooms": 2,
+      "direction": "Đông Nam",
+      "status": "available",
+      "statusLabel": "Đang mở bán",
+      "legal": "Sổ đỏ lâu dài",
+      "handover": "Quý IV/2026",
+      "desc": "Căn hộ 2 phòng ngủ tầm nhìn vịnh, thiết kế tối ưu công năng, ban công rộng đón gió biển.",
+      "highlights": [
+        "View trực diện vịnh biển",
+        "Bàn giao nội thất cơ bản",
+        "Tầng trung tầm nhìn đẹp"
+      ]
+    },
+    {
+      "images": [
+        "img/2.png",
+        "img/1.png",
+        "img/2.png"
+      ],
+      "thumbsFloor": [
+        "img/1.png",
+        "img/2.png",
+        "img/1.png",
+        "img/2.png"
+      ],
+      "policies": [
+        "Chiết khấu 8% thanh toán sớm",
+        "Hỗ trợ lãi suất 0% trong 18 tháng",
+        "Cam kết mua lại 7%/năm",
+        "Tặng gói nội thất cao cấp"
+      ],
+      "docs": [
+        {
+          "name": "Brochure dự án",
+          "type": "PDF"
+        },
+        {
+          "name": "Bảng giá chi tiết",
+          "type": "PDF"
+        },
+        {
+          "name": "Hợp đồng mẫu",
+          "type": "PDF"
+        }
+      ],
+      "progress": [
+        {
+          "phase": "Khởi công",
+          "date": "Q1/2024",
+          "done": true
+        },
+        {
+          "phase": "Hoàn thiện móng",
+          "date": "Q3/2024",
+          "done": true
+        },
+        {
+          "phase": "Xây thô",
+          "date": "Q2/2025",
+          "done": false
+        },
+        {
+          "phase": "Bàn giao",
+          "date": "Q4/2026",
+          "done": false
+        }
+      ],
+      "consultPhone": "1900 1234",
+      "consultEmail": "tuvanduan@haivanbay.vn",
+      "id": "VM-SH-06-03",
+      "code": "VM-SH-06.03",
+      "name": "Shophouse Vịnh Mây",
+      "phanKhu": "pk-vinh-may",
+      "phanKhuLabel": "Vịnh Mây",
+      "type": "shophouse",
+      "typeLabel": "Shophouse",
+      "priceVal": 15.6,
+      "price": "15.600.000.000",
+      "pricePerM2": "130.000.000",
+      "area": 120,
+      "bedrooms": 4,
+      "bathrooms": 5,
+      "direction": "Tây Nam",
+      "status": "available",
+      "statusLabel": "Đang mở bán",
+      "legal": "Sổ đỏ lâu dài",
+      "handover": "Quý IV/2026",
+      "desc": "Shophouse mặt phố thương mại, kết cấu 4 tầng, vừa ở vừa kinh doanh, vị trí trục chính sầm uất.",
+      "highlights": [
+        "Mặt tiền phố thương mại",
+        "Kết cấu 4 tầng linh hoạt",
+        "Vừa ở vừa kinh doanh"
+      ]
+    },
+    {
+      "images": [
+        "img/2.png",
+        "img/1.png",
+        "img/2.png"
+      ],
+      "thumbsFloor": [
+        "img/1.png",
+        "img/2.png",
+        "img/1.png",
+        "img/2.png"
+      ],
+      "policies": [
+        "Chiết khấu 8% thanh toán sớm",
+        "Hỗ trợ lãi suất 0% trong 18 tháng",
+        "Cam kết mua lại 7%/năm",
+        "Tặng gói nội thất cao cấp"
+      ],
+      "docs": [
+        {
+          "name": "Brochure dự án",
+          "type": "PDF"
+        },
+        {
+          "name": "Bảng giá chi tiết",
+          "type": "PDF"
+        },
+        {
+          "name": "Hợp đồng mẫu",
+          "type": "PDF"
+        }
+      ],
+      "progress": [
+        {
+          "phase": "Khởi công",
+          "date": "Q1/2024",
+          "done": true
+        },
+        {
+          "phase": "Hoàn thiện móng",
+          "date": "Q3/2024",
+          "done": true
+        },
+        {
+          "phase": "Xây thô",
+          "date": "Q2/2025",
+          "done": false
+        },
+        {
+          "phase": "Bàn giao",
+          "date": "Q4/2026",
+          "done": false
+        }
+      ],
+      "consultPhone": "1900 1234",
+      "consultEmail": "tuvanduan@haivanbay.vn",
+      "id": "BV-BT-02-11",
+      "code": "BV-BT-02.11",
+      "name": "Biệt thự Bạch Vân",
+      "phanKhu": "pk-bach-van",
+      "phanKhuLabel": "Bạch Vân",
+      "type": "biet-thu",
+      "typeLabel": "Biệt thự",
+      "priceVal": 28.5,
+      "price": "28.500.000.000",
+      "pricePerM2": "95.000.000",
+      "area": 300,
+      "bedrooms": 5,
+      "bathrooms": 6,
+      "direction": "Đông",
+      "status": "holding",
+      "statusLabel": "Đang giữ chỗ",
+      "legal": "Sổ đỏ lâu dài",
+      "handover": "Quý II/2027",
+      "desc": "Biệt thự đơn lập sân vườn rộng, hồ bơi riêng, không gian sống đẳng cấp gần công viên trung tâm.",
+      "highlights": [
+        "Sân vườn & hồ bơi riêng",
+        "Biệt thự đơn lập 3 mặt thoáng",
+        "Gần công viên trung tâm"
+      ]
+    },
+    {
+      "images": [
+        "img/2.png",
+        "img/1.png",
+        "img/2.png"
+      ],
+      "thumbsFloor": [
+        "img/1.png",
+        "img/2.png",
+        "img/1.png",
+        "img/2.png"
+      ],
+      "policies": [
+        "Chiết khấu 8% thanh toán sớm",
+        "Hỗ trợ lãi suất 0% trong 18 tháng",
+        "Cam kết mua lại 7%/năm",
+        "Tặng gói nội thất cao cấp"
+      ],
+      "docs": [
+        {
+          "name": "Brochure dự án",
+          "type": "PDF"
+        },
+        {
+          "name": "Bảng giá chi tiết",
+          "type": "PDF"
+        },
+        {
+          "name": "Hợp đồng mẫu",
+          "type": "PDF"
+        }
+      ],
+      "progress": [
+        {
+          "phase": "Khởi công",
+          "date": "Q1/2024",
+          "done": true
+        },
+        {
+          "phase": "Hoàn thiện móng",
+          "date": "Q3/2024",
+          "done": true
+        },
+        {
+          "phase": "Xây thô",
+          "date": "Q2/2025",
+          "done": false
+        },
+        {
+          "phase": "Bàn giao",
+          "date": "Q4/2026",
+          "done": false
+        }
+      ],
+      "consultPhone": "1900 1234",
+      "consultEmail": "tuvanduan@haivanbay.vn",
+      "id": "DN-BT-01-05",
+      "code": "DN-BT-01.05",
+      "name": "Biệt thự đảo Đảo Ngọc",
+      "phanKhu": "pk-dao-ngoc",
+      "phanKhuLabel": "Đảo Ngọc",
+      "type": "biet-thu",
+      "typeLabel": "Biệt thự",
+      "priceVal": 42,
+      "price": "42.000.000.000",
+      "pricePerM2": "120.000.000",
+      "area": 350,
+      "bedrooms": 5,
+      "bathrooms": 6,
+      "direction": "Nam",
+      "status": "available",
+      "statusLabel": "Đang mở bán",
+      "legal": "Sổ đỏ lâu dài",
+      "handover": "Quý III/2027",
+      "desc": "Biệt thự đảo compound khép kín, bến du thuyền riêng, an ninh tuyệt đối cho cộng đồng tinh hoa.",
+      "highlights": [
+        "Bến du thuyền riêng",
+        "Compound an ninh 3 lớp",
+        "Tầm nhìn biển trọn vẹn"
+      ]
+    },
+    {
+      "images": [
+        "img/2.png",
+        "img/1.png",
+        "img/2.png"
+      ],
+      "thumbsFloor": [
+        "img/1.png",
+        "img/2.png",
+        "img/1.png",
+        "img/2.png"
+      ],
+      "policies": [
+        "Chiết khấu 8% thanh toán sớm",
+        "Hỗ trợ lãi suất 0% trong 18 tháng",
+        "Cam kết mua lại 7%/năm",
+        "Tặng gói nội thất cao cấp"
+      ],
+      "docs": [
+        {
+          "name": "Brochure dự án",
+          "type": "PDF"
+        },
+        {
+          "name": "Bảng giá chi tiết",
+          "type": "PDF"
+        },
+        {
+          "name": "Hợp đồng mẫu",
+          "type": "PDF"
+        }
+      ],
+      "progress": [
+        {
+          "phase": "Khởi công",
+          "date": "Q1/2024",
+          "done": true
+        },
+        {
+          "phase": "Hoàn thiện móng",
+          "date": "Q3/2024",
+          "done": true
+        },
+        {
+          "phase": "Xây thô",
+          "date": "Q2/2025",
+          "done": false
+        },
+        {
+          "phase": "Bàn giao",
+          "date": "Q4/2026",
+          "done": false
+        }
+      ],
+      "consultPhone": "1900 1234",
+      "consultEmail": "tuvanduan@haivanbay.vn",
+      "id": "TV-CH-09-21",
+      "code": "TV-CH-09.21",
+      "name": "Căn hộ Tịnh Vân",
+      "phanKhu": "pk-tinh-van",
+      "phanKhuLabel": "Tịnh Vân",
+      "type": "can-ho",
+      "typeLabel": "Căn hộ",
+      "priceVal": 3.9,
+      "price": "3.900.000.000",
+      "pricePerM2": "68.000.000",
+      "area": 58,
+      "bedrooms": 1,
+      "bathrooms": 1,
+      "direction": "Bắc",
+      "status": "available",
+      "statusLabel": "Đang mở bán",
+      "legal": "Sổ đỏ lâu dài",
+      "handover": "Quý IV/2026",
+      "desc": "Căn hộ 1 phòng ngủ trung tâm thương mại, phù hợp đầu tư cho thuê, thanh khoản cao.",
+      "highlights": [
+        "Trung tâm thương mại sầm uất",
+        "Phù hợp đầu tư cho thuê",
+        "Bàn giao sớm"
+      ]
+    },
+    {
+      "images": [
+        "img/2.png",
+        "img/1.png",
+        "img/2.png"
+      ],
+      "thumbsFloor": [
+        "img/1.png",
+        "img/2.png",
+        "img/1.png",
+        "img/2.png"
+      ],
+      "policies": [
+        "Chiết khấu 8% thanh toán sớm",
+        "Hỗ trợ lãi suất 0% trong 18 tháng",
+        "Cam kết mua lại 7%/năm",
+        "Tặng gói nội thất cao cấp"
+      ],
+      "docs": [
+        {
+          "name": "Brochure dự án",
+          "type": "PDF"
+        },
+        {
+          "name": "Bảng giá chi tiết",
+          "type": "PDF"
+        },
+        {
+          "name": "Hợp đồng mẫu",
+          "type": "PDF"
+        }
+      ],
+      "progress": [
+        {
+          "phase": "Khởi công",
+          "date": "Q1/2024",
+          "done": true
+        },
+        {
+          "phase": "Hoàn thiện móng",
+          "date": "Q3/2024",
+          "done": true
+        },
+        {
+          "phase": "Xây thô",
+          "date": "Q2/2025",
+          "done": false
+        },
+        {
+          "phase": "Bàn giao",
+          "date": "Q4/2026",
+          "done": false
+        }
+      ],
+      "consultPhone": "1900 1234",
+      "consultEmail": "tuvanduan@haivanbay.vn",
+      "id": "TV-NP-03-14",
+      "code": "TV-NP-03.14",
+      "name": "Nhà phố Tịnh Vân",
+      "phanKhu": "pk-tinh-van",
+      "phanKhuLabel": "Tịnh Vân",
+      "type": "nha-pho",
+      "typeLabel": "Nhà phố",
+      "priceVal": 11.2,
+      "price": "11.200.000.000",
+      "pricePerM2": "112.000.000",
+      "area": 100,
+      "bedrooms": 3,
+      "bathrooms": 4,
+      "direction": "Đông Bắc",
+      "status": "sold",
+      "statusLabel": "Đã bán",
+      "legal": "Sổ đỏ lâu dài",
+      "handover": "Quý IV/2026",
+      "desc": "Nhà phố liền kề khu dân cư hiện hữu, hạ tầng hoàn thiện, môi trường sống xanh.",
+      "highlights": [
+        "Hạ tầng hoàn thiện",
+        "Khu dân cư hiện hữu",
+        "Gần trường học"
+      ]
     }
   ]
 }

@@ -7,6 +7,7 @@ let currentPanoramaId = null;
 let currentMenuItemId = null;
 const MENU_GROUPS = [
   { key: "tongQuan",        label: "Tổng quan",          short: "TQ" },
+  { key: "phanKhu",         label: "Phân khu",           short: "PK" },
   { key: "tienIchNoiKhu",   label: "Tiện ích nội khu",    short: "NK" },
   { key: "tienIchNgoaiKhu", label: "Tiện ích ngoại khu",  short: "NG" },
   { key: "matBangTang",     label: "Mặt bằng tầng",       short: "MB" },
@@ -82,6 +83,26 @@ function goToPanorama(panoName) {
     const typ = document.getElementById("scene-type");
     if (typ) typ.textContent = "";
   }
+  // #3/#7 — đồng bộ project-card. Ưu tiên menu item đang được chọn
+  // (currentMenuItemId) vì nhiều item có thể chung 1 panorama.
+  syncProjectCard();
+}
+
+/* Render project-card khớp với currentMenuItemId. Nếu item không có
+   detail/subdivision → về chế độ overview. */
+function getMenuItemById(id) {
+  if (!id || !DATA) return null;
+  for (const g of MENU_GROUPS) {
+    const it = (DATA.menu?.[g.key] || []).find(m => m.id === id);
+    if (it) return it;
+  }
+  return null;
+}
+function syncProjectCard() {
+  if (typeof renderProjectCard !== "function") return;
+  const item = getMenuItemById(currentMenuItemId)
+            || (currentPanoramaId ? findMenuItemByPanorama(currentPanoramaId) : null);
+  renderProjectCard(item);
 }
 
 /** Programmatic API: navigate by menu item id (for chatbot integration) */
@@ -91,6 +112,7 @@ function goToMenuItem(menuItemId) {
     if (item) {
       currentMenuItemId = menuItemId;
       openGroupKey = g.key;
+      lockNavSelection();
       if (item.tdvPanoramaId) goToPanorama(item.tdvPanoramaId);
       renderNavList();
       return true;
@@ -110,6 +132,64 @@ function findMenuItemByPanorama(panoName) {
   return null;
 }
 
+/* ------------------------------------------------------------------
+   #1 — Hotspot → np-list sync.
+   Khi panorama đổi (kể cả do người dùng click hotspot trong iframe
+   3DVista), tìm menu item tương ứng, mở đúng nhóm, set active và
+   cuộn np-card vào tầm nhìn. Bỏ qua nếu panorama không khớp item nào.
+   ------------------------------------------------------------------ */
+/* Cờ: người dùng vừa chọn 1 mục trong np-list. Trong khoảng ngắn
+   sau đó, mọi sự kiện panoramaChange/onSceneChange tự động (echo từ
+   chính lần chọn đó, hoặc từ iframe) sẽ KHÔNG ghi đè lựa chọn —
+   tránh việc click phân khu lại bị active sang Tổng quan do trùng pano. */
+let _navLockUntil = 0;
+function lockNavSelection() { _navLockUntil = Date.now() + 1200; }
+
+function syncNavToPanorama(panoName) {
+  if (!panoName || !DATA) return;
+  // Người dùng vừa chủ động chọn mục → không tự đổi active
+  if (Date.now() < _navLockUntil) return;
+
+  const bare = panoName.replace(/_0$/, "");
+  const matches = (m) =>
+    m.tdvPanoramaId === panoName || m.tdvPanoramaId === bare ||
+    m.hotspotId === panoName || m.hotspotId === bare;
+
+  // Nếu menu item đang chọn vẫn khớp panorama này → giữ nguyên,
+  // tránh nhảy sang nhóm khác khi nhiều item dùng chung 1 panorama
+  // (vd. phân khu và tổng quan cùng trỏ tới pano-22).
+  const current = getMenuItemById(currentMenuItemId);
+  if (current && matches(current)) return;
+
+  let found = null, groupKey = null;
+  for (const g of MENU_GROUPS) {
+    const item = (DATA.menu?.[g.key] || []).find(matches);
+    if (item) { found = item; groupKey = g.key; break; }
+  }
+  if (!found) return;
+  if (found.id === currentMenuItemId) return;
+  currentMenuItemId = found.id;
+  openGroupKey = groupKey;
+  renderNavList();
+  syncProjectCard();
+  const activeCard = document.querySelector(`.np-card[data-id="${found.id}"]`);
+  if (activeCard) activeCard.scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+window.addEventListener("panoramaChange", (e) => {
+  if (e?.detail?.panoId) syncNavToPanorama(e.detail.panoId);
+});
+/* vr-bridge.js fires onSceneChange khi iframe 3DVista báo đổi cảnh
+   (gồm cả click hotspot bên trong khung 360°). Đăng ký sau khi
+   VRBridge sẵn sàng — vr-bridge.js load sau main.js nên defer 1 tick. */
+function bindHotspotSync() {
+  if (window.VRBridge && typeof window.VRBridge.onSceneChange === "function") {
+    window.VRBridge.onSceneChange(({ nodeId }) => syncNavToPanorama(nodeId));
+  } else {
+    setTimeout(bindHotspotSync, 200);
+  }
+}
+bindHotspotSync();
+
 function buildBrand() {
   const parts = DATA.project.name.split(' ');
   const nameEl = document.querySelector(".brand-text .name");
@@ -118,29 +198,216 @@ function buildBrand() {
   if (subEl) subEl.textContent = parts.slice(1).join(' ') || I18n.t("ui.vrExperience");
 }
 
+/* ============================================================
+   #3 / #7 — PROJECT CARD render động
+   3 chế độ:
+     - "overview"     : dự án tổng quan chung (ảnh 1) — khi menu item
+                        không có thông tin chi tiết
+     - "detail"       : chi tiết điểm đến (ảnh 2) — khi menu item có
+                        trường `detail`
+     - "subdivision"  : phân khu (ảnh 5/6/7 gom 1 card) — khi menu
+                        item thuộc cat phanKhu (có `subdivision`)
+   ============================================================ */
+const PC_ICONS = {
+  area:    '<path d="M3 3h18v18H3z"/><path d="M3 9h18M9 3v18"/>',
+  port:    '<path d="M12 2v20M5 12l7 4 7-4"/><path d="M12 6a3 3 0 100-4 3 3 0 000 4z"/>',
+  transit: '<rect x="4" y="3" width="16" height="14" rx="3"/><path d="M4 11h16M8 21l2-4M16 21l-2-4"/><circle cx="8.5" cy="14" r="1"/><circle cx="15.5" cy="14" r="1"/>',
+  road:    '<path d="M5 22L9 2M19 22L15 2M12 6v3M12 13v3"/>',
+  leaf:    '<path d="M11 20A7 7 0 019 6c4-2 8-3 11-3 0 4-1 8-3 11a7 7 0 01-9 2z"/><path d="M2 22c4-4 6-6 9-9"/>',
+  map:     '<path d="M9 3L3 6v15l6-3 6 3 6-3V3l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/>',
+  grid:    '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>',
+  home:    '<path d="M3 11l9-8 9 8M5 9v11h14V9"/>',
+  doc:     '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/>',
+  pin:     '<path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7z"/><circle cx="12" cy="9" r="2.5"/>',
+};
+function pcIcon(name, size = 16) {
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">${PC_ICONS[name] || PC_ICONS.pin}</svg>`;
+}
+window.pcIcon = pcIcon; // dùng bởi masterplan.js / properties.js
+
 function buildProjectCard() {
   const p = DATA.project;
   document.getElementById("pc-title").textContent = p.name;
   document.getElementById("pc-loc").innerHTML =
-    `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg> ${_tr(p.location)}`;
+    `${pcIcon("pin", 11)} ${_tr(p.location)}`;
   document.getElementById("pc-status").innerHTML = `<span class="dot"></span> ${_tr(p.status)}`;
-  document.getElementById("pc-price").textContent = _tr(p.priceFrom);
-
-  const statsEl = document.getElementById("pc-stats");
-  statsEl.innerHTML = p.stats.map(s => `
-    <div class="pc-stat">
-      <div class="v">${s.value}<small>${_tr(s.unit)}</small></div>
-      <div class="k">${_tr(s.label)}</div>
-    </div>
-  `).join("");
-
-  // Units left badge
-  if (p.unitsLeft !== undefined) {
-    const el = document.getElementById("pc-units-left");
-    if (el) el.textContent = p.unitsLeft;
-  }
-
+  renderProjectCard(null);
   applySaleContact();
+}
+
+/* Render nội dung project-card theo menu item hiện tại.
+   item = null → chế độ overview. */
+function renderProjectCard(item) {
+  const host = document.getElementById("pc-dynamic");
+  if (!host) return;
+  if (item && item.subdivision) {
+    host.innerHTML = pcSubdivisionHTML(item.subdivision, item.tdvPanoramaId);
+  } else if (item && item.detail) {
+    host.innerHTML = pcDetailHTML(item.detail);
+  } else {
+    host.innerHTML = pcOverviewHTML();
+  }
+  bindPcDynamic(host);
+}
+
+/* ── Chế độ overview (ảnh 1) ── */
+function pcOverviewHTML() {
+  const p = DATA.project;
+  const ov = p.cardOverview || {};
+  const highlights = (ov.highlights || []).map(h => `
+    <div class="pc-hl-row">
+      <span class="pc-hl-icon">${pcIcon(h.icon)}</span>
+      <span class="pc-hl-label">${_tr(h.label)}</span>
+      <span class="pc-hl-value">${_tr(h.value)}</span>
+    </div>`).join("");
+  const links = (ov.quickLinks || []).map(l => `
+    <button class="pc-quick-link" data-action="${l.id}">
+      <span class="pc-ql-icon">${pcIcon(l.icon)}</span>
+      <span class="pc-ql-label">${_tr(l.label)}</span>
+      <svg class="pc-ql-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+    </button>`).join("");
+  return `
+    <div class="pc-section pc-overview">
+      ${ov.description ? `<p class="pc-desc">${_tr(ov.description)}</p>` : ""}
+      ${highlights ? `
+        <div class="pc-block-title">Thông tin nổi bật</div>
+        <div class="pc-hl-list">${highlights}</div>` : ""}
+      ${links ? `
+        <div class="pc-block-title">Liên kết nhanh</div>
+        <div class="pc-quick-links">${links}</div>` : ""}
+    </div>`;
+}
+
+/* ── Chế độ detail (ảnh 2) ── */
+function pcDetailHTML(d) {
+  const imgs = d.images || [];
+  const main = imgs[0] || "";
+  const thumbs = imgs.map((src, i) => `
+    <button class="pc-thumb ${i === 0 ? "active" : ""}" data-src="${src}">
+      <img src="${src}" alt=""/>
+    </button>`).join("");
+  const specs = (d.specs || []).map(s => `
+    <div class="pc-spec-row">
+      <span class="pc-spec-label">${_tr(s.label)}</span>
+      <span class="pc-spec-value">${_tr(s.value)}</span>
+    </div>`).join("");
+  return `
+    <div class="pc-section pc-detail">
+      <div class="pc-detail-head">
+        <span class="pc-detail-icon">${pcIcon("pin", 15)}</span>
+        <div>
+          <div class="pc-detail-eyebrow">Chi tiết điểm đến</div>
+          <div class="pc-detail-title">${_tr(d.title)}</div>
+        </div>
+      </div>
+      ${d.category || d.subtitle ? `
+        <div class="pc-tag-row">
+          ${d.subtitle ? `<span class="pc-tag">${_tr(d.subtitle)}</span>` : ""}
+          ${d.category ? `<span class="pc-tag pc-tag-soft">${_tr(d.category)}</span>` : ""}
+        </div>` : ""}
+      ${main ? `
+        <div class="pc-gallery">
+          <div class="pc-gallery-main"><img id="pc-gallery-img" src="${main}" alt=""/></div>
+          ${imgs.length > 1 ? `<div class="pc-gallery-thumbs">${thumbs}</div>` : ""}
+        </div>` : ""}
+      ${d.description ? `<p class="pc-desc">${_tr(d.description)}</p>` : ""}
+      ${specs ? `<div class="pc-spec-list">${specs}</div>` : ""}
+    </div>`;
+}
+
+/* ── Chế độ subdivision / phân khu (ảnh 5/6/7) ──
+   panoId: panorama riêng của phân khu (item.tdvPanoramaId) */
+function pcSubdivisionHTML(s, panoId) {
+  const facts = (s.facts || []).map(f => `
+    <div class="pc-spec-row">
+      <span class="pc-spec-label">${_tr(f.label)}</span>
+      <span class="pc-spec-value">${_tr(f.value)}</span>
+    </div>`).join("");
+  const points = (s.points || []).map((pt, i) => `
+    <div class="pc-point-row">
+      <span class="pc-point-num">${i + 1}</span>
+      <span class="pc-point-text">${_tr(pt)}</span>
+    </div>`).join("");
+  const mediaInner = s.video
+    ? `<button class="pc-video-btn" data-video="${s.video}">
+         <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,.45)"/><path d="M10 8.5v7l5.5-3.5z" fill="#fff"/></svg>
+         <span>Xem video giới thiệu</span>
+       </button>`
+    : "";
+  return `
+    <div class="pc-section pc-subdivision">
+      <div class="pc-detail-eyebrow">Phân khu</div>
+      <div class="pc-sub-title">${_tr(s.name)}</div>
+      ${s.cover ? `
+        <div class="pc-sub-media" ${s.cover ? `style="background-image:url('${s.cover}')"` : ""}>
+          ${mediaInner}
+        </div>` : ""}
+      ${facts ? `
+        <div class="pc-block-title">Thông tin tổng quan</div>
+        <div class="pc-spec-list">${facts}</div>` : ""}
+      ${s.desc ? `<p class="pc-desc">${_tr(s.desc)}</p>` : ""}
+      ${points ? `
+        <div class="pc-block-title">Điểm nhấn nổi bật</div>
+        <div class="pc-point-list">${points}</div>` : ""}
+      <div class="pc-sub-actions">
+        <button class="tb-btn tb-btn-primary tb-btn-block" data-action="open-properties">Xem sản phẩm tại phân khu</button>
+        ${panoId
+          ? `<button class="tb-btn tb-btn-block" data-action="goto-pano" data-pano="${panoId}">Khám phá VR Tour phân khu</button>`
+          : `<button class="tb-btn tb-btn-block" data-action="open-masterplan">Khám phá VR Tour phân khu</button>`}
+      </div>
+    </div>`;
+}
+
+/* Bind tương tác trong vùng pc-dynamic */
+function bindPcDynamic(host) {
+  // Gallery thumbnail switch
+  host.querySelectorAll(".pc-thumb").forEach(t => {
+    t.addEventListener("click", () => {
+      const img = document.getElementById("pc-gallery-img");
+      if (img) img.src = t.dataset.src;
+      host.querySelectorAll(".pc-thumb").forEach(x => x.classList.remove("active"));
+      t.classList.add("active");
+    });
+  });
+  // Quick links / actions
+  host.querySelectorAll("[data-action]").forEach(btn => {
+    btn.addEventListener("click", () => handlePcAction(btn.dataset.action, btn.dataset));
+  });
+  // Video button
+  host.querySelectorAll(".pc-video-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const url = btn.dataset.video;
+      if (!url) return;
+      if (typeof openLightbox === "function" && window.__pcVideoIntoLightbox) return;
+      window.open(url, "_blank", "noopener");
+    });
+  });
+}
+
+/* Điều phối action từ project-card */
+function handlePcAction(action, data) {
+  switch (action) {
+    case "open-modal":
+      document.getElementById("modal-backdrop")?.classList.add("open");
+      break;
+    case "goto-pano":
+      if (data && data.pano) goToPanorama(data.pano);
+      break;
+    case "open-masterplan":
+      if (typeof window.openMasterplan === "function") window.openMasterplan();
+      break;
+    case "open-properties":
+      if (typeof window.openPropertiesModal === "function") window.openPropertiesModal();
+      break;
+    case "open-phankhu": {
+      // Mở np-list tại nhóm Phân khu
+      openGroupKey = "phanKhu";
+      renderNavList();
+      const np = document.getElementById("nav-panel");
+      if (np) { np.classList.remove("collapsed"); document.body.classList.remove("nav-panel-collapsed"); }
+      break;
+    }
+  }
 }
 
 /* ------------------------------------------------------------------
@@ -530,8 +797,13 @@ function renderNavList() {
     group.querySelectorAll(".np-card").forEach(card => {
       card.addEventListener("click", () => {
         currentMenuItemId = card.dataset.id;
+        lockNavSelection(); // khoá đồng bộ tự động — giữ đúng mục vừa chọn
         const panoId = card.dataset.panorama;
-        if (panoId) goToPanorama(panoId);
+        if (panoId) {
+          goToPanorama(panoId); // sẽ tự gọi syncProjectCard()
+        } else {
+          syncProjectCard();    // item không có panorama (vd. phân khu)
+        }
         // Always update active state
         document.querySelectorAll(".np-card").forEach(c => {
           c.classList.toggle("active", c.dataset.id === currentMenuItemId);
@@ -725,7 +997,10 @@ function bindOverlays() {
 
   document.getElementById("btn-location")?.addEventListener("click", () => {
     const iframe = document.getElementById("location-iframe");
-    if (iframe && !iframe.src && DATA.location?.mapSrc) iframe.src = DATA.location.mapSrc;
+    // Dùng getAttribute: iframe.src trả về URL trang hiện tại khi attr rỗng
+    if (iframe && !iframe.getAttribute("src") && DATA.location?.mapSrc) {
+      iframe.src = DATA.location.mapSrc;
+    }
     document.getElementById("location-overlay").classList.add("open");
   });
   document.getElementById("location-close")?.addEventListener("click", () => {
@@ -799,7 +1074,7 @@ function bindControls() {
 
 function bindModal() {
   document.getElementById("open-modal").addEventListener("click", openModal);
-  document.getElementById("open-modal-2").addEventListener("click", openModal);
+  document.getElementById("open-modal-2")?.addEventListener("click", openModal);
   document.getElementById("modal-close").addEventListener("click", closeModal);
   document.getElementById("modal-backdrop").addEventListener("click", (e) => {
     if (e.target.id === "modal-backdrop") closeModal();
@@ -832,19 +1107,10 @@ function bindPanelCollapse() {
       document.body.classList.remove("nav-panel-collapsed");
     }
 
-    // pc-collapse — toggle collapse (desktop); mobile handled by mobilePatch
+    // pc-collapse — toggle collapse (desktop); mobile handled by mobilePatch.
+    // Khi card đã thu gọn, chính nó là nút bấm để mở lại — không cần nút riêng.
     if (!isMob && e.target.closest("#pc-collapse")) {
       pc.classList.toggle("collapsed");
-      // Show/hide the pc-expand button
-      const pcExp = document.getElementById("pc-expand");
-      if (pcExp) pcExp.classList.toggle("visible", pc.classList.contains("collapsed"));
-    }
-
-    // pc-expand (desktop only)
-    if (!isMob && e.target.closest("#pc-expand")) {
-      pc.classList.remove("collapsed");
-      const pcExp = document.getElementById("pc-expand");
-      if (pcExp) pcExp.classList.remove("visible");
     }
   });
 }
@@ -922,6 +1188,7 @@ function bindLanguage() {
 function rebuildDynamic() {
   if (!DATA) return;
   buildProjectCard();
+  syncProjectCard(); // giữ đúng chế độ card sau khi đổi ngôn ngữ
   if (DATA.project.promoDeadline) startCountdown(DATA.project.promoDeadline);
   buildAmenities();
   buildTimelineAndUnits();
@@ -1269,7 +1536,11 @@ function buildLegalPanel() {
    ============================================ */
 function buildLocationPanel() {
   if (!DATA.location) return;
-  // Set iframe src lazily on open
+  // Nạp bản đồ ngay từ đầu — tránh lỗi timing/lazy khi mở overlay
+  const iframe = document.getElementById('location-iframe');
+  if (iframe && DATA.location.mapSrc && !iframe.getAttribute('src')) {
+    iframe.setAttribute('src', DATA.location.mapSrc);
+  }
   renderLocationList('');
 
   document.getElementById('location-filter')?.querySelectorAll('.loc-cat-btn').forEach(btn => {

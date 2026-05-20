@@ -29,9 +29,9 @@
    TOP BAR — compact + hide top-cta
    ════════════════════════════════════════════════ */
 @media (max-width: 768px) {
-  /* Override style.css @820px display:none */
+  /* Override style.css @820px display:none — giữ flex column để .pc-dynamic cuộn được */
   .project-card {
-    display: block !important;
+    display: flex !important;
   }
 }
 
@@ -65,7 +65,7 @@
     z-index: 31;
     transition: border-color 0.18s, background 0.18s, color 0.18s;
   }
-  #mobile-burger:hover, #mobile-burger.open {
+  #mobile-burger.open {
     border-color: var(--accent);
     background: var(--accent-soft);
     color: var(--accent);
@@ -225,9 +225,10 @@
     /* Expanded dimensions */
     width: calc(100vw - 28px);
     max-width: none;
-    height: 260px;
-    padding: 12px 14px;
-    border-radius: calc(var(--pill-h) / 2);
+    height: 70vh;
+    max-height: calc(100vh - var(--pc-fab-top) - 16px);
+    padding: 0;
+    border-radius: 16px;
     overflow: hidden;
     /* Dark glass — consistent with site theme */
     background: var(--panel-solid);
@@ -261,17 +262,11 @@
 
   /* Children: fade-in slow (delay 0.45s), fade-out fast (no delay) */
   .project-card .pc-head,
-  .project-card .pc-availability,
-  .project-card .pc-price,
-  .project-card .pc-stats,
-  .project-card .pc-actions {
+  .project-card .pc-dynamic {
     transition: opacity 0.3s ease 0.45s;
   }
   .project-card.collapsed .pc-head,
-  .project-card.collapsed .pc-availability,
-  .project-card.collapsed .pc-price,
-  .project-card.collapsed .pc-stats,
-  .project-card.collapsed .pc-actions {
+  .project-card.collapsed .pc-dynamic {
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.15s ease;
@@ -279,8 +274,15 @@
 
   /* Colour overrides — dark theme consistent with site */
   .project-card .pc-head {
-    padding: 0 0 10px;
+    padding: 12px 14px 10px;
     border-bottom: 1px solid var(--hairline);
+  }
+  /* Cho phép cuộn nội dung project-card trên mobile */
+  .project-card .pc-dynamic {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
   .project-card .pc-head h3 { font-size: 16px; color: var(--fg); margin-bottom: 2px; }
   .project-card .loc { color: var(--muted); font-size: 10.5px; }
@@ -403,6 +405,14 @@
     </button>
 
     <div class="top-cta">
+      <button class="tb-btn" id="btn-masterplan" title="Quy hoạch tổng thể">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 3L3 6v15l6-3 6 3 6-3V3l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/></svg>
+        <span>Masterplan</span>
+      </button>
+      <button class="tb-btn" id="btn-properties" title="Bất động sản">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11l9-8 9 8M5 9v11h14V9"/></svg>
+        <span>Bất động sản</span>
+      </button>
       <button class="tb-btn" id="btn-amenities-detail" title="Tiện ích dự án">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
         <span>Tiện ích</span>
@@ -414,10 +424,6 @@
       <button class="tb-btn" id="btn-location" title="Vị trí dự án">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 00-8 8c0 5.25 8 14 8 14s8-8.75 8-14a8 8 0 00-8-8z"/></svg>
         <span>Vị trí</span>
-      </button>
-      <button class="tb-btn" id="btn-loan" title="Máy tính vay">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M8 8h8M8 12h5M8 16h3"/></svg>
-        <span>Tính vay</span>
       </button>
       <button class="tb-btn" id="btn-timeline" title="Tiến độ dự án">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20V4M5 12l7-8 7 8"/><path d="M5 20h14"/></svg>
@@ -502,46 +508,9 @@
       <div class="loc" id="pc-loc"></div>
     </div>
 
-    <!-- Badge căn còn lại + Countdown -->
-    <div class="pc-availability" id="pc-availability">
-      <div class="pc-avail-badge">
-        <span class="pc-avail-dot"></span>
-        <span id="pc-units-left">49</span> căn còn lại
-      </div>
-      <div class="pc-countdown" id="pc-countdown">
-        <span class="pc-cd-label">Ưu đãi còn</span>
-        <span class="pc-cd-time" id="pc-cd-time">--:--:--</span>
-      </div>
-    </div>
-
-    <div class="pc-price">
-      <div class="label" data-i18n="ui.priceFrom">Giá từ</div>
-      <div class="amount" id="pc-price">4.9 tỷ</div>
-    </div>
-
-    <div class="pc-stats" id="pc-stats"></div>
-
-    <div class="pc-actions">
-      <button class="tb-btn tb-btn-primary tb-btn-block" id="open-modal-2" data-i18n="ui.viewPricePromo">Xem bảng giá &amp; ưu đãi</button>
-      <!-- Hotline + Zalo row -->
-      <div class="pc-contact-row">
-        <a class="pc-contact-btn pc-hotline" id="pc-hotline-btn" href="tel:0901234567">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.8a19.79 19.79 0 01-3.07-8.63A2 2 0 012 0h3a2 2 0 012 1.72c.085.598.17 1.19.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.598.17 1.19.25 2.81.7A2 2 0 0122 14h0v2.92z"/></svg>
-          <span id="pc-hotline-num">0901 234 567</span>
-        </a>
-        <a class="pc-contact-btn pc-zalo" id="pc-zalo-btn" href="https://zalo.me/0901234567" target="_blank" rel="noopener">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><text y="18" font-size="14" font-weight="bold">Z</text></svg>
-          Zalo
-        </a>
-      </div>
-      <button class="tb-btn tb-btn-block" data-i18n="ui.downloadBrochure">Tải brochure PDF</button>
-    </div>
+    <!-- Nội dung động: overview / detail / subdivision (#3, #7) -->
+    <div class="pc-dynamic" id="pc-dynamic"></div>
   </aside>
-
-  <!-- Expand button — desktop only, shown when project-card is collapsed -->
-  <button id="pc-expand" data-i18n-title="ui.expand" data-i18n-aria="ui.expand" title="Mở rộng thông tin dự án" aria-label="Mở rộng thông tin dự án">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-  </button>
 
   <!-- INFO FAB — must be sibling AFTER #project-card for CSS ~ selector -->
   <button id="pc-info-fab" title="Thông tin dự án" aria-label="Mở thông tin dự án">
@@ -681,81 +650,9 @@
       </div>
       <div class="location-split">
         <div class="location-map">
-          <iframe id="location-iframe" src="" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+          <iframe id="location-iframe" src="" width="100%" height="100%" style="border:0;" allowfullscreen=""></iframe>
         </div>
         <div class="location-list" id="location-list"></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ============ LOAN CALCULATOR OVERLAY ============ -->
-<div class="adv-overlay" id="loan-overlay">
-  <div class="adv-frame loan-frame">
-    <button class="adv-close" id="loan-close">×</button>
-    <div class="adv-head">
-      <div class="adv-eyebrow">Công cụ tài chính</div>
-      <h2>Máy tính khoản vay</h2>
-    </div>
-    <div class="loan-body">
-      <!-- LEFT: inputs -->
-      <div class="loan-inputs">
-        <div class="loan-field">
-          <label>Giá trị căn hộ</label>
-          <div class="loan-input-row">
-            <input type="number" id="loan-price" value="5.4" min="1" max="50" step="0.1"/>
-            <span class="loan-unit">tỷ VND</span>
-          </div>
-          <div class="loan-quick-btns" id="loan-quick-prices"></div>
-        </div>
-        <div class="loan-field">
-          <label>Vốn tự có: <strong id="loan-equity-pct-label">30%</strong> = <span id="loan-equity-val">1.62 tỷ</span></label>
-          <input type="range" id="loan-equity" min="10" max="70" value="30" step="5" class="loan-slider"/>
-          <div class="loan-slider-ticks"><span>10%</span><span>40%</span><span>70%</span></div>
-        </div>
-        <div class="loan-field">
-          <label>Thời hạn vay</label>
-          <div class="loan-term-btns" id="loan-term-btns">
-            <button class="loan-term-btn" data-val="10">10 năm</button>
-            <button class="loan-term-btn" data-val="15">15 năm</button>
-            <button class="loan-term-btn active" data-val="20">20 năm</button>
-            <button class="loan-term-btn" data-val="25">25 năm</button>
-            <button class="loan-term-btn" data-val="30">30 năm</button>
-          </div>
-        </div>
-        <div class="loan-field">
-          <label>Ngân hàng &amp; lãi suất</label>
-          <div class="loan-bank-btns" id="loan-bank-btns"></div>
-        </div>
-        <button class="loan-cta-btn" id="loan-open-form">Đăng ký tư vấn vay →</button>
-      </div>
-      <!-- RIGHT: output -->
-      <div class="loan-result" id="loan-result">
-        <div class="loan-res-row main">
-          <div class="loan-res-label">Trả hàng tháng</div>
-          <div class="loan-res-val" id="loan-monthly">—</div>
-        </div>
-        <div class="loan-divider"></div>
-        <div class="loan-res-row">
-          <div class="loan-res-label">Số tiền vay</div>
-          <div class="loan-res-num" id="loan-amount">—</div>
-        </div>
-        <div class="loan-res-row">
-          <div class="loan-res-label">Tổng lãi phải trả</div>
-          <div class="loan-res-num" id="loan-interest">—</div>
-        </div>
-        <div class="loan-res-row">
-          <div class="loan-res-label">Tổng số tiền trả</div>
-          <div class="loan-res-num" id="loan-total">—</div>
-        </div>
-        <div class="loan-divider"></div>
-        <!-- Amortization mini bar chart -->
-        <div class="loan-chart-label">Cơ cấu thanh toán theo năm</div>
-        <div class="loan-chart" id="loan-chart"></div>
-        <div class="loan-chart-legend">
-          <span class="lcl-principal"></span>Gốc
-          <span class="lcl-interest"></span>Lãi
-        </div>
       </div>
     </div>
   </div>
@@ -880,6 +777,39 @@
     </div>
     <div class="tl-overview" id="tl-overview"></div>
     <div class="tl-track" id="tl-track"></div>
+  </div>
+</div>
+
+<!-- ============ MASTERPLAN OVERLAY (#4 / #6) ============ -->
+<div class="mp-overlay" id="masterplan-overlay">
+  <!-- Thanh danh mục trên cùng -->
+  <div class="mp-topbar">
+    <div class="mp-cats" id="mp-cats"></div>
+    <button class="mp-close" id="mp-close" title="Đóng">×</button>
+  </div>
+  <!-- Khung bản đồ + marker -->
+  <div class="mp-stage" id="mp-stage">
+    <img class="mp-image" id="mp-image" src="" alt="Masterplan" />
+    <div class="mp-markers" id="mp-markers"></div>
+    <!-- Tooltip thông tin marker -->
+    <div class="mp-tooltip" id="mp-tooltip"></div>
+  </div>
+  <!-- Intro panel góc phải (chứa nút Lọc) -->
+  <div class="mp-intro" id="mp-intro"></div>
+</div>
+
+<!-- ============ MASTERPLAN FILTER PANEL (ảnh 4) ============ -->
+<div class="mpf-backdrop" id="mpf-backdrop">
+  <div class="mpf-panel">
+    <div class="mpf-head">
+      <h3>Bộ lọc Masterplan</h3>
+      <button class="mpf-close" id="mpf-close">×</button>
+    </div>
+    <div class="mpf-body" id="mpf-body"></div>
+    <div class="mpf-footer">
+      <button class="mpf-reset" id="mpf-reset">Đặt lại</button>
+      <button class="mpf-apply" id="mpf-apply">Áp dụng</button>
+    </div>
   </div>
 </div>
 
@@ -1073,9 +1003,80 @@
   </div>
 </div>
 
+<!-- ============ BẤT ĐỘNG SẢN — DANH SÁCH (#8) ============ -->
+<div class="modal-backdrop" id="props-backdrop">
+  <div class="props-modal">
+    <button class="modal-close" id="props-close">×</button>
+    <div class="props-head">
+      <div>
+        <div class="props-eyebrow">Sản phẩm dự án</div>
+        <h2>Bất động sản đang mở bán</h2>
+      </div>
+      <div class="props-head-tools">
+        <div class="props-search">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-5-5"/></svg>
+          <input type="text" id="props-search-input" placeholder="Tìm theo mã căn, tên sản phẩm…" />
+        </div>
+        <!-- Nút Lọc — chỉ hiện trên mobile -->
+        <button class="props-filter-toggle" id="props-filter-toggle">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h18M6 12h12M10 19h4"/></svg>
+          <span>Lọc</span>
+        </button>
+      </div>
+    </div>
+    <div class="props-body">
+      <div class="props-grid-wrap">
+        <div class="props-count" id="props-count"></div>
+        <div class="props-grid" id="props-grid"></div>
+      </div>
+      <aside class="props-filter" id="props-filter">
+        <div class="props-filter-head">
+          <div class="props-filter-title">Bộ lọc</div>
+          <button class="props-filter-close" id="props-filter-close" aria-label="Đóng bộ lọc">×</button>
+        </div>
+        <div id="props-filter-body"></div>
+        <button class="props-filter-reset" id="props-filter-reset">Xóa bộ lọc</button>
+      </aside>
+      <!-- Nền mờ cho bộ lọc bottom-sheet (mobile) -->
+      <div class="props-filter-backdrop" id="props-filter-backdrop"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ BẤT ĐỘNG SẢN — CHI TIẾT (#9 / #10) ============ -->
+<div class="modal-backdrop" id="prop-detail-backdrop">
+  <div class="pd-modal">
+    <button class="modal-close" id="pd-close">×</button>
+    <button class="pd-back" id="pd-back">‹ Danh sách</button>
+    <div class="pd-body" id="pd-body"></div>
+  </div>
+</div>
+
+<!-- ============ MẶT BẰNG VIEWER (#10 — ảnh 11) ============ -->
+<div class="fpv-overlay" id="fpv-overlay">
+  <div class="fpv-top">
+    <span class="fpv-title" id="fpv-title">Mặt bằng</span>
+    <button class="fpv-close" id="fpv-close">×</button>
+  </div>
+  <div class="fpv-stage">
+    <div class="fpv-thumbs" id="fpv-thumbs"></div>
+    <div class="fpv-main" id="fpv-main">
+      <img id="fpv-img" src="" alt="Mặt bằng" />
+      <div class="fpv-zoom-ctrls">
+        <button class="fpv-zoom-btn" id="fpv-zoom-in" aria-label="Phóng to">+</button>
+        <button class="fpv-zoom-btn" id="fpv-zoom-out" aria-label="Thu nhỏ">−</button>
+        <button class="fpv-zoom-btn" id="fpv-zoom-reset" aria-label="Đặt lại" title="Đặt lại">⤢</button>
+      </div>
+      <div class="fpv-hint" id="fpv-hint">Cuộn để phóng to · Kéo để di chuyển</div>
+    </div>
+  </div>
+</div>
+
 <script src="js/i18n.js"></script>
 <script src="js/ai-panel.js"></script>
 <script src="js/main.js"></script>
+<script src="js/masterplan.js"></script>
+<script src="js/properties.js"></script>
 <script>window.AI_BACKEND_WS = 'wss://aiagent-bds.gomenu.vn/ws';</script>
 <script src="js/gemini-live.js"></script>
 <script src="js/vr-bridge.js"></script>
@@ -1097,6 +1098,16 @@
       </button>
     </div>
     <div class="mob-drawer-row">
+      <button class="mob-btn" id="mob-masterplan-btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 3L3 6v15l6-3 6 3 6-3V3l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/></svg>
+        <span>Masterplan</span>
+      </button>
+      <button class="mob-btn" id="mob-properties-btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11l9-8 9 8M5 9v11h14V9"/></svg>
+        <span>Bất động sản</span>
+      </button>
+    </div>
+    <div class="mob-drawer-row">
       <button class="mob-btn" id="mob-amenities-btn">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
         <span>Tiện ích</span>
@@ -1110,10 +1121,6 @@
       <button class="mob-btn" id="mob-location-btn">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 00-8 8c0 5.25 8 14 8 14s8-8.75 8-14a8 8 0 00-8-8z"/></svg>
         <span>Vị trí</span>
-      </button>
-      <button class="mob-btn" id="mob-loan-btn">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M8 8h8M8 12h5M8 16h3"/></svg>
-        <span>Tính vay</span>
       </button>
     </div>
     <div class="mob-drawer-row">
@@ -1172,9 +1179,11 @@
   function $d(id) { return document.getElementById(id); }
   $d('mob-book-btn')      && $d('mob-book-btn').addEventListener('click',      function() { closeDrawer(); $d('modal-backdrop') && $d('modal-backdrop').classList.add('open'); });
   $d('mob-gallery-btn')   && $d('mob-gallery-btn').addEventListener('click',   function() { closeDrawer(); $d('gallery-overlay') && $d('gallery-overlay').classList.add('open'); });
+  $d('mob-masterplan-btn') && $d('mob-masterplan-btn').addEventListener('click', function() { closeDrawer(); if(window.openMasterplan) window.openMasterplan(); });
+  $d('mob-properties-btn') && $d('mob-properties-btn').addEventListener('click', function() { closeDrawer(); if(window.openPropertiesModal) window.openPropertiesModal(); });
   $d('mob-amenities-btn') && $d('mob-amenities-btn').addEventListener('click', function() { closeDrawer(); $d('amenities-detail-overlay') && $d('amenities-detail-overlay').classList.add('open'); });
   $d('mob-legal-btn')     && $d('mob-legal-btn').addEventListener('click',     function() { closeDrawer(); $d('legal-overlay') && $d('legal-overlay').classList.add('open'); });
-  $d('mob-location-btn')  && $d('mob-location-btn').addEventListener('click',  function() { closeDrawer(); var iframe=$d('location-iframe'); if(iframe&&!iframe.src&&window.DATA&&DATA.location) iframe.src=DATA.location.mapSrc; $d('location-overlay') && $d('location-overlay').classList.add('open'); });
+  $d('mob-location-btn')  && $d('mob-location-btn').addEventListener('click',  function() { closeDrawer(); var iframe=$d('location-iframe'); if(iframe&&!iframe.getAttribute('src')&&window.DATA&&DATA.location&&DATA.location.mapSrc) iframe.src=DATA.location.mapSrc; $d('location-overlay') && $d('location-overlay').classList.add('open'); });
   $d('mob-loan-btn')      && $d('mob-loan-btn').addEventListener('click',      function() { closeDrawer(); $d('loan-overlay') && $d('loan-overlay').classList.add('open'); if(window.openLoanWithPrice) openLoanWithPrice(5.4); });
   $d('mob-timeline-btn')  && $d('mob-timeline-btn').addEventListener('click',  function() { closeDrawer(); $d('timeline-overlay') && $d('timeline-overlay').classList.add('open'); });
 

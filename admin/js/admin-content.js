@@ -1323,3 +1323,153 @@ function resourceClear(key) {
     saveData('Đã xoá liên kết'); go('resources');
   });
 }
+
+/* ============================================================
+   ADMIN — MASTERPLAN (#4 / #6)
+   Quản lý ảnh quy hoạch, danh mục, marker và schema bộ lọc.
+   ============================================================ */
+function renderMasterplanPage(el) {
+  const mp = S.data.masterplan || (S.data.masterplan = {
+    image: "", intro: "", categories: [], markers: [], filterSchema: {}
+  });
+  const markers = mp.markers || [];
+  const cats = mp.categories || [];
+
+  el.innerHTML = pageHeader(["Dashboard", "Nội Dung VR"], "Masterplan") + `
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header">
+        <span class="card-title">${ico("image", 16)} Ảnh quy hoạch & giới thiệu</span>
+      </div>
+      <div class="card-body">
+        <div class="form-group">
+          <label class="form-label">Đường dẫn ảnh masterplan</label>
+          <input class="form-control" id="mp-image" value="${esc(mp.image || "")}" placeholder="img/TBM/...jpg">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mô tả giới thiệu</label>
+          <textarea class="form-control" id="mp-intro" rows="3" placeholder="Tổng quan quy hoạch...">${esc(mp.intro || "")}</textarea>
+        </div>
+        ${mp.image ? `<img src="../${esc(mp.image)}" style="width:100%;max-height:220px;object-fit:cover;border-radius:8px;margin-top:6px" alt="">` : ""}
+        <button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="saveMasterplanInfo()">${ico("save", 12)} Lưu thông tin</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header">
+        <span class="card-title">${ico("mappin", 16)} Marker trên bản đồ</span>
+        <button class="btn btn-secondary btn-sm" onclick="mpMarkerEdit(-1)">+ Thêm marker</button>
+      </div>
+      <div class="card-body">
+        ${markers.length ? markers.map((m, i) => `
+          <div style="display:flex;align-items:center;gap:12px;padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px">
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:600;font-size:13px;color:var(--text)">${esc(m.label || "—")}</div>
+              <div style="font-size:11px;color:var(--muted);font-family:monospace">cat:${esc(m.cat || "—")} · x:${m.x} y:${m.y}${m.menuItemId ? " · → " + esc(m.menuItemId) : ""}</div>
+            </div>
+            <button class="act-btn" onclick="mpMarkerEdit(${i})">${ico("edit")}</button>
+            <button class="act-btn danger" onclick="mpMarkerDelete(${i})">${ico("trash")}</button>
+          </div>`).join("") : `<div class="c-muted" style="font-size:13px">Chưa có marker. Nhấn "+ Thêm marker".</div>`}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">${ico("settings", 16)} Cấu hình bộ lọc</span>
+      </div>
+      <div class="card-body">
+        <p class="c-muted" style="font-size:13px;margin-bottom:10px">
+          Bộ lọc Masterplan ở trang VR đọc cấu hình này. Chỉnh sửa trực tiếp dạng JSON.
+        </p>
+        <textarea class="form-control mono" id="mp-schema" rows="14" style="font-size:12px">${esc(JSON.stringify(mp.filterSchema || {}, null, 2))}</textarea>
+        <button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="saveMasterplanSchema()">${ico("save", 12)} Lưu bộ lọc</button>
+      </div>
+    </div>
+  `;
+}
+
+function saveMasterplanInfo() {
+  const mp = S.data.masterplan;
+  mp.image = document.getElementById("mp-image").value.trim();
+  mp.intro = document.getElementById("mp-intro").value.trim();
+  saveData("Đã lưu thông tin Masterplan");
+  go("masterplan");
+}
+
+function saveMasterplanSchema() {
+  const raw = document.getElementById("mp-schema").value;
+  try {
+    S.data.masterplan.filterSchema = JSON.parse(raw);
+  } catch (e) {
+    toast("JSON không hợp lệ: " + e.message, "warn");
+    return;
+  }
+  saveData("Đã lưu cấu hình bộ lọc");
+  go("masterplan");
+}
+
+function mpMarkerEdit(idx) {
+  const mp = S.data.masterplan;
+  const markers = mp.markers || (mp.markers = []);
+  const m = idx >= 0 ? markers[idx] : { id: "m-" + Date.now().toString(36), label: "", cat: "phankhu", x: 50, y: 50, desc: "", menuItemId: "" };
+  const cats = mp.categories || [];
+  const catOpts = (cats.length ? cats : [{ id: "phankhu", label: "Phân khu" }])
+    .map((c) => `<option value="${esc(c.id)}" ${c.id === m.cat ? "selected" : ""}>${esc(c.label)}</option>`)
+    .join("");
+  // Danh sách menu item phân khu để liên kết
+  const pkItems = (S.data.menu && S.data.menu.phanKhu) || [];
+  const pkOpts = '<option value="">— Không liên kết —</option>' +
+    pkItems.map((it) => `<option value="${esc(it.id)}" ${it.id === m.menuItemId ? "selected" : ""}>${esc(it.label)}</option>`).join("");
+  showPanel((idx >= 0 ? "Sửa" : "Thêm") + " marker", `
+    <div class="form-group">
+      <label class="form-label">Tên marker *</label>
+      <input class="form-control" id="mk-label" value="${esc(m.label || "")}">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Mô tả ngắn</label>
+      <input class="form-control" id="mk-desc" value="${esc(m.desc || "")}">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Danh mục</label>
+      <select class="form-control" id="mk-cat">${catOpts}</select>
+    </div>
+    <div style="display:flex;gap:10px">
+      <div class="form-group" style="flex:1">
+        <label class="form-label">Vị trí X (%)</label>
+        <input class="form-control" id="mk-x" type="number" min="0" max="100" value="${m.x}">
+      </div>
+      <div class="form-group" style="flex:1">
+        <label class="form-label">Vị trí Y (%)</label>
+        <input class="form-control" id="mk-y" type="number" min="0" max="100" value="${m.y}">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Liên kết tới phân khu (VR Tour)</label>
+      <select class="form-control" id="mk-item">${pkOpts}</select>
+    </div>
+  `, () => {
+    const label = document.getElementById("mk-label").value.trim();
+    if (!label) { toast("Nhập tên marker", "warn"); return false; }
+    const data = {
+      id: m.id,
+      label,
+      desc: document.getElementById("mk-desc").value.trim(),
+      cat: document.getElementById("mk-cat").value,
+      x: parseFloat(document.getElementById("mk-x").value) || 0,
+      y: parseFloat(document.getElementById("mk-y").value) || 0,
+      menuItemId: document.getElementById("mk-item").value || undefined,
+    };
+    if (idx >= 0) markers[idx] = data;
+    else markers.push(data);
+    saveData("Đã lưu marker");
+    closePanel();
+    go("masterplan");
+  });
+}
+
+function mpMarkerDelete(idx) {
+  confirmDel("Xoá marker này?", "", () => {
+    S.data.masterplan.markers.splice(idx, 1);
+    saveData("Đã xoá marker");
+    go("masterplan");
+  });
+}
