@@ -2976,6 +2976,7 @@ body.ai-panel-open .bb-float { opacity: 0.95; }
 .legal-check-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; color: var(--fg); }
 .legal-check-detail { font-size: 11px; color: var(--muted); }
 
+.legal-testi {
   background: rgba(245,241,232,0.03);
   border: 1px solid var(--hairline);
   border-radius: 12px;
