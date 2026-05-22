@@ -45,6 +45,7 @@ const ICO = {
   harddrive:  '<line x1="22" x2="2" y1="12" y2="12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/><line x1="6" x2="6.01" y1="16" y2="16"/><line x1="10" x2="10.01" y1="16" y2="16"/>',
   arrowleft:  '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>',
   arrowup:    '<path d="m18 15-6-6-6 6"/>',
+  arrowdown:  '<path d="m6 9 6 6 6-6"/>',
   arrowupdown:'<path d="m21 16-4 4-4-4"/><path d="M17 20V4"/><path d="m3 8 4-4 4 4"/><path d="M7 4v16"/>',
   grip:       '<circle cx="9" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="9" cy="19" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="5" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="19" r="1" fill="currentColor" stroke="none"/>',
 };
@@ -63,17 +64,23 @@ const S = {
   weekStart: null,
   analyticsTab: 'views',
   settingsTab: 'project',
-  i18nLang: 'VI',
-  i18nLangs: ['VI'],
+  i18nLang: 'vi',  // mã ngôn ngữ đang xem ở trang i18n (khớp languages.code)
   themeUnsaved: false,
   charts: {},
   dragSrc: null,
+  users: [],           // danh sách tài khoản (tab Cài đặt > Người dùng)
+  usersLoaded: false,
+  usersError: null,
 };
 
 // ——— GROUP META ———————————————————————————————
+// Nhóm gốc của np-list (cấp dự án)
 const GROUP_META = {
   tongQuan:        { label: 'Tổng Quan',           icon: 'building' },
   phanKhu:         { label: 'Phân Khu',            icon: 'mappin' },
+};
+// Nhóm con bên trong mỗi phân khu
+const CHILD_GROUP_META = {
   tienIchNoiKhu:   { label: 'Tiện Ích Nội Khu',    icon: 'leaf' },
   tienIchNgoaiKhu: { label: 'Tiện Ích Ngoại Khu',  icon: 'mappin' },
   matBangTang:     { label: 'Mặt Bằng / Tòa',      icon: 'hardhat' },
@@ -97,24 +104,53 @@ async function loadData() {
       S.data = getFallbackData();
     }
   }
-  S.leads = getMockLeads();
-  S.bookings = getMockBookings();
+  // CRM: leads + lịch hẹn nạp từ API thật (xem loadCRM). Khởi tạo rỗng,
+  // renderLeads sẽ gọi loadCRM() nếu chưa nạp.
+  S.leads = [];
+  S.bookings = [];
+  S.crmLoaded = false;
   if (!S.data.menu) S.data.menu = {};
+  // Chỉ đảm bảo 2 nhóm gốc tồn tại; 4 nhóm con nằm trong children mỗi phân khu
   Object.keys(GROUP_META).forEach(k => { if (!S.data.menu[k]) S.data.menu[k] = []; });
-  // Đảm bảo các nhánh nội dung tồn tại để không lỗi khi render lần đầu
+  // Mỗi phân khu phải có children với 4 nhóm con
+  (S.data.menu.phanKhu || []).forEach(pk => {
+    pk.children ??= {};
+    Object.keys(CHILD_GROUP_META).forEach(ck => { pk.children[ck] ??= []; });
+  });
+  // Đảm bảo các nhánh nội dung tồn tại để không lỗi khi render lần đầu.
+  // timeline/legal/location/resources giờ theo phân khu: {__all, <pk>}.
   S.data.gallery        ??= [];
   S.data.siteMap        ??= { center: [16.2130, 108.1200], zoom: 14, points: [] };
-  S.data.timeline       ??= [];
-  S.data.legal          ??= { documents: [], banks: [], developerStats: [], testimonials: [] };
-  S.data.location       ??= { lat: 0, lng: 0, mapSrc: '', nearby: [] };
-  S.data.amenitiesDetail??= { noiKhu: [], skyAmenity: [], dichVu: [], haTang: [] };
-  S.data.resources      ??= {};
+  S.data.timeline       ??= { __all: [] };
+  S.data.legal          ??= { __all: { documents: [], developerStats: [], testimonials: [] } };
+  S.data.location       ??= { __all: { lat: 0, lng: 0, mapSrc: '', nearby: [] } };
+  S.data.resources      ??= { __all: {} };
   S.data.properties     ??= [];
   if (!S.data.project)  S.data.project = {};
-  S.data.project.amenities ??= [];
   migrateUnitsToProperties();
   // Pre-load panorama list for nav panel editor
   await fetchPanoramas();
+  // Nạp theme đã lưu từ DB
+  await loadTheme();
+}
+
+// ——— THEME API ———————————————————————————————
+// Đổi nếu backend deploy ở domain khác.
+const API_BASE = 'http://localhost:3000';
+
+async function loadTheme() {
+  try {
+    const r = await fetch(API_BASE + '/api/theme', { cache: 'no-store' });
+    if (!r.ok) return;
+    const t = await r.json();
+    if (t && t.colors && t.colors.colors) {
+      // cột custom_tokens_json lưu { colors:{...}, preset:'...' }
+      Object.assign(TC.colors, t.colors.colors);
+      if (t.colors.preset) TC.currentPreset = t.colors.preset;
+    }
+  } catch {
+    /* API tắt — dùng màu mặc định, không chặn admin */
+  }
 }
 
 /* properties là nguồn dữ liệu Bất Động Sản duy nhất.
@@ -124,12 +160,27 @@ function migrateUnitsToProperties() {
   S.data.floorplan.units = S.data.properties;
 }
 
-function saveData(msg = 'Đã lưu') {
+async function saveData(msg = 'Đã lưu') {
+  // 1) Ghi localStorage ngay — bản nháp offline, không mất khi mất mạng.
   try {
     localStorage.setItem(LS_KEY, JSON.stringify(S.data));
-    toast(msg, 'ok');
   } catch (e) {
-    toast('Lỗi lưu: ' + e.message, 'err');
+    toast('Lỗi lưu cục bộ: ' + e.message, 'err');
+    return;
+  }
+  // 2) Đồng bộ lên DB để trang VR (đọc từ /api/project) thấy thay đổi.
+  try {
+    const r = await fetch(API_BASE + '/api/project', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(S.data),
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    toast(msg + ' — đã đồng bộ CSDL', 'ok');
+  } catch (e) {
+    // Không chặn admin: dữ liệu vẫn còn ở localStorage, chỉ cảnh báo.
+    console.warn('Không đồng bộ được lên CSDL:', e);
+    toast(msg + ' (chỉ cục bộ — chưa lên CSDL)', 'warn');
   }
 }
 
@@ -179,25 +230,87 @@ function getFallbackData() {
   };
 }
 
-function getMockLeads() {
-  return [
-    { id:1, name:'Nguyễn Văn An',  phone:'0901234567', email:'an@gmail.com',   zalo:'0901234567', unitType:'3PN',        budget:'8–12 tỷ', purpose:'Ở thực',  timing:'Trong 3 tháng', source:'VR Web',       status:'new',       createdAt:'2026-05-15T08:30', assignee:'Sales A', notes:'' },
-    { id:2, name:'Trần Thị Bích',  phone:'0912345678', email:'bich@gmail.com', zalo:'',           unitType:'2PN',        budget:'5–8 tỷ',  purpose:'Đầu tư',  timing:'Trong 6 tháng', source:'Zalo',         status:'called',    createdAt:'2026-05-14T14:00', assignee:'Sales B', notes:'Đã gọi lần 1' },
-    { id:3, name:'Lê Minh Cường',  phone:'0923456789', email:'',              zalo:'0923456789', unitType:'Duplex 3PN', budget:'> 12 tỷ', purpose:'Ở thực',  timing:'Trong 1 tháng', source:'Giới thiệu',  status:'interested', createdAt:'2026-05-13T10:15', assignee:'Sales A', notes:'Khách VIP' },
-    { id:4, name:'Phạm Thu Dung',  phone:'0934567890', email:'dung@mail.vn',  zalo:'0934567890', unitType:'3PN',        budget:'8–12 tỷ', purpose:'Cho thuê', timing:'Hơn 6 tháng', source:'Call',         status:'closed',    createdAt:'2026-05-12T16:00', assignee:'Sales C', notes:'Đã chốt căn A-3BR-104-35' },
-    { id:5, name:'Hoàng Đức Em',   phone:'0945678901', email:'em@mail.com',   zalo:'',           unitType:'2PN',        budget:'< 5 tỷ',  purpose:'Đầu tư',  timing:'Hơn 6 tháng', source:'VR Web',       status:'stopped',   createdAt:'2026-05-11T09:00', assignee:'Sales B', notes:'Không phù hợp ngân sách' },
-    { id:6, name:'Vũ Thị Giang',   phone:'0956789012', email:'giang@vn.vn',  zalo:'0956789012', unitType:'3PN',        budget:'8–12 tỷ', purpose:'Ở thực',  timing:'Trong 3 tháng', source:'VR Web',       status:'new',       createdAt:'2026-05-15T10:00', assignee:'',       notes:'' },
-    { id:7, name:'Đỗ Minh Khang',  phone:'0967890123', email:'',              zalo:'0967890123', unitType:'2PN',        budget:'5–8 tỷ',  purpose:'Ở thực',  timing:'Trong 3 tháng', source:'Walk-in',     status:'interested', createdAt:'2026-05-14T15:30', assignee:'Sales A', notes:'Khách đến nhà mẫu thứ 7', manual:true },
-    { id:8, name:'Bùi Thanh Hà',   phone:'0978901234', email:'ha@fb.vn',     zalo:'',           unitType:'3PN',        budget:'8–12 tỷ', purpose:'Đầu tư',  timing:'Trong 6 tháng', source:'Facebook',    status:'called',    createdAt:'2026-05-13T09:00', assignee:'Sales C', notes:'Inbox từ Fanpage', manual:true },
-  ];
+// ——— CRM DATA ————————————————————————————————
+// Leads + lịch hẹn nạp từ API thật: GET /api/leads, GET /api/appointments.
+// Mọi thao tác thêm/sửa/xoá đều gọi API rồi nạp lại (lưu vĩnh viễn vào DB).
+async function loadCRM(force) {
+  if (S.crmLoaded && !force) return true;
+  try {
+    const [lr, br] = await Promise.all([
+      fetch(API_BASE + '/api/leads', { cache: 'no-store' }),
+      fetch(API_BASE + '/api/appointments', { cache: 'no-store' }),
+    ]);
+    if (!lr.ok || !br.ok) throw new Error('HTTP ' + lr.status + '/' + br.status);
+    S.leads = await lr.json();
+    S.bookings = await br.json();
+    S.crmLoaded = true;
+    return true;
+  } catch (e) {
+    console.warn('Không tải được CRM:', e.message);
+    S.crmError = e.message;
+    return false;
+  }
 }
 
-function getMockBookings() {
-  return [
-    { id:1, leadId:1, name:'Nguyễn Văn An',  phone:'0901234567', date:'2026-05-18', time:'10:00', type:'Xem nhà mẫu',  assignee:'Sales A', status:'confirmed', notes:'Khách quan tâm tầng cao',         createdAt:'2026-05-15T09:00', manual:false },
-    { id:2, leadId:7, name:'Đỗ Minh Khang',  phone:'0967890123', date:'2026-05-17', time:'14:30', type:'Tư vấn tại VP', assignee:'Sales A', status:'pending',   notes:'Hẹn lại sau khi gọi xác nhận',    createdAt:'2026-05-14T16:00', manual:true  },
-    { id:3, leadId:null,name:'Lý Quốc Hùng', phone:'0989012345', date:'2026-05-19', time:'09:30', type:'Xem nhà mẫu',  assignee:'Sales B', status:'confirmed', notes:'Khách giới thiệu — chưa có lead', createdAt:'2026-05-15T11:00', manual:true  },
-  ];
+// Gọi API CRM (POST/PUT/DELETE) rồi nạp lại danh sách + render trang Leads.
+async function crmApi(method, path, body) {
+  const opt = { method };
+  if (body) { opt.headers = { 'Content-Type': 'application/json' }; opt.body = JSON.stringify(body); }
+  const r = await fetch(API_BASE + path, opt);
+  if (!r.ok) {
+    let msg = 'HTTP ' + r.status;
+    try { msg = (await r.json()).error || msg; } catch {}
+    throw new Error(msg);
+  }
+  return r.json();
+}
+
+// ——— AUTH ————————————————————————————————————
+// Phiên đăng nhập do trang index.html tạo; mọi trang admin dùng chung.
+function authSession() {
+  try { return JSON.parse(sessionStorage.getItem('ah_session') || 'null'); }
+  catch { return null; }
+}
+function authToken() { return authSession()?.token || ''; }
+function authRole()  { return authSession()?.role  || ''; }
+
+// Gọi API cần đăng nhập — tự đính kèm Bearer token, xử lý 401.
+async function authApi(method, path, body) {
+  const opt = { method, headers: { Authorization: 'Bearer ' + authToken() } };
+  if (body) {
+    opt.headers['Content-Type'] = 'application/json';
+    opt.body = JSON.stringify(body);
+  }
+  const r = await fetch(API_BASE + path, opt);
+  if (r.status === 401) {
+    sessionStorage.removeItem('ah_session');
+    location.href = adminPath('index.html');
+    throw new Error('Phiên đăng nhập đã hết hạn');
+  }
+  if (!r.ok) {
+    let msg = 'HTTP ' + r.status;
+    try { msg = (await r.json()).error || msg; } catch {}
+    throw new Error(msg);
+  }
+  return r.status === 204 ? null : r.json();
+}
+
+// Đường dẫn tuyệt đối tới 1 file trong thư mục admin/ — redirect luôn
+// đúng dù URL là /admin, /admin/, hay /admin/owner.html.
+function adminPath(file) {
+  const p = location.pathname;
+  const i = p.lastIndexOf('/admin');
+  const dir = i !== -1 ? p.slice(0, i) + '/admin/' : p.replace(/[^/]*$/, '');
+  return dir + file;
+}
+
+// Đăng xuất — thu hồi phiên ở server rồi quay về trang đăng nhập.
+async function doLogout() {
+  try { await fetch(API_BASE + '/api/auth/logout', {
+    method: 'POST', headers: { Authorization: 'Bearer ' + authToken() },
+  }); } catch (e) { /* server tắt vẫn cho thoát */ }
+  sessionStorage.removeItem('ah_session');
+  location.href = adminPath('index.html');
 }
 
 // ——— ROUTER ——————————————————————————————————
@@ -224,7 +337,6 @@ function render(page, el) {
     case 'settings':  renderSettings(el); break;
     case 'gallery':   renderGalleryPage(el); break;
     case 'sitemap':   renderSiteMapPage(el); break;
-    case 'amenities': renderAmenitiesPage(el); break;
     case 'timeline':  renderTimelinePage(el); break;
     case 'legal':     renderLegalPage(el); break;
     case 'location':  renderLocationPage(el); break;
@@ -275,6 +387,23 @@ function vrLink(panoName) {
   return `../index.html#pano=${panoName}`;
 }
 
+// ——— ANALYTICS DATA ————————————————————————————
+// Số liệu THẬT từ backend: GET /api/analytics (bảng analytics_* / leads / ai_*)
+// Cache 1 lần/lần tải trang; gọi loadAnalytics(true) để buộc tải lại.
+let _analyticsCache = null;
+async function loadAnalytics(force) {
+  if (_analyticsCache && !force) return _analyticsCache;
+  try {
+    const r = await fetch(API_BASE + '/api/analytics', { cache: 'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    _analyticsCache = await r.json();
+  } catch (e) {
+    console.warn('Không tải được /api/analytics:', e.message);
+    _analyticsCache = null;
+  }
+  return _analyticsCache;
+}
+
 // ——— OVERVIEW ————————————————————————————————
 function renderOverview(el) {
   const us = units();
@@ -284,7 +413,9 @@ function renderOverview(el) {
   const p          = proj();
   const gal        = (S.data.gallery||[]);
   const galPending = gal.filter(g=>g && g.pending).length;
-  const tl         = (S.data.timeline||[]);
+  // timeline giờ là {__all:[...], <pk>:[...]} — Tổng quan dùng mảng cấp dự án
+  const tlRaw      = S.data.timeline;
+  const tl         = Array.isArray(tlRaw) ? tlRaw : ((tlRaw && tlRaw.__all) || []);
   const tlActive   = tl.find(t=>t.status==='active');
   const tlDue      = tl.filter(t=>t.status!=='done').length;
 
@@ -306,8 +437,8 @@ function renderOverview(el) {
       <div class="kpi-card">
         <div class="kpi-icon blue">${ico('eye',18)}</div>
         <div class="kpi-label">Lượt xem hôm nay</div>
-        <div class="kpi-value">2,847</div>
-        <div class="kpi-trend up">${ico('arrowup',10)}12.4% so hôm qua</div>
+        <div class="kpi-value" id="kpi-views">—</div>
+        <div class="kpi-trend neutral" id="kpi-views-trend">Đang tải…</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-icon orange">${ico('image',18)}</div>
@@ -333,7 +464,7 @@ function renderOverview(el) {
         <div class="kpi-icon purple">${ico('trending',18)}</div>
         <div class="kpi-label">Tỷ lệ bán</div>
         <div class="kpi-value">${soldPct}%</div>
-        <div class="kpi-trend up">${ico('arrowup',10)}2.1% so tháng trước</div>
+        <div class="kpi-trend neutral">${totalAll-totalAvail}/${totalAll} căn đã bán</div>
       </div>
     </div>
     <div class="g21">
@@ -351,12 +482,7 @@ function renderOverview(el) {
         <div class="card-header"><span class="card-title">Hoạt Động Gần Đây</span></div>
         <div class="card-body p0" style="padding:16px">
           <div class="feed" id="feed">
-            <div class="feed-item"><div class="feed-dot b"></div><div class="feed-msg"><b>Vũ Thị Giang</b> đặt lịch xem căn 3PN</div><div class="feed-time">2 phút</div></div>
-            <div class="feed-item"><div class="feed-dot y"></div><div class="feed-msg">Căn <b>A-3BR-104-28</b> đang được giữ chỗ</div><div class="feed-time">8 phút</div></div>
-            <div class="feed-item"><div class="feed-dot g"></div><div class="feed-msg"><b>12 người</b> đang xem VR ngay lúc này</div><div class="feed-time">Trực tiếp</div></div>
-            <div class="feed-item"><div class="feed-dot b"></div><div class="feed-msg"><b>Nguyễn Văn An</b> gửi form đặt lịch</div><div class="feed-time">15 phút</div></div>
-            <div class="feed-item"><div class="feed-dot y"></div><div class="feed-msg">3 leads mới từ kênh <b>Zalo OA</b></div><div class="feed-time">2 giờ</div></div>
-            <div class="feed-item"><div class="feed-dot g"></div><div class="feed-msg">Scene <b>Sky Lounge</b> xem nhiều nhất hôm nay</div><div class="feed-time">3 giờ</div></div>
+            <div class="feed-empty" style="padding:8px;color:var(--muted);font-size:13px">Đang tải hoạt động…</div>
           </div>
         </div>
       </div>
@@ -396,18 +522,14 @@ function renderOverview(el) {
     </div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px">
       ${[
-        { icon:'leaf',     label:'Tiện ích nội khu',   key:'tienIchNoiKhu',   hint:'Amenities overlay',   page:'navpanel' },
-        { icon:'mappin',   label:'Tiện ích ngoại khu', key:'tienIchNgoaiKhu', hint:'Tiện ích lân cận',     page:'navpanel' },
         { icon:'building', label:'Tổng quan dự án',   key:'tongQuan',         hint:'VR Tổng quan',        page:'navpanel' },
         { icon:'mappin',   label:'Phân khu',           key:'phanKhu',          hint:'VR theo phân khu',    page:'navpanel' },
         { icon:'home',     label:'Bất động sản',       key:'properties',       hint:'Sản phẩm BĐS',        page:'properties' },
-        { icon:'hardhat',  label:'Mặt bằng / Tòa',    key:'matBangTang',      hint:'Layout & floorplan',  page:'navpanel' },
-        { icon:'armchair', label:'View 360° Căn hộ',  key:'view360Can',       hint:'Tour căn mẫu',        page:'navpanel' },
         { icon:'image',    label:'Thư viện ảnh',       key:'gallery',          hint:'Gallery overlay',     page:'settings', action:'openGalleryPanel' },
         { icon:'map',      label:'Masterplan',          key:'masterplan',       hint:'Quy hoạch & marker',  page:'masterplan' },
         { icon:'calendar', label:'Tiến độ xây dựng',   key:'timeline',         hint:'Construction milestones', page:'settings', action:'openTimelinePanel' },
       ].map(c => {
-        const isMenuKey = ['tienIchNoiKhu','tienIchNgoaiKhu','tongQuan','phanKhu','matBangTang','view360Can'].includes(c.key);
+        const isMenuKey = ['tongQuan','phanKhu'].includes(c.key);
         const data = isMenuKey ? S.data.menu?.[c.key] : S.data[c.key];
         const count = Array.isArray(data) ? data.length : (data?.points?.length ?? (data ? 1 : 0));
         const onclick = c.action ? `onclick="${c.action}()"` : `onclick="go('${c.page}')"`;
@@ -425,15 +547,71 @@ function renderOverview(el) {
       }).join('')}
     </div>
   `;
-  setTimeout(() => {
-    drawHourly(); drawScenesBar();
-  }, 30);
+  // Nạp số liệu analytics thật rồi cập nhật KPI + vẽ chart
+  loadAnalytics().then((a) => {
+    const vEl = document.getElementById('kpi-views');
+    const tEl = document.getElementById('kpi-views-trend');
+    if (vEl && tEl) {
+      if (a) {
+        vEl.textContent = (a.viewsToday || 0).toLocaleString('vi-VN');
+        const dy = a.viewsYesterday || 0;
+        if (dy > 0) {
+          const pct = ((a.viewsToday - dy) / dy * 100);
+          const up = pct >= 0;
+          tEl.className = 'kpi-trend ' + (up ? 'up' : 'down');
+          tEl.innerHTML = `${ico(up?'arrowup':'arrowdown',10)}${Math.abs(pct).toFixed(1)}% so hôm qua`;
+        } else {
+          tEl.className = 'kpi-trend neutral';
+          tEl.textContent = 'Chưa có dữ liệu hôm qua để so sánh';
+        }
+      } else {
+        vEl.textContent = '—';
+        tEl.className = 'kpi-trend neutral';
+        tEl.textContent = 'Không tải được số liệu';
+      }
+    }
+    drawHourly(a); drawScenesBar(a);
+  });
+  loadActivityFeed();
 }
 
-function drawHourly() {
+// ——— Hoạt động gần đây: lấy luồng thật từ API ————————————
+function timeAgo(iso) {
+  const diff = (Date.now() - new Date(iso).getTime()) / 1000;
+  if (diff < 60)    return 'Vừa xong';
+  if (diff < 3600)  return Math.floor(diff / 60) + ' phút';
+  if (diff < 86400) return Math.floor(diff / 3600) + ' giờ';
+  return Math.floor(diff / 86400) + ' ngày';
+}
+
+async function loadActivityFeed() {
+  const feed = document.getElementById('feed');
+  if (!feed) return;
+  try {
+    const r = await fetch(API_BASE + '/api/activity?limit=12', { cache: 'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const items = await r.json();
+    if (!items.length) {
+      feed.innerHTML = '<div class="feed-empty" style="padding:8px;color:var(--muted);font-size:13px">Chưa có hoạt động nào</div>';
+      return;
+    }
+    feed.innerHTML = items.map(it => `
+      <div class="feed-item">
+        <div class="feed-dot ${it.dot}"></div>
+        <div class="feed-msg">${it.msg}</div>
+        <div class="feed-time">${timeAgo(it.at)}</div>
+      </div>`).join('');
+  } catch (e) {
+    console.warn('Không tải được hoạt động gần đây:', e);
+    feed.innerHTML = '<div class="feed-empty" style="padding:8px;color:var(--muted);font-size:13px">Không kết nối được máy chủ</div>';
+  }
+}
+
+// Vẽ chart "Lượt xem theo giờ" — số liệu thật từ /api/analytics
+function drawHourly(a) {
   const el = document.getElementById('ch-hourly'); if (!el || !window.Chart) return;
   const now = new Date().getHours();
-  const data = [12,8,5,4,6,18,65,120,180,210,195,230,215,190,200,220,310,420,390,350,280,220,160,110];
+  const data = (a && Array.isArray(a.hourly)) ? a.hourly : Array(24).fill(0);
   S.charts.hourly = new Chart(el, {
     type: 'bar',
     data: { labels: Array.from({length:24},(_,i)=>i+'h'), datasets: [{ data, backgroundColor: data.map((_,i)=>i===now?'#3b82f6':'rgba(59,130,246,.25)'), borderRadius: 3 }] },
@@ -441,11 +619,12 @@ function drawHourly() {
   });
 }
 
-function drawScenesBar() {
+// Vẽ chart "Scene phổ biến" — số liệu thật (analytics_events nối vr_scenes)
+function drawScenesBar(a) {
   const el = document.getElementById('ch-scenes'); if (!el || !window.Chart) return;
-  const panos = _panoramaCache || [];
-  const labels = panos.length ? panos.slice(0,8).map(p=>p.name) : ['pano-01','pano-02','pano-03','pano-04','pano-05','pano-06'];
-  const data   = labels.map((_,i)=>[1240,980,820,710,650,540,480,400][i]||300);
+  const scenes = (a && Array.isArray(a.scenes)) ? a.scenes : [];
+  const labels = scenes.map(s => s.name);
+  const data   = scenes.map(s => s.count);
   S.charts.scenes = new Chart(el, {
     type: 'bar',
     data: { labels, datasets: [{ data, backgroundColor: 'rgba(59,130,246,.55)', borderRadius: 4 }] },
@@ -628,8 +807,9 @@ function openUnitPanel(code) {
 // ——— LEADS ————————————————————————————————————
 let lf = { search:'', status:'', source:'' };
 
-const LEAD_STATUS  = { new:'Mới', called:'Đã gọi', interested:'Đang quan tâm', closed:'Đã chốt', stopped:'Không tiếp tục' };
-const LEAD_BADGE   = { new:'badge-info', called:'badge-warning', interested:'badge-primary', closed:'badge-ok', stopped:'badge-muted' };
+// Mã trạng thái khớp leads.status_code trong CSDL (chk_leads_status)
+const LEAD_STATUS  = { new:'Mới', called:'Đã gọi', interested:'Đang quan tâm', qualified:'Đủ điều kiện', closed:'Đã chốt', stopped:'Không tiếp tục', lost:'Đã mất' };
+const LEAD_BADGE   = { new:'badge-info', called:'badge-warning', interested:'badge-primary', qualified:'badge-primary', closed:'badge-ok', stopped:'badge-muted', lost:'badge-muted' };
 // Nguồn lead — gom theo nhóm để hiển thị optgroup
 const SOURCE_GROUPS = {
   'Website / VR':       ['VR Web','Live Chat website'],
@@ -760,11 +940,30 @@ function comboKey(e, id) {
 document.addEventListener('click', e => {
   if (!e.target.closest('.combo')) document.querySelectorAll('.combo.open').forEach(c => c.classList.remove('open'));
 });
-const BOOKING_STATUS = { pending:'Chờ xác nhận', confirmed:'Đã xác nhận', done:'Đã hoàn tất', cancelled:'Đã huỷ' };
-const BOOKING_BADGE  = { pending:'badge-warning', confirmed:'badge-info', done:'badge-ok', cancelled:'badge-muted' };
+// Mã trạng thái khớp appointments.status_code (chk_appointments_status)
+const BOOKING_STATUS = { pending:'Chờ xác nhận', confirmed:'Đã xác nhận', completed:'Đã hoàn tất', cancelled:'Đã huỷ', no_show:'Khách không đến' };
+const BOOKING_BADGE  = { pending:'badge-warning', confirmed:'badge-info', completed:'badge-ok', cancelled:'badge-muted', no_show:'badge-muted' };
 const BOOKING_TYPES  = ['Xem nhà mẫu','Tư vấn tại VP','Xem VR online','Khác'];
 
 function renderLeads(el) {
+  // Nạp CRM thật lần đầu vào trang
+  if (!S.crmLoaded) {
+    el.innerHTML = `<div class="ph"><div class="ph-left"><div class="breadcrumb"><span>Dashboard</span> / Leads</div><h1>Leads & Booking</h1></div></div>
+      <div class="card"><div style="padding:40px;text-align:center;color:var(--muted)">Đang tải dữ liệu CRM từ máy chủ…</div></div>`;
+    loadCRM().then((ok) => {
+      if (!ok) {
+        el.innerHTML = `<div class="ph"><div class="ph-left"><div class="breadcrumb"><span>Dashboard</span> / Leads</div><h1>Leads & Booking</h1></div></div>
+          <div class="card"><div style="padding:40px;text-align:center;color:var(--danger,#e66)">
+            Không tải được dữ liệu CRM: ${S.crmError||''}<br><br>
+            <button class="btn btn-secondary btn-sm" onclick="render('leads',document.getElementById('p-leads'))">Thử lại</button>
+            <div style="margin-top:10px;font-size:12px">Hãy chắc máy chủ API đang chạy.</div>
+          </div></div>`;
+        return;
+      }
+      render('leads', el);
+    });
+    return;
+  }
   const ls = filteredLeads();
   el.innerHTML = `
     <div class="ph">
@@ -962,10 +1161,15 @@ function filteredLeads() {
   });
 }
 
-function deleteLead(id) {
-  S.leads = S.leads.filter(l=>l.id!==id);
-  render('leads', document.getElementById('p-leads'));
-  toast('Đã xoá lead', 'ok');
+async function deleteLead(id) {
+  try {
+    await crmApi('DELETE', '/api/leads/' + id);
+    await loadCRM(true);
+    render('leads', document.getElementById('p-leads'));
+    toast('Đã xoá lead', 'ok');
+  } catch (e) {
+    toast('Xoá thất bại: ' + e.message, 'err');
+  }
 }
 
 function openLeadPanel(id) {
@@ -1007,25 +1211,28 @@ function openLeadPanel(id) {
       </div>
     </div>
     <div class="form-group"><label class="form-label">Ghi chú CRM</label><textarea class="form-control" id="lp-notes" rows="3">${l.notes||''}</textarea></div>
-  `, () => {
-    const idx = S.leads.findIndex(x=>x.id===id);
-    if (idx < 0) return;
-    S.leads[idx] = { ...l,
-      name:     document.getElementById('lp-name').value,
-      phone:    document.getElementById('lp-phone').value,
+  `, async () => {
+    const payload = {
+      name:     document.getElementById('lp-name').value.trim(),
+      phone:    document.getElementById('lp-phone').value.trim(),
       email:    document.getElementById('lp-email').value,
       zalo:     document.getElementById('lp-zalo').value,
-      unitType: document.getElementById('lp-type').value,
       budget:   document.getElementById('lp-budget').value,
       source:   document.getElementById('lp-source').value,
       status:   document.getElementById('lp-status').value,
-      assignee: document.getElementById('lp-assign').value,
       purpose:  document.getElementById('lp-purpose').value,
       notes:    document.getElementById('lp-notes').value,
     };
-    closePanel();
-    render('leads', document.getElementById('p-leads'));
-    toast('Đã cập nhật lead', 'ok');
+    if (!payload.name || !payload.phone) { toast('Vui lòng nhập họ tên và số điện thoại','err'); return; }
+    try {
+      await crmApi('PUT', '/api/leads/' + id, payload);
+      await loadCRM(true);
+      closePanel();
+      render('leads', document.getElementById('p-leads'));
+      toast('Đã cập nhật lead', 'ok');
+    } catch (e) {
+      toast('Cập nhật thất bại: ' + e.message, 'err');
+    }
   });
 }
 
@@ -1077,30 +1284,30 @@ function openAddLeadPanel() {
       </div>
     </div>
     <div class="form-group"><label class="form-label">Ghi chú</label><textarea class="form-control" id="al-notes" rows="3" placeholder="Nội dung trao đổi, yêu cầu đặc biệt…"></textarea></div>
-  `, () => {
+  `, async () => {
     const name  = document.getElementById('al-name').value.trim();
     const phone = document.getElementById('al-phone').value.trim();
     if (!name || !phone) { toast('Vui lòng nhập họ tên và số điện thoại','err'); return; }
-    const newId = (S.leads.reduce((m,l)=>Math.max(m,l.id),0)||0) + 1;
-    S.leads.unshift({
-      id: newId,
+    const payload = {
       name, phone,
       email:    document.getElementById('al-email').value.trim(),
       zalo:     document.getElementById('al-zalo').value.trim(),
-      unitType: document.getElementById('al-type').value,
       budget:   document.getElementById('al-budget').value,
       purpose:  document.getElementById('al-purpose').value,
       timing:   document.getElementById('al-timing').value,
       source:   document.getElementById('al-source').value,
       status:   'new',
-      createdAt:new Date().toISOString().slice(0,16),
-      assignee: document.getElementById('al-assign').value,
       notes:    document.getElementById('al-notes').value,
-      manual:   true,
-    });
-    closePanel();
-    render('leads', document.getElementById('p-leads'));
-    toast('Đã thêm lead thủ công', 'ok');
+    };
+    try {
+      await crmApi('POST', '/api/leads', payload);
+      await loadCRM(true);
+      closePanel();
+      render('leads', document.getElementById('p-leads'));
+      toast('Đã thêm lead thủ công', 'ok');
+    } catch (e) {
+      toast('Thêm thất bại: ' + e.message, 'err');
+    }
   });
 }
 
@@ -1125,10 +1332,15 @@ function bookingRow(b, i) {
   </tr>`;
 }
 
-function deleteBooking(id) {
-  S.bookings = S.bookings.filter(b=>b.id!==id);
-  render('leads', document.getElementById('p-leads'));
-  toast('Đã xoá lịch hẹn', 'ok');
+async function deleteBooking(id) {
+  try {
+    await crmApi('DELETE', '/api/appointments/' + id);
+    await loadCRM(true);
+    render('leads', document.getElementById('p-leads'));
+    toast('Đã xoá lịch hẹn', 'ok');
+  } catch (e) {
+    toast('Xoá thất bại: ' + e.message, 'err');
+  }
 }
 
 function bookingFormHTML(b={}) {
@@ -1173,88 +1385,148 @@ function onBookingLeadChange() {
   document.getElementById('ab-phone').value = l.phone;
 }
 
+function bookingPayload() {
+  return {
+    leadId:   parseInt(document.getElementById('ab-lead').value) || null,
+    name:     document.getElementById('ab-name').value.trim(),
+    phone:    document.getElementById('ab-phone').value.trim(),
+    date:     document.getElementById('ab-date').value,
+    time:     document.getElementById('ab-time').value,
+    type:     document.getElementById('ab-type').value,
+    status:   document.getElementById('ab-status').value,
+    notes:    document.getElementById('ab-notes').value,
+  };
+}
+
 function openAddBookingPanel() {
-  showPanel('Đặt Lịch Hẹn Thủ Công', bookingFormHTML(), () => {
-    const name  = document.getElementById('ab-name').value.trim();
-    const phone = document.getElementById('ab-phone').value.trim();
-    const date  = document.getElementById('ab-date').value;
-    const time  = document.getElementById('ab-time').value;
-    if (!name || !phone || !date || !time) { toast('Vui lòng nhập tên, SĐT, ngày và giờ','err'); return; }
-    const leadId = parseInt(document.getElementById('ab-lead').value) || null;
-    const newId = (S.bookings.reduce((m,b)=>Math.max(m,b.id),0)||0) + 1;
-    S.bookings.unshift({
-      id: newId, leadId, name, phone, date, time,
-      type:     document.getElementById('ab-type').value,
-      assignee: document.getElementById('ab-assign').value,
-      status:   document.getElementById('ab-status').value,
-      notes:    document.getElementById('ab-notes').value,
-      createdAt:new Date().toISOString().slice(0,16),
-      manual:   true,
-    });
-    closePanel();
-    render('leads', document.getElementById('p-leads'));
-    toast('Đã đặt lịch hẹn', 'ok');
+  showPanel('Đặt Lịch Hẹn Thủ Công', bookingFormHTML(), async () => {
+    const p = bookingPayload();
+    if (!p.name || !p.phone || !p.date || !p.time) { toast('Vui lòng nhập tên, SĐT, ngày và giờ','err'); return; }
+    try {
+      await crmApi('POST', '/api/appointments', p);
+      await loadCRM(true);
+      closePanel();
+      render('leads', document.getElementById('p-leads'));
+      toast('Đã đặt lịch hẹn', 'ok');
+    } catch (e) {
+      toast('Đặt lịch thất bại: ' + e.message, 'err');
+    }
   });
 }
 
 function openEditBookingPanel(id) {
   const b = S.bookings.find(x=>x.id===id); if (!b) return;
-  showPanel('Cập Nhật Lịch Hẹn', bookingFormHTML(b), () => {
-    const idx = S.bookings.findIndex(x=>x.id===id); if (idx<0) return;
-    S.bookings[idx] = { ...b,
-      leadId:   parseInt(document.getElementById('ab-lead').value) || null,
-      name:     document.getElementById('ab-name').value,
-      phone:    document.getElementById('ab-phone').value,
-      date:     document.getElementById('ab-date').value,
-      time:     document.getElementById('ab-time').value,
-      type:     document.getElementById('ab-type').value,
-      assignee: document.getElementById('ab-assign').value,
-      status:   document.getElementById('ab-status').value,
-      notes:    document.getElementById('ab-notes').value,
-    };
-    closePanel();
-    render('leads', document.getElementById('p-leads'));
-    toast('Đã cập nhật lịch hẹn', 'ok');
+  showPanel('Cập Nhật Lịch Hẹn', bookingFormHTML(b), async () => {
+    const p = bookingPayload();
+    if (!p.name || !p.phone || !p.date || !p.time) { toast('Vui lòng nhập tên, SĐT, ngày và giờ','err'); return; }
+    try {
+      await crmApi('PUT', '/api/appointments/' + id, p);
+      await loadCRM(true);
+      closePanel();
+      render('leads', document.getElementById('p-leads'));
+      toast('Đã cập nhật lịch hẹn', 'ok');
+    } catch (e) {
+      toast('Cập nhật thất bại: ' + e.message, 'err');
+    }
   });
 }
 
 // ——— DANH SÁCH VR (np-list) ———————————————————
+/* Trang np-list dùng dropdown phân khu (S.subKey['navpanel']):
+   - '__all'  : hiện nhóm Tổng quan + danh sách Phân khu (chỉ sửa được
+                các điểm Tổng quan; phân khu là cấp container).
+   - '<pkId>' : hiện 4 nhóm con của phân khu đó.
+   Lưu nội dung phân khu qua nút "Lưu phân khu" (PUT /api/subdivision). */
 function renderNavPanel(el) {
   const m = menu();
+  const subKey = curSubKey('navpanel');
+  let groupsHtml;
+  if (subKey === '__all') {
+    // Tổng quan (phẳng) + danh sách phân khu (chỉ đọc, dẫn hướng)
+    groupsHtml = renderNpGroup('tongQuan', GROUP_META.tongQuan, m.tongQuan || [], null)
+      + renderPhanKhuNavGroup(m.phanKhu || []);
+  } else {
+    // 4 nhóm con của phân khu đang chọn
+    const pk = (m.phanKhu || []).find(p => p.id === subKey);
+    const children = (pk && pk.children) || {};
+    groupsHtml = Object.entries(CHILD_GROUP_META)
+      .map(([k, meta]) => renderNpGroup(k, meta, children[k] || [], subKey))
+      .join('');
+  }
   el.innerHTML = `
     <div class="ph">
       <div class="ph-left"><div class="breadcrumb"><span>Dashboard</span> / Nội Dung VR</div><h1>Danh Sách VR</h1></div>
       <div class="btn-group">
-        <button class="btn btn-secondary btn-sm" onclick="openAddGroupPanel()">+ Thêm Danh Mục</button>
         <button class="btn btn-primary btn-sm" onclick="toast('Đã lưu thứ tự danh sách VR','ok')">${ico('save')} Lưu Thứ Tự</button>
       </div>
     </div>
     <p class="c-muted" style="margin-bottom:16px;font-size:13px">
-      Quản lý danh sách điểm tham quan VR360. Kéo thả để sắp xếp thứ tự. Mỗi điểm có link riêng tới cảnh VR tương ứng.
+      Quản lý danh sách điểm tham quan VR360. Chọn phân khu để sửa các điểm thuộc phân khu đó.
+      Tiện ích nội/ngoại khu, Mặt bằng, View 360 là <b>con của từng phân khu</b>.
     </p>
-    <div class="np-list" id="np-list">
-      ${Object.entries(GROUP_META).map(([key, meta]) => renderNpGroup(key, meta, m[key]||[])).join('')}
-    </div>
+    ${subSelectorBar('navpanel')}
+    <div class="np-list" id="np-list">${groupsHtml}</div>
   `;
   initNpDrag();
 }
 
-function renderNpGroup(key, meta, items) {
+/* Nhóm "Phân khu" ở tab Tất cả — liệt kê các phân khu, mỗi dòng có nút
+   "Sửa nội dung" để nhảy sang tab phân khu đó. */
+function renderPhanKhuNavGroup(list) {
   return `
-    <div class="np-group" data-group="${key}" draggable="true">
+    <div class="np-group" data-group="phanKhu">
       <div class="np-group-head">
-        <span class="np-drag-handle" title="Kéo để sắp xếp">${ico('grip',14)}</span>
+        <span class="np-group-icon">${ico('mappin', 16)}</span>
+        <span class="np-group-name">Phân Khu</span>
+        <span class="np-group-count">${list.length} phân khu</span>
+        <div class="np-group-actions">
+          <button class="btn btn-secondary btn-xs" onclick="openAddCardPanel('phanKhu')">+ Thêm phân khu</button>
+        </div>
+      </div>
+      <div class="np-cards" id="cards-phanKhu" data-group="phanKhu">
+        ${list.length ? list.map(pk => `
+          <div class="np-card" data-group="phanKhu" data-id="${pk.id}">
+            <div class="np-card-icon">${ico('mappin',13)}</div>
+            <div class="np-card-info">
+              <div class="np-card-label">${esc(pk.label||'')}</div>
+              <div class="np-card-scene mono" style="font-size:11px;color:var(--muted)">
+                ${childTotalCount(pk)} điểm con · ${pk.tdvPanoramaId||'chưa gán panorama'}
+              </div>
+            </div>
+            <div class="np-card-actions">
+              <button class="btn btn-secondary btn-xs" onclick="onSubSelectChange('navpanel','${pk.id}')">Sửa nội dung →</button>
+              <button class="act-btn" onclick="openEditCardPanel('phanKhu','${pk.id}')">${ico('edit')}</button>
+              <button class="act-btn danger" onclick="deleteNpCard('phanKhu','${pk.id}')">${ico('trash')}</button>
+            </div>
+          </div>`).join('')
+        : `<div class="np-empty c-muted">Chưa có phân khu nào.</div>`}
+        <div class="np-add-card" onclick="openAddCardPanel('phanKhu')">
+          <span>＋</span> <span>Thêm phân khu</span>
+        </div>
+      </div>
+    </div>`;
+}
+function childTotalCount(pk) {
+  const ch = pk.children || {};
+  return Object.keys(CHILD_GROUP_META).reduce((n,k) => n + ((ch[k]||[]).length), 0);
+}
+
+/* renderNpGroup: subId = null cho nhóm gốc, hoặc id phân khu cho nhóm con */
+function renderNpGroup(key, meta, items, subId) {
+  const ctx = subId ? `'${key}','${subId}'` : `'${key}'`;
+  return `
+    <div class="np-group" data-group="${key}" data-sub="${subId||''}">
+      <div class="np-group-head">
         <span class="np-group-icon">${ico(meta.icon, 16)}</span>
         <span class="np-group-name">${meta.label}</span>
         <span class="np-group-count">${items.length} điểm</span>
         <div class="np-group-actions">
-          <button class="btn btn-secondary btn-xs" onclick="openAddCardPanel('${key}')">+ Thêm</button>
-          <button class="btn btn-secondary btn-xs" onclick="openEditGroupPanel('${key}')">${ico('edit')}</button>
+          <button class="btn btn-secondary btn-xs" onclick="openAddCardPanel(${ctx})">+ Thêm</button>
         </div>
       </div>
-      <div class="np-cards" id="cards-${key}" data-group="${key}">
-        ${items.length ? items.map(item => renderNpCard(key, item)).join('') : `<div class="np-empty c-muted">Chưa có điểm nào — nhấn <b>+ Thêm</b> để thêm điểm VR</div>`}
-        <div class="np-add-card" onclick="openAddCardPanel('${key}')">
+      <div class="np-cards" id="cards-${key}" data-group="${key}" data-sub="${subId||''}">
+        ${items.length ? items.map(item => renderNpCard(key, item, subId)).join('') : `<div class="np-empty c-muted">Chưa có điểm nào — nhấn <b>+ Thêm</b> để thêm điểm VR</div>`}
+        <div class="np-add-card" onclick="openAddCardPanel(${ctx})">
           <span>＋</span> <span>Thêm điểm VR360</span>
         </div>
       </div>
@@ -1262,7 +1534,7 @@ function renderNpGroup(key, meta, items) {
   `;
 }
 
-function renderNpCard(groupKey, item) {
+function renderNpCard(groupKey, item, subId) {
   const hasPano = !!item.tdvPanoramaId;
   const panoDisplay = item.tdvPanoramaId || 'Chưa gán panorama';
   const thumbSrc = hasPano && _panoramaCache
@@ -1281,8 +1553,8 @@ function renderNpCard(groupKey, item) {
         ${hasPano
           ? `<span class="badge" style="background:var(--accent-soft);color:var(--accent);font-size:10px">${ico('video',11)} ${item.tdvPanoramaId}</span>`
           : `<span class="badge badge-warning">${ico('warning')} Chưa gán</span>`}
-        <button class="act-btn" onclick="openEditCardPanel('${groupKey}','${item.id}')">${ico('edit')}</button>
-        <button class="act-btn danger" onclick="deleteNpCard('${groupKey}','${item.id}')">${ico('trash')}</button>
+        <button class="act-btn" onclick="openEditCardPanel('${groupKey}','${item.id}'${subId?`,'${subId}'`:''})">${ico('edit')}</button>
+        <button class="act-btn danger" onclick="deleteNpCard('${groupKey}','${item.id}'${subId?`,'${subId}'`:''})">${ico('trash')}</button>
       </div>
     </div>
   `;
@@ -1320,7 +1592,22 @@ function openEditGroupPanel(key) {
   });
 }
 
-async function openAddCardPanel(groupKey) {
+/* Mảng item của 1 nhóm np-list.
+   subId null  → nhóm gốc S.data.menu[groupKey]
+   subId set   → nhóm con: phanKhu[subId].children[groupKey] */
+function npGroupArr(groupKey, subId) {
+  if (!subId) {
+    S.data.menu[groupKey] ??= [];
+    return S.data.menu[groupKey];
+  }
+  const pk = (S.data.menu.phanKhu || []).find(p => p.id === subId);
+  if (!pk) return [];
+  pk.children ??= {};
+  pk.children[groupKey] ??= [];
+  return pk.children[groupKey];
+}
+
+async function openAddCardPanel(groupKey, subId) {
   const panos = await fetchPanoramas();
   const panoOptions = panos.map(p =>
     `<option value="${p.name}">${p.name}</option>`
@@ -1358,8 +1645,13 @@ async function openAddCardPanel(groupKey) {
     const idVal  = document.getElementById('nc-id').value.trim() || label.toLowerCase().replace(/\s+/g,'-').replace(/[^\w-]/g,'') || 'item-'+Date.now();
     if (!label) { toast('Nhập tên hiển thị', 'warn'); return; }
     const newItem = { id: idVal, label, tdvPanoramaId: panoId || undefined, hotspotId: hotspot || undefined };
-    if (!S.data.menu[groupKey]) S.data.menu[groupKey] = [];
-    S.data.menu[groupKey].push(newItem);
+    // Phân khu mới cần khung children rỗng
+    if (groupKey === 'phanKhu') {
+      newItem.children = {};
+      Object.keys(CHILD_GROUP_META).forEach(ck => { newItem.children[ck] = []; });
+    }
+    npGroupArr(groupKey, subId).push(newItem);
+    if (subId) markSubDirty('navpanel');
     closePanel();
     render('navpanel', document.getElementById('p-navpanel'));
     toast('Đã thêm điểm VR360', 'ok');
@@ -1383,8 +1675,8 @@ function previewPano(prefix) {
   }
 }
 
-async function openEditCardPanel(groupKey, itemId) {
-  const group = S.data.menu[groupKey]||[];
+async function openEditCardPanel(groupKey, itemId, subId) {
+  const group = npGroupArr(groupKey, subId);
   const item  = group.find(x=>x.id===itemId); if (!item) return;
   const panos = await fetchPanoramas();
   const panoOptions = panos.map(p =>
@@ -1543,6 +1835,7 @@ async function openEditCardPanel(groupKey, itemId) {
     // Clean up old sceneId/customLink fields
     delete group[idx].sceneId;
     delete group[idx].customLink;
+    if (subId) markSubDirty('navpanel');
     saveData('Đã cập nhật điểm VR360');
     closePanel();
     render('navpanel', document.getElementById('p-navpanel'));
@@ -1624,9 +1917,13 @@ function subdivPickCover(input) {
   reader.readAsDataURL(file);
 }
 
-function deleteNpCard(groupKey, itemId) {
+function deleteNpCard(groupKey, itemId, subId) {
   confirmDel('Xoá điểm VR360 này?', 'Hành động không thể hoàn tác.', () => {
-    S.data.menu[groupKey] = (S.data.menu[groupKey]||[]).filter(x=>x.id!==itemId);
+    const arr = npGroupArr(groupKey, subId);
+    const i = arr.findIndex(x => x.id === itemId);
+    if (i >= 0) arr.splice(i, 1);
+    if (subId) markSubDirty('navpanel');
+    else saveData('Đã xoá điểm');
     render('navpanel', document.getElementById('p-navpanel'));
     toast('Đã xoá điểm', 'ok');
   });
@@ -1693,11 +1990,14 @@ function initNpDrag() {
       const toIdx   = cards.indexOf(card);
       if (fromIdx < toIdx) container.insertBefore(S.dragSrc, card.nextSibling);
       else                 container.insertBefore(S.dragSrc, card);
-      // Sync to data
+      // Sync to data — nhóm gốc hoặc nhóm con của phân khu
       const gKey = container.dataset.group;
-      if (gKey && S.data.menu[gKey]) {
+      const sKey = container.dataset.sub || null;
+      const arr = gKey ? npGroupArr(gKey, sKey) : null;
+      if (arr) {
         const newOrder = [...container.querySelectorAll('.np-card')].map(c=>c.dataset.id);
-        S.data.menu[gKey].sort((a,b)=>newOrder.indexOf(a.id)-newOrder.indexOf(b.id));
+        arr.sort((a,b)=>newOrder.indexOf(a.id)-newOrder.indexOf(b.id));
+        if (sKey) markSubDirty('navpanel');
       }
       toast('Đã sắp xếp lại điểm', 'ok');
     });
@@ -1708,12 +2008,21 @@ function initNpDrag() {
 function renderScenes(el) {
   const panos = _panoramaCache || [];
   // Collect which panoramas are currently assigned to menu items
+  // (duyệt cả nhóm gốc lẫn nhóm con của từng phân khu)
   const assigned = new Map();
-  for (const [gKey, items] of Object.entries(S.data.menu || {})) {
-    for (const item of items) {
-      if (item.tdvPanoramaId) {
-        if (!assigned.has(item.tdvPanoramaId)) assigned.set(item.tdvPanoramaId, []);
-        assigned.get(item.tdvPanoramaId).push(item.label);
+  const noteItem = (item) => {
+    if (item && item.tdvPanoramaId) {
+      if (!assigned.has(item.tdvPanoramaId)) assigned.set(item.tdvPanoramaId, []);
+      assigned.get(item.tdvPanoramaId).push(item.label);
+    }
+  };
+  for (const items of Object.values(S.data.menu || {})) {
+    for (const item of (items || [])) {
+      noteItem(item);
+      if (item.children) {
+        for (const childArr of Object.values(item.children)) {
+          for (const child of (childArr || [])) noteItem(child);
+        }
       }
     }
   }
@@ -1750,24 +2059,54 @@ function renderScenes(el) {
 }
 
 // ——— i18n ————————————————————————————————————
-const i18n = {
-  'ui.bookNow':    { vi:'Đặt lịch tư vấn',     en:'Book a Consultation', zh:'预约咨询', ko:'상담 예약' },
-  'ui.viewVR':     { vi:'Tham quan VR 360°',    en:'Virtual Tour 360°',  zh:'VR 360° 参观', ko:'VR 360° 투어' },
-  'ui.priceList':  { vi:'Bảng giá',             en:'Price List',         zh:'价格表',   ko:'가격표' },
-  'modal.title':   { vi:'Đặt lịch xem căn hộ', en:'Schedule a Viewing', zh:'预约看房',  ko:'관람 예약' },
-  'modal.name':    { vi:'Họ và tên',            en:'Full Name',          zh:'姓名',    ko:'성명' },
-  'modal.phone':   { vi:'Số điện thoại',        en:'Phone Number',       zh:'电话号码', ko:'전화번호' },
-  'modal.submit':  { vi:'Gửi đăng ký',          en:'Submit',             zh:'提交',    ko:'제출' },
-  'tour.scene':    { vi:'Cảnh VR',              en:'VR Scene',           zh:'VR 场景', ko:'VR 장면' },
-  'ai.greeting':   { vi:'Xin chào! Tôi là trợ lý Vinhomes.', en:'Hello! I am Vinhomes assistant.', zh:'你好！我是Vinhomes助手。', ko:'' },
+// Dữ liệu THẬT từ backend: GET /api/i18n/admin
+//   I18N.langs = [{code,name,is_default}]
+//   I18N.rows  = [{namespace,key,default_text,translations:{vi,en,...}}]
+const I18N = { langs: [], rows: [], loaded: false, loading: false, error: null };
+
+// Tên hiển thị gợi ý cho mã ngôn ngữ phổ biến (khi thêm mới)
+const I18N_LANG_NAMES = {
+  vi:'Tiếng Việt', en:'English', zh:'中文', ko:'한국어', ja:'日本語',
+  fr:'Français', de:'Deutsch', es:'Español', ru:'Русский', th:'ไทย',
 };
 
-const I18N_LANG_NAMES = { VI:'Tiếng Việt', EN:'English', ZH:'中文', KO:'한국어', JA:'日本語', FR:'Français', DE:'Deutsch', ES:'Español', RU:'Русский', TH:'ไทย' };
+async function loadI18n() {
+  I18N.loading = true; I18N.error = null;
+  try {
+    const r = await fetch(API_BASE + '/api/i18n/admin', { cache: 'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const data = await r.json();
+    I18N.langs = data.langs || [];
+    I18N.rows  = data.rows || [];
+    I18N.loaded = true;
+  } catch (e) {
+    I18N.error = e.message;
+  } finally {
+    I18N.loading = false;
+  }
+}
+
+// Lưu 1 ô bản dịch lên CSDL
+async function saveI18nEntry(namespace, key, lang, text) {
+  try {
+    const r = await fetch(API_BASE + '/api/i18n/entry', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ namespace, key, lang, text }),
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const row = I18N.rows.find(x => x.namespace === namespace && x.key === key);
+    if (row) row.translations[lang] = text;
+    toast('Đã lưu', 'ok');
+  } catch (e) {
+    toast('Lưu thất bại: ' + e.message, 'err');
+  }
+}
 
 function addI18nLang() {
-  const existing = (S.i18nLangs || ['VI']).map(l => l.toUpperCase());
-  const choices = Object.keys(I18N_LANG_NAMES).filter(l => !existing.includes(l));
-  const opts = choices.map(l => `<option value="${l}">${l} — ${I18N_LANG_NAMES[l]}</option>`).join('');
+  const existing = I18N.langs.map(l => l.code);
+  const choices = Object.keys(I18N_LANG_NAMES).filter(c => !existing.includes(c));
+  const opts = choices.map(c => `<option value="${c}">${c.toUpperCase()} — ${I18N_LANG_NAMES[c]}</option>`).join('');
   showPanel('Thêm Ngôn Ngữ Mới', `
     <div class="form-group">
       <label class="form-label">Chọn ngôn ngữ có sẵn</label>
@@ -1779,89 +2118,185 @@ function addI18nLang() {
     <div style="text-align:center;color:var(--muted);font-size:12px;margin:8px 0">— hoặc —</div>
     <div class="form-group">
       <label class="form-label">Mã ngôn ngữ tuỳ chỉnh (2-3 ký tự)</label>
-      <input class="form-control" id="il-code" placeholder="VD: IT, PT, AR" maxlength="3">
+      <input class="form-control" id="il-code" placeholder="VD: it, pt, ar" maxlength="3">
     </div>
     <div class="form-group">
       <label class="form-label">Tên hiển thị (tuỳ chọn)</label>
       <input class="form-control" id="il-name" placeholder="VD: Italiano">
     </div>
-  `, () => {
+  `, async () => {
     const pick = document.getElementById('il-pick').value;
-    const code = (document.getElementById('il-code').value || '').trim().toUpperCase();
+    const code = (document.getElementById('il-code').value || '').trim().toLowerCase();
     const name = document.getElementById('il-name').value.trim();
-    const lang = pick || code;
+    const lang = (pick || code).toLowerCase();
     if (!lang) { toast('Chọn hoặc nhập mã ngôn ngữ', 'warn'); return; }
-    if ((S.i18nLangs || []).includes(lang)) { toast('Ngôn ngữ đã tồn tại', 'warn'); return; }
-    S.i18nLangs = [...(S.i18nLangs || ['VI']), lang];
-    if (name && !I18N_LANG_NAMES[lang]) I18N_LANG_NAMES[lang] = name;
-    const lk = lang.toLowerCase();
-    Object.values(i18n).forEach(vals => { if (!(lk in vals)) vals[lk] = ''; });
-    S.i18nLang = lang;
-    closePanel();
-    render('i18n', document.getElementById('p-i18n'));
-    toast(`Đã thêm ngôn ngữ ${lang}`, 'ok');
+    if (I18N.langs.some(l => l.code === lang)) { toast('Ngôn ngữ đã tồn tại', 'warn'); return; }
+    try {
+      const r = await fetch(API_BASE + '/api/i18n/language', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: lang, name: name || I18N_LANG_NAMES[lang] || lang }),
+      });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      closePanel();
+      await loadI18n();
+      S.i18nLang = lang;
+      render('i18n', document.getElementById('p-i18n'));
+      toast(`Đã thêm ngôn ngữ ${lang.toUpperCase()}`, 'ok');
+    } catch (e) {
+      toast('Thêm thất bại: ' + e.message, 'err');
+    }
   });
 }
 
 function removeI18nLang(lang) {
-  if (lang === 'VI') { toast('Không thể xoá ngôn ngữ gốc', 'warn'); return; }
-  confirmDel(`Xoá ngôn ngữ ${lang}?`, 'Toàn bộ bản dịch của ngôn ngữ này sẽ bị xoá.', () => {
-    S.i18nLangs = (S.i18nLangs || ['VI']).filter(l => l !== lang);
-    const lk = lang.toLowerCase();
-    Object.values(i18n).forEach(vals => { delete vals[lk]; });
-    if (S.i18nLang === lang) S.i18nLang = 'VI';
-    render('i18n', document.getElementById('p-i18n'));
-    toast(`Đã xoá ngôn ngữ ${lang}`, 'ok');
+  const l = I18N.langs.find(x => x.code === lang);
+  if (l && l.is_default) { toast('Không thể xoá ngôn ngữ gốc', 'warn'); return; }
+  confirmDel(`Xoá ngôn ngữ ${lang.toUpperCase()}?`, 'Toàn bộ bản dịch của ngôn ngữ này sẽ bị xoá.', async () => {
+    try {
+      const r = await fetch(API_BASE + '/api/i18n/language/' + lang, { method: 'DELETE' });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      await loadI18n();
+      if (S.i18nLang === lang) S.i18nLang = 'vi';
+      render('i18n', document.getElementById('p-i18n'));
+      toast(`Đã xoá ngôn ngữ ${lang.toUpperCase()}`, 'ok');
+    } catch (e) {
+      toast('Xoá thất bại: ' + e.message, 'err');
+    }
   });
 }
 
 function renderI18n(el) {
-  if (!S.i18nLangs || !S.i18nLangs.length) S.i18nLangs = ['VI'];
-  if (!S.i18nLangs.includes(S.i18nLang)) S.i18nLang = 'VI';
+  // Lần đầu vào trang: nạp dữ liệu rồi render lại
+  if (!I18N.loaded && !I18N.loading) {
+    el.innerHTML = `<div class="ph"><div class="ph-left"><div class="breadcrumb"><span>Dashboard</span> / Ngôn Ngữ</div><h1>Quản Lý Ngôn Ngữ & i18n</h1></div></div>
+      <div class="card"><div style="padding:40px;text-align:center;color:var(--muted)">Đang tải dữ liệu từ máy chủ…</div></div>`;
+    loadI18n().then(() => render('i18n', el));
+    return;
+  }
+  if (I18N.error) {
+    el.innerHTML = `<div class="ph"><div class="ph-left"><div class="breadcrumb"><span>Dashboard</span> / Ngôn Ngữ</div><h1>Quản Lý Ngôn Ngữ & i18n</h1></div></div>
+      <div class="card"><div style="padding:40px;text-align:center;color:var(--danger,#e66)">
+        Không tải được dữ liệu i18n: ${I18N.error}<br><br>
+        <button class="btn btn-secondary btn-sm" onclick="I18N.loaded=false;I18N.error=null;render('i18n',document.getElementById('p-i18n'))">Thử lại</button>
+        <div style="margin-top:10px;font-size:12px">Hãy chắc máy chủ API đang chạy (npm start trong thư mục server).</div>
+      </div></div>`;
+    return;
+  }
+
+  const langs = I18N.langs;
+  const defCode = (langs.find(l => l.is_default) || langs[0] || { code: 'vi' }).code;
+  if (!S.i18nLang || !langs.some(l => l.code === S.i18nLang)) S.i18nLang = defCode;
   const lang = S.i18nLang;
-  const lk   = lang.toLowerCase();
+
+  // Danh sách namespace có trong dữ liệu (cho dropdown lọc)
+  const namespaces = [...new Set(I18N.rows.map(r => r.namespace))].sort();
+  const total = I18N.rows.length;
+  const shown = filteredI18nRows().length;
+
   el.innerHTML = `
     <div class="ph">
       <div class="ph-left"><div class="breadcrumb"><span>Dashboard</span> / Ngôn Ngữ</div><h1>Quản Lý Ngôn Ngữ & i18n</h1></div>
       <div class="btn-group">
         <button class="btn btn-primary btn-sm" onclick="addI18nLang()">+ Thêm ngôn ngữ mới</button>
-        <button class="btn btn-secondary btn-sm" onclick="toast('Đang dịch tự động…','info')">${ico('refresh',14)} Auto-translate thiếu</button>
-        <button class="btn btn-secondary btn-sm" onclick="toast('Đang xuất JSON…','info')">${ico('download')} Export JSON</button>
+        <button class="btn btn-secondary btn-sm" onclick="I18N.loaded=false;render('i18n',document.getElementById('p-i18n'))">${ico('refresh',14)} Tải lại</button>
       </div>
     </div>
     <div class="tabs">
-      ${S.i18nLangs.map(l => `
-        <div class="tab ${lang===l?'active':''}" onclick="S.i18nLang='${l}';render('i18n',document.getElementById('p-i18n'))" title="${I18N_LANG_NAMES[l]||l}">
-          ${l}${l!=='VI' ? ` <span style="margin-left:6px;opacity:.55;cursor:pointer" onclick="event.stopPropagation();removeI18nLang('${l}')" title="Xoá">×</span>` : ''}
+      ${langs.map(l => `
+        <div class="tab ${lang===l.code?'active':''}" onclick="S.i18nLang='${l.code}';render('i18n',document.getElementById('p-i18n'))" title="${esc(l.name)}">
+          ${l.code.toUpperCase()}${!l.is_default ? ` <span style="margin-left:6px;opacity:.55;cursor:pointer" onclick="event.stopPropagation();removeI18nLang('${l.code}')" title="Xoá">×</span>` : ''}
         </div>
       `).join('')}
     </div>
     <div class="card">
+      <div class="filter-bar">
+        <input class="fi" style="min-width:240px" placeholder="Tìm theo key hoặc nội dung…"
+               value="${esc(I18NF.search)}" oninput="I18NF.search=this.value;reloadI18nTbody()">
+        <select class="fi fi-select" onchange="I18NF.namespace=this.value;reloadI18nTbody()">
+          <option value="">Tất cả namespace</option>
+          ${namespaces.map(ns => `<option value="${esc(ns)}" ${I18NF.namespace===ns?'selected':''}>${esc(ns)}</option>`).join('')}
+        </select>
+        <select class="fi fi-select" onchange="I18NF.status=this.value;reloadI18nTbody()">
+          <option value="">Tất cả trạng thái</option>
+          <option value="translated" ${I18NF.status==='translated'?'selected':''}>Đã dịch</option>
+          <option value="missing" ${I18NF.status==='missing'?'selected':''}>Thiếu bản dịch</option>
+        </select>
+        <div class="filter-spacer"></div>
+        <span class="c-muted" style="font-size:12px" id="i18n-count">${shown} / ${total} key</span>
+      </div>
       <div class="table-wrap">
         <table class="tbl">
-          <thead><tr><th>Key</th><th>Namespace</th><th>VI (gốc)</th><th>${lang} (dịch)</th><th>Trạng thái</th></tr></thead>
-          <tbody>
-            ${Object.entries(i18n).map(([key,vals]) => {
-              const ns    = key.split('.')[0];
-              const vi    = vals.vi||'';
-              const trans = vals[lk]||'';
-              const status = lang==='VI' ? '<span class="badge badge-ok">Gốc</span>' :
-                !trans      ? `<span class="badge badge-warning">${ico('warning',12)} Thiếu</span>` :
-                              '<span class="badge badge-ok">OK</span>';
-              return `<tr>
-                <td class="mono" style="font-size:12px">${key}</td>
-                <td><span class="badge badge-muted">${ns}</span></td>
-                <td class="c-muted">${vi}</td>
-                <td ${lang!=='VI'?`contenteditable="true" onblur="i18n['${key}']['${lk}']=this.textContent;toast('Đã lưu','ok')"`:''}
-                    style="${lang!=='VI'?'min-width:160px;cursor:text':''}">${lang==='VI'?vi:trans}</td>
-                <td>${status}</td>
-              </tr>`;
-            }).join('')}
-          </tbody>
+          <thead><tr><th>Key</th><th>Namespace</th><th>${defCode.toUpperCase()} (gốc)</th><th>${lang.toUpperCase()} (dịch)</th><th>Trạng thái</th></tr></thead>
+          <tbody id="i18n-body">${i18nRowsHTML()}</tbody>
         </table>
       </div>
     </div>
   `;
+}
+
+// Bộ lọc trang i18n: tìm kiếm + namespace + trạng thái dịch
+const I18NF = { search: '', namespace: '', status: '' };
+
+// Lọc I18N.rows theo I18NF cho ngôn ngữ đang xem
+function filteredI18nRows() {
+  const langs = I18N.langs;
+  const defCode = (langs.find(l => l.is_default) || langs[0] || { code: 'vi' }).code;
+  const lang = S.i18nLang;
+  const q = I18NF.search.trim().toLowerCase();
+  return I18N.rows.filter(row => {
+    if (I18NF.namespace && row.namespace !== I18NF.namespace) return false;
+    if (I18NF.status) {
+      const has = !!(row.translations[lang] && String(row.translations[lang]).trim());
+      // Ngôn ngữ gốc luôn coi như "đã dịch"
+      const translated = lang === defCode ? true : has;
+      if (I18NF.status === 'translated' && !translated) return false;
+      if (I18NF.status === 'missing' && translated) return false;
+    }
+    if (q) {
+      const orig = (row.translations[defCode] ?? row.default_text ?? '').toLowerCase();
+      const trans = (row.translations[lang] ?? '').toLowerCase();
+      if (!row.key.toLowerCase().includes(q) && !orig.includes(q) && !trans.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+// Dựng HTML các dòng bảng i18n (theo bộ lọc hiện tại)
+function i18nRowsHTML() {
+  const langs = I18N.langs;
+  const defCode = (langs.find(l => l.is_default) || langs[0] || { code: 'vi' }).code;
+  const lang = S.i18nLang;
+  const isDef = lang === defCode;
+  const rows = filteredI18nRows();
+  if (rows.length === 0) {
+    return `<tr><td colspan="5" style="padding:24px;text-align:center;color:var(--muted)">Không có key nào khớp bộ lọc.</td></tr>`;
+  }
+  return rows.map(row => {
+    const orig  = row.translations[defCode] ?? row.default_text ?? '';
+    const trans = row.translations[lang] ?? '';
+    const status = isDef ? '<span class="badge badge-ok">Gốc</span>' :
+      !trans      ? `<span class="badge badge-warning">${ico('warning',12)} Thiếu</span>` :
+                    '<span class="badge badge-ok">OK</span>';
+    const keyAttr = encodeURIComponent(row.key);
+    return `<tr>
+      <td class="mono" style="font-size:12px">${esc(row.key)}</td>
+      <td><span class="badge badge-muted">${esc(row.namespace)}</span></td>
+      <td class="c-muted">${esc(orig)}</td>
+      <td ${!isDef?`contenteditable="true" data-ns="${esc(row.namespace)}" data-key="${keyAttr}"
+          onblur="saveI18nEntry(this.dataset.ns,decodeURIComponent(this.dataset.key),'${lang}',this.textContent.trim())"`:''}
+          style="${!isDef?'min-width:160px;cursor:text':''}">${esc(isDef?orig:trans)}</td>
+      <td>${status}</td>
+    </tr>`;
+  }).join('');
+}
+
+// Vẽ lại chỉ phần tbody khi gõ tìm kiếm / đổi bộ lọc (không render cả trang)
+function reloadI18nTbody() {
+  const body = document.getElementById('i18n-body');
+  const count = document.getElementById('i18n-count');
+  if (body) body.innerHTML = i18nRowsHTML();
+  if (count) count.textContent = filteredI18nRows().length + ' / ' + I18N.rows.length + ' key';
 }
 
 // ——— THEME ———————————————————————————————————
@@ -1985,7 +2420,25 @@ function applyPreset(name) {
   toast('Đã áp dụng preset: '+name, 'ok');
 }
 
-function saveTheme()  { S.themeUnsaved=false; toast('Đã lưu theme','ok'); document.getElementById('theme-save-state').textContent='Đã lưu lúc '+new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}); }
+async function saveTheme() {
+  const stateEl = document.getElementById('theme-save-state');
+  if (stateEl) stateEl.textContent = 'Đang lưu…';
+  try {
+    const r = await fetch(API_BASE + '/api/theme', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ colors: TC.colors, preset: TC.currentPreset }),
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    S.themeUnsaved = false;
+    toast('Đã lưu theme vào CSDL', 'ok');
+    if (stateEl) stateEl.textContent =
+      'Đã lưu lúc ' + new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+  } catch (e) {
+    toast('Lưu theme thất bại: ' + e.message + ' — kiểm tra server backend', 'err');
+    if (stateEl) stateEl.textContent = '● Chưa lưu';
+  }
+}
 function resetTheme() { confirmDel('Reset về theme mặc định?','Toàn bộ tùy chỉnh màu sẽ bị đặt lại.',()=>{ THEME_COLORS.forEach(([k,,,def])=>TC.colors[k]=def); TC.currentPreset='Aurora (Mặc định)'; render('theme',document.getElementById('p-theme')); toast('Đã reset theme','ok'); }); }
 
 function exportThemeCSS() {
@@ -2001,23 +2454,31 @@ function exportThemeJSON() {
 
 // ——— ANALYTICS ———————————————————————————————
 function renderAnalytics(el) {
+  // Cần số liệu thật trước khi dựng phễu chuyển đổi (HTML) → nạp xong mới render
+  if (!_analyticsCache) {
+    el.innerHTML = `<div class="ph"><div class="ph-left"><div class="breadcrumb"><span>Dashboard</span> / Analytics</div><h1>Analytics & Báo Cáo</h1></div></div>
+      <div class="card"><div style="padding:40px;text-align:center;color:var(--muted)">Đang tải số liệu từ máy chủ…</div></div>`;
+    loadAnalytics().then(() => render('analytics', el));
+    return;
+  }
+  const a = _analyticsCache;
   el.innerHTML = `
     <div class="ph">
       <div class="ph-left"><div class="breadcrumb"><span>Dashboard</span> / Analytics</div><h1>Analytics & Báo Cáo</h1></div>
       <div class="btn-group">
-        ${['Hôm nay','7 ngày','30 ngày','Tháng này'].map((t,i)=>`<button class="btn ${i===1?'btn-primary':'btn-secondary'} btn-sm">${t}</button>`).join('')}
+        <button class="btn btn-secondary btn-sm" onclick="loadAnalytics(true).then(()=>render('analytics',document.getElementById('p-analytics')))">${ico('refresh',14)} Tải lại</button>
       </div>
     </div>
     <div class="atab-row">
       ${[['views',`${ico('overview',14)} Lượt Xem`],['vr',`${ico('video',14)} VR Engagement`],['conv',`${ico('trending',14)} Chuyển Đổi`],['leads',`${ico('leads',14)} Leads`]].map(([id,label])=>`
         <div class="atab ${S.analyticsTab===id?'active':''}" onclick="S.analyticsTab='${id}';render('analytics',document.getElementById('p-analytics'))">${label}</div>`).join('')}
     </div>
-    <div id="atab-content">${analyticsTabHTML()}</div>
+    <div id="atab-content">${analyticsTabHTML(a)}</div>
   `;
-  setTimeout(drawAnalyticsCharts, 30);
+  setTimeout(() => drawAnalyticsCharts(a), 30);
 }
 
-function analyticsTabHTML() {
+function analyticsTabHTML(a) {
   const t = S.analyticsTab;
   if (t==='views') return `
     <div class="g2">
@@ -2029,14 +2490,22 @@ function analyticsTabHTML() {
       <div class="card"><div class="card-header"><span class="card-title">Scene Xem Nhiều Nhất</span></div><div class="card-body"><div class="chart-wrap"><canvas id="ac-scenes2"></canvas></div></div></div>
       <div class="card"><div class="card-header"><span class="card-title">Tỷ Lệ Dùng Voice AI</span></div><div class="card-body"><div class="chart-wrap"><canvas id="ac-ai"></canvas></div></div></div>
     </div>`;
-  if (t==='conv') return `
+  if (t==='conv') {
+    const funnel = (a && a.funnel) || [];
+    const base = funnel[0] ? funnel[0].value : 0;
+    return `
     <div class="card" style="max-width:600px"><div class="card-header"><span class="card-title">Phễu Chuyển Đổi</span></div><div class="card-body">
-      ${[['Lượt xem trang',2847,100],['Mở Bảng Giá',1480,52],['Mở Form Đặt Lịch',640,22.5],['Điền Form',320,11.2],['Submit thành công',186,6.5]].map(([s,v,p])=>`
+      ${funnel.length === 0 ? '<div style="padding:20px;text-align:center;color:var(--muted)">Chưa có dữ liệu chuyển đổi.</div>' :
+        funnel.map(f => {
+          const p = base ? (f.value / base * 100) : 0;
+          return `
         <div class="funnel-item">
-          <div class="funnel-row"><span>${s}</span><span class="fw6">${v.toLocaleString()} (${p}%)</span></div>
+          <div class="funnel-row"><span>${esc(f.stage)}</span><span class="fw6">${(f.value||0).toLocaleString('vi-VN')} (${p.toFixed(1)}%)</span></div>
           <div class="funnel-bar-bg"><div class="funnel-bar" style="width:${p}%"></div></div>
-        </div>`).join('')}
+        </div>`;
+        }).join('')}
     </div></div>`;
+  }
   return `
     <div class="g2">
       <div class="card"><div class="card-header"><span class="card-title">Leads Theo Ngày</span></div><div class="card-body"><div class="chart-wrap"><canvas id="ac-lday"></canvas></div></div></div>
@@ -2044,61 +2513,89 @@ function analyticsTabHTML() {
     </div>`;
 }
 
-function drawAnalyticsCharts() {
-  if (!window.Chart) return;
+// Vẽ các chart trang Analytics — toàn bộ số liệu thật từ /api/analytics
+function drawAnalyticsCharts(a) {
+  if (!window.Chart || !a) return;
   const xOpts = (label) => ({
     responsive:true, maintainAspectRatio:false,
     plugins:{ legend:{ display:label, labels:{ color:'#64748b', font:{size:11} } } },
     scales:{ x:{ticks:{color:'#94a3b8',font:{size:10}},grid:{color:'rgba(0,0,0,.04)'}}, y:{ticks:{color:'#94a3b8',font:{size:10}},grid:{color:'rgba(0,0,0,.04)'}} }
   });
   const donut = { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'right', labels:{color:'#64748b',font:{size:11}} } } };
-  const days = ['T2','T3','T4','T5','T6','T7','CN'];
-  const panos = _panoramaCache || [];
-  if (document.getElementById('ac-daily')) new Chart('ac-daily',{type:'line',data:{labels:days,datasets:[{label:'Sessions',data:[320,410,380,490,560,720,840],borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,.1)',tension:.4,fill:true}]},options:xOpts(false)});
-  if (document.getElementById('ac-device')) new Chart('ac-device',{type:'doughnut',data:{labels:['Desktop','Mobile','Tablet'],datasets:[{data:[58,35,7],backgroundColor:['#3b82f6','#10b981','#f59e0b'],borderWidth:0}]},options:donut});
-  if (document.getElementById('ac-scenes2')) {
-    const labels = panos.length ? panos.slice(0,6).map(p=>p.name) : ['pano-01','pano-02','pano-03','pano-04','pano-05'];
-    const data   = [1240,980,820,710,650,540].slice(0,labels.length);
-    new Chart('ac-scenes2',{type:'bar',data:{labels,datasets:[{data,backgroundColor:'rgba(59,130,246,.6)',borderRadius:4}]},options:{indexAxis:'y',...xOpts(false)}});
+  const palette = ['#3b82f6','#10b981','#f59e0b','#06b6d4','#ef4444','#7c3aed','#22c55e','#94a3b8'];
+  // nhãn ngày dạng dd/mm
+  const dayLabel = (iso) => { const d = new Date(iso); return d.getDate()+'/'+(d.getMonth()+1); };
+
+  if (document.getElementById('ac-daily')) {
+    const d = a.daily || [];
+    new Chart('ac-daily',{type:'line',data:{labels:d.map(x=>dayLabel(x.date)),datasets:[{label:'Sessions',data:d.map(x=>x.count),borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,.1)',tension:.4,fill:true}]},options:xOpts(false)});
   }
-  if (document.getElementById('ac-ai')) new Chart('ac-ai',{type:'doughnut',data:{labels:['Dùng Voice AI','Không dùng'],datasets:[{data:[32,68],backgroundColor:['#7c3aed','#e2e8f0'],borderWidth:0}]},options:donut});
-  if (document.getElementById('ac-lday')) new Chart('ac-lday',{type:'bar',data:{labels:days,datasets:[{label:'Leads',data:[3,5,4,8,6,12,10],backgroundColor:'rgba(16,185,129,.6)',borderRadius:4}]},options:xOpts(false)});
-  if (document.getElementById('ac-lsrc')) new Chart('ac-lsrc',{type:'doughnut',data:{labels:['VR Web','Zalo OA','Hotline','Facebook Ads','Sàn BĐS','Walk-in','Giới thiệu','Khác'],datasets:[{data:[42,18,10,12,8,4,4,2],backgroundColor:['#3b82f6','#10b981','#22c55e','#f59e0b','#06b6d4','#ef4444','#7c3aed','#94a3b8'],borderWidth:0}]},options:donut});
+  if (document.getElementById('ac-device')) {
+    const dv = a.devices || [];
+    new Chart('ac-device',{type:'doughnut',data:{labels:dv.map(x=>x.device),datasets:[{data:dv.map(x=>x.count),backgroundColor:palette,borderWidth:0}]},options:donut});
+  }
+  if (document.getElementById('ac-scenes2')) {
+    const sc = a.scenes || [];
+    new Chart('ac-scenes2',{type:'bar',data:{labels:sc.map(x=>x.name),datasets:[{data:sc.map(x=>x.count),backgroundColor:'rgba(59,130,246,.6)',borderRadius:4}]},options:{indexAxis:'y',...xOpts(false)}});
+  }
+  if (document.getElementById('ac-ai')) {
+    const v = a.voiceAI || { used:0, total:0 };
+    const notUsed = Math.max(0, (v.total||0) - (v.used||0));
+    new Chart('ac-ai',{type:'doughnut',data:{labels:['Dùng Voice AI','Không dùng'],datasets:[{data:[v.used||0,notUsed],backgroundColor:['#7c3aed','#e2e8f0'],borderWidth:0}]},options:donut});
+  }
+  if (document.getElementById('ac-lday')) {
+    const ld = a.leadsDaily || [];
+    new Chart('ac-lday',{type:'bar',data:{labels:ld.map(x=>dayLabel(x.date)),datasets:[{label:'Leads',data:ld.map(x=>x.count),backgroundColor:'rgba(16,185,129,.6)',borderRadius:4}]},options:xOpts(false)});
+  }
+  if (document.getElementById('ac-lsrc')) {
+    const ls = a.leadsBySource || [];
+    new Chart('ac-lsrc',{type:'doughnut',data:{labels:ls.map(x=>x.source),datasets:[{data:ls.map(x=>x.count),backgroundColor:palette,borderWidth:0}]},options:donut});
+  }
 }
 
 // ——— SETTINGS ————————————————————————————————
-const mockUsers = [
-  { name:'Nguyễn Admin', email:'admin@aurora.vn',   role:'Admin',          status:'active',   last:'2026-05-15 09:30' },
-  { name:'Trần Sales A',  email:'salesa@aurora.vn',  role:'Sales Manager',  status:'active',   last:'2026-05-15 08:15' },
-  { name:'Lê Content',    email:'content@aurora.vn', role:'Content Editor', status:'active',   last:'2026-05-14 17:00' },
-  { name:'Phạm Dev',      email:'dev@aurora.vn',     role:'Developer',      status:'inactive', last:'2026-05-10 12:00' },
-];
-
 /* ===== USER (Sales) MANAGEMENT ===== */
 function userAdd() {
-  const blank = { username: '', name: '', title: '', phone: '', zalo: '', facebook: '', email: '', avatar: '' };
-  userForm(blank, -1);
+  userForm(null);
 }
-function userEdit(idx) {
-  const u = (S.data.sales || [])[idx];
+// Mở form sửa 1 user. id từ onclick là số; x.id từ API là chuỗi
+// (Postgres BIGINT) — so sánh dạng chuỗi để khớp.
+function userEdit(id) {
+  const u = (S.users || []).find(x => String(x.id) === String(id));
   if (!u) return;
-  userForm({ ...u }, idx);
+  userForm({ ...u });
 }
-function userDel(idx) {
-  const u = (S.data.sales || [])[idx];
+function userDel(id) {
+  const u = (S.users || []).find(x => String(x.id) === String(id));
   if (!u) return;
   confirmDel(
-    `Xoá nhân viên Sales <b>${esc(u.name||'')}</b>?`,
+    `Xoá tài khoản <b>${esc(u.name||'')}</b> (${esc(u.username)})?`,
     'Hành động này không thể hoàn tác.',
-    () => {
-      S.data.sales.splice(idx, 1);
-      saveData('Đã xoá nhân viên Sales');
-      render('settings', document.getElementById('p-settings'));
+    async () => {
+      try {
+        await authApi('DELETE', '/api/users/' + u.id);
+        toast('Đã xoá tài khoản', 'ok');
+        await loadUsers(true);
+        render('settings', document.getElementById('p-settings'));
+      } catch (e) { toast(e.message, 'err'); }
     }
   );
 }
-function userForm(u, idx) {
-  const isNew = idx < 0;
+
+// Role mà người đang đăng nhập được phép cấp.
+//   developer: cấp được mọi role.  owner: chỉ owner + sales.
+function assignableRoles() {
+  return authRole() === 'developer'
+    ? [['developer','Developer'],['owner','Chủ đầu tư'],['sales','Sales']]
+    : [['owner','Chủ đầu tư'],['sales','Sales']];
+}
+
+function userForm(u) {
+  const isNew = !u;
+  u = u || { username:'', name:'', title:'', phone:'', email:'', avatar:'', role:'sales', slug:'' };
+  const roleOpts = assignableRoles()
+    .map(([v,l]) => `<option value="${v}" ${u.role===v?'selected':''}>${l}</option>`)
+    .join('');
   const body = `
     <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
       <div id="u-avatar-prev" style="width:64px;height:64px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--muted);font-weight:700;font-size:20px">
@@ -2107,8 +2604,8 @@ function userForm(u, idx) {
           : esc((u.name||'?').trim().split(/\s+/).pop()[0] || '?')}
       </div>
       <div style="flex:1;min-width:0">
-        <div class="fw6" style="font-size:15px">${isNew ? 'Thêm nhân viên Sales' : esc(u.name||'')}</div>
-        <div class="c-muted" style="font-size:12px">${isNew ? 'Tạo tài khoản mới · login tại trang index' : 'Chỉnh sửa profile · hiển thị trên trang VR khi khách chọn liên hệ'}</div>
+        <div class="fw6" style="font-size:15px">${isNew ? 'Thêm tài khoản' : esc(u.name||'')}</div>
+        <div class="c-muted" style="font-size:12px">${isNew ? 'Tạo tài khoản đăng nhập mới' : 'Chỉnh sửa tài khoản · username không đổi được'}</div>
       </div>
     </div>
 
@@ -2116,8 +2613,20 @@ function userForm(u, idx) {
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">Username <span class="req">*</span></label>
-        <input class="form-control" id="u-username" value="${esc(u.username||'')}" placeholder="VD: sales" ${isNew?'':'readonly style="background:var(--surface2);color:var(--muted)"'}>
-        ${isNew ? '<small class="form-hint">Dùng để đăng nhập admin. Không đổi được sau khi tạo.</small>' : '<small class="form-hint c-muted">Username không thể chỉnh sửa.</small>'}
+        <input class="form-control" id="u-username" value="${esc(u.username||'')}" placeholder="VD: sales3" ${isNew?'':'readonly style="background:var(--surface2);color:var(--muted)"'}>
+        ${isNew ? '<small class="form-hint">Dùng để đăng nhập. Không đổi được sau khi tạo.</small>' : '<small class="form-hint c-muted">Username không thể chỉnh sửa.</small>'}
+      </div>
+      <div class="form-group">
+        <label class="form-label">Quyền <span class="req">*</span></label>
+        <select class="form-control form-select" id="u-role">${roleOpts}</select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">${isNew ? 'Mật khẩu' : 'Đặt lại mật khẩu'} ${isNew?'<span class="req">*</span>':''}</label>
+        <input class="form-control" type="text" id="u-password" value="" placeholder="${isNew?'Tối thiểu 6 ký tự':'Để trống nếu không đổi'}">
+        <small class="form-hint">${isNew?'Cấp mật khẩu cho người dùng đăng nhập.':'Nhập mật khẩu mới để thay đổi.'}</small>
       </div>
       <div class="form-group">
         <label class="form-label">Họ và tên <span class="req">*</span></label>
@@ -2125,76 +2634,95 @@ function userForm(u, idx) {
       </div>
     </div>
 
+    <div class="form-group" id="u-slug-row" style="${u.role==='sales'?'':'display:none'}">
+      <label class="form-label">ID giới thiệu (slug)</label>
+      <input class="form-control" id="u-slug" value="${esc(u.slug||'')}" placeholder="VD: sales3 — dùng trong link ?s=...">
+      <small class="form-hint">Khách mở <code>index.html?s=&lt;slug&gt;</code> sẽ được gán cho sale này. Bỏ trống = dùng username.</small>
+    </div>
+
+    <div class="form-section">Hồ sơ</div>
     <div class="form-group">
       <label class="form-label">Chức danh</label>
       <input class="form-control" id="u-title" value="${esc(u.title||'')}" placeholder="VD: Chuyên viên tư vấn cao cấp">
     </div>
-
-    <div class="form-section">Liên hệ</div>
     <div class="form-row">
       <div class="form-group">
         <label class="form-label">Điện thoại</label>
         <input class="form-control" id="u-phone" value="${esc(u.phone||'')}" placeholder="VD: 0911 222 333">
       </div>
       <div class="form-group">
-        <label class="form-label">Zalo</label>
-        <input class="form-control" id="u-zalo" value="${esc(u.zalo||'')}" placeholder="VD: 0911222333">
-        <small class="form-hint">Số Zalo (không có dấu cách)</small>
+        <label class="form-label">Email</label>
+        <input class="form-control" type="email" id="u-email" value="${esc(u.email||'')}" placeholder="ten@auroraheights.vn">
       </div>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">Email</label>
-      <input class="form-control" type="email" id="u-email" value="${esc(u.email||'')}" placeholder="ten@auroraheights.vn">
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">Facebook URL</label>
-      <input class="form-control" type="url" id="u-facebook" value="${esc(u.facebook||'')}" placeholder="https://facebook.com/...">
     </div>
 
     <div class="form-section">Ảnh đại diện</div>
     ${imageField('u-avatar', 'Avatar', u.avatar||'')}
   `;
-  showPanel(isNew ? 'Thêm nhân viên Sales' : 'Sửa thông tin Sales', body, () => userSave(idx));
+  showPanel(isNew ? 'Thêm tài khoản' : 'Sửa tài khoản', body, () => userSave(isNew ? null : u.id));
+  // Ẩn/hiện trường slug theo role đang chọn.
+  const roleSel = document.getElementById('u-role');
+  if (roleSel) roleSel.addEventListener('change', () => {
+    const row = document.getElementById('u-slug-row');
+    if (row) row.style.display = roleSel.value === 'sales' ? '' : 'none';
+  });
 }
 
-function userSave(idx) {
-  const g = id => (document.getElementById(id)?.value || '').trim();
-  const isNew = idx < 0;
+async function userSave(id) {
+  const g = sel => (document.getElementById(sel)?.value || '').trim();
+  const isNew = !id;
 
   const username = g('u-username').toLowerCase();
-  const name = g('u-name');
-  if (!username) { toast('Vui lòng nhập Username', 'warn'); return; }
-  if (!name)     { toast('Vui lòng nhập Họ và tên', 'warn'); return; }
-  if (!/^[a-z0-9_.-]+$/.test(username)) { toast('Username chỉ dùng a-z, 0-9, _ . -', 'warn'); return; }
+  const name     = g('u-name');
+  const password = document.getElementById('u-password')?.value || '';
+  const role     = g('u-role');
 
-  S.data.sales = S.data.sales || [];
-  if (isNew && S.data.sales.some(s => (s.username||'').toLowerCase() === username)) {
-    toast('Username đã tồn tại', 'err'); return;
+  if (isNew && !username) { toast('Vui lòng nhập Username', 'warn'); return; }
+  if (isNew && !/^[a-z0-9_.-]+$/.test(username)) {
+    toast('Username chỉ dùng a-z, 0-9, _ . -', 'warn'); return;
+  }
+  if (!name) { toast('Vui lòng nhập Họ và tên', 'warn'); return; }
+  if (isNew && password.length < 6) { toast('Mật khẩu tối thiểu 6 ký tự', 'warn'); return; }
+  if (!isNew && password && password.length < 6) {
+    toast('Mật khẩu mới tối thiểu 6 ký tự', 'warn'); return;
   }
 
   const payload = {
-    username,
     name,
-    title:    g('u-title'),
-    phone:    g('u-phone'),
-    zalo:     g('u-zalo'),
-    facebook: g('u-facebook'),
-    email:    g('u-email'),
-    avatar:   (document.getElementById('u-avatar-val')?.value || '').trim()
+    role,
+    title:  g('u-title'),
+    phone:  g('u-phone'),
+    email:  g('u-email'),
+    avatar: (document.getElementById('u-avatar-val')?.value || '').trim(),
   };
+  if (role === 'sales') payload.slug = g('u-slug');
+  if (password) payload.password = password;
+  if (isNew) payload.username = username;
 
-  if (isNew) S.data.sales.push(payload);
-  else {
-    // Keep username immutable on edit
-    payload.username = S.data.sales[idx].username;
-    S.data.sales[idx] = payload;
+  try {
+    if (isNew) await authApi('POST', '/api/users', payload);
+    else       await authApi('PUT', '/api/users/' + id, payload);
+    closePanel();
+    toast(isNew ? 'Đã tạo tài khoản' : 'Đã cập nhật tài khoản', 'ok');
+    await loadUsers(true);
+    render('settings', document.getElementById('p-settings'));
+  } catch (e) {
+    toast(e.message, 'err');
   }
+}
 
-  closePanel();
-  saveData(isNew ? 'Đã thêm nhân viên Sales' : 'Đã cập nhật thông tin Sales');
-  render('settings', document.getElementById('p-settings'));
+// Nạp danh sách tài khoản từ API (cache trong S.users).
+async function loadUsers(force) {
+  if (S.usersLoaded && !force) return true;
+  try {
+    S.users = await authApi('GET', '/api/users');
+    S.usersLoaded = true;
+    S.usersError = null;
+    return true;
+  } catch (e) {
+    S.usersError = e.message;
+    return false;
+  }
 }
 
 function logoSlotHTML(id, label, currentValue, usedIn, bgMode) {
@@ -2227,7 +2755,13 @@ function renderSettings(el) {
     </div>
     <div class="vtab-layout">
       <div class="vtabs">
-        ${[['project',`${ico('hardhat',14)} Dự án`],['api',`${ico('plug',14)} API & Tích hợp`],['users',`${ico('users',14)} Người dùng`],['backup',`${ico('harddrive',14)} Backup`]].map(([id,l])=>`
+        ${[
+          ['project',`${ico('hardhat',14)} Dự án`],
+          // Tab API là phần kỹ thuật — chỉ developer thấy.
+          ...(authRole()==='developer' ? [['api',`${ico('plug',14)} API & Tích hợp`]] : []),
+          ['users',`${ico('users',14)} Người dùng`],
+          ['backup',`${ico('harddrive',14)} Backup`],
+        ].map(([id,l])=>`
           <div class="vtab ${S.settingsTab===id?'active':''}" onclick="S.settingsTab='${id}';render('settings',document.getElementById('p-settings'))">${l}</div>`).join('')}
       </div>
       <div class="vtab-content">${settingsTabHTML(p)}</div>
@@ -2236,7 +2770,9 @@ function renderSettings(el) {
 }
 
 function settingsTabHTML(p) {
-  const VALID_TABS = ['project','api','users','backup'];
+  const VALID_TABS = authRole()==='developer'
+    ? ['project','api','users','backup']
+    : ['project','users','backup'];   // owner không có tab API (kỹ thuật)
   if (!VALID_TABS.includes(S.settingsTab)) S.settingsTab = 'project';
   const t = S.settingsTab;
   if (t==='project') return `
@@ -2359,40 +2895,66 @@ function settingsTabHTML(p) {
       </div>
     </div>`;
   if (t==='users') {
-    const salesList = (S.data && S.data.sales) ? S.data.sales : [];
+    // Danh sách nạp bất đồng bộ qua API; lần đầu render placeholder rồi
+    // gọi loadUsers() và re-render khi có dữ liệu.
+    if (!S.usersLoaded && !S.usersError) {
+      loadUsers().then(() => {
+        if (S.page === 'settings' && S.settingsTab === 'users') {
+          render('settings', document.getElementById('p-settings'));
+        }
+      });
+      return `<div class="card"><div class="card-body" style="text-align:center;padding:40px;color:var(--muted)">Đang tải danh sách tài khoản…</div></div>`;
+    }
+    if (S.usersError) {
+      return `<div class="card"><div class="card-body" style="text-align:center;padding:32px;color:var(--muted)">
+        Không tải được danh sách tài khoản: ${esc(S.usersError)}<br>
+        <small>Hãy chắc chắn server đang chạy.</small><br>
+        <button class="btn btn-secondary btn-sm" style="margin-top:12px" onclick="S.usersLoaded=false;S.usersError=null;render('settings',document.getElementById('p-settings'))">${ico('refresh',12)} Thử lại</button>
+      </div></div>`;
+    }
+    const users = S.users || [];
+    const roleBadge = (role) => {
+      const map = {
+        developer: ['Developer', 'rgba(99,102,241,.2)', '#818cf8'],
+        owner:     ['Chủ đầu tư', 'rgba(245,158,11,.2)', '#fbbf24'],
+        sales:     ['Sales', 'rgba(16,185,129,.2)', '#34d399'],
+      };
+      const [label, bg, fg] = map[role] || [role, 'rgba(148,163,184,.2)', '#94a3b8'];
+      return `<span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;background:${bg};color:${fg}">${label}</span>`;
+    };
     return `
     <div class="card">
       <div class="card-header">
         <span class="card-title">Quản Lý Người Dùng</span>
-        <button class="btn btn-primary btn-sm" onclick="userAdd()">${ico('plus')} Thêm Sales</button>
+        <button class="btn btn-primary btn-sm" onclick="userAdd()">${ico('plus')} Thêm tài khoản</button>
       </div>
       <div class="tbl-wrap">
         <table class="tbl">
           <thead><tr>
-            <th>Sales</th><th>Username</th><th>Chức danh</th><th>Điện thoại</th><th>Zalo</th><th>Email</th><th>Facebook</th><th>Thao tác</th>
+            <th>Người dùng</th><th>Username</th><th>Quyền</th><th>ID giới thiệu</th><th>Chức danh</th><th>Điện thoại</th><th>Email</th><th>Thao tác</th>
           </tr></thead>
           <tbody>
-            ${salesList.length === 0 ? `
-              <tr><td colspan="8" style="text-align:center;padding:32px;color:var(--muted)">Chưa có nhân viên Sales nào. Bấm <b>+ Thêm Sales</b> để bắt đầu.</td></tr>
-            ` : salesList.map((u,i)=>`
-              <tr>
+            ${users.length === 0 ? `
+              <tr><td colspan="8" style="text-align:center;padding:32px;color:var(--muted)">Chưa có tài khoản nào.</td></tr>
+            ` : users.map((u)=>`
+              <tr${u.isActive ? '' : ' style="opacity:.5"'}>
                 <td>
                   <div style="display:flex;align-items:center;gap:10px">
                     ${u.avatar
                       ? `<img src="${esc(u.avatar)}" alt="" style="width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0">`
-                      : `<div class="user-av">${esc((u.name||'?').trim().split(/\\s+/).pop()[0])}</div>`}
+                      : `<div class="user-av">${esc((u.name||'?').trim().split(/\s+/).pop()[0]||'?')}</div>`}
                     <span class="fw6">${esc(u.name||'(chưa đặt tên)')}</span>
                   </div>
                 </td>
                 <td class="mono" style="font-size:12px">${esc(u.username||'')}</td>
+                <td>${roleBadge(u.role)}</td>
+                <td class="mono" style="font-size:12px">${u.role==='sales' ? esc(u.slug||u.username||'') : '<span class="c-muted">—</span>'}</td>
                 <td class="c-muted">${esc(u.title||'')}</td>
                 <td class="mono" style="font-size:12px">${esc(u.phone||'')}</td>
-                <td class="mono" style="font-size:12px">${esc(u.zalo||'')}</td>
                 <td class="mono c-muted" style="font-size:12px">${esc(u.email||'')}</td>
-                <td style="font-size:12px">${u.facebook ? `<a class="link" href="${esc(u.facebook)}" target="_blank" rel="noopener">${ico('link',12)} Facebook</a>` : '<span class="c-muted">—</span>'}</td>
                 <td><div class="row-actions">
-                  <button class="act-btn" title="Sửa thông tin" onclick="userEdit(${i})">${ico('edit')}</button>
-                  <button class="act-btn danger" title="Xoá" onclick="userDel(${i})">${ico('trash')}</button>
+                  <button class="act-btn" title="Sửa" onclick="userEdit(${u.id})">${ico('edit')}</button>
+                  <button class="act-btn danger" title="Xoá" onclick="userDel(${u.id})">${ico('trash')}</button>
                 </div></td>
               </tr>`).join('')}
           </tbody>
@@ -2413,7 +2975,7 @@ function settingsTabHTML(p) {
           <button class="btn btn-secondary btn-sm" onclick="importJSON()">${ico('upload')} Import</button>
         </div>
         <div style="padding:12px 14px;background:var(--primary-soft);border:1px solid var(--primary-dim);border-radius:var(--r);font-size:12px;color:var(--primary)">
-          <b>Lưu ý:</b> Dữ liệu admin đang lưu trong <code>localStorage</code> của trình duyệt. Bấm <b>Export</b> để tải file <code>project.json</code> đã sửa rồi thay tay vào thư mục <code>data/</code> để frontend đọc.
+          <b>Lưu ý:</b> Mỗi lần lưu, dữ liệu được đồng bộ thẳng lên CSDL qua <code>PUT /api/project</code> — trang VR đọc <code>/api/project</code> sẽ thấy ngay. Bản nháp cũng giữ ở <code>localStorage</code> phòng khi mất mạng. Nếu toast báo "chỉ cục bộ — chưa lên CSDL" nghĩa là máy chủ đang tắt, hãy bật lại rồi lưu lại.
         </div>
         <div style="padding:12px 14px;background:var(--danger-soft);border:1px solid var(--danger-dim);border-radius:var(--r)">
           <div class="c-danger fw6" style="margin-bottom:4px">${ico('warning')} Vùng nguy hiểm</div>
@@ -2584,8 +3146,10 @@ function toast(msg, type='info') {
 
 // ——— INIT ————————————————————————————————————
 async function init() {
-  // Populate topbar user info from session
-  const _sess = JSON.parse(sessionStorage.getItem('ah_session') || 'null');
+  // Chặn truy cập khi chưa đăng nhập — owner.html chỉ dành cho developer/owner.
+  const _sess = authSession();
+  if (!_sess || !_sess.token) { location.replace(adminPath('index.html')); return; }
+  if (_sess.role === 'sales')  { location.replace(adminPath('sales.html')); return; }
   if (_sess) {
     const av = document.getElementById('tb-avatar');
     const nm = document.getElementById('tb-name');
@@ -2602,23 +3166,10 @@ async function init() {
   document.getElementById('sp-backdrop').addEventListener('click', closePanel);
   go('overview');
 
-  // Simulate real-time feed
+  // Tự làm mới luồng hoạt động thật khi đang ở trang Tổng Quan
   setInterval(() => {
-    const feed = document.getElementById('feed');
-    if (!feed) return;
-    const msgs = [
-      ['b', `<b>${['Trần Văn B','Lê Thị C','Phạm Đ'][Math.floor(Math.random()*3)]}</b> vừa xem trang VR`],
-      ['g', `<b>${Math.floor(8+Math.random()*15)} người</b> đang online ngay lúc này`],
-      ['y', 'Lead mới từ kênh <b>Zalo OA</b>'],
-    ];
-    const [dot, msg] = msgs[Math.floor(Math.random()*msgs.length)];
-    const item = document.createElement('div');
-    item.className = 'feed-item';
-    item.innerHTML = `<div class="feed-dot ${dot}"></div><div class="feed-msg">${msg}</div><div class="feed-time">Vừa xong</div>`;
-    item.style.animation = 'fadein .3s ease';
-    feed.insertBefore(item, feed.firstChild);
-    if (feed.children.length > 10) feed.lastChild.remove();
-  }, 9000);
+    if (S.page === 'overview') loadActivityFeed();
+  }, 30000);
 }
 
 document.addEventListener('DOMContentLoaded', init);

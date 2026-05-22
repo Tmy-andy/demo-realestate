@@ -1,9 +1,157 @@
 /* ============================================
    AURORA HEIGHTS — Admin Content Modules
-   6 module CRUD: Gallery / SiteMap / Amenities / Timeline / Legal / Location
+   Module CRUD: Gallery / SiteMap / Timeline / Legal / Location / Resources
    Phụ thuộc admin.js: S, ico(), toast(), saveData(), exportJSON(),
                        confirmDel(), showPanel(), closePanel(), go()
    ============================================ */
+
+/* ============================================================
+   PHÂN KHU — bộ chọn phân khu dùng chung cho Timeline / Legal /
+   Location / Resources / Gallery. Mỗi trang lưu phân khu đang xem
+   trong S.subKey[<page>]; '__all' = cấp dự án.
+   S.dirtySub[<page>] = true khi có sửa chưa lưu (chặn đổi phân khu).
+   ============================================================ */
+S.subKey   ??= {};   // { timeline:'__all', legal:'pk-...', ... }
+S.dirtySub ??= {};   // { timeline:true, ... }
+
+/* Danh sách phân khu thực tế từ S.data.menu.phanKhu */
+function adminSubList() {
+  return ((S.data && S.data.menu && S.data.menu.phanKhu) || [])
+    .map(p => ({ id: p.id, label: p.label }));
+}
+
+/* Khoá phân khu đang chọn của 1 trang (mặc định __all) */
+function curSubKey(page) {
+  return S.subKey[page] || '__all';
+}
+
+/* Đảm bảo S.data[section] có dạng {__all, <pk>}; tự nâng cấp dạng cũ.
+   emptyVal: giá trị rỗng cho 1 slice (vd [] hoặc {}). */
+function ensureSubShape(section, emptyVal) {
+  let d = S.data[section];
+  const subs = adminSubList();
+  // dạng cũ: mảng, hoặc object không có __all
+  const isNew = d && typeof d === 'object' && !Array.isArray(d) && ('__all' in d);
+  if (!isNew) {
+    d = { __all: d != null ? d : clone(emptyVal) };
+  }
+  for (const s of subs) {
+    if (d[s.id] == null) d[s.id] = clone(emptyVal);
+  }
+  S.data[section] = d;
+  return d;
+}
+function clone(v) { return JSON.parse(JSON.stringify(v)); }
+
+/* Slice của trang hiện hành — đọc/ghi trực tiếp vào object này */
+function subSlice(section, page, emptyVal) {
+  const d = ensureSubShape(section, emptyVal);
+  const k = curSubKey(page);
+  if (d[k] == null) d[k] = clone(emptyVal);
+  return d[k];
+}
+
+/* HTML thanh chọn phân khu + nút Lưu cho 1 trang.
+   page: tên trang ('timeline'|'legal'|'location'|'resources'|'gallery') */
+function subSelectorBar(page) {
+  const subs = adminSubList();
+  const cur = curSubKey(page);
+  const opts = [{ id: '__all', label: 'Tất cả (cấp dự án)' }, ...subs];
+  const dirty = !!S.dirtySub[page];
+  return `
+    <div class="card sub-bar" style="margin-bottom:12px">
+      <div style="padding:10px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Phân khu</span>
+        <select class="form-control" style="width:auto;min-width:220px" id="sub-select-${page}"
+                onchange="onSubSelectChange('${page}', this.value)">
+          ${opts.map(o=>`<option value="${o.id}" ${o.id===cur?'selected':''}>${esc(o.label)}</option>`).join('')}
+        </select>
+        ${dirty ? `<span class="badge badge-primary" style="font-size:11px">● Chưa lưu</span>` : ''}
+        <button class="btn btn-primary btn-sm" style="margin-left:auto" onclick="saveSubdivision('${page}')">
+          ${ico('save')||''} Lưu phân khu
+        </button>
+      </div>
+    </div>`;
+}
+
+/* Đổi phân khu — nếu đang dirty thì hỏi xác nhận thoát */
+function onSubSelectChange(page, value) {
+  const apply = () => {
+    S.subKey[page] = value;
+    S.dirtySub[page] = false;
+    go(page);
+  };
+  if (S.dirtySub[page]) {
+    // trả select về giá trị cũ trước khi hỏi
+    const sel = document.getElementById('sub-select-' + page);
+    if (sel) sel.value = curSubKey(page);
+    confirmExitDirty(() => apply());
+  } else {
+    apply();
+  }
+}
+
+/* Modal cảnh báo: sửa chưa lưu, đổi phân khu sẽ mất thay đổi */
+function confirmExitDirty(onConfirm) {
+  if (typeof confirmDel === 'function') {
+    confirmDel(
+      'Thoát mà chưa lưu?',
+      'Bạn đã chỉnh sửa nội dung phân khu này nhưng chưa bấm "Lưu phân khu". Đổi phân khu sẽ mất các thay đổi chưa lưu.',
+      onConfirm
+    );
+  } else if (confirm('Thoát mà chưa lưu? Thay đổi sẽ bị mất.')) {
+    onConfirm();
+  }
+}
+
+/* Đánh dấu trang dirty (gọi sau mỗi thao tác CRUD trên slice phân khu) */
+function markSubDirty(page) { S.dirtySub[page] = true; }
+
+/* Lưu nội dung 1 phân khu lên CSDL qua PUT /api/subdivision/:code */
+async function saveSubdivision(page) {
+  const code = curSubKey(page);
+  // gom payload đủ 5 mục + children của phân khu đó
+  const payload = buildSubdivisionPayload(code);
+  try {
+    const r = await fetch(API_BASE + '/api/subdivision/' + encodeURIComponent(code), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    S.dirtySub[page] = false;
+    toast('Đã lưu phân khu "' + code + '" lên CSDL', 'ok');
+    go(page);
+  } catch (e) {
+    // vẫn giữ ở localStorage (saveData lo việc đó), báo chưa lên CSDL
+    toast('Đã lưu cục bộ — chưa lên CSDL (' + e.message + ')', 'warn');
+  }
+}
+
+/* Gom dữ liệu của 1 phân khu thành payload cho endpoint */
+function buildSubdivisionPayload(code) {
+  const pick = (section, empty) => {
+    const d = S.data[section];
+    if (d && typeof d === 'object' && !Array.isArray(d) && ('__all' in d)) {
+      return d[code] != null ? d[code] : empty;
+    }
+    return code === '__all' ? (d != null ? d : empty) : empty;
+  };
+  const payload = {
+    legal:     pick('legal', { documents: [], developerStats: [], testimonials: [] }),
+    location:  pick('location', { lat: 0, lng: 0, mapSrc: '', nearby: [] }),
+    timeline:  pick('timeline', []),
+    resources: pick('resources', {}),
+    gallery:   (S.data.gallery || []).filter(g =>
+                 (g.subdivision || null) === (code === '__all' ? null : code)),
+  };
+  // children chỉ áp dụng cho phân khu thật
+  if (code !== '__all') {
+    const pk = ((S.data.menu && S.data.menu.phanKhu) || []).find(p => p.id === code);
+    if (pk && pk.children) payload.children = pk.children;
+  }
+  return payload;
+}
 
 // Resolve relative asset paths from admin/ context
 function assetPath(p) {
@@ -237,9 +385,13 @@ function galleryListAll() {
   return (S.data.gallery || []).map(g => ({ type: 'image', ...g }));
 }
 function galleryListByTab() {
+  const subKey = curSubKey('gallery'); // '__all' | '<pkId>'
   return galleryListAll()
     .map((g,i) => ({ g, i }))
-    .filter(({g}) => S.galleryTab === 'video' ? g.type === 'video' : g.type !== 'video');
+    .filter(({g}) => S.galleryTab === 'video' ? g.type === 'video' : g.type !== 'video')
+    .filter(({g}) => subKey === '__all'
+      ? true
+      : (g.subdivision || null) === subKey);
 }
 function galleryFolders() {
   const set = new Set();
@@ -317,6 +469,7 @@ function renderGalleryPage(el) {
     `<button class="btn btn-secondary btn-sm" onclick="resetData()" title="Xoá cache localStorage, đọc lại project.json">${ico('refresh')} Tải lại</button>
      <button class="btn btn-secondary btn-sm" onclick="galleryNewFolder()">${ico('plus')} Thư mục mới</button>
      ${addBtn}`)
+  + subSelectorBar('gallery')
   + `
     <!-- Tabs Ảnh / Video -->
     <div style="display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:16px;background:var(--surface);border-radius:8px 8px 0 0;padding:0 8px">
@@ -513,8 +666,17 @@ function galleryForm(g, idx) {
       o.src = src;
     }
 
-    if (idx>=0) S.data.gallery[idx] = o;
-    else        S.data.gallery.push(o);
+    // Gán phân khu: giữ subdivision cũ khi sửa; khi thêm mới gán theo
+    // phân khu đang chọn ('__all' -> null = cấp dự án).
+    if (idx >= 0) {
+      o.subdivision = S.data.gallery[idx] ? S.data.gallery[idx].subdivision || null : null;
+      S.data.gallery[idx] = o;
+    } else {
+      const sk = curSubKey('gallery');
+      o.subdivision = sk === '__all' ? null : sk;
+      S.data.gallery.push(o);
+    }
+    markSubDirty('gallery');
     saveData(idx>=0 ? 'Đã cập nhật' : (type==='video'?'Đã thêm video':'Đã thêm ảnh'));
     closePanel(); go('gallery');
   });
@@ -830,131 +992,15 @@ async function siteMapGeocode() {
 }
 
 // ========================================================================
-// 3) AMENITIES ─ 4 nhóm tiện ích + card amenities
-// ========================================================================
-const AM_GROUPS = [
-  ['noiKhu',     'Nội Khu',        'leaf'],
-  ['skyAmenity', 'Sky Amenity',    'sky',  'building'],
-  ['dichVu',     'Dịch Vụ',        'concierge', 'users'],
-  ['haTang',     'Hạ Tầng',        'parking',   'hardhat'],
-];
-
-function renderAmenitiesPage(el) {
-  const det = S.data.amenitiesDetail;
-  const cardAm = S.data.project.amenities || [];
-  el.innerHTML = pageHeader(['Dashboard','Nội Dung VR'], 'Tiện Ích Dự Án') + `
-    <div class="card" style="margin-bottom:16px">
-      <div class="card-header">
-        <span class="card-title">${ico('home',16)} Tiện ích trên Project Card (${cardAm.length})</span>
-        <button class="btn btn-primary btn-sm" onclick="amCardAdd()">${ico('plus')} Thêm</button>
-      </div>
-      <div class="card-body">
-        <div class="form-hint" style="margin-bottom:10px">Icon list ngắn hiển thị ở project card trên trang VR (project.amenities[])</div>
-        <div class="am-chips">
-          ${cardAm.map((a,i)=>`
-            <div class="am-chip">
-              <span class="am-chip-icon">${ico('leaf',14)}</span>
-              <span><b>${esc(a.label||'')}</b><br><span class="c-muted" style="font-size:10px">icon: ${esc(a.icon||'')}</span></span>
-              <button class="act-btn" onclick="amCardEdit(${i})">${ico('edit')}</button>
-              <button class="act-btn danger" onclick="amCardDel(${i})">${ico('trash')}</button>
-            </div>`).join('')}
-          ${cardAm.length===0 ? `<div class="c-muted" style="font-size:12px">Chưa có. Bấm Thêm.</div>`:''}
-        </div>
-      </div>
-    </div>
-    ${AM_GROUPS.map(([k,title,_ic,navIco])=>{
-      const arr = det[k] || [];
-      return `
-      <div class="card" style="margin-bottom:16px">
-        <div class="card-header">
-          <span class="card-title">${ico(navIco||'leaf',16)} ${title} (${arr.length})</span>
-          <button class="btn btn-primary btn-sm" onclick="amDetailAdd('${k}')">${ico('plus')} Thêm</button>
-        </div>
-        <div class="card-body p0">
-          ${arr.length===0 ? `<div style="padding:24px;text-align:center;color:var(--muted)">Chưa có mục nào.</div>` : `
-            <div class="am-list">
-              ${arr.map((a,i)=>`
-                <div class="am-item">
-                  <div class="am-item-icon mono">${esc(a.icon||'?')}</div>
-                  <div class="am-item-body">
-                    <div class="am-item-name">${esc(a.name||'')}</div>
-                    <div class="am-item-desc">${esc(a.desc||'')}</div>
-                  </div>
-                  <div class="am-item-actions">
-                    <button class="act-btn" onclick="amDetailEdit('${k}',${i})">${ico('edit')}</button>
-                    <button class="act-btn danger" onclick="amDetailDel('${k}',${i})">${ico('trash')}</button>
-                  </div>
-                </div>`).join('')}
-            </div>`}
-        </div>
-      </div>`;
-    }).join('')}`;
-}
-
-function amCardAdd() { amCardForm({ icon:'', label:'' }, -1); }
-function amCardEdit(i) { amCardForm({ ...S.data.project.amenities[i] }, i); }
-function amCardDel(i)  {
-  confirmDel('Xoá tiện ích này?', S.data.project.amenities[i].label, () => {
-    S.data.project.amenities.splice(i,1); saveData('Đã xoá'); go('amenities');
-  });
-}
-function amCardForm(o, idx) {
-  showPanel(idx>=0?'Sửa tiện ích':'Thêm tiện ích', `
-    <div class="form-group"><label class="form-label">Icon key *</label>
-      <input class="form-control" id="ac-icon" value="${esc(o.icon||'')}" placeholder="pool, gym, spa, school, mall, park, sky, kid…"></div>
-    <div class="form-group"><label class="form-label">Nhãn *</label>
-      <input class="form-control" id="ac-label" value="${esc(o.label||'')}" placeholder="VD: Bể bơi vô cực"></div>
-    ${imageField('ac-iconImg', 'Ảnh icon tuỳ chỉnh (tuỳ chọn)', o.iconImg||'')}
-  `, () => {
-    const obj = {
-      icon: document.getElementById('ac-icon').value.trim(),
-      label: document.getElementById('ac-label').value.trim(),
-    };
-    const img = imgFieldValue('ac-iconImg'); if (img) obj.iconImg = img;
-    if (!obj.label) { toast('Cần nhập nhãn', 'warn'); return; }
-    if (idx>=0) S.data.project.amenities[idx] = obj;
-    else        S.data.project.amenities.push(obj);
-    saveData('Đã lưu'); closePanel(); go('amenities');
-  });
-}
-
-function amDetailAdd(grp) { amDetailForm(grp, { icon:'', name:'', desc:'' }, -1); }
-function amDetailEdit(grp, i) { amDetailForm(grp, { ...S.data.amenitiesDetail[grp][i] }, i); }
-function amDetailDel(grp, i) {
-  confirmDel('Xoá mục này?', S.data.amenitiesDetail[grp][i].name, () => {
-    S.data.amenitiesDetail[grp].splice(i,1); saveData('Đã xoá'); go('amenities');
-  });
-}
-function amDetailForm(grp, o, idx) {
-  showPanel(idx>=0?'Sửa tiện ích':'Thêm tiện ích', `
-    <div class="form-group"><label class="form-label">Icon key</label>
-      <input class="form-control" id="ad-icon" value="${esc(o.icon||'')}" placeholder="pool, gym, spa, …"></div>
-    <div class="form-group"><label class="form-label">Tên *</label>
-      <input class="form-control" id="ad-name" value="${esc(o.name||'')}" placeholder="VD: Bể bơi vô cực 50m"></div>
-    <div class="form-group"><label class="form-label">Mô tả</label>
-      <textarea class="form-control" id="ad-desc" rows="3">${esc(o.desc||'')}</textarea></div>
-    ${imageField('ad-img', 'Ảnh minh hoạ (tuỳ chọn)', o.img||'')}
-  `, () => {
-    const obj = {
-      icon: document.getElementById('ad-icon').value.trim(),
-      name: document.getElementById('ad-name').value.trim(),
-      desc: document.getElementById('ad-desc').value.trim(),
-    };
-    const img = imgFieldValue('ad-img'); if (img) obj.img = img;
-    if (!obj.name) { toast('Cần nhập tên', 'warn'); return; }
-    if (idx>=0) S.data.amenitiesDetail[grp][idx] = obj;
-    else        S.data.amenitiesDetail[grp].push(obj);
-    saveData('Đã lưu'); closePanel(); go('amenities');
-  });
-}
-
-// ========================================================================
 // 4) TIMELINE ─ Tiến độ xây dựng
 // ========================================================================
 const TL_STATUS = { done:'Hoàn thành', active:'Đang thực hiện', upcoming:'Sắp tới' };
 
+/* timeline slice của phân khu đang chọn */
+function tlSlice() { return subSlice('timeline', 'timeline', []); }
+
 function renderTimelinePage(el) {
-  const tl = S.data.timeline || [];
+  const tl = tlSlice();
   const lastPulse = +localStorage.getItem('ah_timeline_pulse') || 0;
   const pulseLabel = lastPulse
     ? new Date(lastPulse).toLocaleString('vi-VN')
@@ -962,6 +1008,7 @@ function renderTimelinePage(el) {
   el.innerHTML = pageHeader(['Dashboard','Nội Dung VR'], 'Tiến Độ Xây Dựng',
     `<button class="btn btn-secondary btn-sm" onclick="tlBroadcast()" title="Đẩy bản cập nhật ra trang VR ngay lập tức">${ico('refresh')} Phát sóng cập nhật</button>
      <button class="btn btn-primary btn-sm" onclick="tlAdd()">${ico('plus')} Thêm mốc</button>`)
+  + subSelectorBar('timeline')
   + `
     <div class="card" style="margin-bottom:12px;background:rgba(59,130,246,.06);border-color:rgba(59,130,246,.25)">
       <div style="padding:10px 14px;display:flex;align-items:center;gap:10px;font-size:13px">
@@ -1003,7 +1050,9 @@ function renderTimelinePage(el) {
 function tlAdd() { tlForm({ phase:'', date:'', status:'upcoming', desc:'' }, -1); }
 function tlBroadcast() {
   try {
-    localStorage.setItem('ah_timeline_data', JSON.stringify(S.data.timeline || []));
+    // Phát sóng dùng dữ liệu cấp dự án (__all) — trang VR tab "Tất cả"
+    const allTl = ensureSubShape('timeline', []).__all || [];
+    localStorage.setItem('ah_timeline_data', JSON.stringify(allTl));
     localStorage.setItem('ah_timeline_pulse', String(Date.now()));
     toast('Đã phát sóng cập nhật tiến độ tới trang VR', 'ok');
     go('timeline');
@@ -1011,10 +1060,11 @@ function tlBroadcast() {
     toast('Không thể phát sóng: ' + e.message, 'err');
   }
 }
-function tlEdit(i) { tlForm({ ...S.data.timeline[i] }, i); }
+function tlEdit(i) { tlForm({ ...tlSlice()[i] }, i); }
 function tlDel(i) {
-  confirmDel('Xoá mốc này?', S.data.timeline[i].phase, () => {
-    S.data.timeline.splice(i,1); saveData('Đã xoá'); go('timeline');
+  const tl = tlSlice();
+  confirmDel('Xoá mốc này?', tl[i].phase, () => {
+    tl.splice(i,1); markSubDirty('timeline'); saveData('Đã xoá'); go('timeline');
   });
 }
 function tlForm(o, idx) {
@@ -1042,32 +1092,38 @@ function tlForm(o, idx) {
     const img = imgFieldValue('tl-img');
     if (img) obj.img = img;
     if (!obj.phase) { toast('Cần nhập tên giai đoạn', 'warn'); return; }
-    if (idx>=0) S.data.timeline[idx] = obj;
-    else        S.data.timeline.push(obj);
-    saveData('Đã lưu'); closePanel(); go('timeline');
+    const tl = tlSlice();
+    if (idx>=0) tl[idx] = obj;
+    else        tl.push(obj);
+    markSubDirty('timeline'); saveData('Đã lưu'); closePanel(); go('timeline');
   });
 }
 function tlDragStart(i) { S.dragSrc = i; }
 function tlDrop(target) {
   const src = S.dragSrc;
   if (src == null || src === target) return;
-  const [m] = S.data.timeline.splice(src,1);
-  S.data.timeline.splice(target,0,m);
+  const tl = tlSlice();
+  const [m] = tl.splice(src,1);
+  tl.splice(target,0,m);
   S.dragSrc = null;
-  saveData('Đã sắp xếp lại'); go('timeline');
+  markSubDirty('timeline'); saveData('Đã sắp xếp lại'); go('timeline');
 }
 
 // ========================================================================
-// 5) LEGAL ─ Pháp lý: documents / banks / developerStats / testimonials
+// 5) LEGAL ─ Pháp lý: documents / developerStats / testimonials
 // ========================================================================
+/* legal slice của phân khu đang chọn */
+function legalSlice() {
+  return subSlice('legal', 'legal', { documents: [], developerStats: [], testimonials: [] });
+}
+
 function renderLegalPage(el) {
-  const lg = S.data.legal;
-  el.innerHTML = pageHeader(['Dashboard','Hệ Thống'], 'Pháp Lý & Trust') + `
+  const lg = legalSlice();
+  lg.documents ??= []; lg.developerStats ??= []; lg.testimonials ??= [];
+  el.innerHTML = pageHeader(['Dashboard','Hệ Thống'], 'Pháp Lý & Trust')
+  + subSelectorBar('legal') + `
     ${legalSection('documents','Hồ Sơ Pháp Lý', lg.documents, [
       ['name','Tên giấy tờ',1],['detail','Chi tiết',2],['done','Đã có',0]
-    ])}
-    ${legalSection('banks','Ngân Hàng Bảo Lãnh / Cho Vay', lg.banks, [
-      ['name','Ngân hàng',1],['rate','Lãi suất',1],['maxTerm','Kỳ hạn tối đa',1]
     ])}
     ${legalSection('developerStats','Thống Kê Chủ Đầu Tư (4 ô)', lg.developerStats, [
       ['value','Giá trị',1],['unit','Đơn vị',1],['label','Nhãn',2]
@@ -1105,16 +1161,16 @@ function legalSection(key, title, arr, fields) {
 
 const LEGAL_FIELDS = {
   documents:      [['name','Tên giấy tờ'],['detail','Chi tiết'],['done','Đã có (true/false)','check'],['file','Tệp giấy tờ (ảnh/PDF scan)','image']],
-  banks:          [['name','Ngân hàng'],['rate','Lãi suất'],['maxTerm','Kỳ hạn tối đa'],['logo','Logo ngân hàng','image']],
   developerStats: [['value','Giá trị'],['unit','Đơn vị'],['label','Nhãn']],
   testimonials:   [['initials','Tên viết tắt'],['role','Nghề'],['unit','Căn'],['text','Nội dung','textarea'],['avatar','Ảnh đại diện','image']],
 };
 
 function legalAdd(key) { legalForm(key, {}, -1); }
-function legalEdit(key, i) { legalForm(key, { ...S.data.legal[key][i] }, i); }
+function legalEdit(key, i) { legalForm(key, { ...legalSlice()[key][i] }, i); }
 function legalDel(key, i) {
-  confirmDel('Xoá mục này?', S.data.legal[key][i].name || S.data.legal[key][i].label || '', () => {
-    S.data.legal[key].splice(i,1); saveData('Đã xoá'); go('legal');
+  const lg = legalSlice();
+  confirmDel('Xoá mục này?', lg[key][i].name || lg[key][i].label || '', () => {
+    lg[key].splice(i,1); markSubDirty('legal'); saveData('Đã xoá'); go('legal');
   });
 }
 function legalForm(key, o, idx) {
@@ -1137,9 +1193,11 @@ function legalForm(key, o, idx) {
         obj[f] = type==='check' ? elx.checked : elx.value.trim();
       }
     });
-    if (idx>=0) S.data.legal[key][idx] = obj;
-    else        S.data.legal[key].push(obj);
-    saveData('Đã lưu'); closePanel(); go('legal');
+    const lg = legalSlice();
+    lg[key] ??= [];
+    if (idx>=0) lg[key][idx] = obj;
+    else        lg[key].push(obj);
+    markSubDirty('legal'); saveData('Đã lưu'); closePanel(); go('legal');
   });
 }
 
@@ -1152,8 +1210,10 @@ const POI_CATS = {
 };
 
 function renderLocationPage(el) {
-  const lc = S.data.location;
-  el.innerHTML = pageHeader(['Dashboard','Hệ Thống'], 'Vị Trí & Tiện Ích Lân Cận') + `
+  const lc = locationSlice();
+  lc.nearby ??= [];
+  el.innerHTML = pageHeader(['Dashboard','Hệ Thống'], 'Vị Trí & Tiện Ích Lân Cận')
+  + subSelectorBar('location') + `
     <div class="card" style="margin-bottom:16px">
       <div class="card-header"><span class="card-title">${ico('mappin',16)} Toạ độ & Bản đồ</span></div>
       <div class="card-body">
@@ -1203,18 +1263,25 @@ function renderLocationPage(el) {
     </div>`;
 }
 
+/* location slice của phân khu đang chọn */
+function locationSlice() {
+  return subSlice('location', 'location', { lat: 0, lng: 0, mapSrc: '', nearby: [] });
+}
+
 function locSaveCoords() {
-  S.data.location.lat    = parseFloat(document.getElementById('lc-lat').value) || 0;
-  S.data.location.lng    = parseFloat(document.getElementById('lc-lng').value) || 0;
-  S.data.location.mapSrc = document.getElementById('lc-map').value.trim();
-  saveData('Đã lưu vị trí'); go('location');
+  const lc = locationSlice();
+  lc.lat    = parseFloat(document.getElementById('lc-lat').value) || 0;
+  lc.lng    = parseFloat(document.getElementById('lc-lng').value) || 0;
+  lc.mapSrc = document.getElementById('lc-map').value.trim();
+  markSubDirty('location'); saveData('Đã lưu vị trí'); go('location');
 }
 
 function poiAdd() { poiForm({ cat:'school', name:'', dist:'', time:'' }, -1); }
-function poiEdit(i) { poiForm({ ...S.data.location.nearby[i] }, i); }
+function poiEdit(i) { poiForm({ ...locationSlice().nearby[i] }, i); }
 function poiDel(i) {
-  confirmDel('Xoá POI này?', S.data.location.nearby[i].name, () => {
-    S.data.location.nearby.splice(i,1); saveData('Đã xoá'); go('location');
+  const lc = locationSlice();
+  confirmDel('Xoá POI này?', lc.nearby[i].name, () => {
+    lc.nearby.splice(i,1); markSubDirty('location'); saveData('Đã xoá'); go('location');
   });
 }
 function poiForm(o, idx) {
@@ -1239,9 +1306,11 @@ function poiForm(o, idx) {
       time: document.getElementById('poi-time').value.trim(),
     };
     if (!obj.name) { toast('Cần nhập tên', 'warn'); return; }
-    if (idx>=0) S.data.location.nearby[idx] = obj;
-    else        S.data.location.nearby.push(obj);
-    saveData('Đã lưu'); closePanel(); go('location');
+    const lc = locationSlice();
+    lc.nearby ??= [];
+    if (idx>=0) lc.nearby[idx] = obj;
+    else        lc.nearby.push(obj);
+    markSubDirty('location'); saveData('Đã lưu'); closePanel(); go('location');
   });
 }
 
@@ -1265,9 +1334,15 @@ const RESOURCE_TYPES = [
   ['xls',    'Bảng tính Excel'],
 ];
 
+/* resources slice của phân khu đang chọn */
+function resourcesSlice() {
+  return subSlice('resources', 'resources', {});
+}
+
 function renderResourcesPage(el) {
-  const res = S.data.resources || (S.data.resources = {});
-  el.innerHTML = pageHeader(['Dashboard','Nội Dung VR'], 'Tài Liệu') + `
+  const res = resourcesSlice();
+  el.innerHTML = pageHeader(['Dashboard','Nội Dung VR'], 'Tài Liệu')
+  + subSelectorBar('resources') + `
     <div class="card" style="margin-bottom:16px">
       <div class="card-header">
         <span class="card-title">${ico('image',16)} Bộ tài liệu chính thức</span>
@@ -1313,7 +1388,7 @@ function resourceCard(field, item) {
 function resourceEdit(key) {
   const field = RESOURCE_FIELDS.find(f => f.key === key);
   if (!field) return;
-  const item = (S.data.resources && S.data.resources[key]) || {};
+  const item = resourcesSlice()[key] || {};
   showPanel(`${item.url ? 'Sửa' : 'Thêm'} — ${field.label}`, `
     <div class="form-group">
       <label class="form-label">Tiêu đề hiển thị</label>
@@ -1333,21 +1408,21 @@ function resourceEdit(key) {
   `, () => {
     const url = document.getElementById('res-url').value.trim();
     if (!url) { toast('Cần nhập URL', 'warn'); return false; }
-    if (!S.data.resources) S.data.resources = {};
-    S.data.resources[key] = {
+    const res = resourcesSlice();
+    res[key] = {
       title: document.getElementById('res-title').value.trim() || field.label,
       url,
       type: document.getElementById('res-type').value,
     };
-    saveData('Đã lưu tài liệu'); closePanel(); go('resources');
+    markSubDirty('resources'); saveData('Đã lưu tài liệu'); closePanel(); go('resources');
   });
 }
 
 function resourceClear(key) {
   const field = RESOURCE_FIELDS.find(f => f.key === key);
   confirmDel('Xoá liên kết tài liệu?', field?.label || '', () => {
-    if (S.data.resources) delete S.data.resources[key];
-    saveData('Đã xoá liên kết'); go('resources');
+    delete resourcesSlice()[key];
+    markSubDirty('resources'); saveData('Đã xoá liên kết'); go('resources');
   });
 }
 

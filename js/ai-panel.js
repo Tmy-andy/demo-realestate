@@ -66,10 +66,10 @@ window.AiPanel = (() => {
       <div class="ai-pn-composer">
         <input type="text" class="ai-pn-input" placeholder="${escapeHtml(t("ai.placeholder"))}"/>
         <button class="ai-pn-mic" title="Voice">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg>
+          <i data-lucide="mic" width="16" height="16"></i>
         </button>
         <button class="ai-pn-send" disabled title="Send">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+          <i data-lucide="send" width="14" height="14"></i>
         </button>
         <div class="ai-pn-waveform" aria-hidden="true">
           ${"<span></span>".repeat(24)}
@@ -167,8 +167,7 @@ window.AiPanel = (() => {
     if (window.DATA) {
       buildMap(window.DATA);
     } else {
-      fetch("data/project.json")
-        .then(r => r.json())
+      window.DataSource.fetchProjectData()
         .then(buildMap)
         .catch(() => { /* silent — scene map not critical */ });
     }

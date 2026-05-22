@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!-- Neo mọi đường dẫn tương đối về gốc: cần cho URL /<id-sale> -->
+<base href="/" />
+
 <title>Vinhomes Hai Van Bay — VR360 Experience</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -10,6 +13,37 @@
 <link rel="stylesheet" href="css/style.css" />
 <link rel="stylesheet" href="css/mobile-stepper.css" />
 <!-- Three.js removed — using 3DVista iframe instead -->
+<!-- Lucide icons -->
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script>
+/* Render Lucide icons — initial pass + auto re-render khi DOM được inject động */
+(function () {
+  function render() {
+    if (window.lucide && typeof window.lucide.createIcons === 'function') {
+      window.lucide.createIcons();
+    }
+  }
+  window.renderLucide = render;
+  document.addEventListener('DOMContentLoaded', function () {
+    render();
+    // Re-render mỗi khi có node mới chứa [data-lucide] được thêm vào
+    var pending = false;
+    new MutationObserver(function (muts) {
+      if (pending) return;
+      var hit = muts.some(function (m) {
+        return Array.prototype.some.call(m.addedNodes, function (n) {
+          return n.nodeType === 1 &&
+            (n.matches && n.matches('[data-lucide]') ||
+             n.querySelector && n.querySelector('[data-lucide]'));
+        });
+      });
+      if (!hit) return;
+      pending = true;
+      requestAnimationFrame(function () { pending = false; render(); });
+    }).observe(document.body, { childList: true, subtree: true });
+  });
+})();
+</script>
 <style>
 /* ============================================================
    MOBILE OVERRIDES — burger + project-card pill animation
@@ -398,68 +432,46 @@
     </div>
 
     <!-- Mobile burger (CSS shows it on ≤768px) -->
-    <button id="mobile-burger" aria-label="Menu" aria-expanded="false">
+    <button id="mobile-burger" data-i18n-aria="ui.menu" aria-label="Menu" aria-expanded="false">
       <span class="bur-line"></span>
       <span class="bur-line"></span>
       <span class="bur-line"></span>
     </button>
 
     <div class="top-cta">
-      <button class="tb-btn" id="btn-masterplan" title="Quy hoạch tổng thể">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 3L3 6v15l6-3 6 3 6-3V3l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/></svg>
-        <span>Masterplan</span>
+      <button class="tb-btn" id="btn-masterplan" data-i18n-title="ui.masterplanTitle" title="Quy hoạch tổng thể">
+        <i data-lucide="box" width="13" height="13"></i>
+        <span data-i18n="ui.masterplan">Masterplan</span>
       </button>
-      <button class="tb-btn" id="btn-properties" title="Bất động sản">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11l9-8 9 8M5 9v11h14V9"/></svg>
-        <span>Bất động sản</span>
+      <button class="tb-btn" id="btn-properties" data-i18n-title="ui.propertiesTitle" title="Bất động sản">
+        <i data-lucide="home" width="13" height="13"></i>
+        <span data-i18n="ui.properties">Bất động sản</span>
       </button>
-      <button class="tb-btn" id="btn-amenities-detail" title="Tiện ích dự án">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
-        <span>Tiện ích</span>
-      </button>
-      <button class="tb-btn" id="btn-legal" title="Pháp lý & Uy tín">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6L12 2z"/></svg>
-        <span>Pháp lý</span>
-      </button>
-      <button class="tb-btn" id="btn-location" title="Vị trí dự án">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 00-8 8c0 5.25 8 14 8 14s8-8.75 8-14a8 8 0 00-8-8z"/></svg>
-        <span>Vị trí</span>
-      </button>
-      <button class="tb-btn" id="btn-timeline" title="Tiến độ dự án">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20V4M5 12l7-8 7 8"/><path d="M5 20h14"/></svg>
-        <span>Tiến độ</span>
-      </button>
-      <button class="tb-btn" id="btn-gallery" data-i18n-title="ui.galleryTitle" title="Thư viện ảnh">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
-        <span data-i18n="ui.gallery">Thư viện</span>
-      </button>
-      <button class="tb-btn" id="btn-resources" title="Tài liệu dự án">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg>
-        <span>Tài liệu</span>
-      </button>
+      <!-- Pháp lý / Vị trí / Tiến độ / Thư viện / Tài liệu
+           đã chuyển vào project-card (yêu cầu #3) — render động bởi main.js. -->
       <button class="tb-btn tb-btn-primary" id="open-modal">
         <span data-i18n="ui.book">Đặt lịch</span>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        <i data-lucide="arrow-right" width="12" height="12"></i>
       </button>
 
       <span class="tb-sep"></span>
 
       <div class="tb-ctrlgroup" id="tb-ctrlgroup">
         <button class="ctrl-btn" id="ctrl-rotate" data-i18n-title="ui.rotate" title="Tự xoay">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a9 9 0 11-3-6.7"/><path d="M21 4v5h-5"/></svg>
+          <i data-lucide="rotate-cw" width="15" height="15"></i>
         </button>
         <button class="ctrl-btn" id="ctrl-zoom-in" data-i18n-title="ui.zoomIn" title="Phóng to">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-5-5M8 11h6M11 8v6"/></svg>
+          <i data-lucide="zoom-in" width="15" height="15"></i>
         </button>
         <button class="ctrl-btn" id="ctrl-zoom-out" data-i18n-title="ui.zoomOut" title="Thu nhỏ">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-5-5M8 11h6"/></svg>
+          <i data-lucide="zoom-out" width="15" height="15"></i>
         </button>
         <button class="ctrl-btn" id="ctrl-fullscreen" data-i18n-title="ui.fullscreen" title="Toàn màn hình">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+          <i data-lucide="maximize" width="15" height="15"></i>
         </button>
         <div class="ctrl-lang-wrap" id="ctrl-lang-wrap">
           <button class="ctrl-btn" id="ctrl-lang" data-i18n-title="ui.language" title="Ngôn ngữ" type="button">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/></svg>
+            <i data-lucide="globe" width="15" height="15"></i>
             <span class="ctrl-lang-code" id="ctrl-lang-code">VI</span>
           </button>
           <div class="ctrl-lang-menu" id="ctrl-lang-menu" role="menu"></div>
@@ -475,7 +487,7 @@
       <div class="np-head-top">
         <div class="np-eyebrow" id="scene-type">Tiện ích</div>
         <button class="np-collapse" id="np-collapse" data-i18n-title="ui.collapse" title="Thu gọn">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+          <i data-lucide="chevron-left" width="13" height="13"></i>
         </button>
       </div>
       <h2 class="np-title" id="scene-title">Sky Lounge — Tầng 42</h2>
@@ -483,7 +495,7 @@
     </div>
 
     <div class="np-search" id="np-search-wrap">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-5-5"/></svg>
+      <i data-lucide="search" width="14" height="14"></i>
       <input type="text" id="np-search" data-i18n-placeholder="ui.search" placeholder="Tìm kiếm…" />
     </div>
 
@@ -492,7 +504,7 @@
 
   <!-- Floating expand button khi panel collapsed -->
   <button class="np-expand" id="np-expand" data-i18n-title="ui.expandNav" title="Mở bảng điều hướng">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+    <i data-lucide="chevron-right" width="16" height="16"></i>
   </button>
 
   <!-- ─── RIGHT: PROJECT CARD PANEL ─── -->
@@ -501,7 +513,7 @@
       <div class="pc-head-top">
         <div class="pc-status" id="pc-status"><span class="dot"></span> Đang mở bán</div>
         <button class="pc-collapse" id="pc-collapse" data-i18n-title="ui.collapse" title="Thu gọn">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+          <i data-lucide="chevron-right" width="12" height="12"></i>
         </button>
       </div>
       <h3 id="pc-title">Vinhomes Hai Van Bay</h3>
@@ -513,12 +525,8 @@
   </aside>
 
   <!-- INFO FAB — must be sibling AFTER #project-card for CSS ~ selector -->
-  <button id="pc-info-fab" title="Thông tin dự án" aria-label="Mở thông tin dự án">
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-      <circle cx="12" cy="12" r="10"/>
-      <circle cx="12" cy="8" r="0.6" fill="currentColor" stroke="none"/>
-      <line x1="12" y1="11" x2="12" y2="17"/>
-    </svg>
+  <button id="pc-info-fab" data-i18n-title="ui.projectInfo" title="Thông tin dự án" data-i18n-aria="ui.openProjectInfo" aria-label="Mở thông tin dự án">
+    <i data-lucide="info" width="17" height="17"></i>
   </button>
 
   <!-- ─── Drag hint ─── -->
@@ -529,14 +537,8 @@
 
 <!-- UI Restore (top-right, outside .ui so it stays visible) -->
 <button class="ui-restore" id="ui-restore" data-i18n-title="ui.showUI" title="Hiện giao diện">
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+  <i data-lucide="eye" width="18" height="18"></i>
 </button>
-
-<!-- Amenities overlay -->
-<div class="amenities-overlay" id="amenities-overlay">
-  <div class="amen-grid" id="amen-grid"></div>
-</div>
-
 
 <!-- ============ GALLERY OVERLAY ============ -->
 <div class="gallery-overlay" id="gallery-overlay">
@@ -579,52 +581,29 @@
 <button class="bb-float bb-chat-btn" id="bb-chat-btn" data-i18n-title="ui.aiChat" title="Chat với trợ lý AI">
   <img src="img/1.png" alt="AI"/>
   <span class="bb-mic-indicator">
-    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg>
+    <i data-lucide="mic" width="11" height="11"></i>
   </span>
 </button>
-
-<!-- ============ AMENITIES DETAIL OVERLAY ============ -->
-<div class="adv-overlay" id="amenities-detail-overlay">
-  <div class="adv-frame">
-    <button class="adv-close" id="amenities-detail-close">×</button>
-    <div class="adv-head">
-      <div class="adv-eyebrow">Tiện ích Vinhomes Hai Van Bay</div>
-      <h2>Hệ thống tiện ích đẳng cấp</h2>
-    </div>
-    <div class="adv-tabs" id="amenity-tabs">
-      <button class="adv-tab active" data-tab="noiKhu">Nội khu</button>
-      <button class="adv-tab" data-tab="skyAmenity">Cao tầng</button>
-      <button class="adv-tab" data-tab="dichVu">Dịch vụ</button>
-      <button class="adv-tab" data-tab="haTang">Hạ tầng</button>
-    </div>
-    <div class="adv-grid" id="amenity-detail-grid"></div>
-  </div>
-</div>
 
 <!-- ============ LEGAL / TRUST OVERLAY ============ -->
 <div class="adv-overlay" id="legal-overlay">
   <div class="adv-frame legal-frame">
     <button class="adv-close" id="legal-close">×</button>
     <div class="adv-head">
-      <div class="adv-eyebrow">Pháp lý & Uy tín</div>
-      <h2>Minh bạch — Bảo đảm — Tin cậy</h2>
+      <div class="adv-eyebrow" data-i18n="legal.eyebrow">Pháp lý & Uy tín</div>
+      <h2 data-i18n="legal.title">Minh bạch — Bảo đảm — Tin cậy</h2>
     </div>
     <div class="legal-content">
       <!-- Developer stats -->
       <div class="legal-stats" id="legal-stats"></div>
       <!-- Checklist -->
       <div class="legal-section">
-        <div class="legal-section-title">Hồ sơ pháp lý</div>
+        <div class="legal-section-title" data-i18n="legal.docs">Hồ sơ pháp lý</div>
         <div class="legal-checklist" id="legal-checklist"></div>
-      </div>
-      <!-- Banks -->
-      <div class="legal-section">
-        <div class="legal-section-title">Ngân hàng bảo lãnh</div>
-        <div class="legal-banks" id="legal-banks"></div>
       </div>
       <!-- Testimonials -->
       <div class="legal-section">
-        <div class="legal-section-title">Cư dân nói gì</div>
+        <div class="legal-section-title" data-i18n="legal.reviews">Cư dân nói gì</div>
         <div class="legal-testimonials" id="legal-testimonials"></div>
       </div>
     </div>
@@ -636,17 +615,17 @@
   <div class="adv-frame location-frame">
     <button class="adv-close" id="location-close">×</button>
     <div class="adv-head">
-      <div class="adv-eyebrow">Vị trí dự án</div>
-      <h2>Kết nối hoàn hảo</h2>
+      <div class="adv-eyebrow" data-i18n="location.eyebrow">Vị trí dự án</div>
+      <h2 data-i18n="location.title">Kết nối hoàn hảo</h2>
     </div>
     <div class="location-body">
       <div class="location-filter" id="location-filter">
-        <button class="loc-cat-btn active" data-cat="">Tất cả</button>
-        <button class="loc-cat-btn" data-cat="school">🏫 Trường học</button>
-        <button class="loc-cat-btn" data-cat="hospital">🏥 Bệnh viện</button>
-        <button class="loc-cat-btn" data-cat="metro">🚇 Metro</button>
-        <button class="loc-cat-btn" data-cat="mall">🛍 TTTM</button>
-        <button class="loc-cat-btn" data-cat="airport">✈ Sân bay</button>
+        <button class="loc-cat-btn active" data-cat="" data-i18n="location.cat.all">Tất cả</button>
+        <button class="loc-cat-btn" data-cat="school" data-i18n="location.cat.school">🏫 Trường học</button>
+        <button class="loc-cat-btn" data-cat="hospital" data-i18n="location.cat.hospital">🏥 Bệnh viện</button>
+        <button class="loc-cat-btn" data-cat="metro" data-i18n="location.cat.metro">🚇 Metro</button>
+        <button class="loc-cat-btn" data-cat="mall" data-i18n="location.cat.mall">🛍 TTTM</button>
+        <button class="loc-cat-btn" data-cat="airport" data-i18n="location.cat.airport">✈ Sân bay</button>
       </div>
       <div class="location-split">
         <div class="location-map">
@@ -657,112 +636,14 @@
     </div>
   </div>
 </div>
-
-<!-- ============ LOAN CONSULTATION APPOINTMENT MODAL ============ -->
-<div class="modal-backdrop" id="loan-appt-backdrop">
-  <div class="loan-appt-modal">
-    <button class="modal-close" id="loan-appt-close">×</button>
-
-    <div class="lap-header">
-      <div class="lap-eyebrow">Tư vấn tài chính</div>
-      <h2>Đặt lịch tư vấn vay vốn</h2>
-      <p>Chuyên viên ngân hàng sẽ liên hệ và tư vấn phương án tài chính tối ưu cho bạn.</p>
-    </div>
-
-    <!-- Loan summary (populated by JS) -->
-    <div class="lap-summary" id="lap-summary"></div>
-
-    <div class="lap-body">
-      <!-- LEFT: Yêu cầu tư vấn -->
-      <div class="lap-col">
-        <div class="lap-col-title">Yêu cầu tư vấn</div>
-        <div class="lap-needs-group" id="lap-needs-group">
-          <label class="lap-check-item">
-            <input type="checkbox" name="lap-need" value="rate" checked />
-            So sánh lãi suất giữa các ngân hàng
-          </label>
-          <label class="lap-check-item">
-            <input type="checkbox" name="lap-need" value="plan" checked />
-            Lập kế hoạch trả nợ cụ thể
-          </label>
-          <label class="lap-check-item">
-            <input type="checkbox" name="lap-need" value="docs" />
-            Hồ sơ vay &amp; điều kiện phê duyệt
-          </label>
-          <label class="lap-check-item">
-            <input type="checkbox" name="lap-need" value="subsidy" />
-            Gói lãi suất ưu đãi / hỗ trợ lãi suất
-          </label>
-          <label class="lap-check-item">
-            <input type="checkbox" name="lap-need" value="early" />
-            Chính sách trả trước hạn
-          </label>
-        </div>
-        <div class="lap-field">
-          <label>Ghi chú thêm <span class="opt">(tuỳ chọn)</span></label>
-          <textarea id="lap-note" rows="3" placeholder="Ví dụ: tôi muốn ưu tiên ngân hàng lãi suất cố định, hoặc có câu hỏi cụ thể…"></textarea>
-        </div>
-      </div>
-
-      <!-- RIGHT: Thông tin liên hệ & đặt lịch -->
-      <div class="lap-col">
-        <div class="lap-col-title">Thông tin liên hệ &amp; đặt lịch</div>
-        <div class="lap-field">
-          <label>Họ &amp; tên <span class="req">*</span></label>
-          <input type="text" id="lap-name" placeholder="Nguyễn Văn A" />
-        </div>
-        <div class="lap-field">
-          <label>Số điện thoại <span class="req">*</span></label>
-          <input type="tel" id="lap-phone" placeholder="09xx xxx xxx" />
-        </div>
-        <div class="lap-field">
-          <label>Thời gian mong muốn</label>
-          <div class="lap-time-btns" id="lap-time-btns">
-            <button type="button" class="lap-time-btn" data-val="morning-weekend">Sáng cuối tuần</button>
-            <button type="button" class="lap-time-btn" data-val="afternoon-weekend">Chiều cuối tuần</button>
-            <button type="button" class="lap-time-btn" data-val="morning-weekday">Sáng trong tuần</button>
-            <button type="button" class="lap-time-btn" data-val="afternoon-weekday">Chiều trong tuần</button>
-            <button type="button" class="lap-time-btn active" data-val="flexible">Linh hoạt</button>
-          </div>
-        </div>
-        <div class="lap-field">
-          <label>Ngày cụ thể <span class="opt">(nếu có)</span></label>
-          <input type="date" id="lap-date" />
-        </div>
-      </div>
-    </div>
-
-    <div class="lap-footer">
-      <div class="cf-error" id="lap-error" style="display:none"></div>
-      <button class="lap-submit-btn" id="lap-submit">Xác nhận đặt lịch tư vấn</button>
-    </div>
-
-    <!-- Success state -->
-    <div class="form-success lap-success" id="lap-success" style="display:none">
-      <div class="form-success-icon">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>
-      </div>
-      <div class="form-success-title">Đặt lịch thành công!</div>
-      <div class="form-success-sub">Chuyên viên sẽ liên hệ xác nhận lịch trong <strong>vòng 30 phút</strong> giờ làm việc.</div>
-      <div class="form-success-actions">
-        <a class="form-suc-btn form-suc-primary" id="lap-suc-zalo" href="https://zalo.me/0901234567" target="_blank" rel="noopener">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><text y="18" font-size="14" font-weight="bold">Z</text></svg>
-          Chat Zalo ngay
-        </a>
-        <button class="form-suc-btn form-suc-secondary" id="lap-reset">Đặt lịch khác</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- ============ TIMELINE / PROGRESS OVERLAY ============ -->
 <!-- ============ RESOURCES OVERLAY ============ -->
 <div class="adv-overlay" id="resources-overlay">
   <div class="adv-frame resources-frame">
     <button class="adv-close" id="resources-close">×</button>
     <div class="adv-head">
-      <div class="adv-eyebrow">Tài liệu</div>
-      <h2>Brochure, Bảng giá, Bộ nhận diện</h2>
+      <div class="adv-eyebrow" data-i18n="resources.eyebrow">Tài liệu</div>
+      <h2 data-i18n="resources.title">Brochure, Bảng giá, Bộ nhận diện</h2>
     </div>
     <div class="res-grid" id="res-grid"></div>
   </div>
@@ -772,8 +653,8 @@
   <div class="adv-frame timeline-frame">
     <button class="adv-close" id="timeline-close">×</button>
     <div class="adv-head">
-      <div class="adv-eyebrow">Tiến độ xây dựng</div>
-      <h2>Cập nhật thực địa</h2>
+      <div class="adv-eyebrow" data-i18n="timeline.eyebrow">Tiến độ xây dựng</div>
+      <h2 data-i18n="timeline.title">Cập nhật thực địa</h2>
     </div>
     <div class="tl-overview" id="tl-overview"></div>
     <div class="tl-track" id="tl-track"></div>
@@ -785,7 +666,7 @@
   <!-- Thanh danh mục trên cùng -->
   <div class="mp-topbar">
     <div class="mp-cats" id="mp-cats"></div>
-    <button class="mp-close" id="mp-close" title="Đóng">×</button>
+    <button class="mp-close" id="mp-close" data-i18n-title="mp.close" title="Đóng">×</button>
   </div>
   <!-- Khung bản đồ + marker -->
   <div class="mp-stage" id="mp-stage">
@@ -802,13 +683,13 @@
 <div class="mpf-backdrop" id="mpf-backdrop">
   <div class="mpf-panel">
     <div class="mpf-head">
-      <h3>Bộ lọc Masterplan</h3>
+      <h3 data-i18n="mpf.title">Bộ lọc Masterplan</h3>
       <button class="mpf-close" id="mpf-close">×</button>
     </div>
     <div class="mpf-body" id="mpf-body"></div>
     <div class="mpf-footer">
-      <button class="mpf-reset" id="mpf-reset">Đặt lại</button>
-      <button class="mpf-apply" id="mpf-apply">Áp dụng</button>
+      <button class="mpf-reset" id="mpf-reset" data-i18n="mpf.reset">Đặt lại</button>
+      <button class="mpf-apply" id="mpf-apply" data-i18n="mpf.apply">Áp dụng</button>
     </div>
   </div>
 </div>
@@ -831,28 +712,28 @@
       <!-- Filter bar -->
       <div class="fp-filter-bar" id="fp-filter-bar">
         <div class="fp-filter-group">
-          <span class="fp-filter-label">Loại căn</span>
+          <span class="fp-filter-label" data-i18n="modal.filter.unitType">Loại căn</span>
           <div class="fp-tags" id="fp-type-tags"></div>
         </div>
         <div class="fp-filter-group">
-          <span class="fp-filter-label">Nhóm tầng</span>
+          <span class="fp-filter-label" data-i18n="modal.filter.floorGroup">Nhóm tầng</span>
           <select class="fp-select" id="fp-floor-select">
-            <option value="">Tất cả</option>
-            <option value="low">Thấp (1–15)</option>
-            <option value="mid">Trung (16–30)</option>
-            <option value="high">Cao (31+)</option>
+            <option value="" data-i18n="modal.floor.all">Tất cả</option>
+            <option value="low" data-i18n="modal.floor.low">Thấp (1–15)</option>
+            <option value="mid" data-i18n="modal.floor.mid">Trung (16–30)</option>
+            <option value="high" data-i18n="modal.floor.high">Cao (31+)</option>
           </select>
         </div>
         <div class="fp-filter-group">
-          <span class="fp-filter-label">Trạng thái</span>
+          <span class="fp-filter-label" data-i18n="modal.filter.status">Trạng thái</span>
           <select class="fp-select" id="fp-status-select">
-            <option value="">Tất cả</option>
-            <option value="available">Còn trống</option>
-            <option value="holding">Đang giữ</option>
-            <option value="sold">Đã bán</option>
+            <option value="" data-i18n="modal.status.all">Tất cả</option>
+            <option value="available" data-i18n="modal.status.available">Còn trống</option>
+            <option value="holding" data-i18n="modal.status.holding">Đang giữ</option>
+            <option value="sold" data-i18n="modal.status.sold">Đã bán</option>
           </select>
         </div>
-        <button class="fp-filter-reset" id="fp-filter-reset">Xóa lọc</button>
+        <button class="fp-filter-reset" id="fp-filter-reset" data-i18n="modal.filter.reset">Xóa lọc</button>
       </div>
 
       <!-- Unit table -->
@@ -860,15 +741,15 @@
         <table class="unit-table fp-full-table">
           <thead>
             <tr>
-              <th data-i18n="modal.col.code" data-sort="code">Mã căn <span class="sort-icon">↕</span></th>
+              <th data-sort="code"><span data-i18n="modal.col.code">Mã căn</span> <span class="sort-icon">↕</span></th>
               <th data-i18n="modal.col.type">Loại</th>
-              <th data-sort="floor">Tầng <span class="sort-icon">↕</span></th>
-              <th data-sort="area">DT (m²) <span class="sort-icon">↕</span></th>
-              <th>Hướng</th>
-              <th data-sort="price" data-i18n="modal.col.price">Giá <span class="sort-icon">↕</span></th>
-              <th>Giá/m²</th>
+              <th data-sort="floor"><span data-i18n="modal.col.floor">Tầng</span> <span class="sort-icon">↕</span></th>
+              <th data-sort="area"><span data-i18n="modal.col.area2">DT (m²)</span> <span class="sort-icon">↕</span></th>
+              <th data-i18n="modal.col.dir">Hướng</th>
+              <th data-sort="price"><span data-i18n="modal.col.price2">Giá</span> <span class="sort-icon">↕</span></th>
+              <th data-i18n="modal.col.ppm">Giá/m²</th>
               <th data-i18n="modal.col.avail">Còn lại</th>
-              <th>TT</th>
+              <th data-i18n="modal.col.st">TT</th>
               <th></th>
             </tr>
           </thead>
@@ -882,13 +763,13 @@
       <!-- ── Success state (ẩn mặc định) ── -->
       <div class="form-success" id="form-success" style="display:none">
         <div class="form-success-icon">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>
+          <i data-lucide="check-circle" width="28" height="28"></i>
         </div>
         <div class="form-success-title" data-i18n="modal.successTitle">Đã gửi thành công!</div>
         <div class="form-success-sub" data-i18n-html="modal.successSub">Chúng tôi sẽ liên hệ lại trong <strong>vòng 30 phút</strong> trong giờ làm việc.</div>
         <div class="form-success-actions">
-          <a class="form-suc-btn form-suc-primary" id="form-suc-zalo" href="https://zalo.me/0901234567" target="_blank" rel="noopener">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><text y="18" font-size="14" font-weight="bold">Z</text></svg>
+          <a class="form-suc-btn form-suc-primary" id="form-suc-zalo" href="#" target="_blank" rel="noopener">
+            <i data-lucide="message-circle" width="14" height="14"></i>
             <span data-i18n="modal.successZalo">Chat Zalo ngay</span>
           </a>
           <button class="form-suc-btn form-suc-secondary" id="form-suc-reset" data-i18n="modal.successReset">Gửi yêu cầu khác</button>
@@ -1009,18 +890,18 @@
     <button class="modal-close" id="props-close">×</button>
     <div class="props-head">
       <div>
-        <div class="props-eyebrow">Sản phẩm dự án</div>
-        <h2>Bất động sản đang mở bán</h2>
+        <div class="props-eyebrow" data-i18n="props.eyebrow">Sản phẩm dự án</div>
+        <h2 data-i18n="props.title">Bất động sản đang mở bán</h2>
       </div>
       <div class="props-head-tools">
         <div class="props-search">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-5-5"/></svg>
-          <input type="text" id="props-search-input" placeholder="Tìm theo mã căn, tên sản phẩm…" />
+          <i data-lucide="search" width="14" height="14"></i>
+          <input type="text" id="props-search-input" data-i18n-placeholder="props.searchPh" placeholder="Tìm theo mã căn, tên sản phẩm…" />
         </div>
         <!-- Nút Lọc — chỉ hiện trên mobile -->
         <button class="props-filter-toggle" id="props-filter-toggle">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h18M6 12h12M10 19h4"/></svg>
-          <span>Lọc</span>
+          <i data-lucide="sliders-horizontal" width="15" height="15"></i>
+          <span data-i18n="props.filter">Lọc</span>
         </button>
       </div>
     </div>
@@ -1031,11 +912,11 @@
       </div>
       <aside class="props-filter" id="props-filter">
         <div class="props-filter-head">
-          <div class="props-filter-title">Bộ lọc</div>
-          <button class="props-filter-close" id="props-filter-close" aria-label="Đóng bộ lọc">×</button>
+          <div class="props-filter-title" data-i18n="props.filterTitle">Bộ lọc</div>
+          <button class="props-filter-close" id="props-filter-close" data-i18n-aria="props.filterClose" aria-label="Đóng bộ lọc">×</button>
         </div>
         <div id="props-filter-body"></div>
-        <button class="props-filter-reset" id="props-filter-reset">Xóa bộ lọc</button>
+        <button class="props-filter-reset" id="props-filter-reset" data-i18n="props.filterReset">Xóa bộ lọc</button>
       </aside>
       <!-- Nền mờ cho bộ lọc bottom-sheet (mobile) -->
       <div class="props-filter-backdrop" id="props-filter-backdrop"></div>
@@ -1047,7 +928,7 @@
 <div class="modal-backdrop" id="prop-detail-backdrop">
   <div class="pd-modal">
     <button class="modal-close" id="pd-close">×</button>
-    <button class="pd-back" id="pd-back">‹ Danh sách</button>
+    <button class="pd-back" id="pd-back" data-i18n="pd.back">‹ Danh sách</button>
     <div class="pd-body" id="pd-body"></div>
   </div>
 </div>
@@ -1055,7 +936,7 @@
 <!-- ============ MẶT BẰNG VIEWER (#10 — ảnh 11) ============ -->
 <div class="fpv-overlay" id="fpv-overlay">
   <div class="fpv-top">
-    <span class="fpv-title" id="fpv-title">Mặt bằng</span>
+    <span class="fpv-title" id="fpv-title" data-i18n="fpv.title">Mặt bằng</span>
     <button class="fpv-close" id="fpv-close">×</button>
   </div>
   <div class="fpv-stage">
@@ -1063,15 +944,16 @@
     <div class="fpv-main" id="fpv-main">
       <img id="fpv-img" src="" alt="Mặt bằng" />
       <div class="fpv-zoom-ctrls">
-        <button class="fpv-zoom-btn" id="fpv-zoom-in" aria-label="Phóng to">+</button>
-        <button class="fpv-zoom-btn" id="fpv-zoom-out" aria-label="Thu nhỏ">−</button>
-        <button class="fpv-zoom-btn" id="fpv-zoom-reset" aria-label="Đặt lại" title="Đặt lại">⤢</button>
+        <button class="fpv-zoom-btn" id="fpv-zoom-in" data-i18n-aria="fpv.zoomIn" aria-label="Phóng to">+</button>
+        <button class="fpv-zoom-btn" id="fpv-zoom-out" data-i18n-aria="fpv.zoomOut" aria-label="Thu nhỏ">−</button>
+        <button class="fpv-zoom-btn" id="fpv-zoom-reset" data-i18n-aria="fpv.zoomReset" aria-label="Đặt lại" data-i18n-title="fpv.zoomReset" title="Đặt lại">⤢</button>
       </div>
-      <div class="fpv-hint" id="fpv-hint">Cuộn để phóng to · Kéo để di chuyển</div>
+      <div class="fpv-hint" id="fpv-hint" data-i18n="fpv.hint">Cuộn để phóng to · Kéo để di chuyển</div>
     </div>
   </div>
 </div>
 
+<script src="js/data-source.js"></script>
 <script src="js/i18n.js"></script>
 <script src="js/ai-panel.js"></script>
 <script src="js/main.js"></script>
@@ -1087,65 +969,39 @@
   <div id="mobile-drawer-inner">
     <div class="mob-drawer-row">
       <button class="mob-cta-primary" id="mob-book-btn">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        <i data-lucide="calendar" width="13" height="13"></i>
         <span data-i18n="ui.book">Đặt lịch</span>
       </button>
     </div>
     <div class="mob-drawer-row">
-      <button class="mob-btn" id="mob-gallery-btn">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
-        <span data-i18n="ui.gallery">Thư viện</span>
-      </button>
-    </div>
-    <div class="mob-drawer-row">
       <button class="mob-btn" id="mob-masterplan-btn">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 3L3 6v15l6-3 6 3 6-3V3l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/></svg>
-        <span>Masterplan</span>
+        <i data-lucide="box" width="13" height="13"></i>
+        <span data-i18n="ui.masterplan">Masterplan</span>
       </button>
       <button class="mob-btn" id="mob-properties-btn">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 11l9-8 9 8M5 9v11h14V9"/></svg>
-        <span>Bất động sản</span>
+        <i data-lucide="home" width="13" height="13"></i>
+        <span data-i18n="ui.properties">Bất động sản</span>
       </button>
     </div>
-    <div class="mob-drawer-row">
-      <button class="mob-btn" id="mob-amenities-btn">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
-        <span>Tiện ích</span>
-      </button>
-      <button class="mob-btn" id="mob-legal-btn">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6L12 2z"/></svg>
-        <span>Pháp lý</span>
-      </button>
-    </div>
-    <div class="mob-drawer-row">
-      <button class="mob-btn" id="mob-location-btn">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="10" r="3"/><path d="M12 2a8 8 0 00-8 8c0 5.25 8 14 8 14s8-8.75 8-14a8 8 0 00-8-8z"/></svg>
-        <span>Vị trí</span>
-      </button>
-    </div>
-    <div class="mob-drawer-row">
-      <button class="mob-btn" id="mob-timeline-btn">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20V4M5 12l7-8 7 8"/><path d="M5 20h14"/></svg>
-        <span>Tiến độ</span>
-      </button>
-    </div>
+    <!-- Pháp lý/Vị trí/Tiến độ/Thư viện/Tài liệu — mở từ
+         project-card (yêu cầu #3). Không lặp lại trong drawer. -->
     <div class="mob-divider"></div>
     <div class="mob-controls">
       <button class="ctrl-btn" id="mob-rotate" title="Auto-rotate">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a9 9 0 11-3-6.7"/><path d="M21 4v5h-5"/></svg>
+        <i data-lucide="rotate-cw" width="15" height="15"></i>
       </button>
       <button class="ctrl-btn" id="mob-zoom-in" title="Zoom in">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-5-5M8 11h6M11 8v6"/></svg>
+        <i data-lucide="zoom-in" width="15" height="15"></i>
       </button>
       <button class="ctrl-btn" id="mob-zoom-out" title="Zoom out">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-5-5M8 11h6"/></svg>
+        <i data-lucide="zoom-out" width="15" height="15"></i>
       </button>
       <button class="ctrl-btn" id="mob-fs" title="Fullscreen">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+        <i data-lucide="maximize" width="15" height="15"></i>
       </button>
       <div class="ctrl-lang-wrap">
         <button class="ctrl-btn" id="mob-lang" type="button" title="Language">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/></svg>
+          <i data-lucide="globe" width="14" height="14"></i>
           <span class="ctrl-lang-code" id="mob-lang-code">VI</span>
         </button>
         <div class="ctrl-lang-menu" id="mob-lang-menu" role="menu"></div>
@@ -1181,11 +1037,10 @@
   $d('mob-gallery-btn')   && $d('mob-gallery-btn').addEventListener('click',   function() { closeDrawer(); $d('gallery-overlay') && $d('gallery-overlay').classList.add('open'); });
   $d('mob-masterplan-btn') && $d('mob-masterplan-btn').addEventListener('click', function() { closeDrawer(); if(window.openMasterplan) window.openMasterplan(); });
   $d('mob-properties-btn') && $d('mob-properties-btn').addEventListener('click', function() { closeDrawer(); if(window.openPropertiesModal) window.openPropertiesModal(); });
-  $d('mob-amenities-btn') && $d('mob-amenities-btn').addEventListener('click', function() { closeDrawer(); $d('amenities-detail-overlay') && $d('amenities-detail-overlay').classList.add('open'); });
   $d('mob-legal-btn')     && $d('mob-legal-btn').addEventListener('click',     function() { closeDrawer(); $d('legal-overlay') && $d('legal-overlay').classList.add('open'); });
   $d('mob-location-btn')  && $d('mob-location-btn').addEventListener('click',  function() { closeDrawer(); var iframe=$d('location-iframe'); if(iframe&&!iframe.getAttribute('src')&&window.DATA&&DATA.location&&DATA.location.mapSrc) iframe.src=DATA.location.mapSrc; $d('location-overlay') && $d('location-overlay').classList.add('open'); });
-  $d('mob-loan-btn')      && $d('mob-loan-btn').addEventListener('click',      function() { closeDrawer(); $d('loan-overlay') && $d('loan-overlay').classList.add('open'); if(window.openLoanWithPrice) openLoanWithPrice(5.4); });
   $d('mob-timeline-btn')  && $d('mob-timeline-btn').addEventListener('click',  function() { closeDrawer(); $d('timeline-overlay') && $d('timeline-overlay').classList.add('open'); });
+  $d('mob-resources-btn') && $d('mob-resources-btn').addEventListener('click', function() { closeDrawer(); $d('resources-overlay') && $d('resources-overlay').classList.add('open'); });
 
   /* VR controls removed — 3DVista handles its own controls */
   $d('mob-fs') && $d('mob-fs').addEventListener('click', function() {

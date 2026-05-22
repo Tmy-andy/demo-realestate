@@ -103,7 +103,7 @@
       stats +
       "</div>" +
       '<button class="mp-filter-btn" id="mp-filter-btn">' +
-      '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h18M6 12h12M10 19h4"/></svg>' +
+      '<i data-lucide="sliders-horizontal" width="15" height="15"></i>' +
       "<span>Lọc</span></button>";
     // Bind lại nút Lọc (được render mỗi lần mở overlay)
     const fb = document.getElementById("mp-filter-btn");

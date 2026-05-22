@@ -1,12 +1,13 @@
 # Help Tour (Nút "?") — Tài liệu kỹ thuật & UI/UX (port-ready spec)
 
-> Mục đích: tài liệu mô tả **đầy đủ** module **Help Tour** (spotlight onboarding) đang dùng trong `vr360` — nút `?` ở top-right kích hoạt một tour highlight từng nút UI, tooltip có mũi tên trỏ về spotlight, click bất kỳ đâu để sang bước tiếp theo. Đủ chi tiết để **port sang dự án khác**.
+> Mục đích: tài liệu mô tả **đầy đủ** module **Help Tour** (spotlight onboarding) đang dùng trong dự án **Vinhomes Hai Van Bay 360° VR** — nút `?` trong cụm điều khiển kích hoạt một tour highlight từng phần UI, tooltip có mũi tên trỏ về spotlight, click bất kỳ đâu để sang bước tiếp theo. Đủ chi tiết để **port sang dự án khác**.
 
-- **Logic JS:** [js/ui.js:455-682, 773-790](../../../js/ui.js#L455-L682) (block `HELP_ITEMS_2D / HELP_ITEMS_3D / startTour / endTour / showTourStep` + binding events)
-- **HTML overlay:** [index.html:163-173](../../../index.html#L163-L173)
-- **Nút trigger `#help-btn`:** [index.html:47](../../../index.html#L47)
-- **CSS:** [css/style.css:170-229](../../../css/style.css#L170-L229) (button `.ticon` + `#help-btn`) và [css/style.css:1363-1446](../../../css/style.css#L1363-L1446) (overlay + spot + tip + arrow)
-- **i18n:** [`tour.*`](../../../data/i18n/vi.json#L334-L381) và [`tour_overlay.*`](../../../data/i18n/vi.json#L255-L258), [`top.help`](../../../data/i18n/vi.json) cho tooltip title
+- **Logic JS:** [js/main.js:1279-1479](../../js/main.js#L1279-L1479) (block `HELP TOUR` — `HELP_ITEMS / startTour / endTour / showTourStep / bindTour`)
+- **HTML overlay:** [index.html:566-576](../../index.html#L566-L576)
+- **Nút trigger desktop `#help-btn`:** [index.html:467](../../index.html#L467) — nằm trong `#tb-ctrlgroup`
+- **Nút trigger mobile `#mob-help`:** [index.html:1154](../../index.html#L1154) — trong mobile drawer, delegate click sang `#help-btn`
+- **CSS:** [css/style.css:371-378](../../css/style.css#L371-L378) (`.ctrl-btn-help`) và [css/style.css:2343-2448](../../css/style.css#L2343-L2448) (overlay + spot + tip + arrow)
+- **i18n:** key `tour.*` trong [js/i18n.js](../../js/i18n.js) — đã dịch đủ **5 ngôn ngữ** (vi / en / zh / ko / ja); `ui.step`, `ui.continueHint`, `ui.skip`, `ui.help` cho overlay & tooltip
 
 ---
 
@@ -16,16 +17,16 @@ Help Tour là một **interactive onboarding spotlight**:
 
 | Đặc điểm | Mô tả |
 |---|---|
-| Trigger | Click nút `?` ở top-right (`#help-btn`) |
+| Trigger | Click nút `?` (`#help-btn` desktop, `#mob-help` mobile) |
 | Backdrop | Toàn màn hình tối `rgba(0,0,0,.72)`, "khoét" 1 lỗ sáng quanh element đang highlight |
 | Spotlight | Box-shadow `0 0 0 9999px` để tạo cảm giác đục lỗ qua nền tối |
-| Tooltip | Card trắng 280px, có **mũi tên CSS** tự xoay 4 hướng để trỏ về spotlight |
+| Tooltip | Card trắng ~280px, có **mũi tên CSS** tự xoay 4 hướng để trỏ về spotlight |
 | Navigation | Click **bất kỳ đâu trên overlay** → bước tiếp; nút `×` (`#tour-skip`) → thoát; `Esc` → thoát |
-| Auto-skip | Element ẩn (display:none / size 0) → tự nhảy bước tiếp |
-| Multi-mode | 2 danh sách bước khác nhau cho 2D map vs 3D VR (`HELP_ITEMS_2D` / `HELP_ITEMS_3D`) |
-| Responsive | Tự mở mobile menu (`body.mobile-menu-open`) trước khi tour ở mobile để spotlight các nút bị ẩn |
+| Auto-skip | Element không tồn tại / ẩn (size 0) → tự nhảy bước tiếp |
+| Single-list | **Một danh sách bước duy nhất** `HELP_ITEMS` (16 bước) — không tách 2D/3D |
+| Responsive | Mỗi bước có thể có `mobileTarget` riêng; tour tự mở mobile drawer / nav-panel / project-card trước khi đo target |
 | Resize-aware | Lắng nghe `resize` → re-render spot/tip ở vị trí mới |
-| i18n live | Label/step resolve qua `I18n.t()` mỗi lần show step → đổi ngôn ngữ giữa tour cũng cập nhật |
+| i18n live | Label/step resolve qua `_t()` mỗi lần show step → đổi ngôn ngữ giữa tour cũng cập nhật ngay |
 | Smart placement | Tooltip tự chọn cạnh **bottom → top → right → left** dựa trên không gian còn trống của viewport |
 | Step counter | Hiển thị "Bước i / n" trong tooltip |
 
@@ -35,11 +36,12 @@ Help Tour là một **interactive onboarding spotlight**:
 
 ### Bắt buộc
 - Vanilla JS, không cần framework.
-- DOM phải tồn tại các phần tử: `#tour-overlay`, `#tour-spot`, `#tour-tip` (với 4 con `.tt-arrow`, `.tt-step`, `.tt-label`, `.tt-hint`, `#tour-skip`), và `#help-btn`.
+- DOM phải tồn tại: `#tour-overlay`, `#tour-spot`, `#tour-tip` (với con `.tt-arrow`, `.tt-step`, `.tt-label`, `.tt-hint`, `#tour-skip`), và nút trigger `#help-btn`.
+- Hàm dịch `_t(key, vars)` — wrapper i18n của dự án.
 
 ### Tùy chọn
-- `window.I18n.t(key, vars)` — nếu không có, fallback dùng `item.label` (string raw) thay cho `item.labelKey`.
-- Class `body.mobile-menu-open` — chỉ cần khi UI mobile của bạn ẩn các nút sau menu hamburger; nếu không bỏ phần `if (isMobile)`.
+- Nút trigger mobile `#mob-help` — delegate sang `#help-btn` (xem [index.html:1195](../../index.html#L1195)).
+- Các panel có class state: `#mobile-drawer.open`, `#nav-panel.collapsed`, `#project-card.collapsed`, `#ui.hidden` — chỉ cần khi UI dự án có panel đóng/mở. Nếu không, bỏ phần xử lý `openDrawer / openNav / openPC`.
 
 ---
 
@@ -47,12 +49,20 @@ Help Tour là một **interactive onboarding spotlight**:
 
 ### 3.1 Nút trigger
 ```html
-<button class="ticon tr-help" id="help-btn"
-        data-i18n-title="top.help"
-        title="Hướng dẫn sử dụng">?</button>
+<!-- Desktop — trong #tb-ctrlgroup -->
+<button class="ctrl-btn ctrl-btn-help" id="help-btn"
+        data-i18n-title="ui.help" title="Hướng dẫn sử dụng">?</button>
+
+<!-- Mobile — trong mobile drawer -->
+<button class="ctrl-btn ctrl-btn-help" id="mob-help" title="Help">?</button>
 ```
-- Nằm trong cụm `#top-right`, cùng layout flex ngang với các nút icon khác.
-- Là một `.ticon` 36×36 tròn (`--pill-h: 36px`) NHƯNG **đảo màu**: nền trắng + chữ xanh `--icon-blue`, font-size 16px, font-weight 700, ký tự "?".
+Nút `#mob-help` đóng drawer rồi trigger lại `#help-btn` click:
+```js
+$d('mob-help').addEventListener('click', function () {
+  closeDrawer();
+  var h = $d('help-btn'); if (h) h.click();
+});
+```
 
 ### 3.2 Overlay
 ```html
@@ -60,14 +70,12 @@ Help Tour là một **interactive onboarding spotlight**:
   <div id="tour-spot"></div>
   <div id="tour-tip">
     <div class="tt-arrow"></div>
-    <div class="tt-step"></div>     <!-- "Bước 1 / 18" -->
-    <div class="tt-label"></div>    <!-- "Tìm kiếm địa điểm theo tên" -->
-    <div class="tt-hint" data-i18n="tour_overlay.hint">
+    <div class="tt-step"></div>     <!-- "Bước 1 / 16" -->
+    <div class="tt-label"></div>    <!-- nội dung bước -->
+    <div class="tt-hint" data-i18n="ui.continueHint">
       Click bất kỳ đâu để tiếp tục →
     </div>
-    <button id="tour-skip"
-            data-i18n-title="tour_overlay.skip"
-            title="Bỏ qua">×</button>
+    <button id="tour-skip" data-i18n-title="ui.skip" title="Bỏ qua">×</button>
   </div>
 </div>
 ```
@@ -82,135 +90,120 @@ Mỗi step là 1 object:
 
 ```js
 {
-  target:    '#search-bar' | () => Element,    // CSS selector HOẶC function trả về element
-  round:     true | false,                      // spotlight bo tròn (50%) thay vì radius 14px
-  svg:       '<svg>…</svg>',                    // (không dùng để hiển thị; chỉ là metadata di sản)
-  txt:       '?' | '3D' | '2D',                 // (cũng metadata di sản)
-  labelKey:  'tour.items2d.search'              // i18n key cho text trong tooltip
-             | () => 'tour.items2d.panelOpen',  // function nếu cần resolve động
-  label:     'Raw text…'                        // (chỉ dùng khi không có labelKey)
+  target:       '#nav-panel' | () => Element,  // CSS selector HOẶC function trả về element (target desktop)
+  mobileTarget: '#mob-help',                   // (tùy chọn) selector dùng riêng khi ở mobile (≤768px)
+  round:        true | false,                  // spotlight bo tròn (50%) thay vì radius 14px
+  openDrawer:   true,                          // (mobile) mở #mobile-drawer trước khi đo target
+  openNav:      true,                          // (mobile) bung #nav-panel (bỏ .collapsed) trước khi đo
+  openPC:       true,                          // (mobile) bung #project-card (bỏ .collapsed) trước khi đo
+  labelKey:     'tour.nav'                     // i18n key cho text trong tooltip
+                | () => 'tour.xxx',            // function nếu cần resolve động
+  label:        'Raw text…'                    // (chỉ dùng khi không có labelKey)
 }
 ```
 
-> **Lưu ý:** `svg` / `txt` đang **không được render** trong tooltip ở phiên bản hiện tại (chỉ giữ lại như metadata cho khả năng mở rộng — VD show icon cạnh label). Bạn có thể bỏ chúng khi port nếu muốn gọn.
+### 4.1 Danh sách bước hiện tại (`HELP_ITEMS` — 16 bước)
 
-### 4.1 Danh sách 2D (HELP_ITEMS_2D)
+Thứ tự đi theo luồng UI từ top-bar → cụm điều khiển → nav-panel → project-card → bot:
 
-Thứ tự đi từ trên xuống / trái sang phải:
-1. `#search-bar` — `tour.items2d.search` ("Tìm kiếm địa điểm theo tên")
-2. `#xa-dd` — `tour.items2d.xa` ("Lọc theo Xã/Phường")
-3. `#help-btn` (round, txt `?`) — `tour.items2d.help`
-4. `#lang-btn` — `tour.items2d.lang`
-5. `#fs-btn` (round) — `tour.items2d.fs`
-6. `#zoom-in-btn` (round)
-7. `#zoom-out-btn` (round)
-8. `#hide-ui-btn` (round)
-9. `#layers-btn` (round)
-10. `#three-d-btn` (round, txt `3D`)
-11. `#map` — `tour.items2d.dblclick` (mẹo double-click toàn màn hình)
-12. `#mobile-more-btn` (round, chỉ mobile)
-13. `#mobile-panel-btn` (round, chỉ mobile)
-14. `#right-panel` — labelKey **function** trả về `panelClosed` / `panelOpen` tùy state hiện tại của panel
-15. `#bb-vr-nav` — VR 360
-16. `#bottom-bar .bbt[data-view="map"]` — Trang chủ
-17. `#bottom-bar .bbt[data-view="guide"]` — Cẩm nang
-18. `#bb-chat-btn` (round) — Bot AI
+| # | target (desktop) | mobileTarget | flag | labelKey |
+|---|---|---|---|---|
+| 1 | `.brand` | — | — | `tour.brand` |
+| 2 | `#btn-gallery` | `#mob-gallery-btn` | `openDrawer` | `tour.gallery` |
+| 3 | `#open-modal` | `#mob-book-btn` | `openDrawer` | `tour.book` |
+| 4 | `#tb-ctrlgroup` | — | — | `tour.ctrlgroup` |
+| 5 | `#ctrl-rotate` | `#mob-rotate` | `openDrawer` | `tour.rotate` |
+| 6 | `#ctrl-zoom-in` | `#mob-zoom-in` | `openDrawer` | `tour.zoomIn` |
+| 7 | `#ctrl-zoom-out` | `#mob-zoom-out` | `openDrawer` | `tour.zoomOut` |
+| 8 | `#ctrl-fullscreen` | `#mob-fs` | `openDrawer` | `tour.fullscreen` |
+| 9 | `#ctrl-lang-wrap` | `#mob-lang` | `openDrawer` | `tour.lang` |
+| 10 | `#help-btn` | `#mob-help` | `openDrawer` | `tour.help` |
+| 11 | `#nav-panel` | — | `openNav` | `tour.nav` |
+| 12 | `#np-search-wrap` | — | `openNav` | `tour.search` |
+| 13 | `#np-list` | — | `openNav` | `tour.list` |
+| 14 | `#project-card` | — | `openPC` | `tour.project` |
+| 15 | `#bb-chat-btn` | — | `round` | `tour.bot` |
+| 16 | `#ui-restore` | — | — | `tour.restore` |
 
-### 4.2 Danh sách 3D (HELP_ITEMS_3D)
-~20 bước tương tự nhưng cho VR mode: `#vr-pannellum` (panorama + dblclick mẹo), `#autorot-btn`, `#vr-info`, `#minimap`, `#three-d-btn` (txt `2D`), bottom-bar tabs, `#bb-chat-btn`,…
-
-Cả 2 danh sách dùng chung structure → cùng `showTourStep()` xử lý.
+> i18n cũng có sẵn `tour.sitemap` và `tour.hotspot` (dịch đủ 5 ngôn ngữ) — chưa gắn vào step nào, để dành nếu muốn highlight thêm sơ đồ 2D hoặc hotspot trong panorama.
 
 ---
 
 ## 5. State & API
 
 ```js
-let tourIdx    = -1;                 // chỉ số bước hiện tại
+let tourIdx    = -1;            // chỉ số bước hiện tại
 let tourActive = false;
-let tourItems  = HELP_ITEMS_2D;      // mảng đang chạy (2D hoặc 3D)
+let tourItems  = HELP_ITEMS;    // mảng đang chạy
 
-function startTour(items = HELP_ITEMS_2D, fromIndex = 0) { … }
+function startTour(items = HELP_ITEMS, fromIndex = 0) { … }
 function endTour() { … }
-function showTourStep() { … }        // render spot + tip cho tourItems[tourIdx]
+function showTourStep() { … }   // render spot + tip cho tourItems[tourIdx]
+function bindTour() { … }       // gắn 4 event listener (gọi 1 lần lúc init)
 ```
 
-Kết nối lên UI:
+`startTour()` còn:
+- Bỏ class `.hidden` của `#ui` (đảm bảo giao diện hiện).
+- Trên **desktop**: bung sẵn `#nav-panel` (bỏ `.collapsed` + `body.nav-panel-collapsed`). Trên **mobile**: để các bước tự mở panel lazy.
+
+`endTour()` đóng overlay và đóng `#mobile-drawer` nếu nó được mở trong lúc tour.
+
+`bindTour()` (xem [js/main.js:1455-1479](../../js/main.js#L1455-L1479)):
 ```js
-$('help-btn').addEventListener('click', e => {
-  e.stopPropagation();
-  startTour(vrMode ? HELP_ITEMS_3D : HELP_ITEMS_2D);
-});
-
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && tourActive) endTour();
-});
-
+$('help-btn').addEventListener('click', e => { e.stopPropagation(); startTour(HELP_ITEMS); });
 $('tour-overlay').addEventListener('click', e => {
-  if (e.target.closest('#tour-skip')) return;       // nhường cho handler riêng
-  // Click vào tip OR vào nền → next step
+  if (e.target.closest('#tour-skip')) return;   // nhường cho handler riêng
   tourIdx++; showTourStep();
 });
-$('tour-skip').addEventListener('click', e => {
-  e.stopPropagation();
-  endTour();
-});
-
-window.addEventListener('resize', () => {
-  if (tourActive) showTourStep();
-});
+$('tour-skip').addEventListener('click', e => { e.stopPropagation(); endTour(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && tourActive) endTour(); });
+window.addEventListener('resize', () => { if (tourActive) showTourStep(); });
 ```
+`bindTour()` được gọi trong luồng init chính.
 
 ---
 
 ## 6. Thuật toán `showTourStep()`
 
 ```
-1. Nếu tourIdx >= tourItems.length → endTour(); return.
+1. Nếu !tourActive → return.
+2. Nếu tourIdx >= tourItems.length → endTour(); return.
 
-2. Resolve target:
-   - typeof target === 'function' → target()
-   - typeof target === 'string'   → document.querySelector(target)
-   - null → tourIdx++; recurse.
+3. isMob = matchMedia('(max-width: 768px)').matches
 
-3. rect = target.getBoundingClientRect()
+4. (Chỉ mobile) Quản lý panel TRƯỚC khi đo target:
+   - Nếu bước KHÔNG cần drawer mà drawer đang mở → đóng drawer.
+   - openNav  → nếu #nav-panel còn .collapsed: bỏ collapsed; setTimeout(showTourStep, 380); return.
+   - openPC   → nếu #project-card còn .collapsed: bỏ collapsed; setTimeout(showTourStep, 500); return.
+   - openDrawer → nếu #mobile-drawer chưa .open: thêm .open; setTimeout(showTourStep, 420); return.
+   (delay = chờ animation panel xong rồi mới đo lại)
+
+5. Resolve target:
+   - isMob && item.mobileTarget → querySelector(mobileTarget)
+   - else typeof target === 'function' → target()
+   - else typeof target === 'string'   → querySelector(target)
+   - không có target → tourIdx++; recurse.
+
+6. rect = target.getBoundingClientRect()
    Nếu width=0 hoặc height=0 (element ẩn) → tourIdx++; recurse.
 
-4. Tính ô spotlight (có pad 6px):
-     sx = rect.left - 6, sy = rect.top - 6
-     sw = rect.width + 12, sh = rect.height + 12
-   Đặt #tour-spot vị trí + kích thước này.
+7. Tính ô spotlight (pad 6px): sx/sy/sw/sh → đặt #tour-spot.
    Toggle class .round theo item.round.
 
-5. Resolve label:
-   - item.labelKey (string hoặc function) → I18n.t(...)
-   - hoặc item.label (string hoặc function)
-   - tt-step = I18n.t('tour.step', { i: tourIdx+1, n: tourItems.length })
+8. Resolve label: item.labelKey (string/function) → _t(...); hoặc item.label.
+   tt-step = _t('ui.step', { n: tourIdx+1, total: tourItems.length })
 
-6. Chọn cạnh đặt tooltip theo không gian còn trống của viewport:
-     space.bottom = vh - (sy+sh)
-     space.top    = sy
-     space.right  = vw - (sx+sw)
-     space.left   = sx
-   Ưu tiên: bottom > top > right > left.
-   Logic:
-     side = 'bottom'
-     if (bottom < tipH+gap && top >= tipH+gap) side = 'top'
-     else if (bottom < tipH+gap && right >= tipW+gap) side = 'right'
-     else if (bottom < tipH+gap && left >= tipW+gap) side = 'left'
+9. Chọn cạnh đặt tooltip theo không gian trống viewport (ưu tiên bottom > top > right > left).
 
-7. Tính (tx, ty) cho tip theo side; clamp trong viewport (margin 10px).
+10. Tính (tx, ty) theo side; clamp trong viewport (margin 10px).
 
-8. Áp class mũi tên (`.arrow-up | arrow-down | arrow-left | arrow-right`)
-   tương ứng với cạnh — mũi tên nằm ở MẶT của tip hướng VỀ spot.
+11. Áp class mũi tên (.arrow-up/-down/-left/-right) tương ứng cạnh.
+    Set --arrow-x / --arrow-y để mũi tên trỏ đúng tâm spot (clamp tránh tràn).
 
-9. Set CSS variable --arrow-x hoặc --arrow-y để dịch mũi tên đến đúng vị
-   trí tương ứng tâm spot, clamp trong khoảng [14, tipW-28] hoặc [14, tipH-28].
-
-10. Set tip.style.left/top = tx/ty.
+12. Set tip.style.left/top.
 ```
 
-Mọi giá trị left/top/width/height đều transition CSS (.35s cubic-bezier) → step chuyển bước mượt mà.
+Mọi giá trị left/top/width/height đều transition CSS (.35s cubic-bezier) → chuyển bước mượt mà.
 
 ---
 
@@ -239,56 +232,32 @@ Mọi giá trị left/top/width/height đều transition CSS (.35s cubic-bezier)
     0 0 0 3px var(--icon-blue),        /* viền xanh quanh spotlight */
     0 0 24px rgba(43,182,230,.6);      /* glow */
   transition:
-    left .35s cubic-bezier(.4,0,.2,1),
-    top  .35s cubic-bezier(.4,0,.2,1),
-    width .35s cubic-bezier(.4,0,.2,1),
-    height .35s cubic-bezier(.4,0,.2,1),
+    left .35s cubic-bezier(.4,0,.2,1), top .35s cubic-bezier(.4,0,.2,1),
+    width .35s cubic-bezier(.4,0,.2,1), height .35s cubic-bezier(.4,0,.2,1),
     border-radius .25s ease;
   pointer-events: none;
 }
 #tour-spot.round { border-radius: 50%; }
 ```
-**Kỹ thuật cốt lõi**: `box-shadow: 0 0 0 9999px rgba(0,0,0,.72)` cho phần tử nhỏ — phần "lỗ" chính là kích thước thực của `#tour-spot`, còn bóng đổ phình ra tận biên viewport, tạo overlay tối có khoét cửa sổ sáng. Không cần SVG mask, không cần canvas.
+**Kỹ thuật cốt lõi**: `box-shadow: 0 0 0 9999px rgba(0,0,0,.72)` — phần "lỗ" chính là kích thước thực của `#tour-spot`, bóng đổ phình ra tận biên viewport, tạo overlay tối có khoét cửa sổ sáng. Không cần SVG mask, không cần canvas.
 
 ### 7.3 Tooltip + mũi tên CSS
 ```css
 #tour-tip {
   position: absolute;
-  background: #fff;
-  border-radius: 12px;
-  padding: 14px 18px 12px;
-  width: 280px;
+  background: #fff; border-radius: 12px;
+  padding: 14px 18px 12px; width: 280px;
   box-shadow: 0 10px 32px rgba(0,0,0,.35);
   pointer-events: auto;
-  transition:
-    left .35s cubic-bezier(.4,0,.2,1),
-    top  .35s cubic-bezier(.4,0,.2,1);
+  transition: left .35s cubic-bezier(.4,0,.2,1), top .35s cubic-bezier(.4,0,.2,1);
 }
-
-.tt-step  { font-size:11px;  font-weight:700; letter-spacing:.08em;
-            color: var(--icon-blue); text-transform: uppercase;
-            margin-bottom: 4px; }
-.tt-label { font-size:14px;  font-weight:700; color:#1a1a1a;
-            line-height:1.4; margin-bottom: 8px; }
-.tt-hint  { font-size:11.5px; color:#888; font-style: italic; }
-
-#tour-skip {
-  position:absolute; top:6px; right:6px;
-  width:24px; height:24px; border-radius:50%;
-  background:#f1f3f5; border:none; color:#666;
-  cursor:pointer; font-size:16px; line-height:1;
-  display:flex; align-items:center; justify-content:center;
-  transition: background .14s, color .14s;
+/* Mobile: thu hẹp tip cho khớp viewport */
+@media (max-width: 768px) {
+  #tour-tip { width: calc(100vw - 32px); max-width: 320px; }
 }
-#tour-skip:hover { background:#e74c3c; color:#fff; }
 
 /* Mũi tên: 1 div vuông 14×14 xoay 45° giả làm tam giác */
-.tt-arrow {
-  position:absolute;
-  width:14px; height:14px;
-  background:#fff;
-  transform: rotate(45deg);
-}
+.tt-arrow { position:absolute; width:14px; height:14px; background:#fff; transform: rotate(45deg); }
 #tour-tip.arrow-up    .tt-arrow { top:-6px;    left: var(--arrow-x, 24px); box-shadow:-2px -2px 4px rgba(0,0,0,.04); }
 #tour-tip.arrow-down  .tt-arrow { bottom:-6px; left: var(--arrow-x, 24px); box-shadow: 2px  2px 4px rgba(0,0,0,.04); }
 #tour-tip.arrow-left  .tt-arrow { left:-6px;   top:  var(--arrow-y, 20px); box-shadow:-2px  2px 4px rgba(0,0,0,.04); }
@@ -296,169 +265,96 @@ Mọi giá trị left/top/width/height đều transition CSS (.35s cubic-bezier)
 
 /* An toàn: khi overlay đóng nhưng còn trong DOM, ép inert */
 #tour-overlay:not(.open) #tour-tip,
-#tour-overlay:not(.open) #tour-spot {
-  pointer-events: none !important;
-  visibility: hidden;
-}
+#tour-overlay:not(.open) #tour-spot { pointer-events: none !important; visibility: hidden; }
 ```
-- Mũi tên dùng kỹ thuật **vuông xoay 45°** chứ không SVG → đơn giản, mượt, dùng `box-shadow` chéo để giả viền/độ sâu.
-- `--arrow-x` / `--arrow-y` được JS gán → mũi tên trượt theo tâm spotlight (clamp tránh tràn cạnh tip).
 
-### 7.4 Nút trigger `#help-btn`
+### 7.4 Nút trigger `.ctrl-btn-help`
 ```css
-.ticon {
-  width: var(--pill-h, 36px); height: var(--pill-h, 36px);
-  border-radius: 50%;
-  border: none; background: var(--icon-blue); color: #fff;
-  cursor: pointer; flex-shrink: 0;
-  display:flex; align-items:center; justify-content:center;
-  box-shadow: var(--pill-shadow);
-  font-family: inherit; font-size: 14px; font-weight: 700;
-  transition:
-    background .14s, transform .32s cubic-bezier(.4,0,.2,1),
-    width .32s, margin .32s, padding .32s, opacity .22s;
-  position: relative; overflow: hidden;
-}
-.ticon:hover { background: var(--icon-blue-dark); transform: translateY(-1px); }
-.ticon.active { background: var(--icon-blue); }
-
-#help-btn {
+.tb-ctrlgroup .ctrl-btn-help {
   background: #fff;
   color: var(--icon-blue);
-  font-size: 16px;
+  font-weight: 700;
 }
-#help-btn:hover { background: #e8f7fd; color: var(--icon-blue-dark); }
+.tb-ctrlgroup .ctrl-btn-help:hover { background: #e8f7fd; }
 ```
+Nút dùng chung base `.ctrl-btn` của cụm điều khiển nhưng **đảo màu** (nền trắng + chữ xanh) để nổi bật.
 
 ---
 
-## 8. Biến CSS cần có
+## 8. i18n keys cần có
 
-```css
-:root {
-  --pill-h: 36px;                                  /* size button .ticon */
-  --pill-shadow: 0 2px 8px rgba(0,0,0,.18);
-  --icon-blue: #2bb6e6;                            /* màu spotlight ring + tooltip step */
-  --icon-blue-dark: #1a9bcb;
-}
-```
-
----
-
-## 9. i18n keys cần dịch
+Tất cả nằm trong [js/i18n.js](../../js/i18n.js), **dịch đủ 5 ngôn ngữ** (vi / en / zh / ko / ja):
 
 ```jsonc
-"top": {
-  "help": "Hướng dẫn sử dụng"                       // tooltip nút ?
-},
+// Overlay & tooltip chung
+"ui.help":          "Hướng dẫn sử dụng",
+"ui.step":          "Bước {n} / {total}",      // có placeholder
+"ui.continueHint":  "Click bất kỳ đâu để tiếp tục →",
+"ui.skip":          "Bỏ qua",
 
-"tour_overlay": {
-  "hint": "Click bất kỳ đâu để tiếp tục →",
-  "skip": "Bỏ qua"
-},
+// Nhãn từng bước
+"tour.brand":      "Logo dự án — quay về tổng quan.",
+"tour.gallery":    "Thư viện ảnh dự án.",
+"tour.book":       "Đặt lịch tham quan và xem bảng giá chi tiết.",
+"tour.ctrlgroup":  "Cụm điều khiển — tự xoay, zoom, toàn màn hình, ngôn ngữ, mở lại hướng dẫn.",
+"tour.rotate":     "Bật/tắt tự xoay panorama 360°.",
+"tour.zoomIn":     "Phóng to góc nhìn.",
+"tour.zoomOut":    "Thu nhỏ góc nhìn.",
+"tour.fullscreen": "Bật chế độ toàn màn hình.",
+"tour.lang":       "Đa ngôn ngữ — chọn ngôn ngữ hiển thị.",
+"tour.help":       "Mở lại hướng dẫn này bất cứ lúc nào.",
+"tour.nav":        "Bảng điều hướng trái — thông tin scene và danh sách nhóm.",
+"tour.search":     "Tìm kiếm nhanh trong toàn bộ danh sách.",
+"tour.list":       "Các nhóm: Tổng quan, Tiện ích, Mặt bằng, Căn hộ…",
+"tour.project":    "Thông tin dự án: giá, trạng thái, chỉ số chính.",
+"tour.bot":        "Trợ lý AI — chat text hoặc giọng nói.",
+"tour.restore":    "Khi giao diện bị ẩn, bấm nút này để hiện lại.",
 
-"tour": {
-  "step": "Bước {i} / {n}",                         // có placeholder
-
-  "items2d": {                                       // label cho từng step ở chế độ 2D
-    "search": "Tìm kiếm địa điểm theo tên",
-    "xa": "Lọc danh sách theo Xã/Phường",
-    "help": "Mở lại hướng dẫn sử dụng",
-    "lang": "Đổi ngôn ngữ (VI / EN)",
-    "fs": "Bật/tắt toàn màn hình",
-    "zoomIn": "Phóng to bản đồ",
-    "zoomOut": "Thu nhỏ bản đồ",
-    "hideUI": "Ẩn toàn bộ giao diện…",
-    "layers": "Đổi bản đồ nền…",
-    "threeD": "Chuyển sang chế độ VR 360°",
-    "dblclick": "Mẹo: double-click vào bản đồ…",
-    "mobMore": "Thực đơn (chỉ mobile)…",
-    "mobPanel": "Danh sách địa điểm (chỉ mobile)…",
-    "panelClosed": "Mở bảng danh sách địa điểm bên phải",
-    "panelOpen": "Danh sách địa điểm – tìm kiếm, lọc…",
-    "vrNav": "VR 360 – vào trải nghiệm panorama…",
-    "home": "Trang chủ – quay về bản đồ",
-    "guide": "Cẩm nang Du lịch…",
-    "ai": "Trợ lý AI Du lịch…"
-  },
-
-  "items3d": { /* tương tự, key riêng cho VR mode */ }
-}
+// Dự phòng (chưa gắn vào step nào)
+"tour.sitemap":    "Bản đồ thiết kế 2D — điểm chạm dẫn vào không gian 360°.",
+"tour.hotspot":    "Hotspot trong khung 360° — click để điều hướng hoặc xem mô tả."
 ```
 
 ---
 
-## 10. Hướng dẫn port nhanh sang dự án mới
+## 9. Hướng dẫn port nhanh sang dự án mới
 
-1. **Copy HTML overlay** [index.html:163-173](../../../index.html#L163-L173) vào `<body>`.
-2. **Copy CSS** block trong mục 7 (hoặc trích từ [css/style.css:1363-1446](../../../css/style.css#L1363-L1446)) + style `.ticon` + `#help-btn` cho nút trigger.
-3. **Copy JS**: lấy 3 hàm `startTour / endTour / showTourStep` + 2 mảng `HELP_ITEMS_*` + 4 event listeners ở [ui.js:773-790](../../../js/ui.js#L773-L790).
-4. **Sửa lại `HELP_ITEMS_*`** cho khớp UI dự án mới (đổi selector + labelKey).
-5. **Thêm nút trigger** `<button class="ticon" id="help-btn">?</button>` ở góc UI và đăng ký:
-   ```js
-   document.getElementById('help-btn').addEventListener('click', e => {
-     e.stopPropagation();
-     startTour(HELP_ITEMS);
-   });
-   ```
-6. **i18n**: hoặc bê namespace `tour.*` + `tour_overlay.*` + cung cấp `window.I18n.t()`; hoặc thay bằng `label` raw string thẳng trong HELP_ITEMS và bỏ `I18n.t()` trong `showTourStep`.
-7. **Bỏ phần mobile menu** (`document.body.classList.add('mobile-menu-open')` + setTimeout 350) nếu dự án không cần.
+1. **Copy HTML overlay** [index.html:566-576](../../index.html#L566-L576) vào `<body>`.
+2. **Copy CSS** block mục 7 (hoặc trích từ [css/style.css:2343-2448](../../css/style.css#L2343-L2448)) + style nút trigger.
+3. **Copy JS**: block `HELP TOUR` [js/main.js:1279-1479](../../js/main.js#L1279-L1479) — `HELP_ITEMS`, 3 hàm `startTour/endTour/showTourStep`, và `bindTour()`.
+4. **Sửa lại `HELP_ITEMS`** cho khớp UI dự án mới (đổi `target` / `mobileTarget` / `labelKey`).
+5. **Thêm nút trigger** `<button id="help-btn">?</button>` ở góc UI; `bindTour()` lo phần đăng ký sự kiện — chỉ cần gọi `bindTour()` một lần lúc init.
+6. **i18n**: bê namespace `tour.*` + 4 key `ui.*`, hoặc thay `labelKey` bằng `label` raw string và bỏ `_t()` trong `showTourStep`.
+7. **Bỏ phần panel mobile** (`openDrawer / openNav / openPC` + các `setTimeout`) nếu dự án không có panel đóng/mở.
 8. **Tùy biến brand**: đổi `--icon-blue` để đổi màu ring spotlight + step label.
 
-### Minimal port (không i18n, không mobile, không 3D mode):
-```html
-<button id="help-btn">?</button>
-
-<div id="tour-overlay">
-  <div id="tour-spot"></div>
-  <div id="tour-tip">
-    <div class="tt-arrow"></div>
-    <div class="tt-step"></div>
-    <div class="tt-label"></div>
-    <div class="tt-hint">Click bất kỳ đâu để tiếp tục →</div>
-    <button id="tour-skip">×</button>
-  </div>
-</div>
-
-<script>
-const HELP_ITEMS = [
-  { target: '#btn-search', label: 'Tìm kiếm…' },
-  { target: '#btn-filter', round: true, label: 'Bộ lọc nhanh' },
-  { target: () => document.querySelector('.card.active') || document.querySelector('.card'),
-    label: 'Card sản phẩm — click để xem chi tiết' },
-];
-// … (paste 3 hàm startTour/endTour/showTourStep, thay window.I18n.t(...) bằng label/step text trực tiếp)
-</script>
-```
-
 ---
 
-## 11. Checklist kiểm tra sau khi port
+## 10. Checklist kiểm tra sau khi cập nhật / port
 
-- [ ] Click `?` → màn hình mờ đen, ring xanh sáng quanh nút đầu tiên.
-- [ ] Tooltip xuất hiện với "Bước 1 / N" + nhãn + dòng hint xám in nghiêng.
-- [ ] Click bất kỳ vùng tối → next step, ring trượt mượt 350ms sang element tiếp.
-- [ ] Mũi tên tooltip luôn chỉ về spotlight, đúng cạnh (trên / dưới / trái / phải).
-- [ ] Element ẩn (responsive bị `display:none`) → tour tự skip, không kẹt.
-- [ ] Resize trình duyệt khi tour đang chạy → spotlight + tip tự re-position.
+- [ ] Click `?` (desktop & mobile) → màn hình mờ đen, ring xanh sáng quanh bước đầu (`.brand`).
+- [ ] Tooltip hiện "Bước 1 / 16" + nhãn + dòng hint xám in nghiêng.
+- [ ] Click vùng tối → next step, ring trượt mượt 350ms.
+- [ ] Mũi tên tooltip luôn chỉ về spotlight, đúng cạnh.
+- [ ] Element không tồn tại / ẩn → tour tự skip, không kẹt.
+- [ ] **Mobile**: các bước `openDrawer` tự mở mobile drawer; `openNav` / `openPC` tự bung panel trước khi spotlight.
+- [ ] Resize trình duyệt khi tour đang chạy → spotlight + tip re-position.
 - [ ] Nhấn `Esc` → tour đóng ngay.
-- [ ] Click nút `×` → tour đóng, không trigger nhầm "next step".
-- [ ] Đến bước cuối → click 1 lần nữa → tour kết thúc, overlay fade out.
-- [ ] Đổi ngôn ngữ giữa tour (nếu có i18n) → label step hiện tại đổi liền (tour resolve `I18n.t()` mỗi lần show).
-- [ ] Mobile: cột nút phải tự bung ra, các nút mobile-only được spotlight đúng.
+- [ ] Click `×` → tour đóng, không trigger nhầm "next step".
+- [ ] Bước cuối (`#ui-restore`) → click lần nữa → tour kết thúc, overlay fade out, drawer đóng.
+- [ ] Đổi ngôn ngữ giữa tour (5 ngôn ngữ) → label step hiện tại đổi liền.
 
 ---
 
-## 12. Hạn chế đã biết
+## 11. Hạn chế đã biết
 
-- Không support **2 tour song song** (state global). Nếu cần nhiều flow → wrap thành class/factory để mỗi tour có state riêng.
-- Không có **animation in-out** ở từng bubble — chỉ overlay fade và spot transition. Có thể thêm `@keyframes` cho tip nếu muốn pop.
-- Click vào nội dung TRONG tooltip cũng next step (do listener bắt cả). Nếu muốn tooltip có link/btn riêng → kiểm tra `e.target.closest('a, button')` trước khi tăng `tourIdx`.
+- Không support **2 tour song song** (state global). Cần nhiều flow → wrap thành class/factory.
+- Không có **animation in-out** ở từng bubble — chỉ overlay fade và spot transition.
+- Click vào nội dung TRONG tooltip cũng next step. Muốn tooltip có link/btn riêng → kiểm tra `e.target.closest('a, button')` trước khi tăng `tourIdx`.
 - **Không có nút Back / Prev** — luồng tuyến tính một chiều. Thêm dễ: nút `‹` + `tourIdx = Math.max(0, tourIdx - 1); showTourStep();`.
-- Element có **position: fixed bên trong iframe** không spotlight chính xác (do `getBoundingClientRect` không cross-frame).
-- Spot dùng box-shadow `9999px` — đủ cho mọi viewport thực tế, nhưng nếu màn hình > 20000px (multi-monitor span) thì viền tối có thể không phủ hết.
-- Không lưu cờ "đã xem tour rồi" — nếu muốn auto-show ở first visit thì wrap bằng `localStorage.getItem('tour-seen')`.
+- Không lưu cờ "đã xem tour rồi" — muốn auto-show ở first visit thì wrap bằng `localStorage.getItem('tour-seen')`.
+- Spot dùng box-shadow `9999px` — đủ cho mọi viewport thực tế.
 
 ---
 
-*File này tự đủ. Mang nó cùng overlay HTML, 3 hàm tour và block CSS spotlight sang dự án mới — help tour chạy được trong < 15 phút.*
+*File này tự đủ. Mang nó cùng overlay HTML, block `HELP TOUR` trong `js/main.js` và block CSS spotlight sang dự án mới — help tour chạy được trong < 15 phút.*

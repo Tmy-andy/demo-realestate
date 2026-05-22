@@ -208,9 +208,33 @@ function getMockLeads() {
   ];
 }
 
+// ——— AUTH ———————————————————————————————————
+const API_BASE = 'http://localhost:3000';
+
+// Đường dẫn tuyệt đối tới 1 file trong thư mục admin/ — redirect luôn
+// đúng dù URL là /admin, /admin/, hay /admin/sales.html.
+function adminPath(file) {
+  const p = location.pathname;
+  const i = p.lastIndexOf('/admin');
+  const dir = i !== -1 ? p.slice(0, i) + '/admin/' : p.replace(/[^/]*$/, '');
+  return dir + file;
+}
+
+// Đăng xuất — thu hồi phiên ở server rồi về trang đăng nhập.
+async function doLogout() {
+  const s = JSON.parse(sessionStorage.getItem('ah_session') || 'null');
+  try { await fetch(API_BASE + '/api/auth/logout', {
+    method: 'POST', headers: { Authorization: 'Bearer ' + (s?.token || '') },
+  }); } catch (e) { /* server tắt vẫn cho thoát */ }
+  sessionStorage.removeItem('ah_session');
+  location.href = adminPath('index.html');
+}
+
 // ——— ROUTER ———————————————————————————————————
 document.addEventListener('DOMContentLoaded', async () => {
   const _sess = JSON.parse(sessionStorage.getItem('ah_session') || 'null');
+  // Chặn truy cập khi chưa đăng nhập.
+  if (!_sess || !_sess.token) { location.replace(adminPath('index.html')); return; }
   if (_sess) {
     const av = document.getElementById('tb-avatar');
     const nm = document.getElementById('tb-name');
@@ -278,9 +302,8 @@ function saveSaleProfile(patch) {
 function referralUrl() {
   const u = currentUsername();
   if (!u) return '';
-  // index.html lives one level up from /admin/
-  const base = location.origin + location.pathname.replace(/\/admin\/.*$/, '/index.html');
-  return base + '?s=' + encodeURIComponent(u);
+  // URL đẹp dạng /<id-sale> — server trả index.html cho mọi path không phải /api.
+  return location.origin + '/' + encodeURIComponent(u);
 }
 
 // ——— DASHBOARD ————————————————————————————————
@@ -1357,7 +1380,20 @@ function renderSalesKit(el) {
 
 function renderVR(el) {
   const m = menu();
-  const groups = Object.entries(GROUP_META).filter(([k]) => m[k] && m[k].length > 0);
+  // Gom nhóm: Tổng quan + mỗi phân khu là 1 "nhóm" (gộp 4 nhóm con của nó)
+  const groups = [];
+  if ((m.tongQuan || []).length) {
+    groups.push(['tongQuan', { label: 'Tổng Quan', icon: 'building' }, m.tongQuan]);
+  }
+  for (const pk of (m.phanKhu || [])) {
+    const childItems = [];
+    const ch = pk.children || {};
+    Object.values(ch).forEach(arr => (arr || []).forEach(it => childItems.push(it)));
+    const items = [pk, ...childItems];
+    if (items.length) {
+      groups.push(['pk-' + pk.id, { label: pk.label || 'Phân khu', icon: 'mappin' }, items]);
+    }
+  }
   el.innerHTML = `
     <div class="ph">
       <div class="ph-left"><div class="breadcrumb"><span>Sales</span> / Tour VR360</div><h1>Tour VR360</h1></div>
@@ -1368,8 +1404,7 @@ function renderVR(el) {
     <div class="ph-sub" style="font-size:13px;color:var(--muted);margin-bottom:16px">Dùng các link bên dưới để gửi cho khách hàng hoặc mở trực tiếp trong buổi tư vấn.</div>
     ${groups.length === 0
       ? `<div class="card" style="text-align:center;padding:64px;color:var(--muted)"><div style="font-size:40px;display:flex;justify-content:center">${ico('video',40)}</div><div style="margin-top:12px">Chưa có dữ liệu VR tour</div></div>`
-      : groups.map(([key, meta]) => {
-          const items = m[key] || [];
+      : groups.map(([key, meta, items]) => {
           return `
             <div class="card" style="margin-bottom:16px">
               <div class="card-header" style="padding-bottom:12px">

@@ -221,8 +221,8 @@
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
           <input type="password" id="password" name="password" placeholder="Nhập mật khẩu" autocomplete="current-password" required>
           <button type="button" class="pw-toggle" id="pw-toggle" tabindex="-1">
-            <svg id="pw-eye-off" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>
-            <svg id="pw-eye-on" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg style="left: -4" id="pw-eye-off" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>
+            <svg style="left: -4" id="pw-eye-on" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
           </button>
         </div>
       </div>
@@ -235,6 +235,13 @@
 
     <div class="login-hint">
       <div class="hint-title">Tài khoản demo</div>
+      <div class="hint-row">
+        <span class="hint-badge owner">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M10 6h4"/><path d="M10 10h4"/></svg>
+          Developer
+        </span>
+        <span class="hint-cred">dev / dev@2025</span>
+      </div>
       <div class="hint-row">
         <span class="hint-badge owner">
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M10 6h4"/><path d="M10 10h4"/></svg>
@@ -256,11 +263,7 @@
 </div>
 
 <script>
-const USERS = [
-  { username: 'admin',  password: 'aurora@2025', role: 'owner', name: 'Admin',       title: 'Toàn quyền' },
-  { username: 'sales',  password: 'sales@2025',  role: 'sales', name: 'Sales Agent', title: 'Bất Động Sản' },
-  { username: 'sales2', password: 'sales@2025',  role: 'sales', name: 'Sales 2',     title: 'Bất Động Sản' },
-];
+const API_BASE = 'http://localhost:3000';
 
 /* Password toggle */
 const pwInput  = document.getElementById('password');
@@ -274,10 +277,28 @@ pwToggle.addEventListener('click', () => {
   eyeOn.style.display  = show ? '' : 'none';
 });
 
-/* Login */
-document.getElementById('login-form').addEventListener('submit', function(e) {
+/* Thư mục admin/ dưới dạng đường dẫn tuyệt đối, vd "/admin/".
+   Xử lý mọi kiểu URL: /admin, /admin/, /admin/index.html, /sub/admin/... */
+function adminDir() {
+  const p = location.pathname;
+  const i = p.lastIndexOf('/admin');
+  // "/admin" hoặc "/admin/..." -> giữ tới hết "/admin/"
+  if (i !== -1) return p.slice(0, i) + '/admin/';
+  // dự phòng: cắt tên file cuối
+  return p.replace(/[^/]*$/, '');
+}
+
+/* Trang đích theo quyền: developer + owner -> owner.html, sales -> sales.html. */
+function homeFor(role) {
+  return adminDir() + (role === 'sales' ? 'sales.html' : 'owner.html');
+}
+
+const loginIcon = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg> Đăng nhập';
+
+/* Login — xác thực qua backend (POST /api/auth/login) */
+document.getElementById('login-form').addEventListener('submit', async function(e) {
   e.preventDefault();
-  const username = document.getElementById('username').value.trim().toLowerCase();
+  const username = document.getElementById('username').value.trim();
   const password = document.getElementById('password').value;
   const errEl    = document.getElementById('login-error');
   const errMsg   = document.getElementById('login-error-msg');
@@ -287,31 +308,52 @@ document.getElementById('login-form').addEventListener('submit', function(e) {
   btnEl.disabled = true;
   btnEl.textContent = 'Đang xác thực…';
 
-  setTimeout(() => {
-    const user = USERS.find(u => u.username === username && u.password === password);
-    if (!user) {
-      errMsg.textContent = 'Sai tên đăng nhập hoặc mật khẩu.';
-      errEl.classList.add('show');
-      btnEl.disabled = false;
-      btnEl.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg> Đăng nhập`;
-      document.getElementById('password').value = '';
-      document.getElementById('password').focus();
-      return;
+  const fail = (msg) => {
+    errMsg.textContent = msg;
+    errEl.classList.add('show');
+    btnEl.disabled = false;
+    btnEl.innerHTML = loginIcon;
+    document.getElementById('password').value = '';
+    document.getElementById('password').focus();
+  };
+
+  try {
+    const r = await fetch(API_BASE + '/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password }),
+    });
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({}));
+      return fail(err.error || 'Sai tên đăng nhập hoặc mật khẩu.');
     }
+    const { token, user } = await r.json();
     sessionStorage.setItem('ah_session', JSON.stringify({
+      token,
       role: user.role, name: user.name, title: user.title, username: user.username,
-      loginAt: Date.now()
+      userId: user.id, loginAt: Date.now(),
     }));
-    window.location.href = user.role === 'owner' ? 'owner.html' : 'sales.html';
-  }, 400);
+    window.location.href = homeFor(user.role);
+  } catch (err) {
+    fail('Không kết nối được máy chủ. Hãy bật server (npm start trong thư mục server/).');
+  }
 });
 
-/* If already logged in, skip login */
-(function() {
+/* Nếu đã đăng nhập (token còn hợp lệ) thì vào thẳng trang quản lý */
+(async function() {
   const s = JSON.parse(sessionStorage.getItem('ah_session') || 'null');
-  if (s && s.role) {
-    window.location.replace(s.role === 'owner' ? 'owner.html' : 'sales.html');
-  }
+  if (!s || !s.token) return;
+  try {
+    const r = await fetch(API_BASE + '/api/auth/me', {
+      headers: { Authorization: 'Bearer ' + s.token },
+    });
+    if (r.ok) {
+      const { user } = await r.json();
+      window.location.replace(homeFor(user.role));
+    } else {
+      sessionStorage.removeItem('ah_session');
+    }
+  } catch (err) { /* server tắt — ở lại trang login */ }
 })();
 </script>
 </body>

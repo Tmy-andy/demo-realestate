@@ -17,40 +17,6 @@
     "unitsLeft": 49,
     "totalUnitsForSale": 312,
     "promoDeadline": "2025-07-31T23:59:59",
-    "amenities": [
-      {
-        "icon": "pool",
-        "label": "Bể bơi vô cực"
-      },
-      {
-        "icon": "gym",
-        "label": "Gym & Yoga 1200m²"
-      },
-      {
-        "icon": "spa",
-        "label": "Spa & Onsen"
-      },
-      {
-        "icon": "school",
-        "label": "Trường liên cấp song ngữ"
-      },
-      {
-        "icon": "mall",
-        "label": "TTTM 18.000 m²"
-      },
-      {
-        "icon": "park",
-        "label": "Công viên trung tâm"
-      },
-      {
-        "icon": "sky",
-        "label": "Sky lounge tầng 42"
-      },
-      {
-        "icon": "kid",
-        "label": "Khu vui chơi trẻ em"
-      }
-    ],
     "stats": [
       {
         "value": "12.4",
@@ -181,258 +147,6 @@
         "tdvPanoramaId": "pano-02"
       }
     ],
-    "tienIchNoiKhu": [
-      {
-        "id": "be-boi",
-        "label": "Bể bơi",
-        "tdvPanoramaId": "pano-13",
-        "detail": {
-          "category": "Tiện ích nội khu",
-          "subtitle": "Thư giãn",
-          "title": "Bể bơi vô cực",
-          "images": [
-            "img/1.png",
-            "img/2.png"
-          ],
-          "description": "Bể bơi vô cực tầm nhìn panorama hướng vịnh, thiết kế tràn bờ tinh tế, khu vực bể riêng cho trẻ em và hệ thống lọc nước thông minh.",
-          "specs": [
-            {
-              "label": "Diện tích mặt nước",
-              "value": "850 m²"
-            },
-            {
-              "label": "Độ sâu",
-              "value": "0.6 – 1.6 m"
-            },
-            {
-              "label": "Vị trí",
-              "value": "Tầng 5 khối đế"
-            },
-            {
-              "label": "Giờ mở cửa",
-              "value": "06:00 – 22:00"
-            }
-          ]
-        }
-      },
-      {
-        "id": "duong-dao-bo",
-        "label": "Đường dạo bộ",
-        "tdvPanoramaId": "pano-08"
-      },
-      {
-        "id": "san-choi-tre",
-        "label": "Sân chơi trẻ em",
-        "tdvPanoramaId": "pano-09"
-      },
-      {
-        "id": "san-the-thao",
-        "label": "Sân thể thao",
-        "tdvPanoramaId": "pano-15"
-      },
-      {
-        "id": "sky-lounge-tn",
-        "label": "Sky Lounge",
-        "tdvPanoramaId": "pano-31"
-      },
-      {
-        "id": "spa-onsen",
-        "label": "Spa & Onsen",
-        "tdvPanoramaId": "pano-35"
-      }
-    ],
-    "tienIchNgoaiKhu": [
-      {
-        "id": "metro-6",
-        "label": "Tuyến Metro 6",
-        "tdvPanoramaId": "pano-38",
-        "detail": {
-          "category": "Hạ tầng giao thông",
-          "subtitle": "Kết nối",
-          "title": "Tuyến Metro số 6",
-          "images": [
-            "img/1.png",
-            "img/2.png"
-          ],
-          "description": "Tuyến đường sắt đô thị kết nối trực tiếp khu đô thị với trung tâm thành phố và sân bay, rút ngắn thời gian di chuyển, gia tăng giá trị bất động sản khu vực.",
-          "specs": [
-            {
-              "label": "Chiều dài tuyến",
-              "value": "23 km"
-            },
-            {
-              "label": "Số ga",
-              "value": "18 ga"
-            },
-            {
-              "label": "Ga gần nhất",
-              "value": "450 m"
-            },
-            {
-              "label": "Dự kiến vận hành",
-              "value": "2027"
-            }
-          ]
-        }
-      },
-      {
-        "id": "duong-as",
-        "label": "Tuyến đường Ánh Sáng",
-        "tdvPanoramaId": "pano-42"
-      },
-      {
-        "id": "vinmec",
-        "label": "Bệnh viện Quốc tế Vinmec",
-        "tdvPanoramaId": "pano-43",
-        "detail": {
-          "category": "Hạ tầng trọng điểm",
-          "subtitle": "Bệnh viện",
-          "title": "Bệnh viện Quốc tế Vinmec",
-          "images": [
-            "img/1.png",
-            "img/2.png"
-          ],
-          "description": "Bệnh viện đa khoa quốc tế tiêu chuẩn 5 sao, trang thiết bị hiện đại, đội ngũ chuyên gia đầu ngành, phục vụ chăm sóc sức khỏe toàn diện cho cư dân khu đô thị.",
-          "specs": [
-            {
-              "label": "Quy mô",
-              "value": "12 ha"
-            },
-            {
-              "label": "Số giường bệnh",
-              "value": "600 giường"
-            },
-            {
-              "label": "Khoảng cách",
-              "value": "1.2 km"
-            },
-            {
-              "label": "Tiêu chuẩn",
-              "value": "JCI Quốc tế"
-            }
-          ]
-        }
-      },
-      {
-        "id": "zen-park",
-        "label": "Zen Park",
-        "tdvPanoramaId": "pano-05"
-      },
-      {
-        "id": "dl-thang-long",
-        "label": "Đại lộ Thăng Long",
-        "tdvPanoramaId": "pano-06"
-      },
-      {
-        "id": "vincom-mega",
-        "label": "Vincom Mega Mall",
-        "tdvPanoramaId": "pano-07"
-      },
-      {
-        "id": "tttm-10",
-        "label": "TTTM & nhà để xe 10 tầng",
-        "tdvPanoramaId": "pano-10"
-      },
-      {
-        "id": "central-park",
-        "label": "Central Park 10.2ha",
-        "tdvPanoramaId": "pano-11"
-      },
-      {
-        "id": "le-trong-tan",
-        "label": "Đường Lê Trọng Tấn",
-        "tdvPanoramaId": "pano-12"
-      },
-      {
-        "id": "thcs-nqd",
-        "label": "Trường THCS Nguyễn Quý Đức",
-        "tdvPanoramaId": "pano-39"
-      }
-    ],
-    "matBangTang": [
-      {
-        "id": "i5",
-        "label": "Tòa Thảo Mộc (I5)",
-        "tdvPanoramaId": "pano-03"
-      },
-      {
-        "id": "i4",
-        "label": "Tòa Nguyệt Quế (I4)",
-        "tdvPanoramaId": "pano-04"
-      },
-      {
-        "id": "i3",
-        "label": "Tòa The Central (I3)",
-        "tdvPanoramaId": "pano-14"
-      },
-      {
-        "id": "i2",
-        "label": "Tòa The Park (I2)",
-        "tdvPanoramaId": "pano-21"
-      },
-      {
-        "id": "i1",
-        "label": "Tòa The Lake Premium (I1)",
-        "tdvPanoramaId": "pano-33"
-      }
-    ],
-    "view360Can": [
-      {
-        "id": "studio-34",
-        "label": "Studio - 34m²",
-        "tdvPanoramaId": "pano-16"
-      },
-      {
-        "id": "studio-35",
-        "label": "Studio - 35.1m²",
-        "tdvPanoramaId": "pano-17"
-      },
-      {
-        "id": "1pn1-43",
-        "label": "1 phòng ngủ + 1 - 43m²",
-        "tdvPanoramaId": "pano-18"
-      },
-      {
-        "id": "2pn1-46",
-        "label": "2 phòng ngủ + 1 - 46.4m²",
-        "tdvPanoramaId": "pano-19"
-      },
-      {
-        "id": "2pn1-54a",
-        "label": "2 phòng ngủ + 1 - 54.6m²",
-        "tdvPanoramaId": "pano-20"
-      },
-      {
-        "id": "2pn1-54b",
-        "label": "2 phòng ngủ + 1 - 54.7m²",
-        "tdvPanoramaId": "pano-23"
-      },
-      {
-        "id": "2pn1-59",
-        "label": "2 phòng ngủ + 1 - 59.2m²",
-        "tdvPanoramaId": "pano-24"
-      },
-      {
-        "id": "2pn1-62a",
-        "label": "2 phòng ngủ + 1 - 62.2m²",
-        "tdvPanoramaId": "pano-25"
-      },
-      {
-        "id": "2pn1-62b",
-        "label": "2 phòng ngủ + 1 - 62.2m²",
-        "tdvPanoramaId": "pano-26"
-      },
-      {
-        "id": "3pn-74",
-        "label": "3 phòng ngủ - 74.5m²",
-        "tdvPanoramaId": "pano-27"
-      },
-      {
-        "id": "3pn-75",
-        "label": "3 phòng ngủ - 75.6m²",
-        "tdvPanoramaId": "pano-28"
-      }
-    ],
     "phanKhu": [
       {
         "id": "pk-bach-van",
@@ -469,7 +183,347 @@
             "Liên kết trực tiếp cao tốc La Sơn – Túy Loan"
           ]
         },
-        "tdvPanoramaId": "pano-29"
+        "tdvPanoramaId": "pano-29",
+        "children": {
+          "tienIchNoiKhu": [
+            {
+              "id": "be-boi",
+              "label": "Bể bơi",
+              "tdvPanoramaId": "pano-13",
+              "detail": {
+                "category": "Tiện ích nội khu",
+                "subtitle": "Thư giãn",
+                "title": "Bể bơi vô cực",
+                "images": [
+                  "img/1.png",
+                  "img/2.png"
+                ],
+                "description": "Bể bơi vô cực tầm nhìn panorama hướng vịnh, thiết kế tràn bờ tinh tế, khu vực bể riêng cho trẻ em và hệ thống lọc nước thông minh.",
+                "specs": [
+                  {
+                    "label": "Diện tích mặt nước",
+                    "value": "850 m²"
+                  },
+                  {
+                    "label": "Độ sâu",
+                    "value": "0.6 – 1.6 m"
+                  },
+                  {
+                    "label": "Vị trí",
+                    "value": "Tầng 5 khối đế"
+                  },
+                  {
+                    "label": "Giờ mở cửa",
+                    "value": "06:00 – 22:00"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "sky-lounge-tn",
+              "label": "Sky Lounge",
+              "tdvPanoramaId": "pano-31",
+              "detail": {
+                "category": "Tiện ích nội khu",
+                "subtitle": "Tiện ích",
+                "title": "Sky Lounge",
+                "images": [
+                  "img/1.png",
+                  "img/2.png"
+                ],
+                "description": "Sky Lounge — tiện ích nội khu phục vụ cư dân, thiết kế hiện đại, không gian xanh, vận hành theo tiêu chuẩn cao cấp.",
+                "specs": [
+                  {
+                    "label": "Loại hình",
+                    "value": "Tiện ích nội khu"
+                  },
+                  {
+                    "label": "Đối tượng",
+                    "value": "Cư dân phân khu"
+                  },
+                  {
+                    "label": "Giờ hoạt động",
+                    "value": "06:00 – 22:00"
+                  },
+                  {
+                    "label": "Tình trạng",
+                    "value": "Đang vận hành"
+                  }
+                ]
+              }
+            }
+          ],
+          "tienIchNgoaiKhu": [
+            {
+              "id": "metro-6",
+              "label": "Tuyến Metro 6",
+              "tdvPanoramaId": "pano-38",
+              "detail": {
+                "category": "Hạ tầng giao thông",
+                "subtitle": "Kết nối",
+                "title": "Tuyến Metro số 6",
+                "images": [
+                  "img/1.png",
+                  "img/2.png"
+                ],
+                "description": "Tuyến đường sắt đô thị kết nối trực tiếp khu đô thị với trung tâm thành phố và sân bay, rút ngắn thời gian di chuyển, gia tăng giá trị bất động sản khu vực.",
+                "specs": [
+                  {
+                    "label": "Chiều dài tuyến",
+                    "value": "23 km"
+                  },
+                  {
+                    "label": "Số ga",
+                    "value": "18 ga"
+                  },
+                  {
+                    "label": "Ga gần nhất",
+                    "value": "450 m"
+                  },
+                  {
+                    "label": "Dự kiến vận hành",
+                    "value": "2027"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "dl-thang-long",
+              "label": "Đại lộ Thăng Long",
+              "tdvPanoramaId": "pano-06",
+              "detail": {
+                "category": "Hạ tầng & tiện ích ngoại khu",
+                "subtitle": "Kết nối",
+                "title": "Đại lộ Thăng Long",
+                "images": [
+                  "img/2.png",
+                  "img/1.png"
+                ],
+                "description": "Đại lộ Thăng Long — tiện ích ngoại khu trong bán kính kết nối thuận tiện, gia tăng giá trị bất động sản và chất lượng sống.",
+                "specs": [
+                  {
+                    "label": "Loại hình",
+                    "value": "Tiện ích ngoại khu"
+                  },
+                  {
+                    "label": "Khoảng cách",
+                    "value": "0.5 – 2 km"
+                  },
+                  {
+                    "label": "Di chuyển",
+                    "value": "3 – 8 phút"
+                  },
+                  {
+                    "label": "Tình trạng",
+                    "value": "Hiện hữu"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "le-trong-tan",
+              "label": "Đường Lê Trọng Tấn",
+              "tdvPanoramaId": "pano-12",
+              "detail": {
+                "category": "Hạ tầng & tiện ích ngoại khu",
+                "subtitle": "Kết nối",
+                "title": "Đường Lê Trọng Tấn",
+                "images": [
+                  "img/2.png",
+                  "img/1.png"
+                ],
+                "description": "Đường Lê Trọng Tấn — tiện ích ngoại khu trong bán kính kết nối thuận tiện, gia tăng giá trị bất động sản và chất lượng sống.",
+                "specs": [
+                  {
+                    "label": "Loại hình",
+                    "value": "Tiện ích ngoại khu"
+                  },
+                  {
+                    "label": "Khoảng cách",
+                    "value": "0.5 – 2 km"
+                  },
+                  {
+                    "label": "Di chuyển",
+                    "value": "3 – 8 phút"
+                  },
+                  {
+                    "label": "Tình trạng",
+                    "value": "Hiện hữu"
+                  }
+                ]
+              }
+            }
+          ],
+          "matBangTang": [
+            {
+              "id": "i5",
+              "label": "Tòa Thảo Mộc (I5)",
+              "tdvPanoramaId": "pano-03",
+              "detail": {
+                "category": "Mặt bằng tòa",
+                "subtitle": "Toà căn hộ",
+                "title": "Tòa Thảo Mộc (I5)",
+                "images": [
+                  "img/1.png",
+                  "img/2.png"
+                ],
+                "description": "Tòa Thảo Mộc (I5) — mặt bằng điển hình với bố trí căn hộ tối ưu công năng, hành lang thông thoáng, lõi giao thông trung tâm.",
+                "specs": [
+                  {
+                    "label": "Số tầng",
+                    "value": "42 tầng"
+                  },
+                  {
+                    "label": "Căn/sàn",
+                    "value": "8 – 12 căn"
+                  },
+                  {
+                    "label": "Thang máy",
+                    "value": "6 thang tốc độ cao"
+                  },
+                  {
+                    "label": "Bàn giao",
+                    "value": "Quý IV / 2027"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "i1",
+              "label": "Tòa The Lake Premium (I1)",
+              "tdvPanoramaId": "pano-33",
+              "detail": {
+                "category": "Mặt bằng tòa",
+                "subtitle": "Toà căn hộ",
+                "title": "Tòa The Lake Premium (I1)",
+                "images": [
+                  "img/1.png",
+                  "img/2.png"
+                ],
+                "description": "Tòa The Lake Premium (I1) — mặt bằng điển hình với bố trí căn hộ tối ưu công năng, hành lang thông thoáng, lõi giao thông trung tâm.",
+                "specs": [
+                  {
+                    "label": "Số tầng",
+                    "value": "42 tầng"
+                  },
+                  {
+                    "label": "Căn/sàn",
+                    "value": "8 – 12 căn"
+                  },
+                  {
+                    "label": "Thang máy",
+                    "value": "6 thang tốc độ cao"
+                  },
+                  {
+                    "label": "Bàn giao",
+                    "value": "Quý IV / 2027"
+                  }
+                ]
+              }
+            }
+          ],
+          "view360Can": [
+            {
+              "id": "studio-34",
+              "label": "Studio - 34m²",
+              "tdvPanoramaId": "pano-16",
+              "detail": {
+                "category": "View 360° căn hộ",
+                "subtitle": "Căn mẫu",
+                "title": "Studio - 34m²",
+                "images": [
+                  "img/2.png",
+                  "img/1.png"
+                ],
+                "description": "Studio - 34m² — căn hộ mẫu trải nghiệm thực tế ảo 360°, nội thất bàn giao cơ bản, tối ưu ánh sáng và thông gió tự nhiên.",
+                "specs": [
+                  {
+                    "label": "Diện tích",
+                    "value": "34m²"
+                  },
+                  {
+                    "label": "Ban công",
+                    "value": "Có"
+                  },
+                  {
+                    "label": "Hướng",
+                    "value": "Đông Nam"
+                  },
+                  {
+                    "label": "Nội thất",
+                    "value": "Bàn giao cơ bản"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "2pn1-54a",
+              "label": "2 phòng ngủ + 1 - 54.6m²",
+              "tdvPanoramaId": "pano-20",
+              "detail": {
+                "category": "View 360° căn hộ",
+                "subtitle": "Căn mẫu",
+                "title": "2 phòng ngủ + 1 - 54.6m²",
+                "images": [
+                  "img/2.png",
+                  "img/1.png"
+                ],
+                "description": "2 phòng ngủ + 1 - 54.6m² — căn hộ mẫu trải nghiệm thực tế ảo 360°, nội thất bàn giao cơ bản, tối ưu ánh sáng và thông gió tự nhiên.",
+                "specs": [
+                  {
+                    "label": "Diện tích",
+                    "value": "54.6m²"
+                  },
+                  {
+                    "label": "Ban công",
+                    "value": "Có"
+                  },
+                  {
+                    "label": "Hướng",
+                    "value": "Đông Nam"
+                  },
+                  {
+                    "label": "Nội thất",
+                    "value": "Bàn giao cơ bản"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "2pn1-62b",
+              "label": "2 phòng ngủ + 1 - 62.2m²",
+              "tdvPanoramaId": "pano-26",
+              "detail": {
+                "category": "View 360° căn hộ",
+                "subtitle": "Căn mẫu",
+                "title": "2 phòng ngủ + 1 - 62.2m²",
+                "images": [
+                  "img/2.png",
+                  "img/1.png"
+                ],
+                "description": "2 phòng ngủ + 1 - 62.2m² — căn hộ mẫu trải nghiệm thực tế ảo 360°, nội thất bàn giao cơ bản, tối ưu ánh sáng và thông gió tự nhiên.",
+                "specs": [
+                  {
+                    "label": "Diện tích",
+                    "value": "62.2m²"
+                  },
+                  {
+                    "label": "Ban công",
+                    "value": "Có"
+                  },
+                  {
+                    "label": "Hướng",
+                    "value": "Đông Nam"
+                  },
+                  {
+                    "label": "Nội thất",
+                    "value": "Bàn giao cơ bản"
+                  }
+                ]
+              }
+            }
+          ]
+        }
       },
       {
         "id": "pk-vinh-may",
@@ -504,7 +558,314 @@
             "Công viên ven biển sinh thái"
           ]
         },
-        "tdvPanoramaId": "pano-30"
+        "tdvPanoramaId": "pano-30",
+        "children": {
+          "tienIchNoiKhu": [
+            {
+              "id": "duong-dao-bo",
+              "label": "Đường dạo bộ",
+              "tdvPanoramaId": "pano-08",
+              "detail": {
+                "category": "Tiện ích nội khu",
+                "subtitle": "Tiện ích",
+                "title": "Đường dạo bộ",
+                "images": [
+                  "img/1.png",
+                  "img/2.png"
+                ],
+                "description": "Đường dạo bộ — tiện ích nội khu phục vụ cư dân, thiết kế hiện đại, không gian xanh, vận hành theo tiêu chuẩn cao cấp.",
+                "specs": [
+                  {
+                    "label": "Loại hình",
+                    "value": "Tiện ích nội khu"
+                  },
+                  {
+                    "label": "Đối tượng",
+                    "value": "Cư dân phân khu"
+                  },
+                  {
+                    "label": "Giờ hoạt động",
+                    "value": "06:00 – 22:00"
+                  },
+                  {
+                    "label": "Tình trạng",
+                    "value": "Đang vận hành"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "spa-onsen",
+              "label": "Spa & Onsen",
+              "tdvPanoramaId": "pano-35",
+              "detail": {
+                "category": "Tiện ích nội khu",
+                "subtitle": "Tiện ích",
+                "title": "Spa & Onsen",
+                "images": [
+                  "img/1.png",
+                  "img/2.png"
+                ],
+                "description": "Spa & Onsen — tiện ích nội khu phục vụ cư dân, thiết kế hiện đại, không gian xanh, vận hành theo tiêu chuẩn cao cấp.",
+                "specs": [
+                  {
+                    "label": "Loại hình",
+                    "value": "Tiện ích nội khu"
+                  },
+                  {
+                    "label": "Đối tượng",
+                    "value": "Cư dân phân khu"
+                  },
+                  {
+                    "label": "Giờ hoạt động",
+                    "value": "06:00 – 22:00"
+                  },
+                  {
+                    "label": "Tình trạng",
+                    "value": "Đang vận hành"
+                  }
+                ]
+              }
+            }
+          ],
+          "tienIchNgoaiKhu": [
+            {
+              "id": "duong-as",
+              "label": "Tuyến đường Ánh Sáng",
+              "tdvPanoramaId": "pano-42",
+              "detail": {
+                "category": "Hạ tầng & tiện ích ngoại khu",
+                "subtitle": "Kết nối",
+                "title": "Tuyến đường Ánh Sáng",
+                "images": [
+                  "img/2.png",
+                  "img/1.png"
+                ],
+                "description": "Tuyến đường Ánh Sáng — tiện ích ngoại khu trong bán kính kết nối thuận tiện, gia tăng giá trị bất động sản và chất lượng sống.",
+                "specs": [
+                  {
+                    "label": "Loại hình",
+                    "value": "Tiện ích ngoại khu"
+                  },
+                  {
+                    "label": "Khoảng cách",
+                    "value": "0.5 – 2 km"
+                  },
+                  {
+                    "label": "Di chuyển",
+                    "value": "3 – 8 phút"
+                  },
+                  {
+                    "label": "Tình trạng",
+                    "value": "Hiện hữu"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "vincom-mega",
+              "label": "Vincom Mega Mall",
+              "tdvPanoramaId": "pano-07",
+              "detail": {
+                "category": "Hạ tầng & tiện ích ngoại khu",
+                "subtitle": "Kết nối",
+                "title": "Vincom Mega Mall",
+                "images": [
+                  "img/2.png",
+                  "img/1.png"
+                ],
+                "description": "Vincom Mega Mall — tiện ích ngoại khu trong bán kính kết nối thuận tiện, gia tăng giá trị bất động sản và chất lượng sống.",
+                "specs": [
+                  {
+                    "label": "Loại hình",
+                    "value": "Tiện ích ngoại khu"
+                  },
+                  {
+                    "label": "Khoảng cách",
+                    "value": "0.5 – 2 km"
+                  },
+                  {
+                    "label": "Di chuyển",
+                    "value": "3 – 8 phút"
+                  },
+                  {
+                    "label": "Tình trạng",
+                    "value": "Hiện hữu"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "thcs-nqd",
+              "label": "Trường THCS Nguyễn Quý Đức",
+              "tdvPanoramaId": "pano-39",
+              "detail": {
+                "category": "Hạ tầng & tiện ích ngoại khu",
+                "subtitle": "Kết nối",
+                "title": "Trường THCS Nguyễn Quý Đức",
+                "images": [
+                  "img/2.png",
+                  "img/1.png"
+                ],
+                "description": "Trường THCS Nguyễn Quý Đức — tiện ích ngoại khu trong bán kính kết nối thuận tiện, gia tăng giá trị bất động sản và chất lượng sống.",
+                "specs": [
+                  {
+                    "label": "Loại hình",
+                    "value": "Tiện ích ngoại khu"
+                  },
+                  {
+                    "label": "Khoảng cách",
+                    "value": "0.5 – 2 km"
+                  },
+                  {
+                    "label": "Di chuyển",
+                    "value": "3 – 8 phút"
+                  },
+                  {
+                    "label": "Tình trạng",
+                    "value": "Hiện hữu"
+                  }
+                ]
+              }
+            }
+          ],
+          "matBangTang": [
+            {
+              "id": "i4",
+              "label": "Tòa Nguyệt Quế (I4)",
+              "tdvPanoramaId": "pano-04",
+              "detail": {
+                "category": "Mặt bằng tòa",
+                "subtitle": "Toà căn hộ",
+                "title": "Tòa Nguyệt Quế (I4)",
+                "images": [
+                  "img/1.png",
+                  "img/2.png"
+                ],
+                "description": "Tòa Nguyệt Quế (I4) — mặt bằng điển hình với bố trí căn hộ tối ưu công năng, hành lang thông thoáng, lõi giao thông trung tâm.",
+                "specs": [
+                  {
+                    "label": "Số tầng",
+                    "value": "42 tầng"
+                  },
+                  {
+                    "label": "Căn/sàn",
+                    "value": "8 – 12 căn"
+                  },
+                  {
+                    "label": "Thang máy",
+                    "value": "6 thang tốc độ cao"
+                  },
+                  {
+                    "label": "Bàn giao",
+                    "value": "Quý IV / 2027"
+                  }
+                ]
+              }
+            }
+          ],
+          "view360Can": [
+            {
+              "id": "studio-35",
+              "label": "Studio - 35.1m²",
+              "tdvPanoramaId": "pano-17",
+              "detail": {
+                "category": "View 360° căn hộ",
+                "subtitle": "Căn mẫu",
+                "title": "Studio - 35.1m²",
+                "images": [
+                  "img/2.png",
+                  "img/1.png"
+                ],
+                "description": "Studio - 35.1m² — căn hộ mẫu trải nghiệm thực tế ảo 360°, nội thất bàn giao cơ bản, tối ưu ánh sáng và thông gió tự nhiên.",
+                "specs": [
+                  {
+                    "label": "Diện tích",
+                    "value": "35.1m²"
+                  },
+                  {
+                    "label": "Ban công",
+                    "value": "Có"
+                  },
+                  {
+                    "label": "Hướng",
+                    "value": "Đông Nam"
+                  },
+                  {
+                    "label": "Nội thất",
+                    "value": "Bàn giao cơ bản"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "2pn1-54b",
+              "label": "2 phòng ngủ + 1 - 54.7m²",
+              "tdvPanoramaId": "pano-23",
+              "detail": {
+                "category": "View 360° căn hộ",
+                "subtitle": "Căn mẫu",
+                "title": "2 phòng ngủ + 1 - 54.7m²",
+                "images": [
+                  "img/2.png",
+                  "img/1.png"
+                ],
+                "description": "2 phòng ngủ + 1 - 54.7m² — căn hộ mẫu trải nghiệm thực tế ảo 360°, nội thất bàn giao cơ bản, tối ưu ánh sáng và thông gió tự nhiên.",
+                "specs": [
+                  {
+                    "label": "Diện tích",
+                    "value": "54.7m²"
+                  },
+                  {
+                    "label": "Ban công",
+                    "value": "Có"
+                  },
+                  {
+                    "label": "Hướng",
+                    "value": "Đông Nam"
+                  },
+                  {
+                    "label": "Nội thất",
+                    "value": "Bàn giao cơ bản"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "3pn-74",
+              "label": "3 phòng ngủ - 74.5m²",
+              "tdvPanoramaId": "pano-27",
+              "detail": {
+                "category": "View 360° căn hộ",
+                "subtitle": "Căn mẫu",
+                "title": "3 phòng ngủ - 74.5m²",
+                "images": [
+                  "img/2.png",
+                  "img/1.png"
+                ],
+                "description": "3 phòng ngủ - 74.5m² — căn hộ mẫu trải nghiệm thực tế ảo 360°, nội thất bàn giao cơ bản, tối ưu ánh sáng và thông gió tự nhiên.",
+                "specs": [
+                  {
+                    "label": "Diện tích",
+                    "value": "74.5m²"
+                  },
+                  {
+                    "label": "Ban công",
+                    "value": "Có"
+                  },
+                  {
+                    "label": "Hướng",
+                    "value": "Đông Nam"
+                  },
+                  {
+                    "label": "Nội thất",
+                    "value": "Bàn giao cơ bản"
+                  }
+                ]
+              }
+            }
+          ]
+        }
       },
       {
         "id": "pk-dao-ngoc",
@@ -539,7 +900,248 @@
             "Công viên trung tâm đảo"
           ]
         },
-        "tdvPanoramaId": "pano-32"
+        "tdvPanoramaId": "pano-32",
+        "children": {
+          "tienIchNoiKhu": [
+            {
+              "id": "san-choi-tre",
+              "label": "Sân chơi trẻ em",
+              "tdvPanoramaId": "pano-09",
+              "detail": {
+                "category": "Tiện ích nội khu",
+                "subtitle": "Tiện ích",
+                "title": "Sân chơi trẻ em",
+                "images": [
+                  "img/1.png",
+                  "img/2.png"
+                ],
+                "description": "Sân chơi trẻ em — tiện ích nội khu phục vụ cư dân, thiết kế hiện đại, không gian xanh, vận hành theo tiêu chuẩn cao cấp.",
+                "specs": [
+                  {
+                    "label": "Loại hình",
+                    "value": "Tiện ích nội khu"
+                  },
+                  {
+                    "label": "Đối tượng",
+                    "value": "Cư dân phân khu"
+                  },
+                  {
+                    "label": "Giờ hoạt động",
+                    "value": "06:00 – 22:00"
+                  },
+                  {
+                    "label": "Tình trạng",
+                    "value": "Đang vận hành"
+                  }
+                ]
+              }
+            }
+          ],
+          "tienIchNgoaiKhu": [
+            {
+              "id": "vinmec",
+              "label": "Bệnh viện Quốc tế Vinmec",
+              "tdvPanoramaId": "pano-43",
+              "detail": {
+                "category": "Hạ tầng trọng điểm",
+                "subtitle": "Bệnh viện",
+                "title": "Bệnh viện Quốc tế Vinmec",
+                "images": [
+                  "img/1.png",
+                  "img/2.png"
+                ],
+                "description": "Bệnh viện đa khoa quốc tế tiêu chuẩn 5 sao, trang thiết bị hiện đại, đội ngũ chuyên gia đầu ngành, phục vụ chăm sóc sức khỏe toàn diện cho cư dân khu đô thị.",
+                "specs": [
+                  {
+                    "label": "Quy mô",
+                    "value": "12 ha"
+                  },
+                  {
+                    "label": "Số giường bệnh",
+                    "value": "600 giường"
+                  },
+                  {
+                    "label": "Khoảng cách",
+                    "value": "1.2 km"
+                  },
+                  {
+                    "label": "Tiêu chuẩn",
+                    "value": "JCI Quốc tế"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "tttm-10",
+              "label": "TTTM & nhà để xe 10 tầng",
+              "tdvPanoramaId": "pano-10",
+              "detail": {
+                "category": "Hạ tầng & tiện ích ngoại khu",
+                "subtitle": "Kết nối",
+                "title": "TTTM & nhà để xe 10 tầng",
+                "images": [
+                  "img/2.png",
+                  "img/1.png"
+                ],
+                "description": "TTTM & nhà để xe 10 tầng — tiện ích ngoại khu trong bán kính kết nối thuận tiện, gia tăng giá trị bất động sản và chất lượng sống.",
+                "specs": [
+                  {
+                    "label": "Loại hình",
+                    "value": "Tiện ích ngoại khu"
+                  },
+                  {
+                    "label": "Khoảng cách",
+                    "value": "0.5 – 2 km"
+                  },
+                  {
+                    "label": "Di chuyển",
+                    "value": "3 – 8 phút"
+                  },
+                  {
+                    "label": "Tình trạng",
+                    "value": "Hiện hữu"
+                  }
+                ]
+              }
+            }
+          ],
+          "matBangTang": [
+            {
+              "id": "i3",
+              "label": "Tòa The Central (I3)",
+              "tdvPanoramaId": "pano-14",
+              "detail": {
+                "category": "Mặt bằng tòa",
+                "subtitle": "Toà căn hộ",
+                "title": "Tòa The Central (I3)",
+                "images": [
+                  "img/1.png",
+                  "img/2.png"
+                ],
+                "description": "Tòa The Central (I3) — mặt bằng điển hình với bố trí căn hộ tối ưu công năng, hành lang thông thoáng, lõi giao thông trung tâm.",
+                "specs": [
+                  {
+                    "label": "Số tầng",
+                    "value": "42 tầng"
+                  },
+                  {
+                    "label": "Căn/sàn",
+                    "value": "8 – 12 căn"
+                  },
+                  {
+                    "label": "Thang máy",
+                    "value": "6 thang tốc độ cao"
+                  },
+                  {
+                    "label": "Bàn giao",
+                    "value": "Quý IV / 2027"
+                  }
+                ]
+              }
+            }
+          ],
+          "view360Can": [
+            {
+              "id": "1pn1-43",
+              "label": "1 phòng ngủ + 1 - 43m²",
+              "tdvPanoramaId": "pano-18",
+              "detail": {
+                "category": "View 360° căn hộ",
+                "subtitle": "Căn mẫu",
+                "title": "1 phòng ngủ + 1 - 43m²",
+                "images": [
+                  "img/2.png",
+                  "img/1.png"
+                ],
+                "description": "1 phòng ngủ + 1 - 43m² — căn hộ mẫu trải nghiệm thực tế ảo 360°, nội thất bàn giao cơ bản, tối ưu ánh sáng và thông gió tự nhiên.",
+                "specs": [
+                  {
+                    "label": "Diện tích",
+                    "value": "43m²"
+                  },
+                  {
+                    "label": "Ban công",
+                    "value": "Có"
+                  },
+                  {
+                    "label": "Hướng",
+                    "value": "Đông Nam"
+                  },
+                  {
+                    "label": "Nội thất",
+                    "value": "Bàn giao cơ bản"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "2pn1-59",
+              "label": "2 phòng ngủ + 1 - 59.2m²",
+              "tdvPanoramaId": "pano-24",
+              "detail": {
+                "category": "View 360° căn hộ",
+                "subtitle": "Căn mẫu",
+                "title": "2 phòng ngủ + 1 - 59.2m²",
+                "images": [
+                  "img/2.png",
+                  "img/1.png"
+                ],
+                "description": "2 phòng ngủ + 1 - 59.2m² — căn hộ mẫu trải nghiệm thực tế ảo 360°, nội thất bàn giao cơ bản, tối ưu ánh sáng và thông gió tự nhiên.",
+                "specs": [
+                  {
+                    "label": "Diện tích",
+                    "value": "59.2m²"
+                  },
+                  {
+                    "label": "Ban công",
+                    "value": "Có"
+                  },
+                  {
+                    "label": "Hướng",
+                    "value": "Đông Nam"
+                  },
+                  {
+                    "label": "Nội thất",
+                    "value": "Bàn giao cơ bản"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "3pn-75",
+              "label": "3 phòng ngủ - 75.6m²",
+              "tdvPanoramaId": "pano-28",
+              "detail": {
+                "category": "View 360° căn hộ",
+                "subtitle": "Căn mẫu",
+                "title": "3 phòng ngủ - 75.6m²",
+                "images": [
+                  "img/2.png",
+                  "img/1.png"
+                ],
+                "description": "3 phòng ngủ - 75.6m² — căn hộ mẫu trải nghiệm thực tế ảo 360°, nội thất bàn giao cơ bản, tối ưu ánh sáng và thông gió tự nhiên.",
+                "specs": [
+                  {
+                    "label": "Diện tích",
+                    "value": "75.6m²"
+                  },
+                  {
+                    "label": "Ban công",
+                    "value": "Có"
+                  },
+                  {
+                    "label": "Hướng",
+                    "value": "Đông Nam"
+                  },
+                  {
+                    "label": "Nội thất",
+                    "value": "Bàn giao cơ bản"
+                  }
+                ]
+              }
+            }
+          ]
+        }
       },
       {
         "id": "pk-tinh-van",
@@ -574,7 +1176,215 @@
             "Kết nối trực tiếp tuyến LRT"
           ]
         },
-        "tdvPanoramaId": "pano-34"
+        "tdvPanoramaId": "pano-34",
+        "children": {
+          "tienIchNoiKhu": [
+            {
+              "id": "san-the-thao",
+              "label": "Sân thể thao",
+              "tdvPanoramaId": "pano-15",
+              "detail": {
+                "category": "Tiện ích nội khu",
+                "subtitle": "Tiện ích",
+                "title": "Sân thể thao",
+                "images": [
+                  "img/1.png",
+                  "img/2.png"
+                ],
+                "description": "Sân thể thao — tiện ích nội khu phục vụ cư dân, thiết kế hiện đại, không gian xanh, vận hành theo tiêu chuẩn cao cấp.",
+                "specs": [
+                  {
+                    "label": "Loại hình",
+                    "value": "Tiện ích nội khu"
+                  },
+                  {
+                    "label": "Đối tượng",
+                    "value": "Cư dân phân khu"
+                  },
+                  {
+                    "label": "Giờ hoạt động",
+                    "value": "06:00 – 22:00"
+                  },
+                  {
+                    "label": "Tình trạng",
+                    "value": "Đang vận hành"
+                  }
+                ]
+              }
+            }
+          ],
+          "tienIchNgoaiKhu": [
+            {
+              "id": "zen-park",
+              "label": "Zen Park",
+              "tdvPanoramaId": "pano-05",
+              "detail": {
+                "category": "Hạ tầng & tiện ích ngoại khu",
+                "subtitle": "Kết nối",
+                "title": "Zen Park",
+                "images": [
+                  "img/2.png",
+                  "img/1.png"
+                ],
+                "description": "Zen Park — tiện ích ngoại khu trong bán kính kết nối thuận tiện, gia tăng giá trị bất động sản và chất lượng sống.",
+                "specs": [
+                  {
+                    "label": "Loại hình",
+                    "value": "Tiện ích ngoại khu"
+                  },
+                  {
+                    "label": "Khoảng cách",
+                    "value": "0.5 – 2 km"
+                  },
+                  {
+                    "label": "Di chuyển",
+                    "value": "3 – 8 phút"
+                  },
+                  {
+                    "label": "Tình trạng",
+                    "value": "Hiện hữu"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "central-park",
+              "label": "Central Park 10.2ha",
+              "tdvPanoramaId": "pano-11",
+              "detail": {
+                "category": "Hạ tầng & tiện ích ngoại khu",
+                "subtitle": "Kết nối",
+                "title": "Central Park 10.2ha",
+                "images": [
+                  "img/2.png",
+                  "img/1.png"
+                ],
+                "description": "Central Park 10.2ha — tiện ích ngoại khu trong bán kính kết nối thuận tiện, gia tăng giá trị bất động sản và chất lượng sống.",
+                "specs": [
+                  {
+                    "label": "Loại hình",
+                    "value": "Tiện ích ngoại khu"
+                  },
+                  {
+                    "label": "Khoảng cách",
+                    "value": "0.5 – 2 km"
+                  },
+                  {
+                    "label": "Di chuyển",
+                    "value": "3 – 8 phút"
+                  },
+                  {
+                    "label": "Tình trạng",
+                    "value": "Hiện hữu"
+                  }
+                ]
+              }
+            }
+          ],
+          "matBangTang": [
+            {
+              "id": "i2",
+              "label": "Tòa The Park (I2)",
+              "tdvPanoramaId": "pano-21",
+              "detail": {
+                "category": "Mặt bằng tòa",
+                "subtitle": "Toà căn hộ",
+                "title": "Tòa The Park (I2)",
+                "images": [
+                  "img/1.png",
+                  "img/2.png"
+                ],
+                "description": "Tòa The Park (I2) — mặt bằng điển hình với bố trí căn hộ tối ưu công năng, hành lang thông thoáng, lõi giao thông trung tâm.",
+                "specs": [
+                  {
+                    "label": "Số tầng",
+                    "value": "42 tầng"
+                  },
+                  {
+                    "label": "Căn/sàn",
+                    "value": "8 – 12 căn"
+                  },
+                  {
+                    "label": "Thang máy",
+                    "value": "6 thang tốc độ cao"
+                  },
+                  {
+                    "label": "Bàn giao",
+                    "value": "Quý IV / 2027"
+                  }
+                ]
+              }
+            }
+          ],
+          "view360Can": [
+            {
+              "id": "2pn1-46",
+              "label": "2 phòng ngủ + 1 - 46.4m²",
+              "tdvPanoramaId": "pano-19",
+              "detail": {
+                "category": "View 360° căn hộ",
+                "subtitle": "Căn mẫu",
+                "title": "2 phòng ngủ + 1 - 46.4m²",
+                "images": [
+                  "img/2.png",
+                  "img/1.png"
+                ],
+                "description": "2 phòng ngủ + 1 - 46.4m² — căn hộ mẫu trải nghiệm thực tế ảo 360°, nội thất bàn giao cơ bản, tối ưu ánh sáng và thông gió tự nhiên.",
+                "specs": [
+                  {
+                    "label": "Diện tích",
+                    "value": "46.4m²"
+                  },
+                  {
+                    "label": "Ban công",
+                    "value": "Có"
+                  },
+                  {
+                    "label": "Hướng",
+                    "value": "Đông Nam"
+                  },
+                  {
+                    "label": "Nội thất",
+                    "value": "Bàn giao cơ bản"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "2pn1-62a",
+              "label": "2 phòng ngủ + 1 - 62.2m²",
+              "tdvPanoramaId": "pano-25",
+              "detail": {
+                "category": "View 360° căn hộ",
+                "subtitle": "Căn mẫu",
+                "title": "2 phòng ngủ + 1 - 62.2m²",
+                "images": [
+                  "img/2.png",
+                  "img/1.png"
+                ],
+                "description": "2 phòng ngủ + 1 - 62.2m² — căn hộ mẫu trải nghiệm thực tế ảo 360°, nội thất bàn giao cơ bản, tối ưu ánh sáng và thông gió tự nhiên.",
+                "specs": [
+                  {
+                    "label": "Diện tích",
+                    "value": "62.2m²"
+                  },
+                  {
+                    "label": "Ban công",
+                    "value": "Có"
+                  },
+                  {
+                    "label": "Hướng",
+                    "value": "Đông Nam"
+                  },
+                  {
+                    "label": "Nội thất",
+                    "value": "Bàn giao cơ bản"
+                  }
+                ]
+              }
+            }
+          ]
+        }
       }
     ]
   },
@@ -642,63 +1452,72 @@
       "src": "img/TBM/TMB-OVERVIEW-VHLV/30032026-MB TONG HAI VAN BAY - PREVIEW-02.jpg",
       "thumb": "img/TBM/_thumbs/30032026-MB TONG HAI VAN BAY -_853cec018c.jpg",
       "title": "Mặt bằng tổng thể Hai Van Bay",
-      "folder": "Tổng quan"
+      "folder": "Tổng quan",
+      "subdivision": null
     },
     {
       "type": "image",
       "src": "img/TBM/PK BẠCH VÂN/TMB BẠCH VÂN.jpg",
       "thumb": "img/TBM/_thumbs/TMB BẠCH VÂN_563994d411.jpg",
       "title": "Mặt bằng Bạch Vân",
-      "folder": "PK Bạch Vân"
+      "folder": "PK Bạch Vân",
+      "subdivision": "pk-bach-van"
     },
     {
       "type": "image",
       "src": "img/TBM/PK BẠCH VÂN/2403-FULL-BACH VAN .jpg",
       "thumb": "img/TBM/_thumbs/2403-FULL-BACH VAN _943059a63b.jpg",
       "title": "Mặt bằng chi tiết Bạch Vân",
-      "folder": "PK Bạch Vân"
+      "folder": "PK Bạch Vân",
+      "subdivision": "pk-bach-van"
     },
     {
       "type": "image",
       "src": "img/TBM/PK BẠCH VÂN/bACHvAN.jpg",
       "thumb": "img/TBM/_thumbs/bACHvAN_9419a115f6.jpg",
       "title": "Phối cảnh Bạch Vân",
-      "folder": "PK Bạch Vân"
+      "folder": "PK Bạch Vân",
+      "subdivision": "pk-bach-van"
     },
     {
       "type": "image",
       "src": "img/TBM/PK BẠCH VÂN/TMB LÀNG VÂN.jpg",
       "thumb": "img/TBM/_thumbs/TMB LÀNG VÂN_d9ced65047.jpg",
       "title": "Mặt bằng Làng Vân",
-      "folder": "PK Bạch Vân"
+      "folder": "PK Bạch Vân",
+      "subdivision": "pk-bach-van"
     },
     {
       "type": "image",
       "src": "img/TBM/PK BẠCH VÂN/TMB-ALLIN-TIENTICH- BACH VAN-01.jpg",
       "thumb": "img/TBM/_thumbs/TMB-ALLIN-TIENTICH- BACH VAN-0_ae693a7fc1.jpg",
       "title": "Tiện ích khu Bạch Vân",
-      "folder": "PK Bạch Vân"
+      "folder": "PK Bạch Vân",
+      "subdivision": "pk-bach-van"
     },
     {
       "type": "image",
       "src": "img/TBM/PK ĐẢO NGỌC/CUT-TMB-DAONGOC-VHLV.jpg",
       "thumb": "img/TBM/_thumbs/CUT-TMB-DAONGOC-VHLV_3c984368ee.jpg",
       "title": "Mặt bằng Đảo Ngọc",
-      "folder": "PK Đảo Ngọc"
+      "folder": "PK Đảo Ngọc",
+      "subdivision": "pk-dao-ngoc"
     },
     {
       "type": "image",
       "src": "img/TBM/PK TINH VÂN/CUT-TMB-TINHVAN-VHLV.JPG",
       "thumb": "img/TBM/_thumbs/CUT-TMB-TINHVAN-VHLV_4514f3afca.jpg",
       "title": "Mặt bằng Tinh Vân",
-      "folder": "PK Tinh Vân"
+      "folder": "PK Tinh Vân",
+      "subdivision": "pk-tinh-van"
     },
     {
       "type": "image",
       "src": "img/TBM/PK VỊNH MÂY/CUT-TMB-VINHMAY-VHLV.jpg",
       "thumb": "img/TBM/_thumbs/CUT-TMB-VINHMAY-VHLV_448f467bee.jpg",
       "title": "Mặt bằng Vịnh Mây",
-      "folder": "PK Vịnh Mây"
+      "folder": "PK Vịnh Mây",
+      "subdivision": "pk-vinh-may"
     },
     {
       "type": "video",
@@ -706,7 +1525,8 @@
       "folder": "TVC",
       "videoSource": "drive",
       "src": "https://drive.google.com/drive/folders/1OGSwVrNAKoWzFNx2OtEI0MZcJiJPtFVq",
-      "poster": ""
+      "poster": "",
+      "subdivision": null
     },
     {
       "type": "video",
@@ -714,7 +1534,8 @@
       "folder": "Mood Film",
       "videoSource": "drive",
       "src": "https://drive.google.com/drive/folders/1ZzEyImCqOdHKn5yp6HzWIkTD9HezvdgY",
-      "poster": ""
+      "poster": "",
+      "subdivision": null
     },
     {
       "type": "video",
@@ -722,7 +1543,8 @@
       "folder": "Mood Film",
       "videoSource": "drive",
       "src": "https://drive.google.com/drive/folders/1FbkyzaHQLMXSgN5HpC8RXSwBRztGUOdK",
-      "poster": ""
+      "poster": "",
+      "subdivision": null
     },
     {
       "type": "video",
@@ -730,7 +1552,8 @@
       "folder": "Phân tích giá trị",
       "videoSource": "drive",
       "src": "https://drive.google.com/drive/folders/1jn66TIYpF3M1XBA6QjMXCD-qlMXcWfNF",
-      "poster": ""
+      "poster": "",
+      "subdivision": null
     },
     {
       "type": "video",
@@ -738,7 +1561,8 @@
       "folder": "Vị trí & thị trường",
       "videoSource": "drive",
       "src": "https://drive.google.com/drive/folders/1Ku3ryWPXYxvcWNXsIs2j0PPRYycNnS46",
-      "poster": ""
+      "poster": "",
+      "subdivision": null
     },
     {
       "type": "video",
@@ -746,279 +1570,580 @@
       "folder": "Thị trường",
       "videoSource": "drive",
       "src": "https://drive.google.com/drive/folders/10z8i_JEHAzmvdSBWJ5iJVGKiOEtdnzdD",
-      "poster": ""
+      "poster": "",
+      "subdivision": null
     }
   ],
   "floorplan": {},
   "legal": {
-    "developerStats": [
-      {
-        "value": "18",
-        "unit": "năm",
-        "label": "Kinh nghiệm"
-      },
-      {
-        "value": "12.400",
-        "unit": "căn",
-        "label": "Đã bàn giao"
-      },
-      {
-        "value": "24",
-        "unit": "dự án",
-        "label": "Tỉnh thành"
-      },
-      {
-        "value": "38.000",
-        "unit": "+",
-        "label": "Cư dân"
-      }
-    ],
-    "documents": [
-      {
-        "name": "Giấy phép xây dựng",
-        "detail": "Số 1842/GP-UBND — 12/2023",
-        "done": true
-      },
-      {
-        "name": "Quyết định giao đất",
-        "detail": "QĐ 3671/QĐ-UBND — 08/2022",
-        "done": true
-      },
-      {
-        "name": "Thẩm định PCCC",
-        "detail": "Cục PCCC & CHỮA CHÁY — Q1/2024",
-        "done": true
-      },
-      {
-        "name": "Bảo lãnh ngân hàng",
-        "detail": "Vietcombank, BIDV, Techcombank",
-        "done": true
-      },
-      {
-        "name": "Phê duyệt 1/500",
-        "detail": "Quyết định UBND Hà Nội — 06/2022",
-        "done": true
-      },
-      {
-        "name": "Sổ hồng dự kiến",
-        "detail": "Q2/2028 sau bàn giao",
-        "done": false
-      }
-    ],
-    "banks": [
-      {
-        "name": "Vietcombank",
-        "rate": "7.5%/năm",
-        "maxTerm": "30 năm"
-      },
-      {
-        "name": "BIDV",
-        "rate": "7.8%/năm",
-        "maxTerm": "25 năm"
-      },
-      {
-        "name": "Techcombank",
-        "rate": "8.0%/năm",
-        "maxTerm": "30 năm"
-      },
-      {
-        "name": "VPBank",
-        "rate": "8.2%/năm",
-        "maxTerm": "25 năm"
-      }
-    ],
-    "testimonials": [
-      {
-        "initials": "N.T.H",
-        "role": "Chuyên gia tài chính",
-        "unit": "Duplex 3PN tầng 40",
-        "text": "Môi trường sống đẳng cấp, view hồ Tây tuyệt đẹp. Quyết định mua là đúng đắn nhất năm ngoái."
-      },
-      {
-        "initials": "P.M.Q",
-        "role": "Doanh nhân",
-        "unit": "2PN+1 tầng 22",
-        "text": "Tiến độ xây dựng đúng cam kết, đội ngũ tư vấn chuyên nghiệp. Rất hài lòng với chất lượng hoàn thiện."
-      },
-      {
-        "initials": "L.T.A",
-        "role": "Bác sĩ",
-        "unit": "3PN tầng 35",
-        "text": "Tiện ích nội khu vượt kỳ vọng. Bể bơi và công viên là điểm nhấn tuyệt vời cho gia đình."
-      }
-    ]
+    "__all": {
+      "developerStats": [
+        {
+          "value": "18",
+          "unit": "năm",
+          "label": "Kinh nghiệm"
+        },
+        {
+          "value": "12.400",
+          "unit": "căn",
+          "label": "Đã bàn giao"
+        },
+        {
+          "value": "24",
+          "unit": "dự án",
+          "label": "Tỉnh thành"
+        },
+        {
+          "value": "38.000",
+          "unit": "+",
+          "label": "Cư dân"
+        }
+      ],
+      "documents": [
+        {
+          "name": "Giấy phép xây dựng",
+          "detail": "Số 1842/GP-UBND — 12/2023",
+          "done": true
+        },
+        {
+          "name": "Quyết định giao đất",
+          "detail": "QĐ 3671/QĐ-UBND — 08/2022",
+          "done": true
+        },
+        {
+          "name": "Thẩm định PCCC",
+          "detail": "Cục PCCC & CHỮA CHÁY — Q1/2024",
+          "done": true
+        },
+        {
+          "name": "Bảo lãnh ngân hàng",
+          "detail": "Vietcombank, BIDV, Techcombank",
+          "done": true
+        },
+        {
+          "name": "Phê duyệt 1/500",
+          "detail": "Quyết định UBND Hà Nội — 06/2022",
+          "done": true
+        },
+        {
+          "name": "Sổ hồng dự kiến",
+          "detail": "Q2/2028 sau bàn giao",
+          "done": false
+        }
+      ],
+      "testimonials": [
+        {
+          "initials": "N.T.H",
+          "role": "Chuyên gia tài chính",
+          "unit": "Duplex 3PN tầng 40",
+          "text": "Môi trường sống đẳng cấp, view hồ Tây tuyệt đẹp. Quyết định mua là đúng đắn nhất năm ngoái."
+        },
+        {
+          "initials": "P.M.Q",
+          "role": "Doanh nhân",
+          "unit": "2PN+1 tầng 22",
+          "text": "Tiến độ xây dựng đúng cam kết, đội ngũ tư vấn chuyên nghiệp. Rất hài lòng với chất lượng hoàn thiện."
+        },
+        {
+          "initials": "L.T.A",
+          "role": "Bác sĩ",
+          "unit": "3PN tầng 35",
+          "text": "Tiện ích nội khu vượt kỳ vọng. Bể bơi và công viên là điểm nhấn tuyệt vời cho gia đình."
+        }
+      ]
+    },
+    "pk-bach-van": {
+      "developerStats": [
+        {
+          "value": "18",
+          "unit": "năm",
+          "label": "Kinh nghiệm"
+        },
+        {
+          "value": "12.400",
+          "unit": "căn",
+          "label": "Đã bàn giao"
+        },
+        {
+          "value": "24",
+          "unit": "dự án",
+          "label": "Tỉnh thành"
+        },
+        {
+          "value": "38.000",
+          "unit": "+",
+          "label": "Cư dân"
+        }
+      ],
+      "documents": [
+        {
+          "name": "Giấy phép xây dựng",
+          "detail": "Số 1842/GP-UBND — 12/2023",
+          "done": true
+        },
+        {
+          "name": "Quyết định giao đất",
+          "detail": "QĐ 3671/QĐ-UBND — 08/2022",
+          "done": true
+        },
+        {
+          "name": "Thẩm định PCCC",
+          "detail": "Cục PCCC & CHỮA CHÁY — Q1/2024",
+          "done": true
+        }
+      ],
+      "testimonials": [
+        {
+          "initials": "N.T.H",
+          "role": "Chuyên gia tài chính",
+          "unit": "Duplex 3PN tầng 40",
+          "text": "Môi trường sống đẳng cấp, view hồ Tây tuyệt đẹp. Quyết định mua là đúng đắn nhất năm ngoái."
+        }
+      ]
+    },
+    "pk-vinh-may": {
+      "developerStats": [
+        {
+          "value": "18",
+          "unit": "năm",
+          "label": "Kinh nghiệm"
+        },
+        {
+          "value": "12.400",
+          "unit": "căn",
+          "label": "Đã bàn giao"
+        },
+        {
+          "value": "24",
+          "unit": "dự án",
+          "label": "Tỉnh thành"
+        },
+        {
+          "value": "38.000",
+          "unit": "+",
+          "label": "Cư dân"
+        }
+      ],
+      "documents": [
+        {
+          "name": "Giấy phép xây dựng",
+          "detail": "Số 1842/GP-UBND — 12/2023",
+          "done": true
+        },
+        {
+          "name": "Quyết định giao đất",
+          "detail": "QĐ 3671/QĐ-UBND — 08/2022",
+          "done": true
+        },
+        {
+          "name": "Thẩm định PCCC",
+          "detail": "Cục PCCC & CHỮA CHÁY — Q1/2024",
+          "done": true
+        },
+        {
+          "name": "Bảo lãnh ngân hàng",
+          "detail": "Vietcombank, BIDV, Techcombank",
+          "done": true
+        }
+      ],
+      "testimonials": [
+        {
+          "initials": "P.M.Q",
+          "role": "Doanh nhân",
+          "unit": "2PN+1 tầng 22",
+          "text": "Tiến độ xây dựng đúng cam kết, đội ngũ tư vấn chuyên nghiệp. Rất hài lòng với chất lượng hoàn thiện."
+        }
+      ]
+    },
+    "pk-dao-ngoc": {
+      "developerStats": [
+        {
+          "value": "18",
+          "unit": "năm",
+          "label": "Kinh nghiệm"
+        },
+        {
+          "value": "12.400",
+          "unit": "căn",
+          "label": "Đã bàn giao"
+        },
+        {
+          "value": "24",
+          "unit": "dự án",
+          "label": "Tỉnh thành"
+        },
+        {
+          "value": "38.000",
+          "unit": "+",
+          "label": "Cư dân"
+        }
+      ],
+      "documents": [
+        {
+          "name": "Giấy phép xây dựng",
+          "detail": "Số 1842/GP-UBND — 12/2023",
+          "done": true
+        },
+        {
+          "name": "Quyết định giao đất",
+          "detail": "QĐ 3671/QĐ-UBND — 08/2022",
+          "done": true
+        },
+        {
+          "name": "Thẩm định PCCC",
+          "detail": "Cục PCCC & CHỮA CHÁY — Q1/2024",
+          "done": true
+        },
+        {
+          "name": "Bảo lãnh ngân hàng",
+          "detail": "Vietcombank, BIDV, Techcombank",
+          "done": true
+        },
+        {
+          "name": "Phê duyệt 1/500",
+          "detail": "Quyết định UBND Hà Nội — 06/2022",
+          "done": true
+        }
+      ],
+      "testimonials": [
+        {
+          "initials": "L.T.A",
+          "role": "Bác sĩ",
+          "unit": "3PN tầng 35",
+          "text": "Tiện ích nội khu vượt kỳ vọng. Bể bơi và công viên là điểm nhấn tuyệt vời cho gia đình."
+        }
+      ]
+    },
+    "pk-tinh-van": {
+      "developerStats": [
+        {
+          "value": "18",
+          "unit": "năm",
+          "label": "Kinh nghiệm"
+        },
+        {
+          "value": "12.400",
+          "unit": "căn",
+          "label": "Đã bàn giao"
+        },
+        {
+          "value": "24",
+          "unit": "dự án",
+          "label": "Tỉnh thành"
+        },
+        {
+          "value": "38.000",
+          "unit": "+",
+          "label": "Cư dân"
+        }
+      ],
+      "documents": [
+        {
+          "name": "Giấy phép xây dựng",
+          "detail": "Số 1842/GP-UBND — 12/2023",
+          "done": true
+        },
+        {
+          "name": "Quyết định giao đất",
+          "detail": "QĐ 3671/QĐ-UBND — 08/2022",
+          "done": true
+        },
+        {
+          "name": "Thẩm định PCCC",
+          "detail": "Cục PCCC & CHỮA CHÁY — Q1/2024",
+          "done": true
+        }
+      ],
+      "testimonials": [
+        {
+          "initials": "N.T.H",
+          "role": "Chuyên gia tài chính",
+          "unit": "Duplex 3PN tầng 40",
+          "text": "Môi trường sống đẳng cấp, view hồ Tây tuyệt đẹp. Quyết định mua là đúng đắn nhất năm ngoái."
+        }
+      ]
+    }
   },
   "location": {
-    "lat": 16.213,
-    "lng": 108.12,
-    "mapSrc": "https://www.google.com/maps?q=16.213,108.12&z=14&hl=vi&output=embed",
-    "nearby": [
-      {
-        "cat": "school",
-        "name": "Trường THCS Nguyễn Quý Đức",
-        "dist": "0.4 km",
-        "time": "5 phút"
-      },
-      {
-        "cat": "school",
-        "name": "Trường Liên cấp song ngữ Aurora",
-        "dist": "0.1 km",
-        "time": "2 phút"
-      },
-      {
-        "cat": "hospital",
-        "name": "BV Quốc tế Vinmec",
-        "dist": "1.2 km",
-        "time": "8 phút"
-      },
-      {
-        "cat": "hospital",
-        "name": "BV Bạch Mai",
-        "dist": "3.5 km",
-        "time": "15 phút"
-      },
-      {
-        "cat": "metro",
-        "name": "Ga Metro Tây Hồ Tây",
-        "dist": "0.6 km",
-        "time": "7 phút"
-      },
-      {
-        "cat": "metro",
-        "name": "Ga Metro Cầu Giấy",
-        "dist": "2.1 km",
-        "time": "10 phút"
-      },
-      {
-        "cat": "mall",
-        "name": "Vincom Mega Mall",
-        "dist": "0.8 km",
-        "time": "5 phút"
-      },
-      {
-        "cat": "mall",
-        "name": "AEON Mall Hà Đông",
-        "dist": "4.2 km",
-        "time": "18 phút"
-      },
-      {
-        "cat": "airport",
-        "name": "Sân bay Nội Bài",
-        "dist": "28 km",
-        "time": "35 phút"
-      }
-    ]
-  },
-  "amenitiesDetail": {
-    "noiKhu": [
-      {
-        "icon": "pool",
-        "name": "Bể bơi vô cực 50m",
-        "desc": "Hệ nước muối thẩm thấu, tầng 8, view hồ Tây."
-      },
-      {
-        "icon": "gym",
-        "name": "Gym & Yoga 1200m²",
-        "desc": "Thiết bị Life Fitness cao cấp, phòng yoga riêng biệt."
-      },
-      {
-        "icon": "spa",
-        "name": "Spa & Onsen",
-        "desc": "Onsen khoáng nóng chuẩn Nhật, 8 phòng trị liệu riêng tư."
-      },
-      {
-        "icon": "kid",
-        "name": "Khu vui chơi trẻ em",
-        "desc": "Sân chơi trong nhà và ngoài trời, thiết bị Kompan nhập khẩu."
-      },
-      {
-        "icon": "bbq",
-        "name": "BBQ & Rooftop Bar",
-        "desc": "24 bàn BBQ riêng tư có mái che, tầng 9 view toàn khu."
-      },
-      {
-        "icon": "lib",
-        "name": "Thư viện & Co-working",
-        "desc": "Không gian làm việc chung 400m², WiFi 1Gbps."
-      }
-    ],
-    "skyAmenity": [
-      {
-        "icon": "sky",
-        "name": "Sky Lounge tầng 42",
-        "desc": "Bar, nhà hàng fine-dining, view panorama 360° hồ Tây."
-      },
-      {
-        "icon": "cinema",
-        "name": "Cinema Room",
-        "desc": "Phòng chiếu phim riêng tư 20 chỗ, Dolby Atmos."
-      },
-      {
-        "icon": "conf",
-        "name": "Business Center",
-        "desc": "3 phòng họp cao cấp sức chứa 8–30 người."
-      }
-    ],
-    "dichVu": [
-      {
-        "icon": "concierge",
-        "name": "Concierge 24/7",
-        "desc": "Dịch vụ quản gia cao cấp hỗ trợ mọi nhu cầu."
-      },
-      {
-        "icon": "security",
-        "name": "Bảo vệ 3 lớp",
-        "desc": "Camera AI, kiểm soát ra vào thẻ từ, bảo vệ 24/7."
-      },
-      {
-        "icon": "pet",
-        "name": "Pet Friendly",
-        "desc": "Khu vui chơi cho thú cưng, dịch vụ grooming tại chỗ."
-      }
-    ],
-    "haTang": [
-      {
-        "icon": "parking",
-        "name": "Bãi xe 5 tầng hầm",
-        "desc": "1.840 chỗ đỗ xe ô tô + 3.000 xe máy, hệ thống tự động."
-      },
-      {
-        "icon": "elevator",
-        "name": "Thang máy tốc độ cao",
-        "desc": "6 thang/tòa, tốc độ 4m/s, thang hàng riêng biệt."
-      },
-      {
-        "icon": "power",
-        "name": "Điện dự phòng 100%",
-        "desc": "Máy phát điện dự phòng toàn bộ công suất."
-      }
-    ]
+    "__all": {
+      "lat": 16.213,
+      "lng": 108.12,
+      "mapSrc": "https://www.google.com/maps?q=16.213,108.12&z=14&hl=vi&output=embed",
+      "nearby": [
+        {
+          "cat": "school",
+          "name": "Trường THCS Nguyễn Quý Đức",
+          "dist": "0.4 km",
+          "time": "5 phút"
+        },
+        {
+          "cat": "school",
+          "name": "Trường Liên cấp song ngữ Aurora",
+          "dist": "0.1 km",
+          "time": "2 phút"
+        },
+        {
+          "cat": "hospital",
+          "name": "BV Quốc tế Vinmec",
+          "dist": "1.2 km",
+          "time": "8 phút"
+        },
+        {
+          "cat": "hospital",
+          "name": "BV Bạch Mai",
+          "dist": "3.5 km",
+          "time": "15 phút"
+        },
+        {
+          "cat": "metro",
+          "name": "Ga Metro Tây Hồ Tây",
+          "dist": "0.6 km",
+          "time": "7 phút"
+        },
+        {
+          "cat": "metro",
+          "name": "Ga Metro Cầu Giấy",
+          "dist": "2.1 km",
+          "time": "10 phút"
+        },
+        {
+          "cat": "mall",
+          "name": "Vincom Mega Mall",
+          "dist": "0.8 km",
+          "time": "5 phút"
+        },
+        {
+          "cat": "mall",
+          "name": "AEON Mall Hà Đông",
+          "dist": "4.2 km",
+          "time": "18 phút"
+        },
+        {
+          "cat": "airport",
+          "name": "Sân bay Nội Bài",
+          "dist": "28 km",
+          "time": "35 phút"
+        }
+      ]
+    },
+    "pk-bach-van": {
+      "lat": 16.213,
+      "lng": 108.12,
+      "mapSrc": "https://www.google.com/maps?q=16.213,108.12&z=14&hl=vi&output=embed",
+      "nearby": [
+        {
+          "cat": "school",
+          "name": "Trường THCS Nguyễn Quý Đức",
+          "dist": "0.4 km",
+          "time": "5 phút"
+        },
+        {
+          "cat": "metro",
+          "name": "Ga Metro Tây Hồ Tây",
+          "dist": "0.6 km",
+          "time": "7 phút"
+        },
+        {
+          "cat": "airport",
+          "name": "Sân bay Nội Bài",
+          "dist": "28 km",
+          "time": "35 phút"
+        }
+      ]
+    },
+    "pk-vinh-may": {
+      "lat": 16.213,
+      "lng": 108.12,
+      "mapSrc": "https://www.google.com/maps?q=16.213,108.12&z=14&hl=vi&output=embed",
+      "nearby": [
+        {
+          "cat": "school",
+          "name": "Trường Liên cấp song ngữ Aurora",
+          "dist": "0.1 km",
+          "time": "2 phút"
+        },
+        {
+          "cat": "metro",
+          "name": "Ga Metro Cầu Giấy",
+          "dist": "2.1 km",
+          "time": "10 phút"
+        }
+      ]
+    },
+    "pk-dao-ngoc": {
+      "lat": 16.213,
+      "lng": 108.12,
+      "mapSrc": "https://www.google.com/maps?q=16.213,108.12&z=14&hl=vi&output=embed",
+      "nearby": [
+        {
+          "cat": "hospital",
+          "name": "BV Quốc tế Vinmec",
+          "dist": "1.2 km",
+          "time": "8 phút"
+        },
+        {
+          "cat": "mall",
+          "name": "Vincom Mega Mall",
+          "dist": "0.8 km",
+          "time": "5 phút"
+        }
+      ]
+    },
+    "pk-tinh-van": {
+      "lat": 16.213,
+      "lng": 108.12,
+      "mapSrc": "https://www.google.com/maps?q=16.213,108.12&z=14&hl=vi&output=embed",
+      "nearby": [
+        {
+          "cat": "hospital",
+          "name": "BV Bạch Mai",
+          "dist": "3.5 km",
+          "time": "15 phút"
+        },
+        {
+          "cat": "mall",
+          "name": "AEON Mall Hà Đông",
+          "dist": "4.2 km",
+          "time": "18 phút"
+        }
+      ]
+    }
   },
   "resources": {
-    "brochure": {
-      "url": "https://drive.google.com/drive/folders/1m_KyuIsFgP6RLIclH-GJSE82rC9wEy32",
-      "title": "Tờ rơi dự án",
-      "type": "folder"
+    "__all": {
+      "brochure": {
+        "url": "https://drive.google.com/drive/folders/1m_KyuIsFgP6RLIclH-GJSE82rC9wEy32",
+        "title": "Tờ rơi dự án",
+        "type": "folder"
+      },
+      "salesKit": {
+        "url": "https://drive.google.com/drive/folders/1mY4CqH8I0FWKMCyx1nFYeQNdhhKL39Xi",
+        "title": "Bộ bí kíp tư vấn (nội bộ)",
+        "type": "folder"
+      },
+      "brandKit": {
+        "url": "https://drive.google.com/drive/folders/1NeXfCqSULl6mNqQn4YW-BtLi1M8ZmArf",
+        "title": "Bộ nhận diện thương hiệu",
+        "type": "folder"
+      },
+      "priceList": {
+        "url": "",
+        "title": "Bảng giá & chính sách bán hàng",
+        "type": "pdf"
+      },
+      "floorPlanPdf": {
+        "url": "https://drive.google.com/drive/folders/1H5CPAaedDai9qLku8m9p98VKcRitHL09",
+        "title": "TMB mã căn & diện tích",
+        "type": "folder"
+      }
     },
-    "salesKit": {
-      "url": "https://drive.google.com/drive/folders/1mY4CqH8I0FWKMCyx1nFYeQNdhhKL39Xi",
-      "title": "Bộ bí kíp tư vấn (nội bộ)",
-      "type": "folder"
+    "pk-bach-van": {
+      "brochure": {
+        "url": "",
+        "title": "Tờ rơi dự án",
+        "type": "folder"
+      },
+      "salesKit": {
+        "url": "",
+        "title": "Bộ bí kíp tư vấn (nội bộ)",
+        "type": "folder"
+      },
+      "brandKit": {
+        "url": "",
+        "title": "Bộ nhận diện thương hiệu",
+        "type": "folder"
+      },
+      "priceList": {
+        "url": "",
+        "title": "Bảng giá & chính sách bán hàng",
+        "type": "pdf"
+      },
+      "floorPlanPdf": {
+        "url": "",
+        "title": "TMB mã căn & diện tích",
+        "type": "folder"
+      }
     },
-    "brandKit": {
-      "url": "https://drive.google.com/drive/folders/1NeXfCqSULl6mNqQn4YW-BtLi1M8ZmArf",
-      "title": "Bộ nhận diện thương hiệu",
-      "type": "folder"
+    "pk-vinh-may": {
+      "brochure": {
+        "url": "",
+        "title": "Tờ rơi dự án",
+        "type": "folder"
+      },
+      "salesKit": {
+        "url": "",
+        "title": "Bộ bí kíp tư vấn (nội bộ)",
+        "type": "folder"
+      },
+      "brandKit": {
+        "url": "",
+        "title": "Bộ nhận diện thương hiệu",
+        "type": "folder"
+      },
+      "priceList": {
+        "url": "",
+        "title": "Bảng giá & chính sách bán hàng",
+        "type": "pdf"
+      },
+      "floorPlanPdf": {
+        "url": "",
+        "title": "TMB mã căn & diện tích",
+        "type": "folder"
+      }
     },
-    "priceList": {
-      "url": "",
-      "title": "Bảng giá & chính sách bán hàng",
-      "type": "pdf"
+    "pk-dao-ngoc": {
+      "brochure": {
+        "url": "",
+        "title": "Tờ rơi dự án",
+        "type": "folder"
+      },
+      "salesKit": {
+        "url": "",
+        "title": "Bộ bí kíp tư vấn (nội bộ)",
+        "type": "folder"
+      },
+      "brandKit": {
+        "url": "",
+        "title": "Bộ nhận diện thương hiệu",
+        "type": "folder"
+      },
+      "priceList": {
+        "url": "",
+        "title": "Bảng giá & chính sách bán hàng",
+        "type": "pdf"
+      },
+      "floorPlanPdf": {
+        "url": "",
+        "title": "TMB mã căn & diện tích",
+        "type": "folder"
+      }
     },
-    "floorPlanPdf": {
-      "url": "https://drive.google.com/drive/folders/1H5CPAaedDai9qLku8m9p98VKcRitHL09",
-      "title": "TMB mã căn & diện tích",
-      "type": "folder"
+    "pk-tinh-van": {
+      "brochure": {
+        "url": "",
+        "title": "Tờ rơi dự án",
+        "type": "folder"
+      },
+      "salesKit": {
+        "url": "",
+        "title": "Bộ bí kíp tư vấn (nội bộ)",
+        "type": "folder"
+      },
+      "brandKit": {
+        "url": "",
+        "title": "Bộ nhận diện thương hiệu",
+        "type": "folder"
+      },
+      "priceList": {
+        "url": "",
+        "title": "Bảng giá & chính sách bán hàng",
+        "type": "pdf"
+      },
+      "floorPlanPdf": {
+        "url": "",
+        "title": "TMB mã căn & diện tích",
+        "type": "folder"
+      }
     }
   },
   "keyVisuals": {
@@ -1061,56 +2186,114 @@
       }
     ]
   },
-  "timeline": [
-    {
-      "phase": "Khởi công",
-      "date": "Q1 / 2024",
-      "status": "done",
-      "desc": "Lễ khởi công tháp A & B với sự tham dự của UBND Hà Nội. Hoàn thành ép cọc móng cọc khoan nhồi D800."
-    },
-    {
-      "phase": "Hoàn thiện phần ngầm",
-      "date": "Q3 / 2024",
-      "status": "done",
-      "desc": "Thi công 5 tầng hầm, hệ thống kết cấu móng bè, hoàn thiện tầng kỹ thuật B1."
-    },
-    {
-      "phase": "Thi công thân tháp A",
-      "date": "Q4 / 2024",
-      "status": "done",
-      "desc": "Đổ sàn từ tầng 1 đến tầng 20 đúng tiến độ. Lắp đặt hệ thống cơ điện ngầm."
-    },
-    {
-      "phase": "Cất nóc tháp A & B",
-      "date": "Q2 / 2026",
-      "status": "done",
-      "desc": "Hoàn thành kết cấu 42 tầng tháp A và 38 tầng tháp B. Đây là mốc quan trọng nhất của dự án."
-    },
-    {
-      "phase": "Mở bán GĐ 2",
-      "date": "Q2 / 2026",
-      "status": "active",
-      "desc": "Ra mắt 312 căn giai đoạn 2 với ưu đãi chiết khấu 8% và cam kết thuê lại 7%/năm."
-    },
-    {
-      "phase": "Hoàn thiện ngoại thất",
-      "date": "Q1 / 2027",
-      "status": "upcoming",
-      "desc": "Lắp dựng mặt dựng kính Low-E, ốp đá granite ngoại thất, hoàn thiện sảnh tầng 1."
-    },
-    {
-      "phase": "Nghiệm thu & PCCC",
-      "date": "Q2 / 2027",
-      "status": "upcoming",
-      "desc": "Kiểm tra nghiệm thu hệ thống PCCC, thang máy, điện nước toàn tòa. Cấp giấy chứng nhận đủ điều kiện."
-    },
-    {
-      "phase": "Bàn giao tháp A",
-      "date": "Q4 / 2027",
-      "status": "upcoming",
-      "desc": "Bàn giao toàn bộ 920 căn tháp A kèm sổ hồng dự kiến cấp Q2/2028."
-    }
-  ],
+  "timeline": {
+    "__all": [
+      {
+        "phase": "Khởi công",
+        "date": "Q1 / 2024",
+        "status": "done",
+        "desc": "Lễ khởi công tháp A & B với sự tham dự của UBND Hà Nội. Hoàn thành ép cọc móng cọc khoan nhồi D800."
+      },
+      {
+        "phase": "Hoàn thiện phần ngầm",
+        "date": "Q3 / 2024",
+        "status": "done",
+        "desc": "Thi công 5 tầng hầm, hệ thống kết cấu móng bè, hoàn thiện tầng kỹ thuật B1."
+      },
+      {
+        "phase": "Thi công thân tháp A",
+        "date": "Q4 / 2024",
+        "status": "done",
+        "desc": "Đổ sàn từ tầng 1 đến tầng 20 đúng tiến độ. Lắp đặt hệ thống cơ điện ngầm."
+      },
+      {
+        "phase": "Cất nóc tháp A & B",
+        "date": "Q2 / 2026",
+        "status": "done",
+        "desc": "Hoàn thành kết cấu 42 tầng tháp A và 38 tầng tháp B. Đây là mốc quan trọng nhất của dự án."
+      },
+      {
+        "phase": "Mở bán GĐ 2",
+        "date": "Q2 / 2026",
+        "status": "active",
+        "desc": "Ra mắt 312 căn giai đoạn 2 với ưu đãi chiết khấu 8% và cam kết thuê lại 7%/năm."
+      },
+      {
+        "phase": "Hoàn thiện ngoại thất",
+        "date": "Q1 / 2027",
+        "status": "upcoming",
+        "desc": "Lắp dựng mặt dựng kính Low-E, ốp đá granite ngoại thất, hoàn thiện sảnh tầng 1."
+      },
+      {
+        "phase": "Nghiệm thu & PCCC",
+        "date": "Q2 / 2027",
+        "status": "upcoming",
+        "desc": "Kiểm tra nghiệm thu hệ thống PCCC, thang máy, điện nước toàn tòa. Cấp giấy chứng nhận đủ điều kiện."
+      },
+      {
+        "phase": "Bàn giao tháp A",
+        "date": "Q4 / 2027",
+        "status": "upcoming",
+        "desc": "Bàn giao toàn bộ 920 căn tháp A kèm sổ hồng dự kiến cấp Q2/2028."
+      }
+    ],
+    "pk-bach-van": [
+      {
+        "phase": "Khởi công",
+        "date": "Q1 / 2024",
+        "status": "done",
+        "desc": "Lễ khởi công tháp A & B với sự tham dự của UBND Hà Nội. Hoàn thành ép cọc móng cọc khoan nhồi D800."
+      },
+      {
+        "phase": "Mở bán GĐ 2",
+        "date": "Q2 / 2026",
+        "status": "active",
+        "desc": "Ra mắt 312 căn giai đoạn 2 với ưu đãi chiết khấu 8% và cam kết thuê lại 7%/năm."
+      }
+    ],
+    "pk-vinh-may": [
+      {
+        "phase": "Hoàn thiện phần ngầm",
+        "date": "Q3 / 2024",
+        "status": "done",
+        "desc": "Thi công 5 tầng hầm, hệ thống kết cấu móng bè, hoàn thiện tầng kỹ thuật B1."
+      },
+      {
+        "phase": "Hoàn thiện ngoại thất",
+        "date": "Q1 / 2027",
+        "status": "upcoming",
+        "desc": "Lắp dựng mặt dựng kính Low-E, ốp đá granite ngoại thất, hoàn thiện sảnh tầng 1."
+      }
+    ],
+    "pk-dao-ngoc": [
+      {
+        "phase": "Thi công thân tháp A",
+        "date": "Q4 / 2024",
+        "status": "done",
+        "desc": "Đổ sàn từ tầng 1 đến tầng 20 đúng tiến độ. Lắp đặt hệ thống cơ điện ngầm."
+      },
+      {
+        "phase": "Nghiệm thu & PCCC",
+        "date": "Q2 / 2027",
+        "status": "upcoming",
+        "desc": "Kiểm tra nghiệm thu hệ thống PCCC, thang máy, điện nước toàn tòa. Cấp giấy chứng nhận đủ điều kiện."
+      }
+    ],
+    "pk-tinh-van": [
+      {
+        "phase": "Cất nóc tháp A & B",
+        "date": "Q2 / 2026",
+        "status": "done",
+        "desc": "Hoàn thành kết cấu 42 tầng tháp A và 38 tầng tháp B. Đây là mốc quan trọng nhất của dự án."
+      },
+      {
+        "phase": "Bàn giao tháp A",
+        "date": "Q4 / 2027",
+        "status": "upcoming",
+        "desc": "Bàn giao toàn bộ 920 căn tháp A kèm sổ hồng dự kiến cấp Q2/2028."
+      }
+    ]
+  },
   "masterplan": {
     "image": "img/masterplan/masterplane.png",
     "intro": "Tổng quan quy hoạch khu đô thị Vinhomes Hai Van Bay — 4 phân khu chức năng kết nối đồng bộ hạ tầng, cảng biển và tiện ích.",

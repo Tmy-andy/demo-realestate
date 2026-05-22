@@ -5,9 +5,14 @@
 let DATA = null;
 let currentPanoramaId = null;
 let currentMenuItemId = null;
-const MENU_GROUPS = [
-  { key: "tongQuan",        label: "Tổng quan",          short: "TQ" },
-  { key: "phanKhu",         label: "Phân khu",           short: "PK" },
+/* Nhóm gốc của np-list — chỉ Tổng quan + Phân khu. 4 nhóm còn lại
+   (Tiện ích nội/ngoại khu, Mặt bằng, View 360) giờ là CON của mỗi phân khu. */
+const ROOT_GROUPS = [
+  { key: "tongQuan", label: "Tổng quan", short: "TQ" },
+  { key: "phanKhu",  label: "Phân khu",  short: "PK" },
+];
+/* Nhóm con bên trong 1 phân khu */
+const CHILD_GROUPS = [
   { key: "tienIchNoiKhu",   label: "Tiện ích nội khu",    short: "NK" },
   { key: "tienIchNgoaiKhu", label: "Tiện ích ngoại khu",  short: "NG" },
   { key: "matBangTang",     label: "Mặt bằng tầng",       short: "MB" },
@@ -15,11 +20,47 @@ const MENU_GROUPS = [
 ];
 const _tr = (s) => (window.I18n ? window.I18n.tr(s) : s);
 const _t  = (k, v) => (window.I18n ? window.I18n.t(k, v) : k);
-let openGroupKey = "tongQuan"; // only one group open at a time
+let openGroupKey = "tongQuan";   // nhóm gốc đang mở
+let openSubItemId = null;        // id phân khu đang được xổ trong np-list
+/* Phân khu đang ACTIVE để tự động lọc 5 overlay + BĐS.
+   null = chế độ Tổng quan (không lọc). */
+let activeSubdivision = null;
+window.getActiveSubdivision = () => activeSubdivision;
+
+/* Đổi phân khu active → rebuild 5 panel (pháp lý/vị trí/tiến độ/thư viện/
+   tài liệu) + đồng bộ bộ lọc BĐS. Gọi khi người dùng chọn phân khu ở
+   np-list, hoặc về null khi xem Tổng quan. */
+function setActiveSubdivision(subId) {
+  if (activeSubdivision === subId) return;
+  activeSubdivision = subId;
+  if (!DATA) return;
+  // 5 panel render lại theo phân khu (tab tự nhảy sang phân khu này).
+  // Reset *SubKey về null để 5 panel bám theo activeSubdivision mới.
+  legalSubKey = locationSubKey = timelineSubKey = resourcesSubKey = gallerySubKey = null;
+  buildGallery();
+  buildLegalPanel();
+  buildLocationPanel();
+  buildTimelinePanel();
+  buildResourcesPanel();
+  // BĐS: properties.js tự đọc getActiveSubdivision() khi mở modal
+  if (typeof window.syncPropertiesSubdivision === "function") {
+    window.syncPropertiesSubdivision();
+  }
+}
+window.setActiveSubdivision = setActiveSubdivision;
+
+/* Danh sách phân khu {id,label} — dùng dựng tab/dropdown cho 5 panel */
+function subdivisionList() {
+  return ((DATA && DATA.menu && DATA.menu.phanKhu) || [])
+    .map(p => ({ id: p.id, label: p.label }));
+}
 
 async function boot() {
-  const res = await fetch("data/project.json");
-  DATA = await res.json();
+  await window.DataSource.applyTheme(); // áp màu theme từ CSDL trước khi render
+  // Chờ I18n nạp xong ngôn ngữ + chuỗi dịch từ CSDL trước khi build UI,
+  // nếu không UI sẽ hiện key thô (vd "ui.book") trong giây đầu.
+  if (window.I18n && window.I18n.ready) { try { await window.I18n.ready; } catch (e) {} }
+  DATA = await window.DataSource.fetchProjectData();
   window.DATA = DATA; // expose for mobile-stepper.js
 
   // Đồng bộ nguồn dữ liệu: properties là nguồn duy nhất.
@@ -35,12 +76,10 @@ async function boot() {
   buildBrand();
   buildProjectCard();
   if (DATA.project.promoDeadline) startCountdown(DATA.project.promoDeadline);
-  buildAmenities();
   buildTimelineAndUnits();
   buildTimelinePanel();
   buildNavPanel();
   buildGallery();
-  buildAmenitiesDetail();
   buildLegalPanel();
   buildLocationPanel();
   buildResourcesPanel();
@@ -61,11 +100,11 @@ async function boot() {
   }
 
   // Pick first menu item that has a panorama as the initial view
-  const firstGroup = DATA.menu?.[MENU_GROUPS[0].key] || [];
+  const firstGroup = DATA.menu?.tongQuan || [];
   const firstItem = firstGroup.find(m => m.tdvPanoramaId) || firstGroup[0];
   if (firstItem) {
     currentMenuItemId = firstItem.id;
-    goToPanorama(firstItem.tdvPanoramaId);
+    if (firstItem.tdvPanoramaId) goToPanorama(firstItem.tdvPanoramaId);
   }
 
   // Hide loader after first paint
@@ -98,15 +137,42 @@ function goToPanorama(panoName) {
   syncProjectCard();
 }
 
+/* ------------------------------------------------------------------
+   Duyệt menu — np-list giờ 2 cấp: phân khu chứa children.
+   walkMenuItems() trả mọi item phẳng kèm ngữ cảnh:
+     { item, groupKey, subdivisionId|null }
+   subdivisionId = id phân khu cha (null nếu item ở nhóm gốc).
+   ------------------------------------------------------------------ */
+function walkMenuItems() {
+  if (!DATA || !DATA.menu) return [];
+  const out = [];
+  for (const g of ROOT_GROUPS) {
+    for (const it of (DATA.menu[g.key] || [])) {
+      out.push({ item: it, groupKey: g.key, subdivisionId: null });
+      // Phân khu: duyệt children
+      if (it.children) {
+        for (const cg of CHILD_GROUPS) {
+          for (const child of (it.children[cg.key] || [])) {
+            out.push({ item: child, groupKey: cg.key, subdivisionId: it.id });
+          }
+        }
+      }
+    }
+  }
+  return out;
+}
+
 /* Render project-card khớp với currentMenuItemId. Nếu item không có
    detail/subdivision → về chế độ overview. */
 function getMenuItemById(id) {
   if (!id || !DATA) return null;
-  for (const g of MENU_GROUPS) {
-    const it = (DATA.menu?.[g.key] || []).find(m => m.id === id);
-    if (it) return it;
-  }
-  return null;
+  const hit = walkMenuItems().find(e => e.item.id === id);
+  return hit ? hit.item : null;
+}
+/* Trả ngữ cảnh đầy đủ của 1 item (gồm subdivisionId, groupKey) */
+function getMenuEntryById(id) {
+  if (!id || !DATA) return null;
+  return walkMenuItems().find(e => e.item.id === id) || null;
 }
 function syncProjectCard() {
   if (typeof renderProjectCard !== "function") return;
@@ -117,29 +183,36 @@ function syncProjectCard() {
 
 /** Programmatic API: navigate by menu item id (for chatbot integration) */
 function goToMenuItem(menuItemId) {
-  for (const g of MENU_GROUPS) {
-    const item = (DATA.menu?.[g.key] || []).find(m => m.id === menuItemId);
-    if (item) {
-      currentMenuItemId = menuItemId;
-      openGroupKey = g.key;
-      lockNavSelection();
-      if (item.tdvPanoramaId) goToPanorama(item.tdvPanoramaId);
-      renderNavList();
-      return true;
+  const entry = getMenuEntryById(menuItemId);
+  if (!entry) return false;
+  currentMenuItemId = menuItemId;
+  lockNavSelection();
+  if (entry.subdivisionId) {
+    // item con của phân khu — mở nhóm Phân khu, xổ phân khu cha
+    openGroupKey = "phanKhu";
+    openSubItemId = entry.subdivisionId;
+    setActiveSubdivision(entry.subdivisionId);
+  } else {
+    openGroupKey = entry.groupKey;
+    if (entry.groupKey === "phanKhu") {
+      openSubItemId = entry.item.id;
+      setActiveSubdivision(entry.item.id);
+    } else {
+      openSubItemId = null;
+      setActiveSubdivision(null);
     }
   }
-  return false;
+  if (entry.item.tdvPanoramaId) goToPanorama(entry.item.tdvPanoramaId);
+  renderNavList();
+  return true;
 }
 window.goToMenuItem = goToMenuItem;
 window.goToPanorama = goToPanorama;
 
 /** Find a menu item by its panorama ID */
 function findMenuItemByPanorama(panoName) {
-  for (const g of MENU_GROUPS) {
-    const item = (DATA.menu?.[g.key] || []).find(m => m.tdvPanoramaId === panoName);
-    if (item) return item;
-  }
-  return null;
+  const hit = walkMenuItems().find(e => e.item.tdvPanoramaId === panoName);
+  return hit ? hit.item : null;
 }
 
 /* ------------------------------------------------------------------
@@ -171,15 +244,25 @@ function syncNavToPanorama(panoName) {
   const current = getMenuItemById(currentMenuItemId);
   if (current && matches(current)) return;
 
-  let found = null, groupKey = null;
-  for (const g of MENU_GROUPS) {
-    const item = (DATA.menu?.[g.key] || []).find(matches);
-    if (item) { found = item; groupKey = g.key; break; }
-  }
-  if (!found) return;
+  const foundEntry = walkMenuItems().find(e => matches(e.item));
+  if (!foundEntry) return;
+  const found = foundEntry.item;
   if (found.id === currentMenuItemId) return;
   currentMenuItemId = found.id;
-  openGroupKey = groupKey;
+  if (foundEntry.subdivisionId) {
+    openGroupKey = "phanKhu";
+    openSubItemId = foundEntry.subdivisionId;
+    setActiveSubdivision(foundEntry.subdivisionId);
+  } else {
+    openGroupKey = foundEntry.groupKey;
+    if (foundEntry.groupKey === "phanKhu") {
+      openSubItemId = found.id;
+      setActiveSubdivision(found.id);
+    } else {
+      openSubItemId = null;
+      setActiveSubdivision(null);
+    }
+  }
   renderNavList();
   syncProjectCard();
   const activeCard = document.querySelector(`.np-card[data-id="${found.id}"]`);
@@ -219,19 +302,19 @@ function buildBrand() {
                         item thuộc cat phanKhu (có `subdivision`)
    ============================================================ */
 const PC_ICONS = {
-  area:    '<path d="M3 3h18v18H3z"/><path d="M3 9h18M9 3v18"/>',
-  port:    '<path d="M12 2v20M5 12l7 4 7-4"/><path d="M12 6a3 3 0 100-4 3 3 0 000 4z"/>',
-  transit: '<rect x="4" y="3" width="16" height="14" rx="3"/><path d="M4 11h16M8 21l2-4M16 21l-2-4"/><circle cx="8.5" cy="14" r="1"/><circle cx="15.5" cy="14" r="1"/>',
-  road:    '<path d="M5 22L9 2M19 22L15 2M12 6v3M12 13v3"/>',
-  leaf:    '<path d="M11 20A7 7 0 019 6c4-2 8-3 11-3 0 4-1 8-3 11a7 7 0 01-9 2z"/><path d="M2 22c4-4 6-6 9-9"/>',
-  map:     '<path d="M9 3L3 6v15l6-3 6 3 6-3V3l-6 3-6-3z"/><path d="M9 3v15M15 6v15"/>',
-  grid:    '<rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>',
-  home:    '<path d="M3 11l9-8 9 8M5 9v11h14V9"/>',
-  doc:     '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/>',
-  pin:     '<path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7z"/><circle cx="12" cy="9" r="2.5"/>',
+  area:    'square',
+  port:    'anchor',
+  transit: 'bus',
+  road:    'route',
+  leaf:    'leaf',
+  map:     'box',
+  grid:    'layout-grid',
+  home:    'home',
+  doc:     'file-text',
+  pin:     'map-pin',
 };
 function pcIcon(name, size = 16) {
-  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">${PC_ICONS[name] || PC_ICONS.pin}</svg>`;
+  return `<i data-lucide="${PC_ICONS[name] || PC_ICONS.pin}" width="${size}" height="${size}"></i>`;
 }
 window.pcIcon = pcIcon; // dùng bởi masterplan.js / properties.js
 
@@ -257,7 +340,38 @@ function renderProjectCard(item) {
   } else {
     host.innerHTML = pcOverviewHTML();
   }
+  // 5 nút nội dung (pháp lý/vị trí/tiến độ/thư viện/tài liệu) — yêu cầu #3.
+  // Đặt cuối project-card. Khi có phân khu active → tự lọc theo phân khu;
+  // ở Tổng quan → hiển thị đầy đủ (tab "Tất cả").
+  host.insertAdjacentHTML("beforeend", pcContentButtonsHTML());
   bindPcDynamic(host);
+}
+
+/* Khối nút nội dung trong project-card */
+function pcContentButtonsHTML() {
+  const sub = activeSubdivision
+    ? subdivisionList().find(s => s.id === activeSubdivision)
+    : null;
+  const note = sub
+    ? `<div class="pc-cbtn-note">${pcIcon("pin", 12)} ${_t("ui.filteringBy") || "Đang lọc theo"}: <strong>${_tr(sub.label)}</strong></div>`
+    : `<div class="pc-cbtn-note">${_t("ui.overviewMode") || "Tổng quan — hiển thị đầy đủ"}</div>`;
+  const btn = (action, icon, labelKey, fallback) => `
+    <button class="pc-cbtn" data-action="${action}">
+      <span class="pc-cbtn-ico">${pcIcon(icon, 15)}</span>
+      <span class="pc-cbtn-label">${_t(labelKey) || fallback}</span>
+    </button>`;
+  return `
+    <div class="pc-section pc-content-btns">
+      <div class="pc-block-title">${_t("ui.projectContent") || "Nội dung dự án"}</div>
+      ${note}
+      <div class="pc-cbtn-grid">
+        ${btn("open-legal",     "doc",  "ui.legal",     "Pháp lý")}
+        ${btn("open-location",  "pin",  "ui.location",  "Vị trí")}
+        ${btn("open-timeline",  "road", "ui.timeline",  "Tiến độ")}
+        ${btn("open-gallery",   "grid", "ui.gallery",   "Thư viện")}
+        ${btn("open-resources", "doc",  "ui.resources", "Tài liệu")}
+      </div>
+    </div>`;
 }
 
 /* ── Chế độ overview (ảnh 1) ── */
@@ -274,7 +388,7 @@ function pcOverviewHTML() {
     <button class="pc-quick-link" data-action="${l.id}">
       <span class="pc-ql-icon">${pcIcon(l.icon)}</span>
       <span class="pc-ql-label">${_tr(l.label)}</span>
-      <svg class="pc-ql-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+      <i class="pc-ql-arrow" data-lucide="chevron-right" width="14" height="14"></i>
     </button>`).join("");
   return `
     <div class="pc-section pc-overview">
@@ -340,7 +454,7 @@ function pcSubdivisionHTML(s, panoId) {
     </div>`).join("");
   const mediaInner = s.video
     ? `<button class="pc-video-btn" data-video="${s.video}">
-         <svg width="40" height="40" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,.45)"/><path d="M10 8.5v7l5.5-3.5z" fill="#fff"/></svg>
+         <i data-lucide="play-circle" width="40" height="40"></i>
          <span>Xem video giới thiệu</span>
        </button>`
     : "";
@@ -417,6 +531,26 @@ function handlePcAction(action, data) {
       if (np) { np.classList.remove("collapsed"); document.body.classList.remove("nav-panel-collapsed"); }
       break;
     }
+    // 5 overlay nội dung — mở từ nút trong project-card
+    case "open-legal":
+      document.getElementById("legal-overlay")?.classList.add("open");
+      break;
+    case "open-location": {
+      const ifr = document.getElementById("location-iframe");
+      const loc = currentLocationData();
+      if (ifr && loc.mapSrc) ifr.setAttribute("src", loc.mapSrc);
+      document.getElementById("location-overlay")?.classList.add("open");
+      break;
+    }
+    case "open-timeline":
+      document.getElementById("timeline-overlay")?.classList.add("open");
+      break;
+    case "open-gallery":
+      document.getElementById("gallery-overlay")?.classList.add("open");
+      break;
+    case "open-resources":
+      document.getElementById("resources-overlay")?.classList.add("open");
+      break;
   }
 }
 
@@ -426,13 +560,24 @@ function handlePcAction(action, data) {
    Without a valid ?s=, all direct-contact CTAs are hidden — the
    project itself no longer exposes a default hotline/zalo.
    ------------------------------------------------------------------ */
+/* Slug sale: ưu tiên path /<id> (vd /sales2), fallback ?s=<id>.
+   Bỏ qua file tĩnh và đường dẫn rỗng. */
+function getSaleSlug() {
+  const seg = location.pathname.split("/").filter(Boolean).pop() || "";
+  if (seg && !/\.[a-z0-9]+$/i.test(seg)) return seg.trim().toLowerCase();
+  return (new URLSearchParams(location.search).get("s") || "").trim().toLowerCase();
+}
+
 function getActiveSale() {
   const sales = (DATA && DATA.sales) || [];
   if (!sales.length) return null;
-  const params = new URLSearchParams(location.search);
-  const u = (params.get("s") || "").trim().toLowerCase();
+  const u = getSaleSlug();
   if (!u) return null;
-  return sales.find(s => (s.username || "").toLowerCase() === u) || null;
+  // ?s= khớp public_slug (id riêng custom được); fallback username.
+  return sales.find(s =>
+    (s.slug || "").toLowerCase() === u ||
+    (s.username || "").toLowerCase() === u
+  ) || null;
 }
 
 function applySaleContact() {
@@ -443,17 +588,16 @@ function applySaleContact() {
   const hotlineBtn = document.getElementById("pc-hotline-btn");
   const hotlineNum = document.getElementById("pc-hotline-num");
   const zaloBtn    = document.getElementById("pc-zalo-btn");
-  const lapZalo    = document.getElementById("lap-suc-zalo");
   const formZalo   = document.getElementById("form-suc-zalo");
 
   if (!sale) {
     if (contactRow) contactRow.style.display = "none";
-    [lapZalo, formZalo].forEach(el => { if (el) el.style.display = "none"; });
+    if (formZalo) formZalo.style.display = "none";
     return;
   }
 
   if (contactRow) contactRow.style.display = "";
-  [lapZalo, formZalo].forEach(el => { if (el) el.style.display = ""; });
+  if (formZalo) formZalo.style.display = "";
 
   if (sale.phone) {
     if (hotlineNum) hotlineNum.textContent = sale.phone;
@@ -465,10 +609,9 @@ function applySaleContact() {
   const zaloUrl = sale.zalo ? "https://zalo.me/" + sale.zalo.replace(/\s/g, "") : "";
   if (sale.zalo) {
     if (zaloBtn)  zaloBtn.href  = zaloUrl;
-    if (lapZalo)  lapZalo.href  = zaloUrl;
     if (formZalo) formZalo.href = zaloUrl;
   } else {
-    [zaloBtn, lapZalo, formZalo].forEach(el => { if (el) el.style.display = "none"; });
+    [zaloBtn, formZalo].forEach(el => { if (el) el.style.display = "none"; });
   }
 }
 
@@ -505,30 +648,17 @@ function startCountdown(deadlineStr) {
   _cdInterval = setInterval(tick, 1000);
 }
 
-function buildAmenities() {
-  const grid = document.getElementById("amen-grid");
-  const iconMap = {
-    pool: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 18c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2"/><path d="M2 14c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2"/><path d="M7 12V5a2 2 0 014 0M13 12V5a2 2 0 014 0"/></svg>',
-    gym: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="9" width="3" height="6"/><rect x="19" y="9" width="3" height="6"/><rect x="5" y="7" width="2" height="10"/><rect x="17" y="7" width="2" height="10"/><path d="M7 12h10"/></svg>',
-    spa: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2c0 5-4 8-4 12s2 6 4 6 4-2 4-6-4-7-4-12z"/><path d="M5 12c2 1 4 4 4 8M19 12c-2 1-4 4-4 8"/></svg>',
-    school: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 9l10-5 10 5-10 5L2 9z"/><path d="M6 11v5c0 2 3 3 6 3s6-1 6-3v-5"/></svg>',
-    mall: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7h18l-2 13H5L3 7z"/><path d="M8 7V4a4 4 0 018 0v3"/></svg>',
-    park: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22V12"/><path d="M12 12c-3 0-5-2-5-5s2-5 5-5 5 2 5 5-2 5-5 5z"/><path d="M5 18l7-6 7 6"/></svg>',
-    sky: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 20h18"/><path d="M5 20V8l7-4 7 4v12"/><path d="M9 20v-6h6v6"/></svg>',
-    kid: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="7" r="3"/><path d="M5 20c0-4 3-7 7-7s7 3 7 7"/><circle cx="9" cy="7" r="0.5" fill="currentColor"/><circle cx="15" cy="7" r="0.5" fill="currentColor"/></svg>'
-  };
-  grid.innerHTML = DATA.project.amenities.map(a => `
-    <div class="amen-tile">
-      <div class="icon-wrap">${iconMap[a.icon] || ''}</div>
-      <div class="label">${_tr(a.label)}</div>
-    </div>
-  `).join("");
+/* timeline giờ là {__all:[...], <pk>:[...]} — helper lấy mảng cấp dự án */
+function timelineAllArray() {
+  const tl = DATA && DATA.timeline;
+  if (Array.isArray(tl)) return tl;             // tương thích dạng cũ
+  return (tl && tl.__all) || [];
 }
 
 function buildTimelineAndUnits() {
   const tlEl = document.getElementById("timeline-list");
   if (tlEl) {
-    tlEl.innerHTML = DATA.timeline.map(t => `
+    tlEl.innerHTML = timelineAllArray().map(t => `
       <div class="tl-row ${t.done ? 'done' : ''}">
         <div class="tl-dot"></div>
         <div class="tl-phase">${_tr(t.phase)}</div>
@@ -758,95 +888,209 @@ function buildNavPanel() {
   renderNavList();
 }
 
+/* HTML 1 thẻ item trong np-list */
+function npCardHTML(m, i, opts = {}) {
+  const isActive = m.id === currentMenuItemId;
+  const sub = m.tdvPanoramaId || _t("ui.nearbyAmenity");
+  return `
+    <div class="np-card ${isActive ? 'active' : ''} ${opts.child ? 'np-card-child' : ''}"
+         data-id="${m.id}" data-panorama="${m.tdvPanoramaId || ''}">
+      <div class="np-card-idx">${String(i + 1).padStart(2, '0')}</div>
+      <div class="np-card-info">
+        <div class="np-card-name">${_tr(m.label)}</div>
+        <div class="np-card-sub">${sub}</div>
+      </div>
+      <i class="np-card-arrow" data-lucide="chevron-right" width="14" height="14"></i>
+    </div>`;
+}
+
+/* Khớp query với label item */
+function npMatch(m, query) {
+  if (!query) return true;
+  return _tr(m.label).toLowerCase().includes(query) ||
+         (m.label || "").toLowerCase().includes(query);
+}
+
 function renderNavList() {
   const listEl = document.getElementById("np-list");
   if (!listEl) return;
   const menu = DATA.menu || {};
   const query = (document.getElementById("np-search")?.value || "").trim().toLowerCase();
 
-  const groupsHtml = MENU_GROUPS.map(g => {
-    const items = menu[g.key] || [];
-    const filtered = query
-      ? items.filter(m => _tr(m.label).toLowerCase().includes(query) || m.label.toLowerCase().includes(query))
-      : items;
-
-    // When searching, auto-open groups that have matches; otherwise only the single open key
-    const isOpen = query ? filtered.length > 0 : openGroupKey === g.key;
-
-    if (query && filtered.length === 0) return ""; // hide empty groups during search
-
-    const cardsHtml = filtered.map((m, i) => {
-      const isActive = m.id === currentMenuItemId;
+  /* ── Nhóm con của 1 phân khu (accordion lồng cấp 2) ── */
+  function childGroupsHTML(pk) {
+    const children = pk.children || {};
+    return CHILD_GROUPS.map(cg => {
+      const items = (children[cg.key] || []).filter(m => npMatch(m, query));
+      if (query && !items.length) return "";
+      // key xổ nhóm con: "<pkId>::<cgKey>"
+      const subKey = pk.id + "::" + cg.key;
+      const isOpen = query ? items.length > 0 : openGroupKey === subKey;
+      const cards = items.map((m, i) => npCardHTML(m, i, { child: true })).join("");
       return `
-        <div class="np-card ${isActive ? 'active' : ''}" data-id="${m.id}" data-panorama="${m.tdvPanoramaId || ''}">
-          <div class="np-card-idx">${String(i + 1).padStart(2, '0')}</div>
-          <div class="np-card-info">
-            <div class="np-card-name">${_tr(m.label)}</div>
-            <div class="np-card-sub">${m.tdvPanoramaId || _t("ui.nearbyAmenity")}</div>
-          </div>
-          <svg class="np-card-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
-        </div>
-      `;
+        <div class="np-group np-subgroup ${isOpen ? 'open' : ''}" data-group="${subKey}">
+          <button class="np-group-head" type="button">
+            <span class="np-group-icon">${cg.short}</span>
+            <span class="np-group-title">${_tr(cg.label)}</span>
+            <span class="np-group-count">${items.length}</span>
+            <i class="np-group-chev" data-lucide="chevron-right" width="14" height="14"></i>
+          </button>
+          <div class="np-group-body">${cards}</div>
+        </div>`;
     }).join("");
+  }
 
+  /* ── Nhóm Phân khu — mỗi phân khu xổ ra 4 nhóm con ── */
+  function phanKhuGroupHTML() {
+    const list = menu.phanKhu || [];
+    // Khi tìm kiếm: 1 phân khu hiện nếu chính nó hoặc 1 item con khớp
+    const visible = list.filter(pk => {
+      if (!query) return true;
+      if (npMatch(pk, query)) return true;
+      const ch = pk.children || {};
+      return CHILD_GROUPS.some(cg => (ch[cg.key] || []).some(m => npMatch(m, query)));
+    });
+    // Nhóm Phân khu mở khi: đang search có kết quả, openGroupKey là "phanKhu",
+    // hoặc openGroupKey là 1 id phân khu / khoá nhóm con "<pkId>::<cg>".
+    const ogk = openGroupKey || "";
+    const isOpen = query
+      ? visible.length > 0
+      : ogk === "phanKhu" ||
+        list.some(pk => ogk === pk.id || ogk.startsWith(pk.id + "::"));
+    const rows = visible.map((pk, i) => {
+      const expanded = query ? true : (openSubItemId === pk.id);
+      const isActive = pk.id === currentMenuItemId;
+      return `
+        <div class="np-pk ${expanded ? 'expanded' : ''} ${pk.id === activeSubdivision ? 'pk-active' : ''}" data-pk="${pk.id}">
+          <div class="np-card np-pk-head ${isActive ? 'active' : ''}"
+               data-id="${pk.id}" data-panorama="${pk.tdvPanoramaId || ''}">
+            <div class="np-card-idx">${String(i + 1).padStart(2, '0')}</div>
+            <div class="np-card-info">
+              <div class="np-card-name">${_tr(pk.label)}</div>
+              <div class="np-card-sub">${pk.id === activeSubdivision ? _t("ui.filtering") : (pk.tdvPanoramaId || '')}</div>
+            </div>
+            <i class="np-pk-chev" data-lucide="chevron-down" width="15" height="15"></i>
+          </div>
+          <div class="np-pk-children">${childGroupsHTML(pk)}</div>
+        </div>`;
+    }).join("");
+    if (query && !visible.length) return "";
     return `
-      <div class="np-group ${isOpen ? 'open' : ''}" data-group="${g.key}">
+      <div class="np-group ${isOpen ? 'open' : ''}" data-group="phanKhu">
         <button class="np-group-head" type="button">
-          <span class="np-group-icon">${g.short}</span>
-          <span class="np-group-title">${_tr(g.label)}</span>
-          <span class="np-group-count">${filtered.length}</span>
-          <svg class="np-group-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+          <span class="np-group-icon">PK</span>
+          <span class="np-group-title">${_t("ui.subdivisions") || 'Phân khu'}</span>
+          <span class="np-group-count">${visible.length}</span>
+          <i class="np-group-chev" data-lucide="chevron-right" width="14" height="14"></i>
         </button>
-        <div class="np-group-body">${cardsHtml}</div>
-      </div>
-    `;
-  }).join("");
+        <div class="np-group-body np-pk-list">${rows}</div>
+      </div>`;
+  }
 
-  if (!groupsHtml.trim()) {
+  /* ── Nhóm Tổng quan (phẳng) ── */
+  function tongQuanGroupHTML() {
+    const items = (menu.tongQuan || []).filter(m => npMatch(m, query));
+    if (query && !items.length) return "";
+    const isOpen = query ? items.length > 0 : openGroupKey === "tongQuan";
+    const cards = items.map((m, i) => npCardHTML(m, i)).join("");
+    return `
+      <div class="np-group ${isOpen ? 'open' : ''}" data-group="tongQuan">
+        <button class="np-group-head" type="button">
+          <span class="np-group-icon">TQ</span>
+          <span class="np-group-title">${_tr('Tổng quan')}</span>
+          <span class="np-group-count">${items.length}</span>
+          <i class="np-group-chev" data-lucide="chevron-right" width="14" height="14"></i>
+        </button>
+        <div class="np-group-body">${cards}</div>
+      </div>`;
+  }
+
+  const html = tongQuanGroupHTML() + phanKhuGroupHTML();
+  if (!html.trim()) {
     listEl.innerHTML = `<div class="np-empty">${_t("ui.noResults")}</div>`;
     return;
   }
+  listEl.innerHTML = html;
+  bindNavListEvents(listEl);
+}
 
-  listEl.innerHTML = groupsHtml;
-
-  listEl.querySelectorAll(".np-group").forEach(group => {
-    const key = group.dataset.group;
-    group.querySelector(".np-group-head").addEventListener("click", () => {
-      const isOpen = group.classList.contains("open");
-      // Close all groups first
-      listEl.querySelectorAll(".np-group.open").forEach(g => g.classList.remove("open"));
-      if (isOpen) {
-        openGroupKey = null;
-      } else {
-        group.classList.add("open");
-        openGroupKey = key;
-      }
+/* Gắn sự kiện cho np-list sau mỗi lần render */
+function bindNavListEvents(listEl) {
+  /* Toggle nhóm gốc (Tổng quan / Phân khu) + nhóm con */
+  listEl.querySelectorAll(".np-group > .np-group-head").forEach(head => {
+    const group = head.parentElement;
+    head.addEventListener("click", () => {
+      const key = group.dataset.group;
+      const wasOpen = group.classList.contains("open");
+      // Đóng các nhóm CÙNG CẤP
+      const siblings = group.parentElement.querySelectorAll(":scope > .np-group");
+      siblings.forEach(g => { if (g !== group) g.classList.remove("open"); });
+      group.classList.toggle("open", !wasOpen);
+      if (!wasOpen) openGroupKey = key;
+      else if (openGroupKey === key) openGroupKey = null;
     });
-    group.querySelectorAll(".np-card").forEach(card => {
-      card.addEventListener("click", () => {
-        currentMenuItemId = card.dataset.id;
-        lockNavSelection(); // khoá đồng bộ tự động — giữ đúng mục vừa chọn
-        const panoId = card.dataset.panorama;
-        if (panoId) {
-          goToPanorama(panoId); // sẽ tự gọi syncProjectCard()
-        } else {
-          syncProjectCard();    // item không có panorama (vd. phân khu)
-        }
-        // Always update active state
-        document.querySelectorAll(".np-card").forEach(c => {
-          c.classList.toggle("active", c.dataset.id === currentMenuItemId);
-        });
-      });
+  });
+
+  /* Xổ / chọn 1 phân khu */
+  listEl.querySelectorAll(".np-pk-head").forEach(head => {
+    head.addEventListener("click", () => {
+      const pkEl = head.closest(".np-pk");
+      const pkId = pkEl.dataset.pk;
+      currentMenuItemId = pkId;
+      lockNavSelection();
+      // Toggle xổ children
+      if (openSubItemId === pkId && pkEl.classList.contains("expanded")) {
+        pkEl.classList.remove("expanded");
+        openSubItemId = null;
+      } else {
+        listEl.querySelectorAll(".np-pk.expanded").forEach(e => e.classList.remove("expanded"));
+        pkEl.classList.add("expanded");
+        openSubItemId = pkId;
+      }
+      // Chọn phân khu → active filter
+      setActiveSubdivision(pkId);
+      const panoId = head.dataset.panorama;
+      if (panoId) goToPanorama(panoId);
+      else syncProjectCard();
+      listEl.querySelectorAll(".np-card").forEach(c =>
+        c.classList.toggle("active", c.dataset.id === currentMenuItemId));
+      listEl.querySelectorAll(".np-pk").forEach(e =>
+        e.classList.toggle("pk-active", e.dataset.pk === activeSubdivision));
+    });
+  });
+
+  /* Click 1 item thường (Tổng quan hoặc con của phân khu) */
+  listEl.querySelectorAll(".np-card:not(.np-pk-head)").forEach(card => {
+    card.addEventListener("click", () => {
+      currentMenuItemId = card.dataset.id;
+      lockNavSelection();
+      // Nếu item con của phân khu → phân khu đó thành active
+      const pkEl = card.closest(".np-pk");
+      if (pkEl) setActiveSubdivision(pkEl.dataset.pk);
+      else setActiveSubdivision(null); // item Tổng quan
+      const panoId = card.dataset.panorama;
+      if (panoId) goToPanorama(panoId);
+      else syncProjectCard();
+      listEl.querySelectorAll(".np-card").forEach(c =>
+        c.classList.toggle("active", c.dataset.id === currentMenuItemId));
     });
   });
 }
 
 let galleryFolderFilter = '__all'; // '__all' | '__none' | folder name
 let galleryTabFilter = 'image';    // 'image' | 'video'
+let gallerySubKey = null;          // null = bám activeSubdivision
+
+/* Ảnh/video của phân khu đang chọn. Tab "Tất cả" (__all) = toàn bộ gallery. */
+function galleryItemsBySub() {
+  const key = effectiveSubKey(gallerySubKey);
+  const all = (DATA.gallery || []).map(g => ({ type: 'image', ...g }));
+  if (key === '__all') return all;
+  return all.filter(g => (g.subdivision || null) === key);
+}
 
 function galleryItemsByTab() {
-  return (DATA.gallery || [])
-    .map(g => ({ type: 'image', ...g }))
+  return galleryItemsBySub()
     .filter(g => galleryTabFilter === 'video' ? g.type === 'video' : g.type !== 'video');
 }
 
@@ -860,7 +1104,14 @@ function visibleGalleryItems() {
 function buildGallery() {
   const grid = document.getElementById("gal-grid");
   if (!grid) return;
-  const allItems = (DATA.gallery || []).map(g => ({ type: 'image', ...g }));
+  // Thanh chọn phân khu (chèn vào đầu .gal-frame, dưới .gal-head)
+  const galKey = effectiveSubKey(gallerySubKey);
+  renderSubdivisionTabs('.gal-frame', 'gallery-subtabs', galKey, (k) => {
+    gallerySubKey = k;
+    galleryFolderFilter = '__all';
+    buildGallery();
+  });
+  const allItems = galleryItemsBySub();
   const imgCount = allItems.filter(g => g.type !== 'video').length;
   const vidCount = allItems.filter(g => g.type === 'video').length;
   const tabItems = galleryItemsByTab();
@@ -876,8 +1127,8 @@ function buildGallery() {
   const tabBtn = (key, label, count) => {
     const active = galleryTabFilter === key;
     const icon = key === 'video'
-      ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9l5 3-5 3V9z" fill="currentColor"/></svg>'
-      : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>';
+      ? '<i data-lucide="video" width="14" height="14"></i>'
+      : '<i data-lucide="image" width="14" height="14"></i>';
     return `<button data-tab="${key}" style="display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border:none;border-bottom:2px solid ${active?'#3b82f6':'transparent'};background:none;cursor:pointer;font-family:inherit;font-size:13px;font-weight:${active?'600':'500'};color:${active?'#fff':'rgba(255,255,255,.55)'};transition:all .15s">${icon} ${label} <span style="font-size:11px;background:${active?'rgba(59,130,246,.25)':'rgba(255,255,255,.06)'};color:${active?'#fff':'rgba(255,255,255,.5)'};padding:1px 8px;border-radius:10px">${count}</span></button>`;
   };
   tabBar.innerHTML = tabBtn('image', 'Ảnh', imgCount) + tabBtn('video', 'Video', vidCount);
@@ -940,11 +1191,11 @@ function buildGallery() {
       <div class="gal-item" data-idx="${i}" style="position:relative">
         ${thumb
           ? `<img src="${thumb}" alt="${_tr(g.title) || ''}" loading="lazy"/>`
-          : `<div style="aspect-ratio:1;background:#0f172a;display:flex;align-items:center;justify-content:center;color:#475569"><svg width="36" height="36" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></div>`}
+          : `<div style="aspect-ratio:1;background:#0f172a;display:flex;align-items:center;justify-content:center;color:#475569"><i data-lucide="play" width="36" height="36"></i></div>`}
         ${isVideo ? `
           <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none">
             <div style="width:48px;height:48px;border-radius:50%;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;color:#fff">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              <i data-lucide="play" width="20" height="20"></i>
             </div>
           </div>
           <div style="position:absolute;top:8px;left:8px;background:#ef4444;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;letter-spacing:.04em">VIDEO</div>` : ''}
@@ -1025,16 +1276,6 @@ function closeLightbox() {
 }
 
 function bindOverlays() {
-  document.getElementById("btn-amenities-detail")?.addEventListener("click", () => {
-    document.getElementById("amenities-detail-overlay").classList.add("open");
-  });
-  document.getElementById("amenities-detail-close")?.addEventListener("click", () => {
-    document.getElementById("amenities-detail-overlay").classList.remove("open");
-  });
-  document.getElementById("amenities-detail-overlay")?.addEventListener("click", (e) => {
-    if (e.target.id === "amenities-detail-overlay") e.currentTarget.classList.remove("open");
-  });
-
   document.getElementById("btn-legal")?.addEventListener("click", () => {
     document.getElementById("legal-overlay").classList.add("open");
   });
@@ -1113,13 +1354,6 @@ function bindControls() {
     if (!document.fullscreenElement) document.documentElement.requestFullscreen();
     else document.exitFullscreen();
   });
-
-  document.querySelector(".amenities-overlay").addEventListener("click", (e) => {
-    if (e.target.id === "amenities-overlay") {
-      e.currentTarget.classList.remove("open");
-    }
-  });
-
 }
 
 function bindModal() {
@@ -1259,7 +1493,6 @@ function rebuildDynamic() {
   buildProjectCard();
   syncProjectCard(); // giữ đúng chế độ card sau khi đổi ngôn ngữ
   if (DATA.project.promoDeadline) startCountdown(DATA.project.promoDeadline);
-  buildAmenities();
   buildTimelineAndUnits();
   renderNavList();
   // Re-render scene-dependent labels
@@ -1280,8 +1513,14 @@ function rebuildDynamic() {
    HELP TOUR (HELPTOUR_SPEC)
    ============================================ */
 const HELP_ITEMS = [
-  { target: ".brand",           labelKey: "tour.brand" },
-  { target: "#btn-gallery",     mobileTarget: "#mob-gallery-btn", openDrawer: true,  labelKey: "tour.gallery" },
+  { target: ".brand",                labelKey: "tour.brand" },
+  { target: "#btn-masterplan",       mobileTarget: "#mob-masterplan-btn",  openDrawer: true,  labelKey: "tour.masterplan" },
+  { target: "#btn-properties",       mobileTarget: "#mob-properties-btn",  openDrawer: true,  labelKey: "tour.properties" },
+  { target: "#btn-legal",            mobileTarget: "#mob-legal-btn",       openDrawer: true,  labelKey: "tour.legal" },
+  { target: "#btn-location",         mobileTarget: "#mob-location-btn",    openDrawer: true,  labelKey: "tour.location" },
+  { target: "#btn-timeline",    mobileTarget: "#mob-timeline-btn",  openDrawer: true,  labelKey: "tour.timeline" },
+  { target: "#btn-gallery",     mobileTarget: "#mob-gallery-btn",   openDrawer: true,  labelKey: "tour.gallery" },
+  { target: "#btn-resources",   mobileTarget: "#mob-resources-btn", openDrawer: true,  labelKey: "tour.resources" },
   { target: "#open-modal",      mobileTarget: "#mob-book-btn",    openDrawer: true,  labelKey: "tour.book" },
   { target: "#tb-ctrlgroup",    labelKey: "tour.ctrlgroup" },
   { target: "#ctrl-rotate",     mobileTarget: "#mob-rotate",      openDrawer: true,  labelKey: "tour.rotate" },
@@ -1293,7 +1532,9 @@ const HELP_ITEMS = [
   { target: "#nav-panel",       openNav: true,                    labelKey: "tour.nav" },
   { target: "#np-search-wrap",  openNav: true,                    labelKey: "tour.search" },
   { target: "#np-list",         openNav: true,                    labelKey: "tour.list" },
+  { target: "#np-collapse",     openNav: true,                    labelKey: "tour.collapse" },
   { target: "#project-card",    openPC: true,                     labelKey: "tour.project" },
+  { target: "#pc-collapse",     openPC: true,                     labelKey: "tour.pcCollapse" },
   { target: "#bb-chat-btn",     round: true,                      labelKey: "tour.bot" },
   { target: "#ui-restore",      labelKey: "tour.restore" },
 ];
@@ -1478,64 +1719,94 @@ function bindTour() {
   });
 }
 
-/* ============================================
-   AMENITIES DETAIL PANEL (Bước 4)
-   ============================================ */
-function buildAmenitiesDetail() {
-  if (!DATA.amenitiesDetail) return;
-  renderAmenityTab('noiKhu');
-
-  document.getElementById('amenity-tabs')?.querySelectorAll('.adv-tab').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.adv-tab').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      renderAmenityTab(btn.dataset.tab);
-    });
-  });
+/* ============================================================
+   BỘ CHỌN PHÂN KHU cho 5 overlay (pháp lý/vị trí/tiến độ/
+   thư viện/tài liệu). Desktop = tab; mobile (≤768px) = dropdown.
+   Tab "Tất cả" = __all (dữ liệu cấp dự án).
+   Mỗi overlay tự nhớ phân khu đang xem qua biến state riêng.
+   ============================================================ */
+function isMobileView() {
+  return window.matchMedia("(max-width: 768px)").matches;
 }
 
-function renderAmenityTab(tabKey) {
-  const grid = document.getElementById('amenity-detail-grid');
-  if (!grid || !DATA.amenitiesDetail) return;
-  const items = DATA.amenitiesDetail[tabKey] || [];
-  const iconMap = {
-    pool:      '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 18c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2"/><path d="M2 14c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2"/><path d="M7 12V5a2 2 0 014 0M13 12V5a2 2 0 014 0"/></svg>',
-    gym:       '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="9" width="3" height="6"/><rect x="19" y="9" width="3" height="6"/><rect x="5" y="7" width="2" height="10"/><rect x="17" y="7" width="2" height="10"/><path d="M7 12h10"/></svg>',
-    spa:       '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2c0 5-4 8-4 12s2 6 4 6 4-2 4-6-4-7-4-12z"/><path d="M5 12c2 1 4 4 4 8M19 12c-2 1-4 4-4 8"/></svg>',
-    kid:       '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="7" r="3"/><path d="M5 20c0-4 3-7 7-7s7 3 7 7"/></svg>',
-    bbq:       '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 12h16M8 4l1 4M16 4l-1 4M10 12v8M14 12v8M6 20h12"/></svg>',
-    lib:       '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19V6a2 2 0 012-2h12a2 2 0 012 2v13"/><path d="M4 19a2 2 0 002 2h12a2 2 0 002-2M9 10h6"/></svg>',
-    sky:       '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 20h18M5 20V8l7-4 7 4v12"/><path d="M9 20v-6h6v6"/></svg>',
-    cinema:    '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M8 4v16M16 4v16M2 12h20"/></svg>',
-    conf:      '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 6V4a2 2 0 014 0v2M14 6V4a2 2 0 014 0v2"/></svg>',
-    concierge: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="3"/><path d="M20 21a8 8 0 10-16 0"/><path d="M12 11v10"/></svg>',
-    security:  '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l8 3v7c0 5-3.5 9.75-8 11C7.5 21.75 4 17 4 12V5l8-3z"/></svg>',
-    pet:       '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="7" r="2"/><circle cx="15" cy="7" r="2"/><circle cx="5" cy="13" r="2"/><circle cx="19" cy="13" r="2"/><path d="M12 21c-4 0-6-2-6-5 0-2 2-4 6-4s6 2 6 4c0 3-2 5-6 5z"/></svg>',
-    parking:   '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M9 8h4a3 3 0 010 6H9V8z"/></svg>',
-    elevator:  '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 9l3-3 3 3M9 15l3 3 3-3"/></svg>',
-    power:     '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>',
-  };
-  grid.innerHTML = items.map(item => `
-    <div class="adv-item">
-      <div class="adv-item-icon">${iconMap[item.icon] || ''}</div>
-      <div class="adv-item-body">
-        <div class="adv-item-name">${item.name}</div>
-        <div class="adv-item-desc">${item.desc}</div>
-      </div>
-    </div>
-  `).join('');
+/* Dựng/cập nhật thanh chọn phân khu trong 1 overlay.
+   - hostSel: selector của phần tử cha sẽ chèn thanh chọn vào (đầu)
+   - barId: id duy nhất của thanh
+   - current: khoá đang chọn ('__all' | '<pkId>')
+   - onPick: callback(key) khi đổi */
+function renderSubdivisionTabs(hostSel, barId, current, onPick) {
+  const host = document.querySelector(hostSel);
+  if (!host) return;
+  let bar = document.getElementById(barId);
+  if (!bar) {
+    bar = document.createElement("div");
+    bar.id = barId;
+    bar.className = "sub-tabbar";
+    host.insertBefore(bar, host.firstChild);
+  }
+  const subs = subdivisionList();
+  const opts = [{ id: "__all", label: _t("ui.allTab") || "Tất cả" }, ...subs];
+
+  if (isMobileView()) {
+    // Mobile — dropdown
+    bar.classList.add("sub-tabbar-mobile");
+    bar.innerHTML = `
+      <label class="sub-dd-label">${_t("ui.subdivision") || "Phân khu"}</label>
+      <select class="sub-dd-select">
+        ${opts.map(o => `<option value="${o.id}" ${o.id === current ? "selected" : ""}>${_tr(o.label)}</option>`).join("")}
+      </select>`;
+    bar.querySelector("select").addEventListener("change", e => onPick(e.target.value));
+  } else {
+    // Desktop — tab
+    bar.classList.remove("sub-tabbar-mobile");
+    bar.innerHTML = opts.map(o => `
+      <button class="sub-tab ${o.id === current ? "active" : ""}" data-key="${o.id}">
+        ${_tr(o.label)}
+      </button>`).join("");
+    bar.querySelectorAll(".sub-tab").forEach(btn => {
+      btn.addEventListener("click", () => onPick(btn.dataset.key));
+    });
+  }
+}
+
+/* Lấy dữ liệu của 1 mục theo khoá phân khu, fallback __all.
+   data có thể là dạng mới {__all,...} hoặc cũ (object/array phẳng). */
+function pickSubData(data, key) {
+  if (!data) return null;
+  // dạng mới có __all
+  if (typeof data === "object" && !Array.isArray(data) && ("__all" in data)) {
+    return data[key] != null ? data[key] : data.__all;
+  }
+  // dạng cũ phẳng — trả nguyên
+  return data;
+}
+
+/* Khoá phân khu hiện hành cho 1 overlay:
+   nếu có phân khu active → mặc định mở phân khu đó; ngược lại __all.
+   stateVar: giá trị state đang lưu (có thể null nghĩa là chưa chọn). */
+function effectiveSubKey(stateVar) {
+  if (stateVar) return stateVar;
+  return activeSubdivision || "__all";
 }
 
 /* ============================================
    LEGAL / TRUST PANEL (Bước 5)
    ============================================ */
+let legalSubKey = null;   // null = bám theo activeSubdivision
+
 function buildLegalPanel() {
   if (!DATA.legal) return;
+  const key = effectiveSubKey(legalSubKey);
+  renderSubdivisionTabs('.legal-content', 'legal-subtabs', key, (k) => {
+    legalSubKey = k;
+    buildLegalPanel();
+  });
+  const legal = pickSubData(DATA.legal, key) || {};
 
   // Stats
   const statsEl = document.getElementById('legal-stats');
   if (statsEl) {
-    statsEl.innerHTML = DATA.legal.developerStats.map(s => `
+    statsEl.innerHTML = (legal.developerStats || []).map(s => `
       <div class="legal-stat">
         <div class="legal-stat-v">${s.value}<span class="legal-stat-u">${s.unit}</span></div>
         <div class="legal-stat-k">${s.label}</div>
@@ -1546,12 +1817,13 @@ function buildLegalPanel() {
   // Checklist
   const checkEl = document.getElementById('legal-checklist');
   if (checkEl) {
-    checkEl.innerHTML = DATA.legal.documents.map(d => `
+    const docs = legal.documents || [];
+    checkEl.innerHTML = docs.length ? docs.map(d => `
       <div class="legal-check-row ${d.done ? 'done' : 'pending'}">
         <div class="legal-check-icon">
           ${d.done
-            ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>'
-            : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>'
+            ? '<i data-lucide="check-circle" width="14" height="14"></i>'
+            : '<i data-lucide="alert-circle" width="14" height="14"></i>'
           }
         </div>
         <div class="legal-check-body">
@@ -1559,60 +1831,71 @@ function buildLegalPanel() {
           <div class="legal-check-detail">${d.detail}</div>
         </div>
       </div>
-    `).join('');
-  }
-
-  // Banks
-  const banksEl = document.getElementById('legal-banks');
-  if (banksEl) {
-    banksEl.innerHTML = DATA.legal.banks.map(b => `
-      <div class="legal-bank-card">
-        <div class="legal-bank-name">${b.name}</div>
-        <div class="legal-bank-rate">${b.rate}</div>
-        <div class="legal-bank-term">Đến ${b.maxTerm}</div>
-      </div>
-    `).join('');
+    `).join('') : `<div class="np-empty">${_t('ui.noContent') || 'Chưa có nội dung'}</div>`;
   }
 
   // Testimonials
   const testEl = document.getElementById('legal-testimonials');
   if (testEl) {
-    let tIdx = 0;
-    const render = () => {
-      const t = DATA.legal.testimonials[tIdx];
-      testEl.innerHTML = `
-        <div class="legal-testi">
-          <div class="lt-avatar">${t.initials}</div>
-          <div class="lt-body">
-            <div class="lt-quote">"${t.text}"</div>
-            <div class="lt-meta"><strong>${t.initials}</strong> · ${t.role} · <em>${t.unit}</em></div>
-          </div>
-          <div class="lt-nav">
-            <button class="lt-btn" id="lt-prev">‹</button>
-            <span class="lt-dots">${DATA.legal.testimonials.map((_,i) => `<span class="lt-dot ${i===tIdx?'active':''}"></span>`).join('')}</span>
-            <button class="lt-btn" id="lt-next">›</button>
-          </div>
-        </div>`;
-      testEl.querySelector('#lt-prev')?.addEventListener('click', () => { tIdx = (tIdx - 1 + DATA.legal.testimonials.length) % DATA.legal.testimonials.length; render(); });
-      testEl.querySelector('#lt-next')?.addEventListener('click', () => { tIdx = (tIdx + 1) % DATA.legal.testimonials.length; render(); });
-    };
-    render();
+    const list = legal.testimonials || [];
+    if (!list.length) {
+      testEl.innerHTML = `<div class="np-empty">${_t('ui.noContent') || 'Chưa có nội dung'}</div>`;
+    } else {
+      let tIdx = 0;
+      const render = () => {
+        const t = list[tIdx];
+        testEl.innerHTML = `
+          <div class="legal-testi">
+            <div class="lt-avatar">${t.initials}</div>
+            <div class="lt-body">
+              <div class="lt-quote">"${t.text}"</div>
+              <div class="lt-meta"><strong>${t.initials}</strong> · ${t.role} · <em>${t.unit}</em></div>
+            </div>
+            <div class="lt-nav">
+              <button class="lt-btn" id="lt-prev">‹</button>
+              <span class="lt-dots">${list.map((_,i) => `<span class="lt-dot ${i===tIdx?'active':''}"></span>`).join('')}</span>
+              <button class="lt-btn" id="lt-next">›</button>
+            </div>
+          </div>`;
+        testEl.querySelector('#lt-prev')?.addEventListener('click', () => { tIdx = (tIdx - 1 + list.length) % list.length; render(); });
+        testEl.querySelector('#lt-next')?.addEventListener('click', () => { tIdx = (tIdx + 1) % list.length; render(); });
+      };
+      render();
+    }
   }
 }
 
 /* ============================================
    LOCATION PANEL (Bước 6)
    ============================================ */
+let locationSubKey = null;
+
+function currentLocationData() {
+  const key = effectiveSubKey(locationSubKey);
+  return pickSubData(DATA.location, key) || { nearby: [], mapSrc: '' };
+}
+
 function buildLocationPanel() {
   if (!DATA.location) return;
-  // Nạp bản đồ ngay từ đầu — tránh lỗi timing/lazy khi mở overlay
+  const key = effectiveSubKey(locationSubKey);
+  renderSubdivisionTabs('.location-body', 'location-subtabs', key, (k) => {
+    locationSubKey = k;
+    buildLocationPanel();
+  });
+  const loc = currentLocationData();
+  // Nạp bản đồ theo phân khu
   const iframe = document.getElementById('location-iframe');
-  if (iframe && DATA.location.mapSrc && !iframe.getAttribute('src')) {
-    iframe.setAttribute('src', DATA.location.mapSrc);
-  }
+  if (iframe && loc.mapSrc) iframe.setAttribute('src', loc.mapSrc);
+  // reset bộ lọc danh mục về "Tất cả"
+  document.querySelectorAll('.loc-cat-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.cat === ''));
   renderLocationList('');
 
+  // bind 1 lần (idempotent — gỡ listener cũ bằng cloneNode không cần thiết
+  // vì handler chỉ đọc state hiện hành)
   document.getElementById('location-filter')?.querySelectorAll('.loc-cat-btn').forEach(btn => {
+    if (btn._locBound) return;
+    btn._locBound = true;
     btn.addEventListener('click', () => {
       document.querySelectorAll('.loc-cat-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
@@ -1624,7 +1907,12 @@ function buildLocationPanel() {
 function renderLocationList(cat) {
   const el = document.getElementById('location-list');
   if (!el || !DATA.location) return;
-  const items = DATA.location.nearby.filter(n => !cat || n.cat === cat);
+  const loc = currentLocationData();
+  const items = (loc.nearby || []).filter(n => !cat || n.cat === cat);
+  if (!items.length) {
+    el.innerHTML = `<div class="np-empty">${_t('ui.noContent') || 'Chưa có địa điểm'}</div>`;
+    return;
+  }
   el.innerHTML = items.map(n => `
     <div class="loc-item">
       <div class="loc-item-icon ${n.cat}">${locCatIcon(n.cat)}</div>
@@ -1646,18 +1934,34 @@ function locCatIcon(cat) {
 /* ============================================
    TIMELINE PANEL
    ============================================ */
+let timelineSubKey = null;
+
 function buildTimelinePanel() {
   if (!DATA.timeline) return;
+  const key = effectiveSubKey(timelineSubKey);
+  renderSubdivisionTabs('.timeline-frame', 'timeline-subtabs', key, (k) => {
+    timelineSubKey = k;
+    buildTimelinePanel();
+  });
 
-  // Allow admin to broadcast real-time timeline updates via localStorage.
-  // Key `ah_timeline_data` = overriding array; `ah_timeline_pulse` = epoch ms of last update.
-  let items = DATA.timeline;
+  // timeline theo phân khu (dạng mới {__all,...}) hoặc mảng cũ
+  let items = pickSubData(DATA.timeline, key) || [];
+  if (!Array.isArray(items)) items = [];
   let pulseAt = 0;
-  try {
-    const override = JSON.parse(localStorage.getItem('ah_timeline_data') || 'null');
-    if (Array.isArray(override) && override.length) items = override;
-    pulseAt = +localStorage.getItem('ah_timeline_pulse') || 0;
-  } catch (e) {}
+  // Override realtime chỉ áp dụng cho tab Tất cả
+  if (key === '__all') {
+    try {
+      const override = JSON.parse(localStorage.getItem('ah_timeline_data') || 'null');
+      if (Array.isArray(override) && override.length) items = override;
+      pulseAt = +localStorage.getItem('ah_timeline_pulse') || 0;
+    } catch (e) {}
+  }
+  const trackEl0 = document.getElementById('tl-track');
+  if (trackEl0 && !items.length) {
+    document.getElementById('tl-overview').innerHTML = '';
+    trackEl0.innerHTML = `<div class="np-empty">${_t('ui.noContent') || 'Chưa có mốc tiến độ'}</div>`;
+    return;
+  }
 
   const doneN   = items.filter(t => t.status === 'done').length;
   const total   = items.length;
@@ -1694,7 +1998,7 @@ function buildTimelinePanel() {
         <div class="tl-spine">
           <div class="tl-node">
             ${t.status === 'done'
-              ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4L19 7"/></svg>'
+              ? '<i data-lucide="check" width="12" height="12"></i>'
               : t.status === 'active'
                 ? '<div class="tl-node-pulse"></div>'
                 : '<div class="tl-node-dot"></div>'}
@@ -1764,323 +2068,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 document.addEventListener("DOMContentLoaded", boot);
-
-/* ============================================
-   LOAN CALCULATOR
-   ============================================ */
-(function initLoanCalc() {
-  const BANKS = [
-    { name: "Vietcombank", rate: 7.5 },
-    { name: "BIDV",        rate: 7.8 },
-    { name: "Techcombank", rate: 8.0 },
-    { name: "VPBank",      rate: 8.2 },
-  ];
-
-  const QUICK_PRICES = [4.9, 5.4, 6.8, 8.9, 14.2];
-
-  let selBank = 0;  // index
-  let selTerm = 20; // years
-
-  function fmt(bil) {
-    if (bil >= 1) return bil.toFixed(2).replace(/\.?0+$/, '') + ' tỷ';
-    return (bil * 1000).toFixed(0) + ' triệu';
-  }
-  function fmtMonth(bil) {
-    const m = bil * 1000; // triệu
-    return m >= 1000
-      ? (m / 1000).toFixed(3).replace(/\.?0+$/, '') + ' tỷ/tháng'
-      : m.toFixed(1) + ' triệu/tháng';
-  }
-
-  function calc() {
-    const price     = parseFloat(document.getElementById('loan-price')?.value) || 5.4;
-    const equityPct = parseInt(document.getElementById('loan-equity')?.value)  || 30;
-    const equity    = price * equityPct / 100;
-    const principal = price - equity;                // tỷ
-    const rAnnual   = BANKS[selBank].rate / 100;
-    const rMonthly  = rAnnual / 12;
-    const n         = selTerm * 12;                  // months
-
-    // Update equity label
-    const pctEl = document.getElementById('loan-equity-pct-label');
-    const valEl = document.getElementById('loan-equity-val');
-    if (pctEl) pctEl.textContent = equityPct + '%';
-    if (valEl) valEl.textContent = fmt(equity);
-
-    // Monthly payment (annuity)
-    let monthly; // tỷ
-    if (rMonthly === 0) {
-      monthly = principal / n;
-    } else {
-      monthly = principal * rMonthly * Math.pow(1 + rMonthly, n) / (Math.pow(1 + rMonthly, n) - 1);
-    }
-    const totalPay    = monthly * n;
-    const totalInt    = totalPay - principal;
-
-    // Update result panel
-    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-    set('loan-monthly',  fmtMonth(monthly));
-    set('loan-amount',   fmt(principal));
-    set('loan-interest', fmt(totalInt));
-    set('loan-total',    fmt(totalPay));
-
-    // Mini bar chart (yearly principal + interest)
-    drawLoanChart(principal, rMonthly, monthly, selTerm);
-  }
-
-  function drawLoanChart(principal, rMonthly, monthly, years) {
-    const chart = document.getElementById('loan-chart');
-    if (!chart) return;
-    // Build yearly sums
-    let balance = principal;
-    const bars = [];
-    for (let y = 1; y <= years; y++) {
-      let yPrincipal = 0, yInterest = 0;
-      for (let m = 0; m < 12; m++) {
-        const intPart  = balance * rMonthly;
-        const prinPart = Math.min(monthly - intPart, balance);
-        yInterest  += intPart;
-        yPrincipal += prinPart;
-        balance    -= prinPart;
-        if (balance <= 0) { balance = 0; break; }
-      }
-      bars.push({ p: yPrincipal, i: yInterest });
-      if (balance <= 0) break;
-    }
-    const maxBar = Math.max(...bars.map(b => b.p + b.i));
-    const show = Math.min(bars.length, 10); // max 10 bars
-    const step = Math.ceil(bars.length / show);
-    const displayed = bars.filter((_, i) => i % step === 0 || i === bars.length - 1).slice(0, show);
-
-    chart.innerHTML = displayed.map((b, i) => {
-      const total = b.p + b.i;
-      const pPct  = maxBar > 0 ? (b.p / maxBar) * 100 : 0;
-      const iPct  = maxBar > 0 ? (b.i / maxBar) * 100 : 0;
-      const yr    = (i + 1) * step;
-      return `
-        <div class="loan-bar-wrap" title="Năm ${yr}: Gốc ${fmt(b.p)} / Lãi ${fmt(b.i)}">
-          <div class="loan-bar">
-            <div class="lb-interest"  style="height:${iPct}%"></div>
-            <div class="lb-principal" style="height:${pPct}%"></div>
-          </div>
-          <div class="loan-bar-yr">${yr}</div>
-        </div>`;
-    }).join('');
-  }
-
-  function initUI() {
-    // Quick price buttons
-    const qWrap = document.getElementById('loan-quick-prices');
-    if (qWrap) {
-      qWrap.innerHTML = QUICK_PRICES.map(p =>
-        `<button class="loan-qp-btn" data-p="${p}">${p} tỷ</button>`
-      ).join('');
-      qWrap.querySelectorAll('.loan-qp-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const inp = document.getElementById('loan-price');
-          if (inp) { inp.value = btn.dataset.p; calc(); }
-        });
-      });
-    }
-
-    // Term buttons
-    document.getElementById('loan-term-btns')?.querySelectorAll('.loan-term-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.loan-term-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        selTerm = parseInt(btn.dataset.val);
-        calc();
-      });
-    });
-
-    // Bank buttons
-    const bankWrap = document.getElementById('loan-bank-btns');
-    if (bankWrap) {
-      bankWrap.innerHTML = BANKS.map((b, i) =>
-        `<button class="loan-bank-btn ${i === 0 ? 'active' : ''}" data-i="${i}">
-          <span class="lbb-name">${b.name}</span>
-          <span class="lbb-rate">${b.rate}%/năm</span>
-        </button>`
-      ).join('');
-      bankWrap.querySelectorAll('.loan-bank-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.querySelectorAll('.loan-bank-btn').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          selBank = parseInt(btn.dataset.i);
-          calc();
-        });
-      });
-    }
-
-    // Sliders + price input
-    document.getElementById('loan-equity')?.addEventListener('input', calc);
-    document.getElementById('loan-price')?.addEventListener('input', calc);
-
-    // CTA → open loan appointment modal with pre-filled data
-    document.getElementById('loan-open-form')?.addEventListener('click', () => {
-      const price     = parseFloat(document.getElementById('loan-price')?.value) || 5.4;
-      const equityPct = parseInt(document.getElementById('loan-equity')?.value)  || 30;
-      const equity    = price * equityPct / 100;
-      const principal = price - equity;
-      const bank      = BANKS[selBank];
-      const monthly   = document.getElementById('loan-monthly')?.textContent || '—';
-
-      document.getElementById('loan-overlay')?.classList.remove('open');
-      openLoanApptModal({ price, equityPct, equity, principal, bank, selTerm, monthly });
-    });
-
-    calc();
-  }
-
-  // Open/close
-  document.getElementById('btn-loan')?.addEventListener('click', () => {
-    document.getElementById('loan-overlay')?.classList.add('open');
-    initUI(); // idempotent — binds once, re-renders on reopen
-  });
-  document.getElementById('loan-close')?.addEventListener('click', () => {
-    document.getElementById('loan-overlay')?.classList.remove('open');
-  });
-  document.getElementById('loan-overlay')?.addEventListener('click', (e) => {
-    if (e.target.id === 'loan-overlay') e.target.classList.remove('open');
-  });
-
-  // Allow pre-fill from unit table "Tính vay" (future hook)
-  window.openLoanWithPrice = function(priceVal) {
-    const inp = document.getElementById('loan-price');
-    if (inp) inp.value = priceVal;
-    document.getElementById('loan-overlay')?.classList.add('open');
-    initUI();
-  };
-})();
-
-/* ============================================
-   LOAN APPOINTMENT MODAL
-   ============================================ */
-(function initLoanApptModal() {
-  function fmtBil(bil) {
-    if (bil >= 1) return bil.toFixed(2).replace(/\.?0+$/, '') + ' tỷ';
-    return (bil * 1000).toFixed(0) + ' triệu';
-  }
-
-  window.openLoanApptModal = function({ price, equityPct, equity, principal, bank, selTerm, monthly }) {
-    // Build summary card
-    const summary = document.getElementById('lap-summary');
-    if (summary) {
-      summary.innerHTML = `
-        <div class="lap-sum-item">
-          <span class="lap-sum-label">Giá trị căn hộ</span>
-          <span class="lap-sum-value">${fmtBil(price)}</span>
-        </div>
-        <div class="lap-sum-item">
-          <span class="lap-sum-label">Vốn tự có (${equityPct}%)</span>
-          <span class="lap-sum-value">${fmtBil(equity)}</span>
-        </div>
-        <div class="lap-sum-item">
-          <span class="lap-sum-label">Số tiền vay</span>
-          <span class="lap-sum-value">${fmtBil(principal)}</span>
-        </div>
-        <div class="lap-sum-item">
-          <span class="lap-sum-label">Thời hạn</span>
-          <span class="lap-sum-value">${selTerm} năm</span>
-        </div>
-        <div class="lap-sum-item">
-          <span class="lap-sum-label">Ngân hàng</span>
-          <span class="lap-sum-value">${bank.name} · ${bank.rate}%/năm</span>
-        </div>
-        <div class="lap-sum-item">
-          <span class="lap-sum-label">Trả hàng tháng</span>
-          <span class="lap-sum-value highlight">${monthly}</span>
-        </div>
-      `;
-    }
-
-    // Reset form
-    ['lap-name', 'lap-phone', 'lap-date', 'lap-note'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.value = '';
-    });
-    document.querySelectorAll('.lap-check-item input').forEach(cb => {
-      cb.checked = cb.value === 'rate' || cb.value === 'plan';
-    });
-    document.querySelectorAll('.lap-time-btn').forEach(b => b.classList.remove('active'));
-    const flexBtn = document.querySelector('.lap-time-btn[data-val="flexible"]');
-    if (flexBtn) flexBtn.classList.add('active');
-
-    const err = document.getElementById('lap-error');
-    if (err) { err.style.display = 'none'; err.textContent = ''; }
-    const lapSuccess = document.getElementById('lap-success');
-    if (lapSuccess) lapSuccess.style.display = 'none';
-    const lapFooter = document.querySelector('.lap-footer');
-    if (lapFooter) lapFooter.style.display = '';
-    const lapBody = document.querySelector('.lap-body');
-    if (lapBody)  lapBody.style.display = '';
-    const lapSumm = document.getElementById('lap-summary');
-    if (lapSumm)  lapSumm.style.display = '';
-
-    document.getElementById('loan-appt-backdrop')?.classList.add('open');
-  };
-
-  function closeLoanAppt() {
-    document.getElementById('loan-appt-backdrop')?.classList.remove('open');
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    // Close handlers
-    document.getElementById('loan-appt-close')?.addEventListener('click', closeLoanAppt);
-    document.getElementById('loan-appt-backdrop')?.addEventListener('click', (e) => {
-      if (e.target.id === 'loan-appt-backdrop') closeLoanAppt();
-    });
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeLoanAppt();
-    });
-
-    // Time slot selection
-    document.getElementById('lap-time-btns')?.addEventListener('click', (e) => {
-      const btn = e.target.closest('.lap-time-btn');
-      if (!btn) return;
-      document.querySelectorAll('.lap-time-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-    });
-
-    // Submit
-    document.getElementById('lap-submit')?.addEventListener('click', () => {
-      const name  = document.getElementById('lap-name')?.value.trim();
-      const phone = document.getElementById('lap-phone')?.value.trim();
-      const err   = document.getElementById('lap-error');
-
-      if (!name || !phone) {
-        err.textContent = 'Vui lòng nhập họ tên và số điện thoại.';
-        err.style.display = 'block';
-        return;
-      }
-      if (!/^(0|\+84)\d{9,10}$/.test(phone.replace(/\s/g, ''))) {
-        err.textContent = 'Số điện thoại không hợp lệ.';
-        err.style.display = 'block';
-        return;
-      }
-
-      err.style.display = 'none';
-      const footer = document.querySelector('.lap-footer');
-      const body   = document.querySelector('.lap-body');
-      const summ   = document.getElementById('lap-summary');
-      if (footer) footer.style.display = 'none';
-      if (body)   body.style.display   = 'none';
-      if (summ)   summ.style.display   = 'none';
-      document.getElementById('lap-success').style.display = 'flex';
-    });
-
-    // Reset
-    document.getElementById('lap-reset')?.addEventListener('click', () => {
-      const footer = document.querySelector('.lap-footer');
-      const body   = document.querySelector('.lap-body');
-      const summ   = document.getElementById('lap-summary');
-      if (footer) footer.style.display = '';
-      if (body)   body.style.display   = '';
-      if (summ)   summ.style.display   = '';
-      document.getElementById('lap-success').style.display = 'none';
-    });
-  });
-})();
 
 /* ============================================
    FORM TƯ VẤN MỞ RỘNG
@@ -2165,42 +2152,51 @@ document.addEventListener("DOMContentLoaded", boot);
     }
     errEl.style.display = 'none';
 
-    // Collect data (log ra console thay vì gửi API thật)
+    // Gom dữ liệu form. "s" = slug sale trong URL (?s=...) — backend dùng
+    // để gán đúng sale; không có thì backend phân tuần tự (round-robin).
+    const unitCodes = [...document.querySelectorAll('.cf-unit-tag')].map(t => t.dataset.code);
     const payload = {
       name,
       phone,
-      email:   document.getElementById('cf-email')?.value.trim(),
-      zalo:    document.getElementById('cf-zalo')?.value.trim(),
-      unitType: document.getElementById('cf-unit-type')?.value,
-      unitCodes: [...document.querySelectorAll('.cf-unit-tag')].map(t => t.dataset.code),
-      budget:  document.querySelector('#cf-budget-group .cf-choice-btn.selected')?.dataset.val,
-      purpose: document.querySelector('#cf-purpose-group .cf-choice-btn.selected')?.dataset.val,
-      timing:  document.querySelector('#cf-time-group .cf-choice-btn.selected')?.dataset.val,
-      note:    document.getElementById('cf-note')?.value.trim(),
-      consentZalo: document.getElementById('cf-consent-zalo')?.checked,
-      consentSms:  document.getElementById('cf-consent-sms')?.checked,
-      source: 'vr360-form',
-      timestamp: new Date().toISOString(),
+      email:   document.getElementById('cf-email')?.value.trim() || '',
+      zalo:    document.getElementById('cf-zalo')?.value.trim() || '',
+      budget:  document.querySelector('#cf-budget-group .cf-choice-btn.selected')?.dataset.val || '',
+      purpose: document.querySelector('#cf-purpose-group .cf-choice-btn.selected')?.dataset.val || '',
+      timing:  document.querySelector('#cf-time-group .cf-choice-btn.selected')?.dataset.val || '',
+      notes: [
+        document.getElementById('cf-unit-type')?.value,
+        unitCodes.length ? 'Căn quan tâm: ' + unitCodes.join(', ') : '',
+        document.getElementById('cf-note')?.value.trim(),
+      ].filter(Boolean).join(' · '),
+      source: 'VR Web',
+      s: getSaleSlug(),
     };
-    console.log('[Aurora CRM] Lead payload:', payload);
 
     // Loading state
     submitBtn.classList.add('loading');
     submitBtn.textContent = I18n.t('modal.sending');
 
-    // Simulate API call (replace with real endpoint)
-    setTimeout(() => {
-      submitBtn.classList.remove('loading');
-      // Show success
-      document.getElementById('contact-form-wrap').style.display = 'none';
-      const suc = document.getElementById('form-success');
-      suc.style.display = '';
-      suc.style.display = 'flex';
-      // Update Zalo link if user gave a different Zalo number
-      const zaloNum = payload.zalo || payload.phone;
-      const zaloLink = document.getElementById('form-suc-zalo');
-      if (zaloLink) zaloLink.href = 'https://zalo.me/' + zaloNum.replace(/\s/g, '');
-    }, 800);
+    // Gửi lead thật về backend.
+    (async () => {
+      try {
+        if (!window.DataSource || !window.DataSource.submitLead) {
+          throw new Error('Thiếu DataSource');
+        }
+        await window.DataSource.submitLead(payload);
+        submitBtn.classList.remove('loading');
+        document.getElementById('contact-form-wrap').style.display = 'none';
+        const suc = document.getElementById('form-success');
+        suc.style.display = 'flex';
+        const zaloNum = payload.zalo || payload.phone;
+        const zaloLink = document.getElementById('form-suc-zalo');
+        if (zaloLink) zaloLink.href = 'https://zalo.me/' + zaloNum.replace(/\s/g, '');
+      } catch (err) {
+        submitBtn.classList.remove('loading');
+        submitBtn.textContent = window.I18n ? window.I18n.t('modal.submit') : 'Gửi yêu cầu tư vấn';
+        errEl.textContent = 'Gửi không thành công, vui lòng thử lại. (' + err.message + ')';
+        errEl.style.display = '';
+      }
+    })();
   });
 
   // Reset form
@@ -2235,17 +2231,24 @@ const RESOURCE_META = {
 };
 
 const RES_ICONS = {
-  doc:   '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/></svg>',
-  kit:   '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7h18v13H3z"/><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>',
-  brand: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg>',
-  price: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 12l-8 8-9-9V3h8z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg>',
-  plan:  '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18"/><path d="M3 9h18M9 3v18"/></svg>'
+  doc:   '<i data-lucide="file-text" width="22" height="22"></i>',
+  kit:   '<i data-lucide="briefcase" width="22" height="22"></i>',
+  brand: '<i data-lucide="globe" width="22" height="22"></i>',
+  price: '<i data-lucide="tag" width="22" height="22"></i>',
+  plan:  '<i data-lucide="layout-grid" width="22" height="22"></i>'
 };
+
+let resourcesSubKey = null;
 
 function buildResourcesPanel() {
   const grid = document.getElementById('res-grid');
   if (!grid) return;
-  const res = DATA.resources || {};
+  const key = effectiveSubKey(resourcesSubKey);
+  renderSubdivisionTabs('.resources-frame', 'resources-subtabs', key, (k) => {
+    resourcesSubKey = k;
+    buildResourcesPanel();
+  });
+  const res = pickSubData(DATA.resources, key) || {};
   const keys = Object.keys(RESOURCE_META);
   grid.innerHTML = keys.map(k => {
     const item = res[k] || {};

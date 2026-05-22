@@ -166,17 +166,14 @@
       <div id="mst-success-screen" class="mst-panel" style="display:none">
         <div id="mob-stepper-success">
           <div class="mst-success-icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <circle cx="12" cy="12" r="10"/>
-              <path d="M9 12l2 2 4-4"/>
-            </svg>
+            <i data-lucide="check-circle" width="28" height="28"></i>
           </div>
           <div class="mst-success-title" data-i18n="stepper.successTitle">Đã gửi thành công!</div>
           <div class="mst-success-sub" data-i18n-html="stepper.successSub">
             Chúng tôi sẽ liên hệ lại trong <strong>vòng 30 phút</strong> trong giờ làm việc.
           </div>
           <a class="mst-success-zalo" id="mst-suc-zalo" href="https://zalo.me/0901234567" target="_blank" rel="noopener">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><text y="18" font-size="14" font-weight="bold">Z</text></svg>
+            <i data-lucide="message-circle" width="14" height="14"></i>
             <span data-i18n="stepper.successZalo">Chat Zalo ngay</span>
           </a>
           <button class="mst-success-reset" id="mst-suc-reset" data-i18n="stepper.successReset">Gửi yêu cầu khác</button>
@@ -188,12 +185,12 @@
     <!-- Footer nav -->
     <div class="mst-footer" id="mst-footer">
       <button class="mst-btn-back" id="mst-btn-back" style="display:none">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+        <i data-lucide="arrow-left" width="14" height="14"></i>
         <span data-i18n="stepper.back">Quay lại</span>
       </button>
       <button class="mst-btn-next" id="mst-btn-next">
         <span data-i18n="stepper.next">Tiếp theo</span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        <i data-lucide="arrow-right" width="14" height="14"></i>
       </button>
     </div>
   </div>
@@ -257,9 +254,7 @@
              data-dir="${u.direction||''}" data-floor="${u.floor||''}" data-price="${u.price}"
              data-status="${u.status}">
           <div class="mst-unit-card-check">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-              <path d="M5 12l4 4L19 7"/>
-            </svg>
+            <i data-lucide="check" width="11" height="11"></i>
           </div>
           <div class="mst-unit-card-body">
             <div class="mst-unit-card-code">${u.code}</div>
@@ -321,7 +316,7 @@
 
       const circle = step.querySelector('.mst-step-circle');
       if (n < currentStep) {
-        circle.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l4 4L19 7"/></svg>`;
+        circle.innerHTML = `<i data-lucide="check" width="12" height="12"></i>`;
       } else {
         circle.textContent = n;
       }
@@ -334,9 +329,9 @@
     }
   }
 
-  const SVG_NEXT = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>`;
-  const SVG_SEND = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>`;
-  const SVG_BACK = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>`;
+  const SVG_NEXT = `<i data-lucide="arrow-right" width="14" height="14"></i>`;
+  const SVG_SEND = `<i data-lucide="send" width="14" height="14"></i>`;
+  const SVG_BACK = `<i data-lucide="arrow-left" width="14" height="14"></i>`;
 
   function updateFooter() {
     btnBack.style.display = currentStep > 1 ? 'flex' : 'none';

@@ -1,0 +1,21 @@
+{
+  "name": "haivanbay-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Backend API cho Vinhomes Hai Van Bay — đọc dữ liệu từ MySQL",
+  "scripts": {
+    "start": "node src/index.js",
+    "seed": "node src/seed.js",
+    "seed:i18n": "node src/seed-i18n.js",
+    "seed:accounts": "node src/seed-accounts.js",
+    "migrate:auth": "node src/migrate-auth.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "mysql2": "^3.11.5"
+  }
+}

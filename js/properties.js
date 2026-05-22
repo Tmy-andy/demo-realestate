@@ -35,10 +35,29 @@
     return props().reduce((m, p) => Math.max(m, p.priceVal || 0), 0);
   }
 
+  /* Đồng bộ bộ lọc BĐS theo phân khu đang active (yêu cầu #2).
+     Tự động bật lọc khi có phân khu active; người dùng vẫn có thể
+     bỏ tick trong bộ lọc để xem tổng quan. */
+  function syncPropertiesSubdivision() {
+    const sub = typeof window.getActiveSubdivision === "function"
+      ? window.getActiveSubdivision() : null;
+    filter.phanKhu.clear();
+    if (sub) filter.phanKhu.add(sub);
+    // Nếu modal đang mở → re-render ngay
+    const bd = $("props-backdrop");
+    if (bd && bd.classList.contains("open")) {
+      renderFilterPanel();
+      renderGrid();
+    }
+  }
+  window.syncPropertiesSubdivision = syncPropertiesSubdivision;
+
   /* ============================================================
      DANH SÁCH BĐS (#8)
      ============================================================ */
   function openPropertiesModal() {
+    // Mỗi lần mở: tự lọc theo phân khu active (nếu có)
+    syncPropertiesSubdivision();
     renderFilterPanel();
     renderGrid();
     const bd = $("props-backdrop");
@@ -238,7 +257,7 @@
     const highlights = (p.highlights || [])
       .map(
         (h) =>
-          '<li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5L20 7"/></svg>' +
+          '<li><i data-lucide="check" width="14" height="14"></i>' +
           tr(h) + "</li>"
       )
       .join("");
@@ -307,9 +326,9 @@
   function buildContactCard(p) {
     const s = resolveSale(p);
     if (!s) return "";
-    const phoneSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014 2h3a2 2 0 012 1.7c.1.9.3 1.8.6 2.6a2 2 0 01-.5 2.1L7.1 9.9a16 16 0 006 6l1.5-1.5a2 2 0 012.1-.5c.8.3 1.7.5 2.6.6A2 2 0 0122 16.9z"/></svg>';
-    const mailSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 6l-10 7L2 6"/></svg>';
-    const zaloSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><text y="18" font-size="14" font-weight="bold">Z</text></svg>';
+    const phoneSvg = '<i data-lucide="phone" width="14" height="14"></i>';
+    const mailSvg = '<i data-lucide="mail" width="14" height="14"></i>';
+    const zaloSvg = '<i data-lucide="message-circle" width="14" height="14"></i>';
     return (
       '<div class="pd-side-card">' +
         '<div class="pd-side-label">Nhân viên tư vấn</div>' +
@@ -400,7 +419,7 @@
       const rows = (p.policies || [])
         .map(
           (c) =>
-            '<li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5L20 7"/></svg>' +
+            '<li><i data-lucide="check" width="14" height="14"></i>' +
             tr(c) + "</li>"
         )
         .join("");
@@ -411,7 +430,7 @@
         .map(
           (d) =>
             '<div class="pd-doc-row"><span class="pd-doc-ico">' +
-            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>' +
+            '<i data-lucide="file-text" width="16" height="16"></i>' +
             "</span>" +
             '<span class="pd-doc-name">' + tr(d.name) + "</span>" +
             '<span class="pd-doc-type">' + (d.type || "FILE") + "</span></div>"
