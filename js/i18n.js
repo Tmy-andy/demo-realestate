@@ -275,8 +275,9 @@ window.I18n = (() => {
   async function loadFromDB() {
     try {
       const base =
-        (window.DataSource && window.DataSource.API_URL || "")
-          .replace(/\/api\/project$/, "") || "http://localhost:3000";
+        (window.APP_CONFIG && window.APP_CONFIG.API_BASE) ||
+        ((window.DataSource && window.DataSource.API_URL || "")
+          .replace(/\/api\/project$/, ""));
       const res = await fetch(base + "/api/i18n", { cache: "no-store" });
       if (!res.ok) throw new Error("HTTP " + res.status);
       const data = await res.json();

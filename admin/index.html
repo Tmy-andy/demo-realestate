@@ -262,8 +262,9 @@
   <div class="footer">Vinhomes Hai Van Bay Admin · Chỉ dành cho nội bộ</div>
 </div>
 
+<script src="../js/config.js"></script>
 <script>
-const API_BASE = 'http://localhost:3000';
+const API_BASE = (window.APP_CONFIG && window.APP_CONFIG.API_BASE) || '';
 
 /* Password toggle */
 const pwInput  = document.getElementById('password');

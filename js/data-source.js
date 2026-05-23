@@ -8,7 +8,7 @@
  * Đổi API_BASE nếu deploy backend ở domain khác.
  */
 (function () {
-  const API_BASE = 'http://localhost:3000';
+  const API_BASE = (window.APP_CONFIG && window.APP_CONFIG.API_BASE) || '';
   const API_URL = API_BASE + '/api/project';
   const STATIC_URL = 'data/project.json';
 

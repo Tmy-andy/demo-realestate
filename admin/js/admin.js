@@ -136,7 +136,7 @@ async function loadData() {
 
 // ——— THEME API ———————————————————————————————
 // Đổi nếu backend deploy ở domain khác.
-const API_BASE = 'http://localhost:3000';
+const API_BASE = (window.APP_CONFIG && window.APP_CONFIG.API_BASE) || '';
 
 async function loadTheme() {
   try {

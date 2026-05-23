@@ -209,7 +209,7 @@ function getMockLeads() {
 }
 
 // ——— AUTH ———————————————————————————————————
-const API_BASE = 'http://localhost:3000';
+const API_BASE = (window.APP_CONFIG && window.APP_CONFIG.API_BASE) || '';
 
 // Đường dẫn tuyệt đối tới 1 file trong thư mục admin/ — redirect luôn
 // đúng dù URL là /admin, /admin/, hay /admin/sales.html.
