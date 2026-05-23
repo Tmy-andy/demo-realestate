@@ -7,5 +7,5 @@
  * File này phải load TRƯỚC mọi file gọi API (data-source.js, admin.js, sales.js, i18n.js).
  */
 window.APP_CONFIG = {
-  API_BASE: '',
+  API_BASE: 'https://haivanbay-api.onrender.com',
 };
