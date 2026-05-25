@@ -410,7 +410,7 @@ a { color: inherit; text-decoration: none; }
   position: absolute;
   left: 14px;
   top: 72px;
-  bottom: 14px;
+  max-height: calc(100vh - 86px);
   z-index: 15;
   width: 320px;
   background: var(--panel);
@@ -2325,7 +2325,16 @@ body.ai-panel-open .bb-float { opacity: 0.95; }
   #ai-panel.listening .ai-pn-mic,
   #ai-panel.thinking .ai-pn-mic,
   #ai-panel.speaking .ai-pn-mic { width: 40px; height: 40px; }
-  .bb-float { right: 16px; bottom: 16px; }
+  .bb-float { right: 16px; bottom: 16px; width: 52px; height: 52px; }
+  /* Khi sub-dock hiện ở mobile, nâng nút botchat lên trên dock để không che */
+  body.sub-dock-visible .bb-float {
+    bottom: calc(16px + 80px + 10px); /* ~ dock height (label + buttons + padding) */
+  }
+  body.sub-dock-visible #ai-panel.listening,
+  body.sub-dock-visible #ai-panel.thinking,
+  body.sub-dock-visible #ai-panel.speaking {
+    bottom: calc(16px + 80px + 10px);
+  }
 }
 
 /* ─── Keyframes ─── */

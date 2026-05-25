@@ -1049,12 +1049,14 @@ function renderSubdivisionDock() {
   if (!dock) return;
   if (!activeSubdivision || !DATA) {
     dock.classList.remove("visible");
+    document.body.classList.remove("sub-dock-visible");
     dock.innerHTML = "";
     return;
   }
   const pk = (DATA.menu.phanKhu || []).find(p => p.id === activeSubdivision);
   if (!pk) {
     dock.classList.remove("visible");
+    document.body.classList.remove("sub-dock-visible");
     dock.innerHTML = "";
     return;
   }
@@ -1074,6 +1076,7 @@ function renderSubdivisionDock() {
     }).join("") +
     `</div>`;
   dock.classList.add("visible");
+  document.body.classList.add("sub-dock-visible");
   dock.querySelectorAll(".sub-dock-btn").forEach(btn => {
     btn.addEventListener("click", () => openSubDockPopup(btn.dataset.group));
   });
