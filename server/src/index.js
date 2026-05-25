@@ -11,6 +11,7 @@ import {
   listUsers, createUser, updateUser, deleteUser,
   findSaleBySlug, pickNextSale,
 } from './users.js';
+import { createPresignedPut, r2Enabled } from './r2.js';
 
 const app = express();
 app.use(cors());
@@ -541,7 +542,26 @@ async function buildProjectJson() {
   };
 }
 
-app.get('/api/health', (_req, res) => res.json({ ok: true }));
+app.get('/api/health', (_req, res) => res.json({ ok: true, r2: r2Enabled }));
+
+// =====================================================================
+// Upload — cấp presigned PUT URL để frontend upload trực tiếp lên R2
+// Body: { filename, contentType, folder? }
+// =====================================================================
+app.post('/api/upload/presign', async (req, res) => {
+  try {
+    if (!r2Enabled) {
+      return res.status(503).json({ error: 'R2 chưa được cấu hình trên server (.env)' });
+    }
+    const { filename, contentType, folder } = req.body || {};
+    if (!contentType) return res.status(400).json({ error: 'Thiếu contentType' });
+    const out = await createPresignedPut({ filename, contentType, folder });
+    res.json(out);
+  } catch (err) {
+    console.error('[upload/presign]', err);
+    res.status(400).json({ error: err.message });
+  }
+});
 
 // =====================================================================
 // Auth — đăng nhập / đăng xuất / phiên hiện tại

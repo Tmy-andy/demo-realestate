@@ -1871,19 +1871,26 @@ function ecMediaRefresh() {
   const host = document.getElementById('ec-dt-images-grid');
   if (host) host.innerHTML = ecMediaRender();
 }
-function ecMediaUpload(input) {
+async function ecMediaUpload(input) {
   const files = Array.from(input.files || []);
   if (!files.length) return;
   window.__ecImages = window.__ecImages || [];
-  let pending = files.length;
-  files.forEach(f => {
-    const r = new FileReader();
-    r.onload = () => {
-      window.__ecImages.push(r.result);
-      if (--pending === 0) ecMediaRefresh();
-    };
-    r.readAsDataURL(f);
-  });
+  toast(`Đang tải ${files.length} ảnh lên R2...`, 'info');
+  let ok = 0, fail = 0;
+  for (const f of files) {
+    if (!f.type.startsWith('image/')) { fail++; continue; }
+    try {
+      const url = await uploadImageToR2(f, { folder: 'detail' });
+      window.__ecImages.push(url);
+      ok++;
+      ecMediaRefresh();
+    } catch (err) {
+      console.error(err);
+      fail++;
+    }
+  }
+  input.value = '';
+  toast(`Đã tải ${ok}/${files.length} ảnh${fail ? ` (lỗi ${fail})` : ''}`, fail ? 'warn' : 'ok');
 }
 function ecMediaAddLink() {
   showPanel('Dán link ảnh', `
@@ -1903,18 +1910,28 @@ function ecMediaRemove(i) {
   if (window.__ecImages) { window.__ecImages.splice(i, 1); ecMediaRefresh(); }
 }
 
-/* Upload ảnh bìa phân khu — đọc thành data URL, điền vào ô + preview */
-function subdivPickCover(input) {
+/* Upload ảnh bìa phân khu — push lên R2, lưu public URL vào ô + preview */
+async function subdivPickCover(input) {
   const file = input.files && input.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    const inp = document.getElementById('ec-sub-cover');
-    const img = document.getElementById('ec-cover-preview');
-    if (inp) inp.value = reader.result;
-    if (img) { img.src = reader.result; img.style.display = ''; }
-  };
-  reader.readAsDataURL(file);
+  if (!file.type.startsWith('image/')) { toast('File không phải ảnh', 'err'); return; }
+  const inp = document.getElementById('ec-sub-cover');
+  const img = document.getElementById('ec-cover-preview');
+  const localPreview = URL.createObjectURL(file);
+  if (img) { img.src = localPreview; img.style.display = ''; img.style.opacity = .55; }
+  try {
+    const url = await uploadImageToR2(file, { folder: 'subdivision-cover' });
+    URL.revokeObjectURL(localPreview);
+    if (inp) inp.value = url;
+    if (img) { img.src = url; img.style.opacity = 1; }
+    toast('Đã tải ảnh bìa', 'ok');
+  } catch (err) {
+    URL.revokeObjectURL(localPreview);
+    console.error(err);
+    toast('Upload thất bại: ' + err.message, 'err');
+    if (img) { img.style.display = 'none'; img.style.opacity = 1; }
+    input.value = '';
+  }
 }
 
 function deleteNpCard(groupKey, itemId, subId) {

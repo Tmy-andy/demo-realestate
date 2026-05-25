@@ -201,6 +201,47 @@ function esc(v) {
 const MAX_IMG_BYTES   = 10 * 1024 * 1024;          // 10MB / ảnh
 const MAX_TOTAL_BYTES = 5  * 1024 * 1024;          // 5MB tổng localStorage
 
+/* Upload 1 file ảnh lên Cloudflare R2 qua presigned URL.
+   onProgress(pct 0..100) tuỳ chọn. Trả về public URL.
+   Fallback: nếu server chưa cấu hình R2 (503) -> ném lỗi để caller xử lý. */
+async function uploadImageToR2(file, { folder = 'uploads', onProgress } = {}) {
+  const base = (typeof API_BASE !== 'undefined' && API_BASE) ? API_BASE : '';
+  const presignRes = await fetch(base + '/api/upload/presign', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      filename: file.name,
+      contentType: file.type || 'application/octet-stream',
+      folder,
+    }),
+  });
+  if (!presignRes.ok) {
+    const msg = (await presignRes.json().catch(() => ({}))).error || presignRes.statusText;
+    throw new Error('Không xin được presigned URL: ' + msg);
+  }
+  const { uploadUrl, publicUrl, headers } = await presignRes.json();
+
+  // Dùng XHR để có progress (fetch không hỗ trợ upload progress)
+  await new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('PUT', uploadUrl);
+    Object.entries(headers || {}).forEach(([k, v]) => xhr.setRequestHeader(k, v));
+    xhr.upload.onprogress = ev => {
+      if (ev.lengthComputable && typeof onProgress === 'function') {
+        onProgress(Math.round(ev.loaded / ev.total * 100));
+      }
+    };
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) resolve();
+      else reject(new Error('R2 trả ' + xhr.status));
+    };
+    xhr.onerror = () => reject(new Error('Lỗi mạng khi upload lên R2'));
+    xhr.send(file);
+  });
+
+  return publicUrl;
+}
+
 function currentStorageBytes() {
   try { return (localStorage.getItem(LS_KEY) || '').length; } catch { return 0; }
 }
@@ -303,7 +344,7 @@ function imgFieldUpload(id, input) {
   const file = input.files && input.files[0];
   if (file) imgFieldReadFile(id, file);
 }
-function imgFieldReadFile(id, file) {
+async function imgFieldReadFile(id, file) {
   if (!file.type.startsWith('image/')) {
     toast('File không phải ảnh', 'err'); return;
   }
@@ -320,33 +361,37 @@ function imgFieldReadFile(id, file) {
     </div>
     <div class="dz-info-size mono">${fmtSize(file.size)}</div>
   </div>`;
-  const fr = new FileReader();
-  fr.onprogress = ev => {
-    if (!ev.lengthComputable) return;
-    const pct = Math.round(ev.loaded / ev.total * 100);
-    const bar = document.getElementById(id+'-bar');
-    if (bar) bar.style.width = pct + '%';
-  };
-  fr.onload = e => {
-    const dataUrl = e.target.result;
-    const projected = currentStorageBytes() + dataUrl.length;
-    if (projected > MAX_TOTAL_BYTES) {
-      toast(`Hết quota localStorage (${fmtSize(MAX_TOTAL_BYTES)}). Xoá bớt ảnh hoặc dùng URL.`, 'err');
-      imgFieldClear(id); return;
-    }
-    document.getElementById(id+'-val').value = dataUrl;
-    const prev = document.getElementById(id+'-prev');
-    prev.style.display = '';
-    prev.querySelector('img').src = dataUrl;
+
+  // Preview ngay bằng object URL trong khi đang upload lên R2.
+  const localPreview = URL.createObjectURL(file);
+  const prev = document.getElementById(id+'-prev');
+  prev.style.display = '';
+  prev.querySelector('img').src = localPreview;
+  prev.querySelector('img').style.opacity = .55;
+
+  try {
+    const publicUrl = await uploadImageToR2(file, {
+      folder: 'gallery',
+      onProgress: pct => {
+        const bar = document.getElementById(id+'-bar');
+        if (bar) bar.style.width = pct + '%';
+      },
+    });
+    URL.revokeObjectURL(localPreview);
+    document.getElementById(id+'-val').value = publicUrl;
+    prev.querySelector('img').src = publicUrl;
     prev.querySelector('img').style.opacity = 1;
     const bar = document.getElementById(id+'-bar'); if (bar) bar.style.width = '100%';
-    info.querySelector('.dz-info-thumb').innerHTML = `<img src="${dataUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:4px">`;
-    /* sync logo-slot preview if present */
+    info.querySelector('.dz-info-thumb').innerHTML = `<img src="${publicUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:4px">`;
     const si = document.getElementById(id+'-slot-img');
-    if (si) { si.src = dataUrl; si.style.opacity = 1; }
+    if (si) { si.src = publicUrl; si.style.opacity = 1; }
     toast(`Đã tải ${fmtSize(file.size)}`, 'ok');
-  };
-  fr.readAsDataURL(file);
+  } catch (err) {
+    URL.revokeObjectURL(localPreview);
+    console.error(err);
+    toast('Upload thất bại: ' + err.message, 'err');
+    imgFieldClear(id);
+  }
 }
 function imgFieldValue(id) {
   const el = document.getElementById(id+'-val');
@@ -1620,17 +1665,20 @@ function mpResolveImg(src) {
   return "../" + src;
 }
 
-/* Tải ảnh lên — đọc thành data URL lưu vào masterplan.image */
-function mpUploadImage(input) {
+/* Tải ảnh quy hoạch lên R2, lưu public URL vào masterplan.image */
+async function mpUploadImage(input) {
   const file = input.files && input.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
-    S.data.masterplan.image = reader.result; // data URL
+  if (!file.type.startsWith('image/')) { toast('File không phải ảnh', 'err'); return; }
+  try {
+    const url = await uploadImageToR2(file, { folder: 'masterplan' });
+    S.data.masterplan.image = url;
     saveData("Đã tải ảnh quy hoạch");
     go("masterplan");
-  };
-  reader.readAsDataURL(file);
+  } catch (err) {
+    console.error(err);
+    toast('Upload thất bại: ' + err.message, 'err');
+  }
 }
 
 function mpSetImageUrl() {
@@ -2165,20 +2213,24 @@ function propRefreshMedia(field) {
   const host = document.getElementById('pd-' + field + '-grid');
   if (host) host.innerHTML = propMediaGridHTML(propCurrent()[field], field);
 }
-function propUploadMedia(input, field) {
+async function propUploadMedia(input, field) {
   const files = Array.from(input.files || []);
   if (!files.length) return;
   const p = propCurrent();
   p[field] = p[field] || [];
-  let pending = files.length;
-  files.forEach(f => {
-    const r = new FileReader();
-    r.onload = () => {
-      p[field].push(r.result);
-      if (--pending === 0) propRefreshMedia(field);
-    };
-    r.readAsDataURL(f);
-  });
+  toast(`Đang tải ${files.length} ảnh...`, 'info');
+  let ok = 0, fail = 0;
+  for (const f of files) {
+    if (!f.type.startsWith('image/')) { fail++; continue; }
+    try {
+      const url = await uploadImageToR2(f, { folder: 'property/' + field });
+      p[field].push(url);
+      ok++;
+      propRefreshMedia(field);
+    } catch (err) { console.error(err); fail++; }
+  }
+  input.value = '';
+  toast(`Đã tải ${ok}/${files.length}${fail ? ` (lỗi ${fail})` : ''}`, fail ? 'warn' : 'ok');
 }
 function propAddMedia(field) {
   showPanel("Dán link ảnh", `
