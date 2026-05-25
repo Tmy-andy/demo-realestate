@@ -42,6 +42,7 @@ function setActiveSubdivision(subId) {
   buildLocationPanel();
   buildTimelinePanel();
   buildResourcesPanel();
+  renderSubdivisionDock();
   // BĐS: properties.js tự đọc getActiveSubdivision() khi mở modal
   if (typeof window.syncPropertiesSubdivision === "function") {
     window.syncPropertiesSubdivision();
@@ -917,51 +918,19 @@ function renderNavList() {
   const menu = DATA.menu || {};
   const query = (document.getElementById("np-search")?.value || "").trim().toLowerCase();
 
-  /* ── Nhóm con của 1 phân khu (accordion lồng cấp 2) ── */
-  function childGroupsHTML(pk) {
-    const children = pk.children || {};
-    return CHILD_GROUPS.map(cg => {
-      const items = (children[cg.key] || []).filter(m => npMatch(m, query));
-      if (query && !items.length) return "";
-      // key xổ nhóm con: "<pkId>::<cgKey>"
-      const subKey = pk.id + "::" + cg.key;
-      const isOpen = query ? items.length > 0 : openGroupKey === subKey;
-      const cards = items.map((m, i) => npCardHTML(m, i, { child: true })).join("");
-      return `
-        <div class="np-group np-subgroup ${isOpen ? 'open' : ''}" data-group="${subKey}">
-          <button class="np-group-head" type="button">
-            <span class="np-group-icon">${cg.short}</span>
-            <span class="np-group-title">${_tr(cg.label)}</span>
-            <span class="np-group-count">${items.length}</span>
-            <i class="np-group-chev" data-lucide="chevron-right" width="14" height="14"></i>
-          </button>
-          <div class="np-group-body">${cards}</div>
-        </div>`;
-    }).join("");
-  }
-
-  /* ── Nhóm Phân khu — mỗi phân khu xổ ra 4 nhóm con ── */
+  /* ── Nhóm Phân khu — chỉ liệt kê các phân khu (phẳng).
+     4 nhóm con (NK/NG/MB/VR) giờ truy cập qua dock 4 nút ở bottom. ── */
   function phanKhuGroupHTML() {
     const list = menu.phanKhu || [];
-    // Khi tìm kiếm: 1 phân khu hiện nếu chính nó hoặc 1 item con khớp
-    const visible = list.filter(pk => {
-      if (!query) return true;
-      if (npMatch(pk, query)) return true;
-      const ch = pk.children || {};
-      return CHILD_GROUPS.some(cg => (ch[cg.key] || []).some(m => npMatch(m, query)));
-    });
-    // Nhóm Phân khu mở khi: đang search có kết quả, openGroupKey là "phanKhu",
-    // hoặc openGroupKey là 1 id phân khu / khoá nhóm con "<pkId>::<cg>".
+    const visible = list.filter(pk => !query || npMatch(pk, query));
     const ogk = openGroupKey || "";
     const isOpen = query
       ? visible.length > 0
-      : ogk === "phanKhu" ||
-        list.some(pk => ogk === pk.id || ogk.startsWith(pk.id + "::"));
+      : ogk === "phanKhu" || list.some(pk => ogk === pk.id);
     const rows = visible.map((pk, i) => {
-      const expanded = query ? true : (openSubItemId === pk.id);
       const isActive = pk.id === currentMenuItemId;
       return `
-        <div class="np-pk ${expanded ? 'expanded' : ''} ${pk.id === activeSubdivision ? 'pk-active' : ''}" data-pk="${pk.id}">
+        <div class="np-pk ${pk.id === activeSubdivision ? 'pk-active' : ''}" data-pk="${pk.id}">
           <div class="np-card np-pk-head ${isActive ? 'active' : ''}"
                data-id="${pk.id}" data-panorama="${pk.tdvPanoramaId || ''}">
             <div class="np-card-idx">${String(i + 1).padStart(2, '0')}</div>
@@ -969,9 +938,8 @@ function renderNavList() {
               <div class="np-card-name">${_tr(pk.label)}</div>
               <div class="np-card-sub">${pk.id === activeSubdivision ? _t("ui.filtering") : (pk.tdvPanoramaId || '')}</div>
             </div>
-            <i class="np-pk-chev" data-lucide="chevron-down" width="15" height="15"></i>
+            <i class="np-card-arrow" data-lucide="chevron-right" width="14" height="14"></i>
           </div>
-          <div class="np-pk-children">${childGroupsHTML(pk)}</div>
         </div>`;
     }).join("");
     if (query && !visible.length) return "";
@@ -1031,23 +999,14 @@ function bindNavListEvents(listEl) {
     });
   });
 
-  /* Xổ / chọn 1 phân khu */
+  /* Chọn 1 phân khu */
   listEl.querySelectorAll(".np-pk-head").forEach(head => {
     head.addEventListener("click", () => {
       const pkEl = head.closest(".np-pk");
       const pkId = pkEl.dataset.pk;
       currentMenuItemId = pkId;
+      openSubItemId = pkId;
       lockNavSelection();
-      // Toggle xổ children
-      if (openSubItemId === pkId && pkEl.classList.contains("expanded")) {
-        pkEl.classList.remove("expanded");
-        openSubItemId = null;
-      } else {
-        listEl.querySelectorAll(".np-pk.expanded").forEach(e => e.classList.remove("expanded"));
-        pkEl.classList.add("expanded");
-        openSubItemId = pkId;
-      }
-      // Chọn phân khu → active filter
       setActiveSubdivision(pkId);
       const panoId = head.dataset.panorama;
       if (panoId) goToPanorama(panoId);
@@ -1059,15 +1018,12 @@ function bindNavListEvents(listEl) {
     });
   });
 
-  /* Click 1 item thường (Tổng quan hoặc con của phân khu) */
+  /* Click 1 item Tổng quan (np-card không phải pk-head) */
   listEl.querySelectorAll(".np-card:not(.np-pk-head)").forEach(card => {
     card.addEventListener("click", () => {
       currentMenuItemId = card.dataset.id;
       lockNavSelection();
-      // Nếu item con của phân khu → phân khu đó thành active
-      const pkEl = card.closest(".np-pk");
-      if (pkEl) setActiveSubdivision(pkEl.dataset.pk);
-      else setActiveSubdivision(null); // item Tổng quan
+      setActiveSubdivision(null);
       const panoId = card.dataset.panorama;
       if (panoId) goToPanorama(panoId);
       else syncProjectCard();
@@ -1076,6 +1032,109 @@ function bindNavListEvents(listEl) {
     });
   });
 }
+
+/* ============================================================
+   SUBDIVISION DOCK — 4 nút ngang ở bottom trang.
+   Chỉ hiện khi có phân khu active. Click → mở popup liệt kê
+   items của nhóm con thuộc phân khu đó. Chọn item → goToMenuItem.
+   ============================================================ */
+const DOCK_ICONS = {
+  tienIchNoiKhu:   "leaf",
+  tienIchNgoaiKhu: "map-pin",
+  matBangTang:     "layout-grid",
+  view360Can:      "box",
+};
+function renderSubdivisionDock() {
+  const dock = document.getElementById("sub-dock");
+  if (!dock) return;
+  if (!activeSubdivision || !DATA) {
+    dock.classList.remove("visible");
+    dock.innerHTML = "";
+    return;
+  }
+  const pk = (DATA.menu.phanKhu || []).find(p => p.id === activeSubdivision);
+  if (!pk) {
+    dock.classList.remove("visible");
+    dock.innerHTML = "";
+    return;
+  }
+  const children = pk.children || {};
+  dock.innerHTML =
+    `<div class="sub-dock-label">${pcIcon("pin", 12)} <span>${_tr(pk.label)}</span></div>` +
+    `<div class="sub-dock-row">` +
+    CHILD_GROUPS.map(cg => {
+      const items = children[cg.key] || [];
+      const ico = DOCK_ICONS[cg.key] || "box";
+      return `
+        <button class="sub-dock-btn" data-group="${cg.key}" ${items.length ? "" : "disabled"}>
+          <i data-lucide="${ico}" width="18" height="18"></i>
+          <span class="sub-dock-btn-label">${_tr(cg.label)}</span>
+          <span class="sub-dock-btn-count">${items.length}</span>
+        </button>`;
+    }).join("") +
+    `</div>`;
+  dock.classList.add("visible");
+  dock.querySelectorAll(".sub-dock-btn").forEach(btn => {
+    btn.addEventListener("click", () => openSubDockPopup(btn.dataset.group));
+  });
+}
+function openSubDockPopup(groupKey) {
+  const pop = document.getElementById("sub-dock-popup");
+  if (!pop || !activeSubdivision || !DATA) return;
+  const pk = (DATA.menu.phanKhu || []).find(p => p.id === activeSubdivision);
+  if (!pk) return;
+  const cg = CHILD_GROUPS.find(g => g.key === groupKey);
+  const items = (pk.children && pk.children[groupKey]) || [];
+  if (!items.length) return;
+  pop.innerHTML =
+    `<div class="sdp-head">
+       <div>
+         <div class="sdp-eyebrow">${_tr(pk.label)}</div>
+         <div class="sdp-title">${_tr(cg.label)} <span class="sdp-count">${items.length}</span></div>
+       </div>
+       <button class="sdp-close" id="sdp-close" aria-label="Đóng">×</button>
+     </div>
+     <div class="sdp-list">` +
+    items.map((m, i) => `
+      <button class="sdp-item" data-id="${m.id}">
+        <span class="sdp-idx">${String(i + 1).padStart(2, "0")}</span>
+        <span class="sdp-info">
+          <span class="sdp-name">${_tr(m.label)}</span>
+          <span class="sdp-sub">${m.tdvPanoramaId || ""}</span>
+        </span>
+        <i data-lucide="chevron-right" width="14" height="14"></i>
+      </button>`).join("") +
+    `</div>`;
+  pop.classList.add("open");
+  document.getElementById("sub-dock").querySelectorAll(".sub-dock-btn").forEach(b =>
+    b.classList.toggle("active", b.dataset.group === groupKey));
+  pop.querySelector("#sdp-close")?.addEventListener("click", closeSubDockPopup);
+  pop.querySelectorAll(".sdp-item").forEach(it => {
+    it.addEventListener("click", () => {
+      const id = it.dataset.id;
+      closeSubDockPopup();
+      if (typeof window.goToMenuItem === "function") window.goToMenuItem(id);
+    });
+  });
+}
+function closeSubDockPopup() {
+  const pop = document.getElementById("sub-dock-popup");
+  if (pop) pop.classList.remove("open");
+  document.getElementById("sub-dock")?.querySelectorAll(".sub-dock-btn.active")
+    .forEach(b => b.classList.remove("active"));
+}
+document.addEventListener("click", (e) => {
+  const pop = document.getElementById("sub-dock-popup");
+  const dock = document.getElementById("sub-dock");
+  if (!pop || !pop.classList.contains("open")) return;
+  if (pop.contains(e.target)) return;
+  if (dock && dock.contains(e.target)) return;
+  closeSubDockPopup();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeSubDockPopup();
+});
+window.renderSubdivisionDock = renderSubdivisionDock;
 
 let galleryFolderFilter = '__all'; // '__all' | '__none' | folder name
 let galleryTabFilter = 'image';    // 'image' | 'video'
