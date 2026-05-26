@@ -4704,7 +4704,12 @@ body.ai-panel-open .bb-float { opacity: 0.95; }
    PHÂN KHU — np-list 2 cấp, sub-tabbar, nút nội dung project-card
    ============================================================ */
 
-/* ── np-list: phân khu xổ ra nhóm con ── */
+/* ── np-list: 5 card phẳng (Tổng quan + 4 phân khu) ── */
+.np-card-flat.pk-active {
+  background: var(--accent-soft);
+  border-left: 2px solid var(--accent);
+}
+/* ── np-list (legacy): phân khu xổ ra nhóm con ── */
 .np-pk { border-radius: 10px; }
 .np-pk + .np-pk { margin-top: 4px; }
 .np-pk-head { cursor: pointer; }

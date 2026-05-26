@@ -1712,13 +1712,21 @@ async function openEditCardPanel(groupKey, itemId, subId) {
     <div class="form-group" style="border:1px solid var(--border);border-radius:8px;padding:12px;background:var(--surface2)">
       <label class="form-label" style="font-weight:700">Media phân khu (hiển thị ở project-card)</label>
       <div class="form-hint" style="margin-bottom:10px">Ảnh bìa & video giới thiệu — tải lên hoặc dán link.</div>
-      <label class="form-label">Ảnh bìa (cover)</label>
+      <label class="form-label">Ảnh / Video bìa (cover)</label>
       <div style="display:flex;gap:8px;margin-bottom:6px">
-        <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('ec-cover-file').click()">${ico('upload',12)} Tải ảnh lên</button>
-        <input type="file" id="ec-cover-file" accept="image/*" style="display:none" onchange="subdivPickCover(this)">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('ec-cover-file').click()">${ico('upload',12)} Tải ảnh / video lên</button>
+        <input type="file" id="ec-cover-file" accept="image/*,video/*" style="display:none" onchange="subdivPickCover(this)">
       </div>
       <input class="form-control" id="ec-sub-cover" value="${esc((item.subdivision&&item.subdivision.cover)||'')}" placeholder="https://... hoặc img/...">
-      <img id="ec-cover-preview" src="${(item.subdivision&&item.subdivision.cover)?(/^(data:|https?:)/.test(item.subdivision.cover)?item.subdivision.cover:'../'+item.subdivision.cover):''}" style="${(item.subdivision&&item.subdivision.cover)?'':'display:none;'}width:100%;max-height:140px;object-fit:cover;border-radius:6px;margin-top:8px" alt="">
+      ${(() => {
+        const cv = (item.subdivision&&item.subdivision.cover)||'';
+        if (!cv) return `<img id="ec-cover-preview" src="" style="display:none;width:100%;max-height:140px;object-fit:cover;border-radius:6px;margin-top:8px" alt="">`;
+        const src = /^(data:|https?:)/.test(cv) ? cv : '../' + cv;
+        const isVid = /\.(mp4|webm|ogg|mov|m4v)(\?|#|$)/i.test(cv) || /^data:video\//.test(cv);
+        return isVid
+          ? `<video id="ec-cover-preview" src="${esc(src)}" controls style="width:100%;max-height:140px;object-fit:cover;border-radius:6px;margin-top:8px"></video>`
+          : `<img id="ec-cover-preview" src="${esc(src)}" style="width:100%;max-height:140px;object-fit:cover;border-radius:6px;margin-top:8px" alt="">`;
+      })()}
       <label class="form-label" style="margin-top:12px">Link video giới thiệu</label>
       <input class="form-control" id="ec-sub-video" value="${esc((item.subdivision&&item.subdivision.video)||'')}" placeholder="https://youtube.com/... hoặc link mp4">
       <div class="form-hint">Hỗ trợ YouTube, Vimeo hoặc link video trực tiếp.</div>
@@ -1910,26 +1918,42 @@ function ecMediaRemove(i) {
   if (window.__ecImages) { window.__ecImages.splice(i, 1); ecMediaRefresh(); }
 }
 
-/* Upload ảnh bìa phân khu — push lên R2, lưu public URL vào ô + preview */
+/* Upload ảnh/video bìa phân khu — push lên R2, lưu public URL + preview.
+   Tự đổi thẻ <img> ↔ <video> theo loại file. */
 async function subdivPickCover(input) {
   const file = input.files && input.files[0];
   if (!file) return;
-  if (!file.type.startsWith('image/')) { toast('File không phải ảnh', 'err'); return; }
+  const isVideo = (file.type || '').startsWith('video/');
+  const isImage = (file.type || '').startsWith('image/');
+  if (!isImage && !isVideo) { toast('File không phải ảnh hoặc video', 'err'); return; }
   const inp = document.getElementById('ec-sub-cover');
-  const img = document.getElementById('ec-cover-preview');
+  let preview = document.getElementById('ec-cover-preview');
+  // Đổi thẻ preview nếu lệch loại
+  if (preview) {
+    const wantTag = isVideo ? 'VIDEO' : 'IMG';
+    if (preview.tagName !== wantTag) {
+      const parent = preview.parentNode;
+      const next = document.createElement(isVideo ? 'video' : 'img');
+      next.id = 'ec-cover-preview';
+      next.style.cssText = preview.style.cssText;
+      if (isVideo) next.controls = true; else next.alt = '';
+      parent.replaceChild(next, preview);
+      preview = next;
+    }
+  }
   const localPreview = URL.createObjectURL(file);
-  if (img) { img.src = localPreview; img.style.display = ''; img.style.opacity = .55; }
+  if (preview) { preview.src = localPreview; preview.style.display = ''; preview.style.opacity = .55; }
   try {
     const url = await uploadImageToR2(file, { folder: 'subdivision-cover' });
     URL.revokeObjectURL(localPreview);
     if (inp) inp.value = url;
-    if (img) { img.src = url; img.style.opacity = 1; }
-    toast('Đã tải ảnh bìa', 'ok');
+    if (preview) { preview.src = url; preview.style.opacity = 1; }
+    toast(isVideo ? 'Đã tải video bìa' : 'Đã tải ảnh bìa', 'ok');
   } catch (err) {
     URL.revokeObjectURL(localPreview);
     console.error(err);
     toast('Upload thất bại: ' + err.message, 'err');
-    if (img) { img.style.display = 'none'; img.style.opacity = 1; }
+    if (preview) { preview.style.display = 'none'; preview.style.opacity = 1; }
     input.value = '';
   }
 }

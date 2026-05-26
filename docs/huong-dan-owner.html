@@ -108,35 +108,34 @@
 <nav id="sidebar">
   <div class="nav-section-label">Bắt Đầu</div>
   <a class="nav-link" href="#gioi-thieu"><span class="num">1</span>Giới Thiệu Vai Trò</a>
-  <a class="nav-link" href="#dang-nhap"><span class="num">2</span>Đăng Nhập</a>
-  <a class="nav-link" href="#tong-quan-ui"><span class="num">3</span>Giao Diện Tổng Quan</a>
-  <a class="nav-link" href="#thao-tac-chung"><span class="num">4</span>Thao Tác Chung</a>
+  <a class="nav-link" href="#kien-truc"><span class="num">2</span>Kiến Trúc Hệ Thống</a>
+  <a class="nav-link" href="#dang-nhap"><span class="num">3</span>Đăng Nhập</a>
+  <a class="nav-link" href="#tong-quan-ui"><span class="num">4</span>Giao Diện Tổng Quan</a>
+  <a class="nav-link" href="#thao-tac-chung"><span class="num">5</span>Thao Tác Chung (CRUD)</a>
 
   <div class="nav-section-label" style="margin-top:1rem">Quản Lý</div>
-  <a class="nav-link" href="#tong-quan"><span class="num">5</span>Tổng Quan (Dashboard)</a>
-  <a class="nav-link" href="#can-ho"><span class="num">6</span>Căn Hộ</a>
-  <a class="nav-link" href="#leads"><span class="num">7</span>Leads & Booking</a>
+  <a class="nav-link" href="#overview"><span class="num">6</span>Tổng Quan (Dashboard)</a>
+  <a class="nav-link" href="#properties"><span class="num">7</span>Bất Động Sản</a>
 
   <div class="nav-section-label" style="margin-top:1rem">Nội Dung VR</div>
-  <a class="nav-link" href="#danh-sach-vr"><span class="num">8</span>Danh Sách VR</a>
-  <a class="nav-link" href="#thu-vien"><span class="num">9</span>Thư Viện Ảnh</a>
-  <a class="nav-link" href="#ban-do-2d"><span class="num">10</span>Bản Đồ 2D</a>
-  <a class="nav-link" href="#tien-ich"><span class="num">11</span>Tiện Ích</a>
-  <a class="nav-link" href="#tien-do"><span class="num">12</span>Tiến Độ XD</a>
-  <a class="nav-link" href="#phap-ly"><span class="num">13</span>Pháp Lý</a>
-  <a class="nav-link" href="#vi-tri"><span class="num">14</span>Vị Trí & POI</a>
+  <a class="nav-link" href="#gallery"><span class="num">8</span>Thư Viện Media</a>
+  <a class="nav-link" href="#resources"><span class="num">9</span>Tài Liệu</a>
+  <a class="nav-link" href="#timeline"><span class="num">10</span>Tiến Độ XD</a>
+  <a class="nav-link" href="#navpanel"><span class="num">11</span>Danh Sách VR</a>
+  <a class="nav-link" href="#masterplan"><span class="num">12</span>Masterplan</a>
+  <a class="nav-link" href="#legal"><span class="num">13</span>Pháp Lý</a>
+  <a class="nav-link" href="#location"><span class="num">14</span>Vị Trí & POI</a>
   <a class="nav-link" href="#i18n"><span class="num">15</span>Ngôn Ngữ & i18n</a>
 
   <div class="nav-section-label" style="margin-top:1rem">Hệ Thống</div>
   <a class="nav-link" href="#theme"><span class="num">16</span>Giao Diện & Theme</a>
   <a class="nav-link" href="#analytics"><span class="num">17</span>Analytics</a>
-  <a class="nav-link" href="#cai-dat"><span class="num">18</span>Cài Đặt</a>
+  <a class="nav-link" href="#settings"><span class="num">18</span>Cài Đặt</a>
 
   <div class="nav-section-label" style="margin-top:1rem">Khác</div>
   <a class="nav-link" href="#preview"><span class="num">19</span>Preview VR</a>
-  <a class="nav-link" href="#luu-tru"><span class="num">20</span>Lưu Trữ & Backup</a>
-  <a class="nav-link" href="#cong-bo"><span class="num">21</span>Công Bố Thay Đổi</a>
-  <a class="nav-link" href="#faq"><span class="num">22</span>FAQ & Sự Cố</a>
+  <a class="nav-link" href="#upload"><span class="num">20</span>Upload Ảnh (R2)</a>
+  <a class="nav-link" href="#faq"><span class="num">21</span>FAQ & Sự Cố</a>
 </nav>
 
 <main id="content">
@@ -144,620 +143,735 @@
   <h1>Hướng Dẫn Sử Dụng Cho Chủ Đầu Tư</h1>
   <p style="color:var(--fg-muted);margin-bottom:2rem">
     Trang quản trị (Owner) <code>admin/owner.html</code> dành cho ban quản lý dự án, đội marketing và đội kỹ thuật.
-    Cho phép chỉnh sửa toàn bộ nội dung trang VR, xem báo cáo và quản lý leads.
+    Cho phép chỉnh sửa toàn bộ nội dung trang VR, xem báo cáo, quản lý người dùng và xem leads.
   </p>
 
   <div class="intro">
-    <div class="intro-item"><div class="label">Vai Trò</div><div class="value">Chủ Đầu Tư · Owner</div></div>
+    <div class="intro-item"><div class="label">Vai Trò</div><div class="value">Owner / Developer</div></div>
     <div class="intro-item"><div class="label">URL</div><div class="value">admin/owner.html</div></div>
     <div class="intro-item"><div class="label">Tài Khoản</div><div class="value">admin / aurora@2025</div></div>
-    <div class="intro-item"><div class="label">Số Trang</div><div class="value">14 module</div></div>
-    <div class="intro-item"><div class="label">Lưu Trữ</div><div class="value">localStorage</div></div>
-    <div class="intro-item"><div class="label">Backup</div><div class="value">Export/Import JSON</div></div>
+    <div class="intro-item"><div class="label">Số Module</div><div class="value">14 trang</div></div>
+    <div class="intro-item"><div class="label">Storage</div><div class="value">MySQL backend</div></div>
+    <div class="intro-item"><div class="label">Auth</div><div class="value">Session Token (12h)</div></div>
   </div>
 
   <!-- 1 -->
   <section id="gioi-thieu">
     <h2 data-num="1">Giới Thiệu Vai Trò</h2>
-    <p>Tư cách <strong>Owner</strong> có toàn quyền:</p>
+    <p>Hệ thống có <strong>3 vai trò</strong>:</p>
+    <table>
+      <thead><tr><th>Role</th><th>Tài Khoản Demo</th><th>Quyền</th></tr></thead>
+      <tbody>
+        <tr><td><strong>developer</strong></td><td><code>dev / dev@2025</code></td><td>Toàn quyền + xem/sửa tab API (key, webhook)</td></tr>
+        <tr><td><strong>owner</strong></td><td><code>admin / aurora@2025</code></td><td>Toàn quyền nội dung + user, KHÔNG sửa được tab API và không gán được role <em>developer</em></td></tr>
+        <tr><td><strong>sales</strong></td><td><code>sales / sales@2025</code></td><td>Workspace riêng (<code>sales.html</code>) — xem HDSD Sales</td></tr>
+      </tbody>
+    </table>
+
+    <p>Với tư cách <strong>Owner</strong> (hoặc <strong>Developer</strong>), bạn có quyền:</p>
     <ul>
-      <li>Quản lý kho căn hộ (thêm/sửa/xoá, đổi trạng thái).</li>
-      <li>Xem và xử lý toàn bộ leads + booking của mọi sales.</li>
-      <li>Chỉnh sửa <strong>mọi nội dung</strong> trên trang VR — cảnh, hotspot, thư viện ảnh, bản đồ, tiện ích, tiến độ, pháp lý, vị trí.</li>
-      <li>Đổi <strong>màu chủ đạo</strong> (theme) của trang VR mà không cần code.</li>
-      <li>Thêm / xoá <strong>ngôn ngữ</strong> và chỉnh các chuỗi dịch.</li>
-      <li>Xem báo cáo Analytics.</li>
-      <li>Export / Import / Reset toàn bộ dữ liệu dự án.</li>
+      <li>Quản lý kho <strong>Bất động sản</strong> (căn hộ, shophouse, penthouse, duplex…) — CRUD đầy đủ.</li>
+      <li>Chỉnh <strong>mọi nội dung</strong> trên trang VR: thư viện media, tài liệu, tiến độ, danh sách VR (nav panel), masterplan, pháp lý, vị trí + POI.</li>
+      <li>Đổi <strong>theme</strong> (9 biến màu + 5 preset + 6 toggle hiệu ứng) — lưu vào DB và áp dụng cho trang public.</li>
+      <li>Quản lý <strong>bản dịch i18n</strong>: inline edit, thêm/xoá ngôn ngữ.</li>
+      <li>Xem <strong>Analytics</strong> theo lượt xem, scene, voice AI, funnel, leads — số liệu thật từ DB.</li>
+      <li>Quản lý <strong>người dùng</strong> (tạo/sửa/xoá tài khoản sales, đổi mật khẩu).</li>
+      <li>Backup / Restore qua Export / Import JSON, Reset về mặc định.</li>
     </ul>
 
-    <div class="callout warn">
-      <strong>Quan trọng — Ranh giới lưu trữ</strong>
-      Mọi thay đổi của Owner được lưu vào <strong>localStorage</strong> của trình duyệt, <em>không tự động</em> đẩy lên trang VR public. Để publish, xem mục <a href="#cong-bo">Công Bố Thay Đổi</a>.
+    <div class="callout ok">
+      <strong>Khác biệt lớn so với phiên bản cũ</strong>
+      Hệ thống đã chuyển sang <strong>backend MySQL + JWT-like session token</strong>. Khi bạn bấm Lưu trong admin, dữ liệu được ghi thẳng vào DB và <strong>trang public lập tức đọc được</strong> qua <code>GET /api/project</code> — không còn quy trình "export JSON rồi upload thủ công" như trước.
     </div>
   </section>
 
   <!-- 2 -->
-  <section id="dang-nhap">
-    <h2 data-num="2">Đăng Nhập</h2>
+  <section id="kien-truc">
+    <h2 data-num="2">Kiến Trúc Hệ Thống</h2>
 
-    <div class="step"><div class="step-num">1</div><div class="step-body">
-      <div class="step-title">Mở trang đăng nhập</div>
-      <div class="step-desc">Truy cập <code>admin/index.html</code> trên máy chủ nội bộ.</div>
-    </div></div>
-    <div class="step"><div class="step-num">2</div><div class="step-body">
-      <div class="step-title">Nhập thông tin</div>
-      <div class="step-desc">Tên đăng nhập: <code>admin</code><br>Mật khẩu: <code>aurora@2025</code></div>
-    </div></div>
-    <div class="step"><div class="step-num">3</div><div class="step-body">
-      <div class="step-title">Bấm "Đăng Nhập"</div>
-      <div class="step-desc">Hệ thống xác thực rồi tự chuyển sang <code>owner.html</code>. Phiên đăng nhập được lưu trong sessionStorage (mất khi đóng tab).</div>
-    </div></div>
+    <pre>┌─────────────────────────────────────────────────────────┐
+│   Trình duyệt (Owner / Sales / Khách)                   │
+│   ├─ admin/owner.html  → admin.js + admin-content.js    │
+│   ├─ admin/sales.html  → sales.js                       │
+│   └─ index.html (VR)   → main.js + ai-panel + gemini    │
+└────────────────────────┬────────────────────────────────┘
+                         │ fetch (Bearer token)
+                         ▼
+┌─────────────────────────────────────────────────────────┐
+│   Backend Node.js + Express (server/src/index.js)       │
+│   Port 3000 · cấu hình qua biến môi trường              │
+│   ├─ /api/auth/*       (login, logout, me)              │
+│   ├─ /api/users/*      (CRUD users)                     │
+│   ├─ /api/project      (toàn bộ nội dung VR)            │
+│   ├─ /api/subdivision/:code (1 phân khu)                │
+│   ├─ /api/theme        (custom colors + effects)        │
+│   ├─ /api/i18n         (ngôn ngữ + bản dịch)            │
+│   ├─ /api/leads        (CRUD)                           │
+│   ├─ /api/appointments (CRUD)                           │
+│   ├─ /api/analytics    (số liệu)                        │
+│   ├─ /api/activity     (feed hoạt động)                 │
+│   └─ /api/upload/presign (lấy URL upload R2)            │
+└──────┬──────────────────────────────────────────┬───────┘
+       │                                          │
+       ▼                                          ▼
+┌──────────────┐                          ┌──────────────┐
+│  MySQL DB    │                          │ Cloudflare R2│
+│  haivanbay   │                          │  (ảnh upload)│
+└──────────────┘                          └──────────────┘</pre>
 
-    <h3>Đăng Xuất</h3>
-    <p>Bấm nút <strong>"Đăng xuất"</strong> trên góc phải topbar. Phiên bị xoá khỏi sessionStorage và bạn được đưa về trang login.</p>
+    <h3>Stack</h3>
+    <ul>
+      <li><strong>Backend</strong>: Node.js + Express 4.21, MySQL 2 driver, Bcrypt + SHA-256 session token (TTL 12h).</li>
+      <li><strong>Storage media</strong>: Cloudflare R2 (S3-compatible) — upload qua presigned URL.</li>
+      <li><strong>Frontend admin</strong>: HTML/CSS/JS thuần (không framework), Chart.js cho biểu đồ, Leaflet cho Masterplan.</li>
+      <li><strong>Frontend public VR</strong>: iframe 3DVista + Gemini Live WebSocket.</li>
+    </ul>
 
-    <div class="callout danger">
-      <strong>Chú ý bảo mật</strong>
-      Tài khoản admin có quyền chỉnh sửa <strong>mọi dữ liệu dự án</strong>. Tuyệt đối không chia sẻ mật khẩu cho người ngoài. Nên đổi mật khẩu mặc định khi triển khai thực tế (sửa mảng <code>USERS</code> trong <code>admin/index.html</code>).
+    <div class="callout warn">
+      <strong>Khởi động server</strong>
+      Trong thư mục <code>server/</code>: <code>npm install</code> rồi <code>npm start</code>. Cần biến môi trường <code>DATABASE_URL</code> (hoặc DB_HOST/PORT/USER/PASSWORD/NAME) và <code>R2_*</code> nếu dùng upload ảnh.
     </div>
   </section>
 
   <!-- 3 -->
+  <section id="dang-nhap">
+    <h2 data-num="3">Đăng Nhập</h2>
+
+    <div class="step"><div class="step-num">1</div><div class="step-body">
+      <div class="step-title">Mở trang đăng nhập</div>
+      <div class="step-desc">Truy cập <code>admin/index.html</code>. Trang login có UI tối giản với gợi ý 3 tài khoản demo.</div>
+    </div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body">
+      <div class="step-title">Nhập thông tin</div>
+      <div class="step-desc">Tài khoản Owner: <code>admin</code> / <code>aurora@2025</code>.<br>Tài khoản Developer (mọi quyền): <code>dev</code> / <code>dev@2025</code>.</div>
+    </div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body">
+      <div class="step-title">Bấm "Đăng Nhập"</div>
+      <div class="step-desc">Frontend gửi <code>POST /api/auth/login</code>. Backend trả về <code>{ token, user }</code>; token lưu trong sessionStorage key <code>ah_session</code>. Sau đó chuyển trang theo role: <code>owner</code>/<code>developer</code> → <code>owner.html</code>; <code>sales</code> → <code>sales.html</code>.</div>
+    </div></div>
+
+    <h3>Đăng Xuất</h3>
+    <p>Bấm <strong>"Đăng xuất"</strong> trên topbar. Gọi <code>POST /api/auth/logout</code>, xoá session khỏi DB và xoá <code>ah_session</code> khỏi sessionStorage, chuyển về trang login.</p>
+
+    <h3>Auto-Redirect Nếu Đã Login</h3>
+    <p>Khi mở <code>admin/index.html</code>, nếu sessionStorage có token, frontend gọi <code>GET /api/auth/me</code>. Nếu token còn hợp lệ → chuyển thẳng tới home tương ứng. Nếu token hết hạn → xoá session, ở lại trang login.</p>
+
+    <div class="callout danger">
+      <strong>Bảo mật</strong>
+      Tài khoản admin có quyền chỉnh sửa <strong>mọi dữ liệu dự án</strong> và quản lý user. Tuyệt đối không chia sẻ mật khẩu. Khi triển khai production:
+      <ul style="margin:0.5rem 0 0">
+        <li>Đổi mật khẩu mặc định ngay (qua tab Settings → Users).</li>
+        <li>Đặt biến môi trường <code>JWT_SECRET</code> / <code>AUTH_TOKEN_TTL_HOURS</code> riêng.</li>
+        <li>Bật HTTPS — token gửi qua header <code>Authorization: Bearer &lt;token&gt;</code>.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 4 -->
   <section id="tong-quan-ui">
-    <h2 data-num="3">Giao Diện Tổng Quan</h2>
+    <h2 data-num="4">Giao Diện Tổng Quan</h2>
 
     <pre>┌──────────────────────────────────────────────────────────┐
 │  ① Sidebar (trái)         ② Topbar                      │
-│      Quản Lý                   [Preview VR]              │
-│      ├─ Tổng Quan              [🔔] [📄] [Admin] [Đăng xuất] │
-│      ├─ Căn Hộ                                           │
-│      └─ Leads & Booking   ③ Khu Vực Nội Dung Chính       │
-│      Nội Dung VR             (Render trang được chọn)    │
-│      ├─ Danh Sách VR                                     │
-│      ├─ Thư Viện Ảnh                                     │
-│      ├─ Bản Đồ 2D                                        │
-│      ├─ Tiện Ích          ④ Slide Panel (trượt từ phải)  │
-│      ├─ Tiến Độ              Form chỉnh sửa chi tiết     │
+│      QUẢN LÝ                   [Preview VR]              │
+│      ├─ Tổng Quan              [📄] [User pill] [Đăng xuất]│
+│      └─ Bất Động Sản                                     │
+│      NỘI DUNG VR          ③ Khu Vực Nội Dung Chính       │
+│      ├─ Thư Viện Media        (Render trang được chọn)   │
+│      ├─ Tài Liệu                                         │
+│      ├─ Tiến Độ XD                                       │
+│      ├─ Danh Sách VR      ④ Slide Panel (trượt từ phải)  │
+│      ├─ Masterplan           Form chỉnh sửa chi tiết     │
 │      ├─ Pháp Lý                                          │
-│      ├─ Vị Trí                                           │
-│      └─ Ngôn Ngữ          ⑤ Modal Xác Nhận               │
-│      Hệ Thống                Khi xoá hoặc reset          │
-│      ├─ Theme                                            │
-│      ├─ Analytics                                        │
-│      └─ Cài Đặt           ⑥ Toast (đáy phải)             │
+│      ├─ Vị Trí & POI                                     │
+│      └─ Ngôn Ngữ & i18n   ⑤ Modal Xác Nhận               │
+│      HỆ THỐNG                Khi xoá hoặc reset          │
+│      ├─ Giao Diện & Theme                                │
+│      ├─ Analytics         ⑥ Toast (đáy phải)             │
+│      └─ Cài Đặt              Thông báo nhanh             │
 └──────────────────────────────────────────────────────────┘</pre>
 
     <table>
       <thead><tr><th>Khu Vực</th><th>Chức Năng</th></tr></thead>
       <tbody>
-        <tr><td>① Sidebar</td><td>Chia 3 nhóm chức năng. Bấm bất kỳ mục nào để chuyển trang nội dung.</td></tr>
-        <tr><td>② Topbar</td><td>Nút Preview VR (xem trang public ngay), thông báo, đăng xuất.</td></tr>
-        <tr><td>③ Nội dung chính</td><td>Hiển thị trang được chọn — bảng dữ liệu, form, biểu đồ.</td></tr>
-        <tr><td>④ Slide Panel</td><td>Trượt ra từ bên phải khi bạn thêm hoặc sửa một mục.</td></tr>
-        <tr><td>⑤ Modal Xác Nhận</td><td>Hiện khi bạn bấm xoá hoặc reset — phải bấm "Xác Nhận" để thực hiện.</td></tr>
-        <tr><td>⑥ Toast</td><td>Thông báo nhanh ở góc dưới phải sau mỗi thao tác (Đã lưu / Đã xoá / Lỗi).</td></tr>
+        <tr><td>① Sidebar</td><td>3 nhóm chức năng (Quản Lý · Nội Dung VR · Hệ Thống). Bấm bất kỳ mục nào để chuyển trang. Có mobile-nav.js cho burger trên mobile.</td></tr>
+        <tr><td>② Topbar</td><td>Nút <em>Preview VR</em> (xem trang public ngay trong slide panel), user pill với avatar/role, nút đăng xuất.</td></tr>
+        <tr><td>③ Nội dung chính</td><td>14 trang ẩn/hiện theo selector — bảng dữ liệu, form, biểu đồ.</td></tr>
+        <tr><td>④ Slide Panel</td><td>Trượt từ phải khi bạn thêm hoặc sửa một mục. Có header (tiêu đề + ×), body (form), footer (Huỷ + Lưu).</td></tr>
+        <tr><td>⑤ Modal Xác Nhận</td><td>Hiện khi bạn bấm xoá hoặc thao tác nguy hiểm — phải bấm "Xác Nhận" để tiếp tục.</td></tr>
+        <tr><td>⑥ Toast</td><td>Thông báo nhanh ở góc dưới phải sau mỗi thao tác (Đã lưu / Đã xoá / Lỗi…).</td></tr>
       </tbody>
     </table>
-  </section>
-
-  <!-- 4 -->
-  <section id="thao-tac-chung">
-    <h2 data-num="4">Thao Tác Chung Trên Mọi Trang</h2>
-
-    <h3>4 Hành Động Cơ Bản (CRUD)</h3>
-    <table>
-      <thead><tr><th>Hành Động</th><th>Thực Hiện Như Thế Nào</th></tr></thead>
-      <tbody>
-        <tr><td><strong>Thêm mới</strong></td><td>Bấm nút <code>+ Thêm</code> trên đầu danh sách → Slide Panel mở ra → điền form → bấm <strong>Lưu</strong></td></tr>
-        <tr><td><strong>Sửa</strong></td><td>Bấm icon ✏️ (hoặc cả dòng) → Slide Panel mở ra với dữ liệu cũ → chỉnh → bấm <strong>Lưu</strong></td></tr>
-        <tr><td><strong>Xoá</strong></td><td>Bấm icon 🗑️ → Modal xác nhận hiện ra → bấm <strong>Xác Nhận</strong> để xoá</td></tr>
-        <tr><td><strong>Kéo thả sắp xếp</strong></td><td>Trên các danh sách có thứ tự (nav menu, thư viện ảnh, tiến độ): nhấn giữ + kéo lên/xuống để đổi vị trí</td></tr>
-      </tbody>
-    </table>
-
-    <h3>Tự Động Lưu</h3>
-    <div class="callout info">
-      <strong>Mọi thay đổi đều được lưu ngay vào localStorage</strong>
-      Sau khi bấm "Lưu" trong slide panel, dữ liệu được ghi vào <code>localStorage.ah_admin_data</code>. Bạn có thể đóng tab và mở lại — dữ liệu vẫn còn.
-    </div>
-
-    <h3>Hoàn Tác?</h3>
-    <p>Hệ thống <strong>không có Undo</strong> trực tiếp. Cách an toàn:</p>
-    <ul>
-      <li>Trước khi chỉnh sửa lớn, hãy <strong>Export Backup</strong> tại trang Cài Đặt (xem mục 20).</li>
-      <li>Nếu lỡ xoá nhầm → vào Cài Đặt → <strong>Import</strong> file backup gần nhất.</li>
-    </ul>
   </section>
 
   <!-- 5 -->
-  <section id="tong-quan">
-    <h2 data-num="5">Trang Tổng Quan (Dashboard)</h2>
-    <p>Trang mặc định khi bạn vừa đăng nhập. Cho cái nhìn tổng thể về dự án.</p>
+  <section id="thao-tac-chung">
+    <h2 data-num="5">Thao Tác Chung (CRUD)</h2>
+
+    <h3>4 Hành Động Cơ Bản</h3>
+    <table>
+      <thead><tr><th>Hành Động</th><th>Thực Hiện</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Thêm mới</strong></td><td>Bấm nút <code>+ Thêm</code> trên đầu danh sách → Slide Panel mở ra → điền form → bấm <strong>Lưu</strong></td></tr>
+        <tr><td><strong>Sửa</strong></td><td>Bấm icon ✏️ (hoặc cả dòng) → Slide Panel mở ra với dữ liệu cũ → chỉnh → bấm <strong>Lưu</strong></td></tr>
+        <tr><td><strong>Xoá</strong></td><td>Bấm icon 🗑️ → Modal xác nhận hiện ra → bấm <strong>Xác Nhận</strong></td></tr>
+        <tr><td><strong>Kéo thả sắp xếp</strong></td><td>Trên các danh sách có thứ tự (nav menu, gallery, timeline…): nhấn giữ + kéo lên/xuống</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Pattern Lưu Dữ Liệu</h3>
+    <p>Phần lớn module dùng pattern <strong>"sửa local rồi push toàn bộ project"</strong>:</p>
+    <ol>
+      <li>Frontend duy trì state <code>S.data</code> trong bộ nhớ (cache <code>localStorage.ah_admin_data</code>).</li>
+      <li>Mọi thay đổi cập nhật <code>S.data</code> ngay.</li>
+      <li>Khi bấm <strong>Lưu</strong> → gọi <code>PUT /api/project</code> với toàn bộ object JSON → backend ghi vào DB trong transaction.</li>
+      <li>Riêng <em>phân khu</em> có endpoint nhanh hơn: <code>PUT /api/subdivision/:code</code>.</li>
+    </ol>
+
+    <h3>Hoàn Tác</h3>
+    <p>Hệ thống <strong>không có Undo</strong>. Cách an toàn:</p>
+    <ul>
+      <li>Trước khi chỉnh sửa lớn → vào <strong>Cài Đặt → Backup</strong> → Export JSON.</li>
+      <li>Nếu lỡ làm hỏng → Import file backup gần nhất → ghi đè DB.</li>
+    </ul>
+
+    <h3>Phân Cấp Dự Án / Phân Khu</h3>
+    <p>Nhiều module có dropdown chọn cấp dữ liệu:</p>
+    <ul>
+      <li><strong><code>__all</code></strong> — cấp dự án (chung cho mọi phân khu).</li>
+      <li><strong>&lt;mã phân khu&gt;</strong> — chỉ áp dụng cho phân khu đó (vd: Bạch Vân).</li>
+    </ul>
+    <p>Áp dụng cho: Gallery, Tài Liệu, Tiến Độ, Pháp Lý, Vị Trí & POI.</p>
+  </section>
+
+  <!-- 6 -->
+  <section id="overview">
+    <h2 data-num="6">Tổng Quan (Dashboard)</h2>
+    <p>Trang mặc định khi vừa đăng nhập. Read-only, lấy số liệu thật từ <code>GET /api/analytics</code> và <code>GET /api/activity</code>.</p>
 
     <h3>Thành Phần</h3>
     <table>
       <thead><tr><th>Phần</th><th>Hiển Thị</th></tr></thead>
       <tbody>
-        <tr><td><strong>Thẻ KPI</strong></td><td>Tổng visitor hôm nay · Leads mới · Bookings sắp tới · Doanh thu dự kiến · Tỉ lệ chuyển đổi</td></tr>
-        <tr><td><strong>Biểu đồ visitor theo giờ</strong></td><td>24 cột thể hiện số người truy cập trang VR trong 24h qua (Chart.js)</td></tr>
-        <tr><td><strong>Biểu đồ độ phổ biến của cảnh</strong></td><td>Bar chart so sánh lượt xem giữa 6 cảnh VR</td></tr>
+        <tr><td><strong>4 thẻ KPI</strong></td><td>Lượt xem hôm nay · Ảnh chờ duyệt · Căn còn lại · Milestone tới hạn</td></tr>
+        <tr><td><strong>Biểu đồ Lượt Xem Theo Giờ</strong></td><td>24 cột — số người truy cập trang VR trong 24h qua (Chart.js bar)</td></tr>
+        <tr><td><strong>Biểu đồ Scene Phổ Biến</strong></td><td>So sánh lượt xem giữa các panorama (Chart.js)</td></tr>
+        <tr><td><strong>Activity feed</strong></td><td>Hoạt động gần đây: lead mới, lịch hẹn, status changes</td></tr>
+        <tr><td><strong>Card Project info</strong></td><td>Tóm tắt thông tin dự án (đọc từ Settings)</td></tr>
+        <tr><td><strong>Quick buttons</strong></td><td>Duyệt thư viện · Cập nhật tiến độ · Danh sách VR</td></tr>
       </tbody>
     </table>
-
-    <div class="callout info">
-      <strong>Số liệu mock</strong>
-      Hiện tại biểu đồ là dữ liệu mẫu (mock). Khi tích hợp Analytics thật (mục 17), số liệu sẽ về theo thời gian thực.
-    </div>
-  </section>
-
-  <!-- 6 -->
-  <section id="can-ho">
-    <h2 data-num="6">Quản Lý Căn Hộ</h2>
-    <p>Trang quan trọng nhất — quản lý toàn bộ kho căn của dự án.</p>
-
-    <h3>Cấu Trúc Bảng</h3>
-    <p>Mỗi dòng là một căn với các trường: Mã căn · Loại · Tầng · Diện tích · Hướng · Giá · Còn/Tổng (trong loại) · Trạng thái.</p>
-
-    <h3>Lọc & Sắp Xếp</h3>
-    <ul>
-      <li>Lọc theo <strong>trạng thái</strong> (Còn hàng / Đang giữ chỗ / Đã bán).</li>
-      <li>Lọc theo <strong>loại căn</strong> (2PN / 2PN+1 / 3PN / Duplex).</li>
-      <li>Bấm tiêu đề cột để sắp xếp.</li>
-    </ul>
-
-    <h3>Thêm Căn Mới</h3>
-    <div class="step"><div class="step-num">1</div><div class="step-body">
-      <div class="step-title">Bấm "+ Thêm Căn"</div>
-      <div class="step-desc">Slide Panel mở ra với form trống.</div>
-    </div></div>
-    <div class="step"><div class="step-num">2</div><div class="step-body">
-      <div class="step-title">Điền thông tin</div>
-      <div class="step-desc">Mã căn (vd <code>A-3BR-104-22</code>) · Loại (2PN/3PN…) · Tầng · Diện tích (m²) · Hướng · Giá (tỷ) · Trạng thái.</div>
-    </div></div>
-    <div class="step"><div class="step-num">3</div><div class="step-body">
-      <div class="step-title">Bấm Lưu</div>
-      <div class="step-desc">Căn xuất hiện trong bảng + thống kê tổng quan cập nhật ngay.</div>
-    </div></div>
-
-    <h3>Sửa Trạng Thái Nhanh</h3>
-    <p>Bấm badge trạng thái trên dòng → xoay vòng giữa <span class="badge-ok">Còn hàng</span> → <span class="badge-warn">Đang giữ chỗ</span> → <span class="badge-err">Đã bán</span>.</p>
-
-    <div class="callout warn">
-      <strong>Quy ước mã căn</strong>
-      Mã căn nên theo format <code>{Tòa}-{Loại}-{Diện tích}-{Tầng}</code> để dễ nhận diện. Ví dụ <code>A-3BR-104-28</code> = Tòa A, 3 phòng ngủ, 104m², tầng 28.
-    </div>
   </section>
 
   <!-- 7 -->
-  <section id="leads">
-    <h2 data-num="7">Leads & Booking</h2>
-    <p>Trang gộp 2 chức năng: <strong>Leads</strong> (khách hàng tiềm năng) và <strong>Booking</strong> (lịch hẹn).</p>
+  <section id="properties">
+    <h2 data-num="7">Bất Động Sản (Properties)</h2>
+    <p>Trang quan trọng nhất — quản lý toàn bộ kho bất động sản. Có 2 view: <strong>List</strong> (lưới grid) và <strong>Property Detail</strong> (trang riêng để sửa 1 BĐS).</p>
 
-    <h3>Tab Leads</h3>
+    <h3>List View</h3>
+    <p>Grid hiển thị: mã căn · tên · phân khu · loại hình · diện tích · giá · trạng thái.</p>
+
     <table>
-      <thead><tr><th>Trạng Thái</th><th>Ý Nghĩa</th></tr></thead>
+      <thead><tr><th>Bộ Lọc</th><th>Giá Trị</th></tr></thead>
       <tbody>
-        <tr><td><span class="badge-info">Mới</span></td><td>Vừa đăng ký, chưa liên hệ</td></tr>
-        <tr><td><span class="badge-warn">Đã gọi</span></td><td>Sales đã gọi liên hệ</td></tr>
-        <tr><td><span class="badge-info">Đang quan tâm</span></td><td>Khách quan tâm thật, đang tư vấn</td></tr>
-        <tr><td><span class="badge-ok">Đã chốt</span></td><td>Đã ký hợp đồng đặt cọc</td></tr>
-        <tr><td><span class="badge-err">Không tiếp tục</span></td><td>Khách không còn nhu cầu</td></tr>
+        <tr><td>Tìm</td><td>Theo code / tên</td></tr>
+        <tr><td>Loại hình</td><td>Căn hộ · Shophouse · Penthouse · Duplex · …</td></tr>
+        <tr><td>Trạng thái</td><td><span class="badge-ok">available</span> · <span class="badge-err">sold</span></td></tr>
       </tbody>
     </table>
 
-    <h4>Lọc Lead</h4>
+    <h3>Property Detail (Trang Riêng)</h3>
+    <p>Khi bấm vào 1 BĐS → mở trang <code>p-property-detail</code> với các block:</p>
     <ul>
-      <li>Theo <strong>nguồn</strong> (combobox tìm kiếm): Online (Facebook · Zalo · Google · Website · TikTok) · Offline (Hotline · Walk-in · Sự kiện · Giới thiệu).</li>
-      <li>Theo <strong>trạng thái</strong>.</li>
-      <li>Tìm theo tên / SĐT.</li>
+      <li><strong>Thông tin cơ bản</strong>: mã, tên, phân khu, loại hình, diện tích, số phòng, hướng, giá, status, pháp lý, ngày bàn giao.</li>
+      <li><strong>Hình ảnh sản phẩm</strong>: upload (drag-drop hoặc link URL) — lưu lên R2.</li>
+      <li><strong>Mặt bằng (floor plan)</strong>: upload ảnh riêng cho từng phòng / tầng.</li>
+      <li><strong>Điểm nổi bật (highlights)</strong>: danh sách bullet (mỗi dòng một item trong textarea).</li>
+      <li><strong>Chính sách bán</strong>: chiết khấu, lịch thanh toán, ưu đãi.</li>
+      <li><strong>Tài liệu</strong>: link PDF/folder Drive đính kèm.</li>
+      <li><strong>Tiến độ (milestones)</strong>: mốc bàn giao riêng cho căn này.</li>
+      <li><strong>Gán sales phụ trách</strong>: chọn từ danh sách user role=sales → hiển thị contact (phone/zalo/email/facebook).</li>
     </ul>
 
-    <h4>Xuất CSV</h4>
-    <p>Bấm <strong>Xuất CSV</strong> trên đầu bảng để tải toàn bộ lead về máy (mở được trong Excel).</p>
+    <h3>Sửa Trạng Thái Nhanh</h3>
+    <p>Trên List View, bấm badge trạng thái → xoay vòng giữa <span class="badge-ok">available</span> ↔ <span class="badge-err">sold</span>.</p>
 
-    <h3>Tab Booking — Hai Cách Xem</h3>
-    <table>
-      <thead><tr><th>Chế Độ</th><th>Hiển Thị</th></tr></thead>
-      <tbody>
-        <tr><td><strong>Tuần</strong></td><td>Lưới 7 ngày × 12 giờ. Mỗi ô là một lịch hẹn. Bấm <strong>← →</strong> để chuyển tuần, <strong>Hôm Nay</strong> để về tuần hiện tại.</td></tr>
-        <tr><td><strong>Danh sách</strong></td><td>Bảng phẳng tất cả lịch hẹn theo thứ tự thời gian.</td></tr>
-      </tbody>
-    </table>
-
-    <table>
-      <thead><tr><th>Trạng Thái Booking</th><th>Ý Nghĩa</th></tr></thead>
-      <tbody>
-        <tr><td><span class="badge-warn">Chờ xác nhận</span></td><td>Khách đã đăng ký, chưa được sales gọi xác nhận</td></tr>
-        <tr><td><span class="badge-info">Đã xác nhận</span></td><td>Sales đã gọi và chốt lịch</td></tr>
-        <tr><td><span class="badge-ok">Đã hoàn tất</span></td><td>Lịch hẹn đã diễn ra</td></tr>
-        <tr><td><span class="badge-err">Đã huỷ</span></td><td>Khách hoặc sales huỷ lịch</td></tr>
-      </tbody>
-    </table>
+    <div class="callout warn">
+      <strong>Quy ước mã căn</strong>
+      Mã căn nên theo format <code>{Phân khu}-{Loại}-{Diện tích}-{Tầng}</code>. Ví dụ <code>BV-3PN-104-28</code> = Bạch Vân, 3 phòng ngủ, 104m², tầng 28.
+    </div>
   </section>
 
   <!-- 8 -->
-  <section id="danh-sach-vr">
-    <h2 data-num="8">Danh Sách VR (Nav Panel)</h2>
-    <p>Chỉnh menu accordion bên trái trên trang VR. Có 5 nhóm cố định:</p>
+  <section id="gallery">
+    <h2 data-num="8">Thư Viện Media (Gallery)</h2>
+    <p>Quản lý ảnh và video hiển thị trong overlay Gallery của trang VR.</p>
 
-    <table>
-      <thead><tr><th>Key</th><th>Tên Hiển Thị</th><th>Số Mục Mẫu</th></tr></thead>
-      <tbody>
-        <tr><td><code>tongQuan</code></td><td>Tổng Quan</td><td>6</td></tr>
-        <tr><td><code>tienIchNoiKhu</code></td><td>Tiện Ích Nội Khu</td><td>6</td></tr>
-        <tr><td><code>tienIchNgoaiKhu</code></td><td>Tiện Ích Ngoại Khu</td><td>10</td></tr>
-        <tr><td><code>matBangTang</code></td><td>Mặt Bằng Tầng</td><td>5</td></tr>
-        <tr><td><code>view360Can</code></td><td>View 360° Căn Hộ</td><td>11</td></tr>
-      </tbody>
-    </table>
+    <h3>Cấu Trúc</h3>
+    <ul>
+      <li><strong>2 tab</strong>: Ảnh / Video.</li>
+      <li><strong>Sidebar folder</strong>: Tất cả · Chưa phân loại · các folder tự tạo.</li>
+      <li><strong>Phân cấp</strong>: cấp dự án <code>__all</code> hoặc theo phân khu.</li>
+    </ul>
 
-    <h3>Thêm Mục Vào Nhóm</h3>
-    <div class="step"><div class="step-num">1</div><div class="step-body">
-      <div class="step-title">Mở rộng nhóm bằng cách bấm tiêu đề</div>
-      <div class="step-desc">Bạn thấy các card hiện tại của nhóm.</div>
-    </div></div>
-    <div class="step"><div class="step-num">2</div><div class="step-body">
-      <div class="step-title">Bấm "+ Thêm card"</div>
-      <div class="step-desc">Form mở ra với 3 trường: tên hiển thị · ID · cảnh VR đích.</div>
-    </div></div>
-    <div class="step"><div class="step-num">3</div><div class="step-body">
-      <div class="step-title">Chọn cảnh VR đích</div>
-      <div class="step-desc">Dropdown liệt kê 6 cảnh có sẵn. Link sẽ <strong>tự điền</strong> theo lựa chọn.</div>
-    </div></div>
-
-    <h3>Kéo Thả Sắp Xếp</h3>
-    <p>Nhấn giữ card + kéo lên/xuống. Vị trí mới được lưu ngay.</p>
-  </section>
-
-  <!-- 9 -->
-  <section id="thu-vien">
-    <h2 data-num="9">Thư Viện Ảnh (Gallery)</h2>
-    <p>Quản lý ảnh hiển thị trong overlay Gallery của trang VR.</p>
-
-    <h3>Thêm Ảnh — Hai Cách</h3>
+    <h3>Thêm Media</h3>
     <table>
       <thead><tr><th>Cách</th><th>Mô Tả</th></tr></thead>
       <tbody>
-        <tr><td><strong>URL</strong></td><td>Dán đường dẫn ảnh online (http://… hoặc https://…)</td></tr>
-        <tr><td><strong>Tải lên (drag-drop)</strong></td><td>Kéo thả file ảnh từ máy vào vùng drop zone. Ảnh được lưu dưới dạng base64.</td></tr>
+        <tr><td><strong>Upload ảnh</strong></td><td>Drag-drop hoặc chọn file → frontend gọi <code>POST /api/upload/presign</code> → lấy URL R2 → upload trực tiếp lên Cloudflare R2 → lưu URL công khai vào DB</td></tr>
+        <tr><td><strong>Link URL</strong></td><td>Dán URL ảnh online (có sẵn trên CDN khác)</td></tr>
+        <tr><td><strong>Video</strong></td><td>Link YouTube · Vimeo · Google Drive · hoặc file mp4 trên CDN</td></tr>
       </tbody>
     </table>
 
-    <div class="callout warn">
-      <strong>Giới hạn dung lượng</strong>
-      Mỗi ảnh upload không quá <strong>10 MB</strong>. Tổng dung lượng localStorage không quá <strong>5 MB</strong> (đã ghi rõ trong <code>admin-content.js</code>: <code>MAX_IMG_BYTES = 10 MB</code>, <code>MAX_TOTAL_BYTES = 5 MB</code>). Nếu cần nhiều ảnh chất lượng cao, hãy dùng URL CDN.
+    <h3>Quản Lý Folder</h3>
+    <ul>
+      <li>Tạo folder mới (vd: "Phối cảnh", "Tiến độ XD", "Tiện ích").</li>
+      <li>Đổi tên / xoá folder.</li>
+      <li>Kéo ảnh giữa các folder để di chuyển.</li>
+    </ul>
+
+    <h3>Thao Tác Khác</h3>
+    <ul>
+      <li>Drag-drop để sắp xếp thứ tự hiển thị.</li>
+      <li>Bấm ảnh → preview modal fullscreen.</li>
+      <li>Sửa caption / xoá ảnh.</li>
+    </ul>
+
+    <div class="callout info">
+      <strong>Lưu trữ trên R2, không phải DB</strong>
+      Ảnh thực tế nằm trên Cloudflare R2 (S3-compatible). DB chỉ lưu URL công khai. Vì vậy không có giới hạn 5MB localStorage như phiên bản cũ — bạn có thể upload hàng GB nếu cần.
     </div>
+  </section>
 
-    <h3>Sắp Xếp Bằng Kéo Thả</h3>
-    <p>Kéo thẻ ảnh sang vị trí mới — thứ tự trong overlay Gallery sẽ thay đổi theo.</p>
+  <!-- 9 -->
+  <section id="resources">
+    <h2 data-num="9">Tài Liệu (Resources)</h2>
+    <p>Quản lý các tài liệu marketing hiển thị trong overlay "Tài Liệu" trên trang VR.</p>
 
-    <h3>Xoá Ảnh</h3>
-    <p>Bấm icon 🗑️ trên ảnh → xác nhận. Ảnh bị xoá khỏi cả danh sách + dung lượng localStorage.</p>
+    <h3>5 Loại Tài Liệu Chuẩn</h3>
+    <table>
+      <thead><tr><th>Loại</th><th>Mục Đích</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Brochure</strong></td><td>Tài liệu marketing tổng thể (PDF)</td></tr>
+        <tr><td><strong>Sales Kit</strong></td><td>Bộ tài liệu sales (folder Drive)</td></tr>
+        <tr><td><strong>Brand Kit</strong></td><td>Logo, hướng dẫn thương hiệu</td></tr>
+        <tr><td><strong>Price List</strong></td><td>Bảng giá chi tiết (PDF / Excel)</td></tr>
+        <tr><td><strong>Floor Plan PDF</strong></td><td>Bản vẽ mặt bằng</td></tr>
+      </tbody>
+    </table>
+
+    <p>Mỗi mục có: <strong>Tiêu đề · URL hoặc link Drive · Loại (PDF/Folder/Link/Image/Word/Excel)</strong>. CRUD đầy đủ.</p>
+
+    <div class="callout">
+      <strong>Lưu ý</strong>
+      Module này <strong>không upload file PDF</strong> trực tiếp — chỉ lưu URL. Hãy đẩy file lên Google Drive / Dropbox / R2 (qua tab Gallery) rồi paste link vào đây.
+    </div>
   </section>
 
   <!-- 10 -->
-  <section id="ban-do-2d">
-    <h2 data-num="10">Bản Đồ 2D (Site Map)</h2>
-    <p>Chỉnh ảnh nền + các điểm bấm trên overlay Site Map.</p>
-
-    <h3>Đổi Ảnh Nền</h3>
-    <p>Bấm <strong>"Đổi ảnh nền"</strong> ở đầu trang → chọn từ máy hoặc dán URL → ảnh mới hiện ngay.</p>
-
-    <h3>Thêm Điểm Bấm</h3>
-    <div class="step"><div class="step-num">1</div><div class="step-body">
-      <div class="step-title">Click vào vị trí trên canvas</div>
-      <div class="step-desc">Một điểm mới xuất hiện tại vị trí bạn click.</div>
-    </div></div>
-    <div class="step"><div class="step-num">2</div><div class="step-body">
-      <div class="step-title">Điền tên + chọn cảnh đích</div>
-      <div class="step-desc">Tên hiển thị (vd "Bể bơi"), cảnh VR sẽ mở khi khách bấm.</div>
-    </div></div>
-    <div class="step"><div class="step-num">3</div><div class="step-body">
-      <div class="step-title">Kéo điểm để chỉnh vị trí</div>
-      <div class="step-desc">Sau khi tạo, có thể kéo điểm trên canvas để chỉnh chính xác vị trí.</div>
-    </div></div>
-
-    <p>Bấm <strong>"Thêm thủ công"</strong> nếu muốn nhập toạ độ % chính xác thay vì click trên canvas.</p>
-  </section>
-
-  <!-- 11 -->
-  <section id="tien-ich">
-    <h2 data-num="11">Tiện Ích</h2>
-    <p>Có 2 khu vực chỉnh sửa:</p>
-
-    <h3>Tiện Ích Nhanh (project.amenities)</h3>
-    <p>Các icon tiện ích hiển thị trên Project Card. Mỗi tiện ích có <strong>icon</strong> và <strong>nhãn ngắn</strong> (vd "Bể bơi vô cực", "Gym & Yoga 1200m²").</p>
-
-    <h3>4 Nhóm Tiện Ích Chi Tiết</h3>
-    <table>
-      <thead><tr><th>Nhóm</th><th>Key</th><th>Mô Tả</th></tr></thead>
-      <tbody>
-        <tr><td>Nội Khu</td><td><code>noiKhu</code></td><td>Bể bơi, gym, sảnh, khu vui chơi</td></tr>
-        <tr><td>Sky Amenity</td><td><code>skyAmenity</code></td><td>Tiện ích trên cao (sky garden, sky bar)</td></tr>
-        <tr><td>Dịch Vụ</td><td><code>dichVu</code></td><td>Concierge, lễ tân 24/7, an ninh</td></tr>
-        <tr><td>Hạ Tầng</td><td><code>haTang</code></td><td>Hầm gửi xe, sạc điện, smart home</td></tr>
-      </tbody>
-    </table>
-
-    <p>Mỗi tiện ích chi tiết có 3 trường: <strong>icon · tên · mô tả ngắn</strong>. CRUD đầy đủ.</p>
-  </section>
-
-  <!-- 12 -->
-  <section id="tien-do">
-    <h2 data-num="12">Tiến Độ Xây Dựng</h2>
-    <p>Quản lý 8 giai đoạn của dự án.</p>
+  <section id="timeline">
+    <h2 data-num="10">Tiến Độ Xây Dựng (Timeline)</h2>
+    <p>Quản lý các giai đoạn của dự án (hoặc của từng phân khu).</p>
 
     <table>
       <thead><tr><th>Trường</th><th>Mô Tả</th></tr></thead>
       <tbody>
-        <tr><td>Giai đoạn</td><td>Tên giai đoạn (vd "Ép cọc đại trà")</td></tr>
-        <tr><td>Thời gian</td><td>Tháng/năm (vd "Q3 2025")</td></tr>
-        <tr><td>Trạng thái</td><td><span class="badge-ok">Hoàn thành</span> · <span class="badge-warn">Đang thực hiện</span> · <span class="badge-info">Sắp tới</span></td></tr>
-        <tr><td>Mô tả</td><td>Đoạn văn bản chi tiết (1–2 câu)</td></tr>
+        <tr><td>Tên giai đoạn</td><td>Vd "Ép cọc đại trà", "Cất nóc tòa A"</td></tr>
+        <tr><td>Thời gian</td><td>Quý/năm (vd "Q2/2026") hoặc tháng cụ thể</td></tr>
+        <tr><td>Status</td><td><span class="badge-ok">done</span> · <span class="badge-warn">active</span> · <span class="badge-info">upcoming</span></td></tr>
+        <tr><td>Mô tả</td><td>1–2 câu chi tiết</td></tr>
+        <tr><td>Ảnh tiến độ (tuỳ chọn)</td><td>Upload ảnh thi công thực tế qua R2</td></tr>
       </tbody>
     </table>
 
-    <p>Kéo thả để sắp lại thứ tự nếu cần.</p>
+    <p>CRUD đầy đủ + kéo thả để sắp xếp thứ tự.</p>
+
+    <h3>Phát Sóng Cập Nhật Real-Time</h3>
+    <p>Có nút <strong>"Phát sóng"</strong> để báo cho trang public refresh tiến độ. Cơ chế: lưu timestamp vào DB → trang public polling/SSE để bắt tín hiệu → cập nhật giao diện mà không cần reload.</p>
+  </section>
+
+  <!-- 11 -->
+  <section id="navpanel">
+    <h2 data-num="11">Danh Sách VR (Nav Panel)</h2>
+    <p>Chỉnh menu accordion bên trái trên trang VR public — quyết định cấu trúc cây cảnh người xem thấy.</p>
+
+    <h3>Dual Mode</h3>
+    <table>
+      <thead><tr><th>Mode</th><th>Hiển Thị</th></tr></thead>
+      <tbody>
+        <tr><td><code>__all</code></td><td>Nhóm gốc "Tổng Quan" (list cảnh aerial) + danh sách phân khu (read-only, dẫn hướng tới mode phân khu)</td></tr>
+        <tr><td>&lt;mã phân khu&gt;</td><td>4 nhóm con: Tiện Ích Nội Khu · Tiện Ích Ngoại Khu · Mặt Bằng Tầng · View 360° Căn Hộ</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Cấu Trúc Một Card Cảnh</h3>
+    <ul>
+      <li><strong>Label</strong> — tên hiển thị (vd "Bể bơi vô cực").</li>
+      <li><strong>Panorama ID</strong> — chọn từ dropdown danh sách panorama (load động từ 3DVista locale data).</li>
+      <li><strong>Thumbnail</strong> — ảnh nhỏ hiển thị trong nav panel (tuỳ chọn).</li>
+    </ul>
+
+    <h3>Thao Tác</h3>
+    <ul>
+      <li>Thêm / sửa / xoá điểm trong nhóm.</li>
+      <li>Drag-drop card trong nhóm và giữa các nhóm.</li>
+    </ul>
+
+    <div class="callout info">
+      <strong>Danh sách panorama đến từ đâu?</strong>
+      Module này tự fetch danh sách panorama từ file locale của 3DVista (<code>data/locale/*</code>) — bạn không phải gõ ID bằng tay, chỉ chọn từ dropdown.
+    </div>
+  </section>
+
+  <!-- 12 -->
+  <section id="masterplan">
+    <h2 data-num="12">Masterplan (Quy Hoạch)</h2>
+    <p>Quản lý overlay "Bản đồ 2D" trên trang VR. Dùng <strong>Leaflet</strong> để render và bố trí markers.</p>
+
+    <h3>Bố Cục</h3>
+    <ul>
+      <li>Upload <strong>ảnh quy hoạch</strong> (nền) — qua R2 hoặc link URL.</li>
+      <li>Hoặc dán link Google Maps / OpenStreetMap nếu dùng bản đồ thật.</li>
+      <li><strong>Mô tả giới thiệu</strong> hiển thị bên cạnh bản đồ (textarea).</li>
+    </ul>
+
+    <h3>Quản Lý Marker</h3>
+    <div class="step"><div class="step-num">1</div><div class="step-body">
+      <div class="step-title">Click vào vị trí trên ảnh / bản đồ</div>
+      <div class="step-desc">Một marker mới xuất hiện tại tọa độ (x%, y%).</div>
+    </div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body">
+      <div class="step-title">Điền Label + Category + Link</div>
+      <div class="step-desc">
+        <strong>Label</strong>: tên hiển thị (vd "Bể bơi").<br>
+        <strong>Category</strong>: phankhu · tieuich · phaply · …<br>
+        <strong>Link</strong>: chọn menu item đích — khi khách bấm marker, trang public sẽ chuyển sang cảnh / mở overlay tương ứng.
+      </div>
+    </div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body">
+      <div class="step-title">Kéo marker để chỉnh vị trí</div>
+      <div class="step-desc">Drag-drop marker trên ảnh để chỉnh chính xác.</div>
+    </div></div>
+
+    <h3>Bộ Lọc Khách Thấy Trên Trang Public</h3>
+    <p>Phần <strong>Filter Schema</strong>: tạo các nhóm lọc với tên + icon + danh sách items. Khi khách bật/tắt chip, markers tương ứng sẽ ẩn/hiện.</p>
   </section>
 
   <!-- 13 -->
-  <section id="phap-ly">
+  <section id="legal">
     <h2 data-num="13">Pháp Lý</h2>
-    <p>Có 4 section riêng:</p>
+    <p>Có 3 section riêng cho overlay "Pháp lý & Uy tín":</p>
 
     <table>
       <thead><tr><th>Section</th><th>Trường</th></tr></thead>
       <tbody>
-        <tr><td><strong>Chỉ số chủ đầu tư</strong> (<code>developerStats</code>)</td><td>Nhãn + Giá trị (vd "Năm thành lập" → "2008")</td></tr>
-        <tr><td><strong>Giấy tờ pháp lý</strong> (<code>documents</code>)</td><td>Tên giấy tờ + trạng thái (đã có / đang xin) + thời điểm</td></tr>
-        <tr><td><strong>Ngân hàng bảo lãnh</strong> (<code>banks</code>)</td><td>Tên + logo</td></tr>
-        <tr><td><strong>Nhận xét khách hàng</strong> (<code>testimonials</code>)</td><td>Tên · vai trò · nội dung · ảnh đại diện</td></tr>
+        <tr><td><strong>Hồ Sơ Pháp Lý</strong></td><td>Tên giấy tờ · Chi tiết · Done flag (có/đang xin) · File scan (PDF/ảnh)</td></tr>
+        <tr><td><strong>Thống Kê Chủ Đầu Tư</strong> (4 ô)</td><td>Giá trị · Đơn vị · Nhãn (vd "20+ năm hoạt động", "50+ dự án bàn giao")</td></tr>
+        <tr><td><strong>Testimonial</strong></td><td>Tên viết tắt · Nghề · Mã căn họ mua · Nội dung review · Avatar</td></tr>
       </tbody>
     </table>
+
+    <p>CRUD đầy đủ cho từng section. Phân cấp theo phân khu (mỗi phân khu có thể có giấy tờ riêng).</p>
   </section>
 
   <!-- 14 -->
-  <section id="vi-tri">
+  <section id="location">
     <h2 data-num="14">Vị Trí & POI</h2>
-    <p>Hai phần:</p>
+    <p>Quản lý overlay "Vị trí" trên trang VR.</p>
 
-    <h3>Toạ Độ & Google Maps</h3>
-    <p>Nhập <strong>lat</strong> + <strong>lng</strong> chính xác của dự án + đường dẫn nhúng Google Maps (mở Google Maps → Share → Embed map → copy src của iframe).</p>
+    <h3>Tọa Độ & Google Maps</h3>
+    <ul>
+      <li><strong>Latitude / Longitude</strong> chính xác của dự án.</li>
+      <li><strong>Google Maps embed</strong>: dán đoạn iframe <code>src</code> từ Google Maps → Share → Embed map.</li>
+    </ul>
 
-    <h3>Danh Sách POI (Tiện Ích Lân Cận)</h3>
+    <h3>Danh Sách POI (Point of Interest)</h3>
+    <p>Mỗi POI gồm: <strong>Loại · Tên · Khoảng cách · Thời gian</strong>.</p>
+
     <table>
-      <thead><tr><th>Danh Mục</th><th>Mã</th></tr></thead>
+      <thead><tr><th>Danh Mục</th></tr></thead>
       <tbody>
-        <tr><td>Trường học</td><td><code>school</code></td></tr>
-        <tr><td>Bệnh viện</td><td><code>hospital</code></td></tr>
-        <tr><td>Trung tâm thương mại</td><td><code>mall</code></td></tr>
-        <tr><td>Giao thông</td><td><code>transport</code></td></tr>
-        <tr><td>Giải trí</td><td><code>leisure</code></td></tr>
+        <tr><td>Trường học</td></tr>
+        <tr><td>Bệnh viện</td></tr>
+        <tr><td>Trung tâm thương mại</td></tr>
+        <tr><td>Sân bay</td></tr>
+        <tr><td>Metro / Giao thông công cộng</td></tr>
+        <tr><td>Công viên</td></tr>
+        <tr><td>Văn phòng</td></tr>
       </tbody>
     </table>
-    <p>Mỗi POI có: danh mục · tên · khoảng cách (vd "1,2 km") · thời gian (vd "8 phút").</p>
+
+    <p>CRUD đầy đủ. Phân cấp theo phân khu (mỗi phân khu có thể có POI lân cận riêng).</p>
   </section>
 
   <!-- 15 -->
   <section id="i18n">
     <h2 data-num="15">Ngôn Ngữ & i18n</h2>
-    <p>Quản lý bản dịch cho 5 ngôn ngữ (VI, EN, ZH, KO, JA) — và có thể thêm ngôn ngữ mới.</p>
+    <p>Quản lý bản dịch cho 5 ngôn ngữ mặc định (VI, EN, ZH, KO, JA) và có thể thêm ngôn ngữ mới.</p>
 
-    <h3>Bảng Dịch</h3>
-    <p>Mỗi dòng là một key dịch, mỗi cột là một ngôn ngữ. Click ô bất kỳ để chỉnh.</p>
+    <h3>Bảng Dịch (Inline Edit)</h3>
+    <p>Dữ liệu nạp từ <code>GET /api/i18n/admin</code>. Hiển thị bảng:</p>
+    <ul>
+      <li><strong>Key</strong> (vd <code>topbar.gallery</code>).</li>
+      <li><strong>Namespace</strong> (nhóm key — topbar · form · overlay…).</li>
+      <li><strong>Gốc (VI)</strong> — luôn đọc-only.</li>
+      <li><strong>Dịch sang ngôn ngữ đang chọn</strong> — click ô để edit, blur để lưu (<code>PUT /api/i18n/entry</code>).</li>
+      <li><strong>Status</strong>: <span class="badge-ok">translated</span> / <span class="badge-warn">missing</span>.</li>
+    </ul>
 
-    <h3>Thêm Ngôn Ngữ Mới</h3>
+    <h3>Lọc</h3>
+    <ul>
+      <li>Tìm theo key / nội dung.</li>
+      <li>Lọc theo namespace.</li>
+      <li>Lọc theo status (chỉ hiện key chưa dịch).</li>
+    </ul>
+
+    <h3>Thêm / Xoá Ngôn Ngữ</h3>
     <div class="step"><div class="step-num">1</div><div class="step-body">
       <div class="step-title">Bấm "+ Thêm ngôn ngữ"</div>
-      <div class="step-desc">Form yêu cầu mã ngôn ngữ (vd <code>fr</code>) + tên hiển thị (vd "Français").</div>
+      <div class="step-desc">Form: mã ngôn ngữ (vd <code>fr</code>) + tên hiển thị (vd "Français") + cờ.</div>
     </div></div>
     <div class="step"><div class="step-num">2</div><div class="step-body">
-      <div class="step-title">Cột mới được tạo</div>
-      <div class="step-desc">Các ô trống — bạn cần dịch lần lượt từng key, hoặc copy từ EN làm gốc.</div>
+      <div class="step-title">Lưu</div>
+      <div class="step-desc">Gọi <code>POST /api/i18n/language</code>. Cột mới được tạo, các ô trống — bạn dịch lần lượt từng key (hoặc dùng AI để gen draft).</div>
     </div></div>
     <div class="step"><div class="step-num">3</div><div class="step-body">
-      <div class="step-title">Lưu</div>
-      <div class="step-desc">Sau khi publish (mục 21), khách có thể chọn ngôn ngữ mới trên dropdown của trang VR.</div>
+      <div class="step-title">Xoá ngôn ngữ</div>
+      <div class="step-desc"><code>DELETE /api/i18n/language/:code</code> — sau khi xác nhận trong modal.</div>
     </div></div>
 
-    <div class="callout info">
-      <strong>Theo ghi chú dự án</strong>
-      Theo định hướng phát triển (file <code>note để hôm sau sửa.MD</code>), tab i18n sẽ mặc định <strong>chỉ hiển thị tiếng Việt</strong>, các ngôn ngữ khác phải bấm "Thêm ngôn ngữ mới" để bật.
-    </div>
+    <p>Trang public tự nhận biết ngôn ngữ mới (dropdown 🌐 cập nhật) — không cần publish thủ công.</p>
   </section>
 
   <!-- 16 -->
   <section id="theme">
     <h2 data-num="16">Giao Diện & Theme</h2>
-    <p>Đổi <strong>màu chủ đạo</strong> của trang VR mà không cần code.</p>
+    <p>Đổi màu chủ đạo + hiệu ứng UI của trang VR mà không cần code.</p>
 
-    <h3>Chỉnh Token Màu</h3>
-    <p>Mỗi color token (<code>--bg</code>, <code>--fg</code>, <code>--accent</code>, <code>--ok</code>, <code>--danger</code>…) có một color picker. Đổi màu sẽ thấy preview ngay.</p>
-
-    <h3>4 Preset Có Sẵn</h3>
+    <h3>9 Biến Màu CSS</h3>
+    <p>Mỗi token có color picker:</p>
     <ul>
-      <li><strong>Aurora (Mặc định)</strong> — vàng kem trên nền xanh đêm.</li>
-      <li>Các biến thể khác — bấm để áp dụng nhanh.</li>
+      <li><code>--bg</code> · <code>--fg</code> · <code>--accent</code> · <code>--ok</code> · <code>--danger</code> · <code>--warning</code></li>
+      <li><code>--hotspot</code> (màu pin trên VR), <code>--countdown</code> (đếm ngược ưu đãi), <code>--loader</code></li>
     </ul>
 
-    <h3>Xuất Theme</h3>
+    <h3>5 Preset Có Sẵn</h3>
+    <ul>
+      <li><strong>Aurora</strong> (mặc định) — vàng kem trên xanh đêm</li>
+      <li><strong>Midnight Blue</strong></li>
+      <li><strong>Forest Dark</strong></li>
+      <li><strong>Rose Gold</strong></li>
+      <li><strong>Ocean Deep</strong></li>
+    </ul>
+
+    <h3>6 Toggle Hiệu Ứng</h3>
     <table>
-      <thead><tr><th>Định Dạng</th><th>Mục Đích</th></tr></thead>
       <tbody>
-        <tr><td><strong>CSS</strong></td><td>File <code>.css</code> chứa <code>:root { --bg: …; }</code> — paste vào <code>style.css</code> hoặc <code>style</code> tag</td></tr>
-        <tr><td><strong>JSON</strong></td><td>Đối tượng JSON — phù hợp lưu vào git hoặc gửi cho dev</td></tr>
+        <tr><td>Blur backdrop</td><td>Mờ nền overlay khi mở popup</td></tr>
+        <tr><td>Pulse hotspot</td><td>Hotspot nhấp nháy nhẹ</td></tr>
+        <tr><td>Vignette</td><td>Tối góc khung VR</td></tr>
+        <tr><td>Auto-rotate</td><td>Tự xoay 360° khi không tương tác</td></tr>
+        <tr><td>Toast</td><td>Hiện thông báo "12 người đang xem cảnh này"</td></tr>
+        <tr><td>Countdown</td><td>Hiện đếm ngược ưu đãi trên Project Card</td></tr>
       </tbody>
     </table>
 
-    <div class="callout warn">
-      <strong>Theme không tự áp dụng cho trang public</strong>
-      Sau khi chỉnh theme, bạn cần Export CSS và <strong>đẩy file</strong> vào <code>css/style.css</code> hoặc nhờ dev tích hợp. Localstorage không ảnh hưởng tới trang VR đang chạy ngoài kia.
-    </div>
+    <h3>Lưu & Áp Dụng</h3>
+    <p>Bấm <strong>Lưu</strong> → gọi <code>POST /api/theme</code> → backend lưu DB → trang public lập tức áp dụng (đọc qua <code>GET /api/theme</code>).</p>
+
+    <h3>Export</h3>
+    <p>Có thể export theme dưới dạng <strong>CSS</strong> (file <code>:root { … }</code>) hoặc <strong>JSON</strong> để chia sẻ / commit vào git.</p>
   </section>
 
   <!-- 17 -->
   <section id="analytics">
     <h2 data-num="17">Analytics</h2>
-    <p>Trang dạng tab với các biểu đồ tổng quan: visitor, cảnh phổ biến, nguồn traffic, tỉ lệ chuyển đổi, doanh thu.</p>
+    <p>Số liệu thật từ DB (bảng <code>analytics_sessions</code>, <code>analytics_events</code>, <code>leads</code>…). Gọi <code>GET /api/analytics</code>.</p>
+
+    <h3>4 Tab</h3>
+    <table>
+      <thead><tr><th>Tab</th><th>Biểu Đồ</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Lượt Xem</strong></td><td>Line chart lượt xem theo ngày · Doughnut tỉ lệ thiết bị (desktop/mobile/tablet)</td></tr>
+        <tr><td><strong>VR Engagement</strong></td><td>Bar chart scene phổ biến · Doughnut tỉ lệ sử dụng AI giọng nói</td></tr>
+        <tr><td><strong>Chuyển Đổi</strong></td><td>Funnel: visit → xem ≥3 cảnh → mở bảng giá → gửi form → chốt</td></tr>
+        <tr><td><strong>Leads</strong></td><td>Bar chart leads theo ngày · Doughnut leads theo nguồn</td></tr>
+      </tbody>
+    </table>
 
     <div class="callout info">
-      <strong>Hiện đang là mock</strong>
-      Để dùng thật, cần tích hợp Google Analytics 4 hoặc Mixpanel (xem mục Giới hạn trong đặc tả). Sau tích hợp, các biểu đồ sẽ phản ánh số liệu thực.
+      <strong>Số liệu real — không còn mock</strong>
+      Khác với phiên bản cũ, Analytics đã chạy trên dữ liệu thật. Cứ mỗi visitor mở trang VR, frontend log session/event lên backend.
     </div>
   </section>
 
   <!-- 18 -->
-  <section id="cai-dat">
-    <h2 data-num="18">Cài Đặt</h2>
+  <section id="settings">
+    <h2 data-num="18">Cài Đặt (Settings)</h2>
+    <p>4 tab — riêng tab <strong>API</strong> chỉ developer mới thấy.</p>
 
-    <h3>Hồ Sơ Dự Án</h3>
-    <p>Sửa nhanh <strong>tên dự án</strong>, <strong>chủ đầu tư</strong>, <strong>hotline</strong>, <strong>zalo</strong>, <strong>tagline</strong>, <strong>vị trí</strong> — các thông tin hiển thị toàn trang VR. Bấm Lưu.</p>
+    <h3>Tab 1 — Project</h3>
+    <ul>
+      <li><strong>Hồ sơ dự án</strong>: tên · chủ đầu tư · tagline · location · status · ngày bàn giao.</li>
+      <li><strong>Bảng giá tổng quan</strong>: giá từ · đơn vị · total units · promo deadline.</li>
+      <li><strong>Thông số</strong> (4 stat card): tổng căn · số tòa · số tầng · diện tích · mật độ xây dựng · % cây xanh.</li>
+      <li><strong>Project Card overview</strong>: mô tả ngắn · highlights · quick links.</li>
+      <li><strong>Logo</strong>: dark mode + light mode (upload qua R2).</li>
+    </ul>
 
-    <h3>Người Dùng</h3>
-    <p>Xem danh sách user (admin, sales, sales2). Đổi mật khẩu / vô hiệu hoá tài khoản.</p>
+    <h3>Tab 2 — API <span class="badge-info">developer only</span></h3>
+    <ul>
+      <li>CRM webhook URL</li>
+      <li>CRM API key</li>
+      <li>Claude API key (cho trợ lý AI nếu chuyển sang Claude thay Gemini)</li>
+      <li>Google Analytics ID</li>
+      <li>Google Maps API key</li>
+    </ul>
 
-    <h3>Backup / Restore</h3>
+    <h3>Tab 3 — Users</h3>
+    <p>Bảng quản lý user: name · username · role · slug · title · phone · email · actions.</p>
+
+    <h4>Thêm User Mới</h4>
+    <div class="step"><div class="step-num">1</div><div class="step-body">
+      <div class="step-title">Bấm "+ Thêm User"</div>
+      <div class="step-desc">Slide Panel mở với form.</div>
+    </div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body">
+      <div class="step-title">Điền thông tin</div>
+      <div class="step-desc">
+        <strong>Username</strong> (login) · <strong>Role</strong> (developer/owner/sales — owner KHÔNG gán được role developer) · <strong>Mật khẩu</strong> · Họ tên · Title · Phone · Email · Avatar (upload R2).<br>
+        Với sales: thêm trường <strong>slug</strong> (ID giới thiệu — sẽ tạo URL <code>/&lt;slug&gt;</code>).
+      </div>
+    </div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body">
+      <div class="step-title">Lưu</div>
+      <div class="step-desc">Gọi <code>POST /api/users</code>. User mới có thể đăng nhập ngay.</div>
+    </div></div>
+
+    <h4>Sửa / Xoá</h4>
+    <ul>
+      <li>Sửa: <code>PUT /api/users/:id</code>. Có thể đổi role, đổi mật khẩu (để trống nếu giữ nguyên).</li>
+      <li>Xoá: <code>DELETE /api/users/:id</code> — sau xác nhận. Không xoá được chính tài khoản đang đăng nhập.</li>
+    </ul>
+
+    <h3>Tab 4 — Backup</h3>
     <table>
       <thead><tr><th>Nút</th><th>Tác Dụng</th></tr></thead>
       <tbody>
-        <tr><td><strong>Export JSON</strong></td><td>Tải toàn bộ dữ liệu hiện tại về máy dưới dạng <code>aurora-backup-YYYY-MM-DD.json</code></td></tr>
-        <tr><td><strong>Import JSON</strong></td><td>Nạp file backup → ghi đè toàn bộ localStorage (cần xác nhận)</td></tr>
-        <tr><td><strong>Reset Data</strong></td><td>Xoá <code>localStorage.ah_admin_data</code> → lần tải kế tiếp sẽ fetch lại <code>data/project.json</code> gốc</td></tr>
+        <tr><td><strong>Export JSON</strong></td><td>Tải toàn bộ dữ liệu dự án về máy (file <code>haivanbay-backup-YYYY-MM-DD.json</code>)</td></tr>
+        <tr><td><strong>Import JSON</strong></td><td>Upload file backup → ghi đè DB (cần xác nhận)</td></tr>
+        <tr><td><strong>Reset Data</strong></td><td>Reset toàn bộ về seed mặc định — chạy lại <code>seed.js</code></td></tr>
       </tbody>
     </table>
 
     <div class="callout danger">
       <strong>Cảnh báo</strong>
-      Thao tác <strong>Reset</strong> và <strong>Import</strong> không thể hoàn tác. Luôn Export Backup trước khi reset.
+      <strong>Reset</strong> và <strong>Import</strong> ghi đè DB và <strong>không thể hoàn tác</strong>. Luôn Export Backup trước.
     </div>
   </section>
 
   <!-- 19 -->
   <section id="preview">
-    <h2 data-num="19">Preview VR — Xem Thử Trước Khi Publish</h2>
+    <h2 data-num="19">Preview VR — Xem Thử Ngay</h2>
     <p>Trên topbar có nút <strong>"Preview VR"</strong>. Bấm để mở <code>../index.html</code> (trang public) <strong>trong slide panel</strong> ngay tại workspace admin — không cần mở tab mới.</p>
 
-    <h3>Khi Nào Dùng?</h3>
+    <h3>Khi Nào Dùng</h3>
     <ul>
-      <li>Sau khi vừa chỉnh danh sách VR / thư viện ảnh / tiện ích — xem thực tế hiển thị ra sao.</li>
-      <li>Trước khi gửi cho dev publish — kiểm tra mọi thứ ổn.</li>
-      <li>Demo cho ban giám đốc/đối tác.</li>
+      <li>Sau khi vừa chỉnh danh sách VR / thư viện ảnh / theme → xem ngay trên trang public.</li>
+      <li>Demo cho ban giám đốc / đối tác.</li>
+      <li>Kiểm tra thay đổi theme / i18n có áp dụng đúng không.</li>
     </ul>
 
-    <div class="callout warn">
-      <strong>Preview KHÔNG dùng dữ liệu admin của bạn</strong>
-      Preview vẫn fetch <code>data/project.json</code> gốc. Để preview với dữ liệu đã chỉnh, bạn cần publish file JSON đã export (mục 21) trước.
+    <div class="callout ok">
+      <strong>Preview dùng dữ liệu thật</strong>
+      Khác phiên bản cũ — vì backend đã lưu DB, Preview hiển thị <strong>chính xác</strong> những gì khách thấy. Không cần publish thủ công.
     </div>
   </section>
 
   <!-- 20 -->
-  <section id="luu-tru">
-    <h2 data-num="20">Lưu Trữ & Backup</h2>
+  <section id="upload">
+    <h2 data-num="20">Upload Ảnh (Cloudflare R2)</h2>
+    <p>Mọi ảnh trong admin đều được upload lên <strong>Cloudflare R2</strong> qua presigned URL — không lưu base64 trong DB.</p>
 
-    <h3>Cách Dữ Liệu Được Lưu</h3>
-    <table>
-      <thead><tr><th>Key</th><th>Phạm Vi</th><th>Nội Dung</th></tr></thead>
-      <tbody>
-        <tr><td><code>ah_session</code></td><td>sessionStorage</td><td>Trạng thái đăng nhập — mất khi đóng tab</td></tr>
-        <tr><td><code>ah_admin_data</code></td><td>localStorage</td><td>Toàn bộ dữ liệu dự án bạn đã chỉnh — tồn tại lâu dài, gắn với trình duyệt + thiết bị</td></tr>
-      </tbody>
-    </table>
+    <h3>Cơ Chế</h3>
+    <pre>1. Frontend chọn file (drag-drop hoặc input)
+2. POST /api/upload/presign → backend dùng AWS SDK v3
+   tạo presigned PUT URL (TTL 5 phút)
+3. Frontend PUT file thẳng lên R2 (không qua backend)
+4. URL công khai sau upload:
+   https://{R2_PUBLIC_BASE}/{folder}/{timestamp}-{random}.ext
+5. Lưu URL công khai vào DB (qua module tương ứng)</pre>
 
-    <h3>Quy Trình Backup Khuyến Nghị</h3>
-    <ol>
-      <li><strong>Cuối ngày</strong> — vào Cài Đặt → Export JSON → lưu file vào folder backup (kèm ngày trong tên).</li>
-      <li><strong>Trước mỗi thay đổi lớn</strong> (đổi theme, sửa hàng loạt căn hộ) — Export thêm một bản.</li>
-      <li><strong>Upload backup</strong> lên Google Drive / cloud nội bộ để không phụ thuộc trình duyệt.</li>
-    </ol>
+    <h3>Cấu Hình R2 Cần Thiết</h3>
+    <ul>
+      <li><code>R2_ACCOUNT_ID</code> — Cloudflare account ID.</li>
+      <li><code>R2_ACCESS_KEY_ID</code> + <code>R2_SECRET_ACCESS_KEY</code> — credentials.</li>
+      <li><code>R2_BUCKET</code> — tên bucket.</li>
+      <li><code>R2_PUBLIC_BASE</code> — URL public của bucket (qua Cloudflare custom domain hoặc <code>pub-*.r2.dev</code>).</li>
+    </ul>
+
+    <p>Test bằng <code>GET /api/health</code> — endpoint này trả về cả trạng thái R2.</p>
 
     <div class="callout warn">
-      <strong>Cảnh báo</strong>
-      Nếu xoá lịch sử trình duyệt / cache, dữ liệu localStorage sẽ <strong>mất hoàn toàn</strong>. Backup thường xuyên là bắt buộc.
+      <strong>Nếu R2 chưa cấu hình</strong>
+      Module upload sẽ hiển thị lỗi "Không thể lấy presigned URL". Bạn vẫn có thể dùng <em>link URL</em> để gắn ảnh ngoài (ImgBB, Cloudinary, v.v.).
     </div>
   </section>
 
   <!-- 21 -->
-  <section id="cong-bo">
-    <h2 data-num="21">Công Bố Thay Đổi Lên Trang Public</h2>
-    <p>Đây là bước <strong>quan trọng nhất</strong> — biến những gì bạn chỉnh thành nội dung khách thấy.</p>
-
-    <div class="callout warn">
-      <strong>Hiện tại CHƯA tự động</strong>
-      Phiên bản này không có backend tự động — các thay đổi admin nằm trong localStorage, không ảnh hưởng <code>data/project.json</code> trên server.
-    </div>
-
-    <h3>Quy Trình Thủ Công</h3>
-    <div class="step"><div class="step-num">1</div><div class="step-body">
-      <div class="step-title">Vào Cài Đặt → Export JSON</div>
-      <div class="step-desc">Tải file JSON về máy.</div>
-    </div></div>
-    <div class="step"><div class="step-num">2</div><div class="step-body">
-      <div class="step-title">Đổi tên file thành <code>project.json</code></div>
-      <div class="step-desc">Phải đúng tên này để FE nhận diện được.</div>
-    </div></div>
-    <div class="step"><div class="step-num">3</div><div class="step-body">
-      <div class="step-title">Gửi cho dev / upload lên server</div>
-      <div class="step-desc">Ghi đè file <code>data/project.json</code> trên server. Sau đó refresh trang public — thay đổi sẽ hiển thị.</div>
-    </div></div>
-    <div class="step"><div class="step-num">4</div><div class="step-body">
-      <div class="step-title">Kiểm tra lại bằng Preview VR</div>
-      <div class="step-desc">Vào lại admin → bấm Preview VR để chắc chắn trang public đã cập nhật.</div>
-    </div></div>
-
-    <div class="callout info">
-      <strong>Hướng phát triển</strong>
-      Khi tích hợp backend (API endpoint <code>POST /project</code>), nút "Publish" sẽ tự gửi JSON lên server và trang public cập nhật trong vài giây.
-    </div>
-  </section>
-
-  <!-- 22 -->
   <section id="faq">
-    <h2 data-num="22">FAQ & Xử Lý Sự Cố</h2>
+    <h2 data-num="21">FAQ & Xử Lý Sự Cố</h2>
 
     <details>
-      <summary>Tôi vừa chỉnh thêm 5 căn nhưng trang VR public vẫn cũ?</summary>
-      <p>Bình thường — admin chỉ lưu vào localStorage. Cần làm bước <a href="#cong-bo">Công Bố Thay Đổi</a> (Export → upload <code>project.json</code> lên server).</p>
+      <summary>Tôi vừa chỉnh thêm 5 căn, trang VR public đã thấy chưa?</summary>
+      <p>Có — backend MySQL nên trang public đọc trực tiếp từ DB qua <code>GET /api/project</code>. Khách refresh trang sẽ thấy ngay. Khác phiên bản cũ cần publish thủ công.</p>
     </details>
 
     <details>
-      <summary>Mở admin trên máy khác thì dữ liệu khác?</summary>
-      <p>Đúng — localStorage gắn với <strong>từng trình duyệt + từng thiết bị</strong>. Để đồng bộ, sử dụng Export JSON ở máy A → Import vào máy B.</p>
+      <summary>Mở admin trên máy khác thì dữ liệu có khác không?</summary>
+      <p>Không — dữ liệu nằm trên MySQL backend, không còn phụ thuộc localStorage. Đăng nhập ở máy nào cũng thấy cùng một bộ dữ liệu.</p>
     </details>
 
     <details>
-      <summary>Bấm "Lưu" mà toast báo "Lỗi lưu — vượt dung lượng"?</summary>
-      <p>localStorage có giới hạn ~5 MB. Thường do upload quá nhiều ảnh base64. Giải pháp: (1) xoá bớt ảnh; (2) thay base64 bằng URL CDN; (3) Export backup rồi Reset.</p>
+      <summary>Bấm "Lưu" báo lỗi 401 Unauthorized?</summary>
+      <p>Session token hết hạn (TTL 12 giờ). Đăng xuất rồi đăng nhập lại. Nếu vẫn lỗi → check <code>JWT_SECRET</code> trong env có khớp giữa lần login và lần lưu không.</p>
+    </details>
+
+    <details>
+      <summary>Upload ảnh báo "Không lấy được presigned URL"?</summary>
+      <p>Backend chưa cấu hình R2 hoặc credentials sai. Check <code>GET /api/health</code> để thấy trạng thái R2. Xem mục <a href="#upload">Upload Ảnh</a>.</p>
     </details>
 
     <details>
       <summary>Mất mật khẩu admin?</summary>
-      <p>Mật khẩu được hardcode trong <code>admin/index.html</code> (mảng <code>USERS[]</code>). Hỏi dev hoặc xem file trực tiếp để khôi phục.</p>
+      <p>Vào DB (MySQL CLI hoặc phpMyAdmin) → bảng <code>users</code> → cập nhật <code>password_hash</code> bằng bcrypt hash mới. Hoặc chạy script <code>server/src/seed-accounts.js</code> để reset 3 tài khoản demo.</p>
     </details>
 
     <details>
       <summary>Có giới hạn số lượng căn hộ, hotspot, POI không?</summary>
-      <p>Về mặt kỹ thuật: không. Tuy nhiên hiệu năng bắt đầu giảm khi vượt 500 căn, 100 hotspot/cảnh hoặc 50 POI. Hợp lý là giữ <strong>≤ 200 căn nổi bật</strong> trong inventory hiển thị.</p>
+      <p>Backend MySQL không giới hạn — có thể chứa hàng nghìn căn. Hiệu năng UI bắt đầu giảm khi vượt ~500 căn trên 1 trang list (nên dùng filter/pagination thay vì load all).</p>
     </details>
 
     <details>
-      <summary>Slide Panel không đóng được, kẹt ở giữa màn?</summary>
-      <p>Refresh trang bằng <kbd>F5</kbd>. Dữ liệu chưa lưu sẽ mất — đây là lý do nên bấm <strong>Lưu</strong> ngay sau mỗi thay đổi.</p>
-    </details>
-
-    <details>
-      <summary>Tôi muốn dùng 2 dự án khác nhau trên cùng máy?</summary>
-      <p>Hiện tại admin gắn với 1 dự án (1 file <code>project.json</code>). Để chạy nhiều dự án, mỗi dự án phải có subdomain / folder riêng — hoặc dùng tính năng "Workspace" sau khi triển khai backend.</p>
+      <summary>Slide Panel không đóng được, kẹt giữa màn?</summary>
+      <p>Bấm × hoặc nhấn <kbd>Esc</kbd>. Nếu vẫn kẹt, refresh trang <kbd>F5</kbd>. Dữ liệu chưa lưu sẽ mất — bấm <strong>Lưu</strong> ngay sau khi thay đổi.</p>
     </details>
 
     <details>
       <summary>Có log thao tác (audit log) không?</summary>
-      <p>Phiên bản hiện tại chưa có audit log. Đây là một trong các đề xuất cải tiến (xem <code>ADMIN_IMPROVEMENT_PROPOSAL.md</code>).</p>
+      <p>Có bảng <code>analytics_events</code> ghi nhận một số hoạt động chính. Audit log chi tiết per-user (ai đổi gì lúc nào) là roadmap tương lai — hiện chưa.</p>
+    </details>
+
+    <details>
+      <summary>Backend không khởi động được?</summary>
+      <p>Check theo thứ tự: (1) <code>DATABASE_URL</code> hoặc DB_* — MySQL có chạy không? (2) Chạy <code>node server/src/migrate-auth.js</code> rồi <code>seed.js</code> để tạo bảng + dữ liệu mẫu. (3) Port 3000 có bị chiếm không — đổi qua biến <code>PORT</code>.</p>
     </details>
   </section>
 
   <hr />
   <p style="color:var(--fg-muted);font-size:12px;text-align:center;padding-bottom:3rem">
-    Vinhomes Hai Van Bay VR360 · HDSD Chủ Đầu Tư · v1.0 · 16-05-2026
+    Vinhomes Hai Van Bay VR360 · HDSD Chủ Đầu Tư · v2.0 · 26-05-2026
   </p>
 
 </main>

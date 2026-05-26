@@ -2140,7 +2140,7 @@ function renderPropertyDetailPage(el) {
         <div style="display:flex;gap:6px">
           <button class="btn btn-secondary btn-sm" onclick="document.getElementById('pd-img-file').click()">${ico('upload',12)} Tải lên</button>
           <button class="btn btn-secondary btn-sm" onclick="propAddMedia('images')">${ico('globe',12)} Dán link</button>
-          <input type="file" id="pd-img-file" accept="image/*" multiple style="display:none" onchange="propUploadMedia(this,'images')">
+          <input type="file" id="pd-img-file" accept="image/*,video/*" multiple style="display:none" onchange="propUploadMedia(this,'images')">
         </div>
       </div>
       <div class="card-body"><div id="pd-images-grid">${propMediaGridHTML(p.images, 'images')}</div></div>
@@ -2153,7 +2153,7 @@ function renderPropertyDetailPage(el) {
         <div style="display:flex;gap:6px">
           <button class="btn btn-secondary btn-sm" onclick="document.getElementById('pd-floor-file').click()">${ico('upload',12)} Tải lên</button>
           <button class="btn btn-secondary btn-sm" onclick="propAddMedia('thumbsFloor')">${ico('globe',12)} Dán link</button>
-          <input type="file" id="pd-floor-file" accept="image/*" multiple style="display:none" onchange="propUploadMedia(this,'thumbsFloor')">
+          <input type="file" id="pd-floor-file" accept="image/*,video/*" multiple style="display:none" onchange="propUploadMedia(this,'thumbsFloor')">
         </div>
       </div>
       <div class="card-body"><div id="pd-thumbsFloor-grid">${propMediaGridHTML(p.thumbsFloor, 'thumbsFloor')}</div></div>
@@ -2225,19 +2225,28 @@ function propSaleInfoHTML(username) {
     </div>`;
 }
 
-/* ── Media grid (ảnh / mặt bằng) ── */
+/* ── Media grid (ảnh / video / mặt bằng) ── */
+function isVideoSrc(src) {
+  return /\.(mp4|webm|ogg|mov|m4v)(\?|#|$)/i.test(src || '') || /^data:video\//i.test(src || '');
+}
 function propMediaGridHTML(arr, field) {
   arr = arr || [];
   if (!arr.length) {
-    return `<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">Chưa có ảnh.</div>`;
+    return `<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">Chưa có ảnh / video.</div>`;
   }
   return `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px">
-    ${arr.map((src, i) => `
+    ${arr.map((src, i) => {
+      const url = esc(propImg(src));
+      const media = isVideoSrc(src)
+        ? `<video src="${url}" muted playsinline style="width:100%;height:100%;object-fit:cover" onerror="this.style.opacity=.2"></video>`
+        : `<img src="${url}" style="width:100%;height:100%;object-fit:cover" alt="" onerror="this.style.opacity=.2">`;
+      return `
       <div style="position:relative;border:1px solid var(--border);border-radius:8px;overflow:hidden;aspect-ratio:4/3;background:#0b1220">
-        <img src="${esc(propImg(src))}" style="width:100%;height:100%;object-fit:cover" alt="" onerror="this.style.opacity=.2">
+        ${media}
         <button class="act-btn danger" style="position:absolute;top:4px;right:4px;background:rgba(0,0,0,.6)"
                 onclick="propRemoveMedia('${field}',${i})">${ico('trash',12)}</button>
-      </div>`).join('')}
+      </div>`;
+    }).join('')}
   </div>`;
 }
 /* Lấy bản nháp sản phẩm đang chỉnh (từ form) — chỉ dùng cho thao tác media động */
@@ -2257,10 +2266,11 @@ async function propUploadMedia(input, field) {
   if (!files.length) return;
   const p = propCurrent();
   p[field] = p[field] || [];
-  toast(`Đang tải ${files.length} ảnh...`, 'info');
+  toast(`Đang tải ${files.length} tệp...`, 'info');
   let ok = 0, fail = 0;
   for (const f of files) {
-    if (!f.type.startsWith('image/')) { fail++; continue; }
+    const type = f.type || '';
+    if (!type.startsWith('image/') && !type.startsWith('video/')) { fail++; continue; }
     try {
       const url = await uploadImageToR2(f, { folder: 'property/' + field });
       p[field].push(url);
