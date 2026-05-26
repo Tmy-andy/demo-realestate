@@ -114,14 +114,22 @@ async function boot() {
   }, 900);
 }
 
-/** Send a postMessage to the 3DVista iframe to change panorama */
+/** Đổi panorama bằng cách gọi trực tiếp TDV.Tour (qua panorama-host.js).
+    Nếu tour chưa init xong (boot ban đầu) thì hàng đợi sẽ retry. */
 function goToPanorama(panoName) {
   if (!panoName) return;
   currentPanoramaId = panoName;
   window.dispatchEvent(new CustomEvent('panoramaChange', { detail: { panoId: panoName } }));
-  const iframe = document.getElementById("vr-iframe");
-  if (iframe && iframe.contentWindow) {
-    iframe.contentWindow.postMessage({ type: "goToPanorama", name: panoName }, "*");
+  if (typeof window.openPanoramaByName === 'function') {
+    var ok = window.openPanoramaByName(panoName);
+    if (!ok && !window.__panoramaHostReady) {
+      // Tour chưa sẵn sàng — chờ tourInitialized rồi thử lại đúng 1 lần.
+      var retry = function () {
+        window.removeEventListener('tourInitialized', retry);
+        window.openPanoramaByName(panoName);
+      };
+      window.addEventListener('tourInitialized', retry);
+    }
   }
   // Update scene info bar
   const item = findMenuItemByPanorama(panoName);
@@ -1442,7 +1450,7 @@ function bindPanelCollapse() {
 
 function bindSmartHide() {
   const ui = document.getElementById("ui");
-  const stage = document.getElementById("vr-iframe");
+  const stage = document.getElementById("viewer");
   const restore = document.getElementById("ui-restore");
   if (!ui || !stage) return;
 
@@ -1466,24 +1474,17 @@ function bindSmartHide() {
   ui.addEventListener("pointerenter", () => { pointerInUI = true; });
   ui.addEventListener("pointerleave", () => { pointerInUI = false; });
 
-  /* Iframe 3DVista nuốt mọi sự kiện chuột nên pointerdown trên #vr-iframe
-     không fire. Dùng window "blur": khi người dùng nhấn vào iframe, focus
-     chuyển sang iframe → window mất focus → ta biết họ đang xem VR. */
-  window.addEventListener("blur", () => {
-    if (pointerInUI) return; // đang thao tác trên UI, không phải vào VR
-    if (document.activeElement === stage) hide();
+  /* Không còn iframe → có thể bắt pointerdown trực tiếp trên #viewer.
+     Khi user kéo/chạm trên không gian 360 → ẩn UI để xem toàn cảnh. */
+  stage.addEventListener("pointerdown", () => {
+    if (pointerInUI) return;
+    hide();
+    hideTimer = setTimeout(show, 2500);
   });
-
-  /* Quay lại trang chủ (rê chuột ra khỏi iframe) → hiện lại UI */
-  window.addEventListener("focus", () => {
-    hideTimer = setTimeout(show, 400);
+  stage.addEventListener("pointerup", () => {
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(show, 800);
   });
-  document.addEventListener("mouseenter", show);
-
-  /* Chạm trực tiếp lên khung VR (mobile) — iframe pointer events vẫn nuốt,
-     nhưng touchstart trên document phía ngoài iframe có thể bắt được khi
-     người dùng chạm mép. Dự phòng: nút Unhide luôn sẵn. */
-  stage.addEventListener("pointerdown", hide);
 
   restore?.addEventListener("click", show);
 }

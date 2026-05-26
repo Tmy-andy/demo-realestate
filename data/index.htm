@@ -15,12 +15,24 @@
 	<link rel="icon" type="image/png" sizes="192x192" href="misc/icon192.png?v=1779071649938">
 	<link rel="preload" href="locale/en.txt?v=1779071649938" as="fetch" crossorigin="anonymous"/>
 	<link rel="preload" href="script.js?v=1779071649938" as="script"/>
-	<link rel="preload" href="media/panorama_3F03A15C_300E_B1A3_41B0_AA40B30DB847_0/r/3/0_0.webp?v=1779071649938" as="image"/>
-	<link rel="preload" href="media/panorama_3F03A15C_300E_B1A3_41B0_AA40B30DB847_0/l/3/0_0.webp?v=1779071649938" as="image"/>
-	<link rel="preload" href="media/panorama_3F03A15C_300E_B1A3_41B0_AA40B30DB847_0/u/3/0_0.webp?v=1779071649938" as="image"/>
-	<link rel="preload" href="media/panorama_3F03A15C_300E_B1A3_41B0_AA40B30DB847_0/d/3/0_0.webp?v=1779071649938" as="image"/>
-	<link rel="preload" href="media/panorama_3F03A15C_300E_B1A3_41B0_AA40B30DB847_0/f/3/0_0.webp?v=1779071649938" as="image"/>
-	<link rel="preload" href="media/panorama_3F03A15C_300E_B1A3_41B0_AA40B30DB847_0/b/3/0_0.webp?v=1779071649938" as="image"/>
+	<script>
+	(function () {
+		var panoId = 'panorama_3F03A15C_300E_B1A3_41B0_AA40B30DB847_0';
+		var v = '1779071649938';
+		var faces = ['r', 'l', 'u', 'd', 'f', 'b'];
+		faces.forEach(function (face) {
+			var url = 'media/' + panoId + '/' + face + '/3/0_0.webp?v=' + v;
+			fetch(url, { method: 'HEAD' }).then(function (res) {
+				if (!res.ok) return;
+				var link = document.createElement('link');
+				link.rel = 'preload';
+				link.as = 'image';
+				link.href = url;
+				document.head.appendChild(link);
+			}).catch(function () { });
+		});
+	})();
+	</script>
 	<meta property="og:title" content="DỰ ÁN BẤT ĐỘNG SẢN LINK CITY" />
 	<meta property="og:type" content="website" />
 	<meta property="og:description" content="Link City là dự án bất động sản tầm cỡ quốc tế tọa lạc tại,..." />

@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Vinhomes Hai Van Bay VR360 — Đặc Tả Dự Án v2.0</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --sidebar-bg: #0a0d12;
+    --content-bg: #13171f;
+    --fg: #e8e6df;
+    --fg-muted: #9a9590;
+    --accent: #e8c089;
+    --accent-dim: rgba(232,192,137,0.15);
+    --ok: #7ad79a;
+    --danger: #ff6b6b;
+    --warning: #f5a623;
+    --info: #6496ff;
+    --hairline: rgba(255,255,255,0.08);
+    --code-bg: rgba(0,0,0,0.4);
+    --sidebar-width: 280px;
+    --top-height: 56px;
+    --r: 6px;
+    --font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --font-mono: 'Cascadia Code', 'Fira Mono', 'Consolas', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--font-sans); font-size: 14px; line-height: 1.7; display: flex; flex-direction: column; min-height: 100vh; }
+
+  #topbar { position: fixed; top: 0; left: 0; right: 0; height: var(--top-height); background: var(--sidebar-bg); border-bottom: 1px solid var(--hairline); display: flex; align-items: center; padding: 0 1.5rem; gap: 1rem; z-index: 100; }
+  #topbar .brand { font-size: 1rem; font-weight: 700; color: var(--accent); letter-spacing: 0.04em; white-space: nowrap; }
+  #topbar .badge { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(232,192,137,0.3); padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  #topbar .meta { margin-left: auto; color: var(--fg-muted); font-size: 12px; }
+
+  #layout { display: flex; margin-top: var(--top-height); min-height: calc(100vh - var(--top-height)); }
+  #sidebar { width: var(--sidebar-width); flex-shrink: 0; background: var(--sidebar-bg); border-right: 1px solid var(--hairline); position: fixed; top: var(--top-height); bottom: 0; overflow-y: auto; padding: 1.5rem 0; }
+  #sidebar::-webkit-scrollbar { width: 4px; }
+  #sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+  .nav-section-label { padding: 0.5rem 1.5rem; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: var(--fg-muted); text-transform: uppercase; }
+  .nav-link { display: block; padding: 0.4rem 1.5rem; color: var(--fg-muted); text-decoration: none; font-size: 13px; transition: all 0.15s; border-left: 2px solid transparent; }
+  .nav-link:hover, .nav-link.active { color: var(--fg); background: rgba(255,255,255,0.04); border-left-color: var(--accent); }
+  .nav-link .num { display: inline-block; background: rgba(255,255,255,0.06); color: var(--fg-muted); font-size: 10px; padding: 1px 5px; border-radius: 3px; margin-right: 6px; font-family: var(--font-mono); }
+
+  #content { margin-left: var(--sidebar-width); flex: 1; padding: 3rem 4rem; }
+
+  h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
+  h2 { font-size: 1.5rem; font-weight: 700; margin: 3rem 0 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--hairline); }
+  h2::before { content: attr(data-num); color: var(--accent); font-size: 0.85em; margin-right: 0.5rem; font-family: var(--font-mono); }
+  h3 { font-size: 1.1rem; font-weight: 600; margin: 2rem 0 0.75rem; }
+  h4 { font-size: 0.9rem; font-weight: 600; color: var(--fg-muted); margin: 1.5rem 0 0.5rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  p { margin-bottom: 1rem; }
+  ul, ol { margin: 0 0 1rem 1.25rem; }
+  ul li, ol li { margin-bottom: 0.4rem; }
+  strong { color: #fff; }
+
+  .intro { background: var(--accent-dim); border: 1px solid rgba(232,192,137,0.25); border-radius: var(--r); padding: 1.25rem 1.5rem; margin-bottom: 2.5rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1rem; }
+  .intro-item .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-muted); }
+  .intro-item .value { font-size: 14px; color: var(--fg); font-weight: 600; }
+
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 13px; }
+  thead th { background: rgba(255,255,255,0.04); color: var(--fg-muted); font-weight: 600; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.6rem 0.85rem; text-align: left; border-bottom: 1px solid var(--hairline); }
+  tbody td { padding: 0.55rem 0.85rem; border-bottom: 1px solid var(--hairline); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: rgba(255,255,255,0.02); }
+  code { font-family: var(--font-mono); font-size: 12px; background: var(--code-bg); padding: 1px 5px; border-radius: 3px; color: var(--accent); }
+
+  .callout { border-left: 3px solid var(--accent); background: var(--accent-dim); border-radius: 0 var(--r) var(--r) 0; padding: 0.85rem 1.25rem; margin: 1rem 0 1.5rem; font-size: 13px; }
+  .callout.warn { border-left-color: var(--warning); background: rgba(245,166,35,0.1); }
+  .callout.info { border-left-color: var(--info); background: rgba(100,150,255,0.1); }
+  .callout.ok { border-left-color: var(--ok); background: rgba(122,215,154,0.1); }
+  .callout.danger { border-left-color: var(--danger); background: rgba(255,107,107,0.1); }
+  .callout strong { display: block; margin-bottom: 0.25rem; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; }
+
+  .badge-ok { background: rgba(122,215,154,0.15); color: var(--ok); padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; white-space: nowrap; display: inline-block; }
+  .badge-warn{ background: rgba(245,166,35,0.15); color: var(--warning); padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; white-space: nowrap; display: inline-block; }
+  .badge-err { background: rgba(255,107,107,0.15); color: var(--danger); padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; white-space: nowrap; display: inline-block; }
+  .badge-info{ background: rgba(100,150,255,0.15); color: var(--info); padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; white-space: nowrap; display: inline-block; }
+
+  pre { background: var(--code-bg); border: 1px solid var(--hairline); border-radius: var(--r); padding: 1.25rem; overflow-x: auto; margin: 1rem 0 1.5rem; font-family: var(--font-mono); font-size: 12.5px; line-height: 1.65; color: #c9d1d9; white-space: pre; }
+  pre .c { color: #6a9955; }
+  pre .str { color: #ce9178; }
+  pre .fn { color: #dcdcaa; }
+  hr { border: none; border-top: 1px solid var(--hairline); margin: 2.5rem 0; }
+
+  @media (max-width: 900px) { #sidebar { display: none; } #content { margin-left: 0; padding: 2rem 1.5rem; } }
+  html { scroll-behavior: smooth; }
+  section { scroll-margin-top: calc(var(--top-height) + 1rem); }
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <span class="brand">Vinhomes Hai Van Bay VR360</span>
+  <span class="badge">Đặc Tả Dự Án v2.0</span>
+  <span class="meta">26-05-2026 &nbsp;·&nbsp; v2.0 &nbsp;·&nbsp; Backend + 3DVista</span>
+</div>
+
+<div id="layout">
+
+<nav id="sidebar">
+  <div class="nav-section-label">Tổng Quan</div>
+  <a class="nav-link" href="#overview"><span class="num">1</span>Giới Thiệu Dự Án</a>
+  <a class="nav-link" href="#techstack"><span class="num">2</span>Công Nghệ Sử Dụng</a>
+  <a class="nav-link" href="#structure"><span class="num">3</span>Cấu Trúc Thư Mục</a>
+
+  <div class="nav-section-label" style="margin-top:1rem">Backend</div>
+  <a class="nav-link" href="#backend"><span class="num">4</span>Kiến Trúc Backend</a>
+  <a class="nav-link" href="#api">→ Endpoints REST</a>
+  <a class="nav-link" href="#auth">→ Auth & Roles</a>
+  <a class="nav-link" href="#db">→ Bảng Database</a>
+  <a class="nav-link" href="#r2">→ Upload Cloudflare R2</a>
+
+  <div class="nav-section-label" style="margin-top:1rem">Trang Public (VR)</div>
+  <a class="nav-link" href="#vr-architecture"><span class="num">5</span>Kiến Trúc Trang VR</a>
+  <a class="nav-link" href="#3dvista">→ Tích Hợp 3DVista</a>
+  <a class="nav-link" href="#nav-data">→ Cấu Trúc Cảnh & Phân Khu</a>
+  <a class="nav-link" href="#overlays">→ Overlay Tính Năng</a>
+  <a class="nav-link" href="#ai-gemini">→ AI Gemini Live</a>
+  <a class="nav-link" href="#booking-form">→ Form Public</a>
+  <a class="nav-link" href="#slug-routing">→ URL /&lt;slug&gt; Giới Thiệu</a>
+
+  <div class="nav-section-label" style="margin-top:1rem">Admin</div>
+  <a class="nav-link" href="#admin"><span class="num">6</span>Workspace Admin</a>
+  <a class="nav-link" href="#admin-owner">→ Owner / Developer (14 module)</a>
+  <a class="nav-link" href="#admin-sales">→ Sales (7 module)</a>
+  <a class="nav-link" href="#admin-storage">→ Storage & Sync</a>
+
+  <div class="nav-section-label" style="margin-top:1rem">Hệ Thống</div>
+  <a class="nav-link" href="#i18n"><span class="num">7</span>Đa Ngôn Ngữ</a>
+  <a class="nav-link" href="#theme"><span class="num">8</span>Theme & Hiệu Ứng</a>
+  <a class="nav-link" href="#analytics"><span class="num">9</span>Analytics</a>
+  <a class="nav-link" href="#responsive"><span class="num">10</span>Responsive & Mobile</a>
+  <a class="nav-link" href="#deploy"><span class="num">11</span>Triển Khai (Coolify/Docker)</a>
+  <a class="nav-link" href="#limits"><span class="num">12</span>Giới Hạn Hiện Tại</a>
+
+  <div class="nav-section-label" style="margin-top:1rem">Hướng Dẫn</div>
+  <a class="nav-link" href="huong-dan-khach.html">→ HDSD Khách Tham Quan</a>
+  <a class="nav-link" href="huong-dan-owner.html">→ HDSD Chủ Đầu Tư</a>
+  <a class="nav-link" href="huong-dan-sales.html">→ HDSD Nhân Viên Sales</a>
+
+  <div class="nav-section-label" style="margin-top:1rem">Nhật Ký</div>
+  <a class="nav-link" href="#changelog"><span class="num">13</span>Thay Đổi v2.0</a>
+</nav>
+
+<main id="content">
+
+  <h1>Vinhomes Hai Van Bay VR360</h1>
+  <p style="color:var(--fg-muted);margin-bottom:2rem">Đặc Tả Dự Án — Trang Bán Hàng Bất Động Sản Tương Tác VR360 + CMS Backend</p>
+
+  <div class="intro">
+    <div class="intro-item"><div class="label">Loại Dự Án</div><div class="value">BĐS VR360 + CMS</div></div>
+    <div class="intro-item"><div class="label">VR Engine</div><div class="value">3DVista (iframe)</div></div>
+    <div class="intro-item"><div class="label">Backend</div><div class="value">Node + Express + MySQL</div></div>
+    <div class="intro-item"><div class="label">Storage Media</div><div class="value">Cloudflare R2</div></div>
+    <div class="intro-item"><div class="label">AI</div><div class="value">Google Gemini Live</div></div>
+    <div class="intro-item"><div class="label">Ngôn Ngữ</div><div class="value">VI · EN · ZH · KO · JA</div></div>
+    <div class="intro-item"><div class="label">Vai Trò</div><div class="value">Developer · Owner · Sales</div></div>
+    <div class="intro-item"><div class="label">Responsive</div><div class="value">Desktop + Mobile</div></div>
+  </div>
+
+  <!-- ═══ 1. Project Overview ════════════════════════════ -->
+  <section id="overview">
+    <h2 data-num="1">Giới Thiệu Dự Án</h2>
+
+    <h3>Mục Tiêu Kinh Doanh</h3>
+    <table>
+      <thead><tr><th>Mục Tiêu</th><th>Cách Thực Hiện</th></tr></thead>
+      <tbody>
+        <tr><td>Thu thập leads chất lượng cao</td><td>Form đặt lịch tham quan + tự gán sales qua URL <code>/&lt;slug&gt;</code></td></tr>
+        <tr><td>Trưng bày dự án trực quan</td><td>Tour 3DVista ~40+ panorama, phân theo phân khu</td></tr>
+        <tr><td>Xây dựng niềm tin</td><td>Overlay Pháp lý + testimonial + chỉ số CĐT</td></tr>
+        <tr><td>Tạo sự khẩn cấp</td><td>Đếm ngược ưu đãi · toast "X người đang xem" (toggle được)</td></tr>
+        <tr><td>Hỗ trợ khách quốc tế</td><td>5 ngôn ngữ (VI/EN/ZH/KO/JA) qua bảng dịch trong DB</td></tr>
+        <tr><td>Tư vấn 24/7</td><td>Trợ lý AI Google Gemini Live (text + voice realtime)</td></tr>
+        <tr><td>CMS không-code cho CĐT</td><td>Workspace Owner 14 module, sửa nội dung VR trực tiếp</td></tr>
+        <tr><td>Theo dõi performance sales</td><td>Workspace Sales 7 module: leads, lịch hẹn, KPI</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Thông Tin Dự Án</h3>
+    <p>Thông tin cụ thể (tên thương mại, vị trí, giá, số căn, hotline…) được lấy từ DB qua <code>GET /api/project</code>. Owner có thể chỉnh trong tab <em>Settings → Project</em>.</p>
+  </section>
+
+  <!-- ═══ 2. Tech Stack ══════════════════════════════════ -->
+  <section id="techstack">
+    <h2 data-num="2">Công Nghệ & Phụ Thuộc</h2>
+
+    <h3>Backend</h3>
+    <table>
+      <thead><tr><th>Lớp</th><th>Công Nghệ</th></tr></thead>
+      <tbody>
+        <tr><td>Runtime</td><td>Node.js (v18+)</td></tr>
+        <tr><td>Framework</td><td>Express 4.21.2</td></tr>
+        <tr><td>Database</td><td>MySQL (qua <code>mysql2</code> 3.11.5)</td></tr>
+        <tr><td>Auth</td><td>Bcrypt + SHA-256 session token (TTL 12h)</td></tr>
+        <tr><td>Media</td><td>Cloudflare R2 (S3-compatible) qua AWS SDK v3 + presigned URL</td></tr>
+        <tr><td>Cấu hình</td><td>Biến môi trường (DATABASE_URL, R2_*, PORT…)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Frontend Public (Trang VR)</h3>
+    <table>
+      <thead><tr><th>Lớp</th><th>Công Nghệ</th></tr></thead>
+      <tbody>
+        <tr><td>Markup / Styling</td><td>HTML5 · CSS3 (custom properties, grid, flex)</td></tr>
+        <tr><td>Scripting</td><td>Vanilla JavaScript ES2020+ (không framework)</td></tr>
+        <tr><td>VR Engine</td><td><strong>3DVista (iframe)</strong> — đã thay Three.js từ v2.0</td></tr>
+        <tr><td>Icons</td><td>Lucide (CDN, auto re-render khi DOM thay đổi)</td></tr>
+        <tr><td>AI Voice</td><td>Google Gemini Live qua WebSocket (PCM16 audio)</td></tr>
+        <tr><td>Font</td><td>Cormorant Garamond · Inter · JetBrains Mono</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Frontend Admin</h3>
+    <table>
+      <thead><tr><th>Lớp</th><th>Công Nghệ</th></tr></thead>
+      <tbody>
+        <tr><td>Charts</td><td>Chart.js 4.4.0 (Dashboard, Analytics)</td></tr>
+        <tr><td>Maps</td><td>Leaflet 1.9.4 (Masterplan)</td></tr>
+        <tr><td>Drag & Drop</td><td>Native HTML5 (gallery, navpanel, timeline)</td></tr>
+        <tr><td>State</td><td>Object trong bộ nhớ (<code>S.data</code>) + cache localStorage</td></tr>
+      </tbody>
+    </table>
+
+    <h3>API Trình Duyệt</h3>
+    <table>
+      <thead><tr><th>API</th><th>Mục Đích</th><th>Dự Phòng</th></tr></thead>
+      <tbody>
+        <tr><td>WebSocket</td><td>Gemini Live audio/text</td><td>Quay về văn bản, im lặng</td></tr>
+        <tr><td>getUserMedia + AudioContext</td><td>Mic capture → PCM16</td><td>Chỉ chat text</td></tr>
+        <tr><td>postMessage</td><td>Trang ↔ iframe 3DVista (chuyển cảnh)</td><td>Khách dùng menu trong 3DVista</td></tr>
+        <tr><td>fetch + Bearer token</td><td>Gọi API backend</td><td>Show lỗi, retry</td></tr>
+        <tr><td>sessionStorage</td><td>Lưu token đăng nhập (key <code>ah_session</code>)</td><td>Đăng nhập lại</td></tr>
+        <tr><td>Intersection Observer</td><td>Lazy load Google Maps trong overlay Vị trí</td><td>Tải ngay</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ═══ 3. File Structure ═════════════════════════════ -->
+  <section id="structure">
+    <h2 data-num="3">Cấu Trúc Thư Mục</h2>
+    <pre>BDS/
+├── index.html                    <span class="c"># Trang VR public (1.199 dòng)</span>
+│                                 <span class="c"># &lt;base href="/"&gt; để hoạt động với URL /&lt;slug&gt;</span>
+│
+├── data/                         <span class="c"># Tài nguyên 3DVista (static)</span>
+│   ├── script.js, script_*.js    <span class="c"># Runtime 3DVista (do tool build sinh)</span>
+│   ├── locale/                   <span class="c"># Cấu hình ngôn ngữ 3DVista</span>
+│   ├── media/                    <span class="c"># Panorama (tiles), ảnh, video 3DVista</span>
+│   └── ...                       <span class="c"># skin/, lib/, misc/, ...</span>
+│
+├── js/                           <span class="c"># Runtime trang public</span>
+│   ├── config.js                 <span class="c"># window.APP_CONFIG.API_BASE</span>
+│   ├── i18n.js                   <span class="c"># Đa ngôn ngữ (fetch /api/i18n)</span>
+│   ├── data-source.js            <span class="c"># Lấy /api/project + submitLead</span>
+│   ├── vr-bridge.js              <span class="c"># postMessage tới iframe 3DVista</span>
+│   ├── ai-panel.js               <span class="c"># Panel chat AI</span>
+│   ├── gemini-live.js            <span class="c"># WebSocket Gemini Live</span>
+│   ├── masterplan.js             <span class="c"># Overlay Bản đồ 2D</span>
+│   ├── properties.js             <span class="c"># Overlay Bảng giá / detail BĐS</span>
+│   ├── mobile-stepper.js         <span class="c"># Carousel form/bảng giá mobile</span>
+│   └── main.js                   <span class="c"># Điều phối UI public (2.311 dòng)</span>
+│
+├── css/
+│   ├── style.css                 <span class="c"># Hệ thống thiết kế FE</span>
+│   └── mobile-stepper.css        <span class="c"># Style stepper mobile</span>
+│
+├── admin/                        <span class="c"># Workspace quản trị</span>
+│   ├── index.html                <span class="c"># Login (POST /api/auth/login)</span>
+│   ├── owner.html                <span class="c"># Workspace Owner/Developer (14 module)</span>
+│   ├── sales.html                <span class="c"># Workspace Sales (7 module)</span>
+│   ├── css/admin.css
+│   └── js/
+│       ├── admin.js              <span class="c"># Owner core (3.265 dòng)</span>
+│       ├── admin-content.js      <span class="c"># Owner module nội dung (2.465 dòng)</span>
+│       ├── sales.js              <span class="c"># Sales workspace (1.522 dòng)</span>
+│       ├── mobile-nav.js         <span class="c"># Burger mobile cho admin</span>
+│       └── notif-dropdown.js     <span class="c"># Dropdown thông báo</span>
+│
+├── server/                       <span class="c"># Backend Node.js</span>
+│   ├── package.json
+│   └── src/
+│       ├── index.js              <span class="c"># Express app + tất cả routes (1.500 dòng)</span>
+│       ├── auth.js               <span class="c"># Middleware xác thực + RBAC</span>
+│       ├── users.js              <span class="c"># CRUD users</span>
+│       ├── db.js                 <span class="c"># Pool MySQL</span>
+│       ├── r2.js                 <span class="c"># AWS SDK presigned URL</span>
+│       ├── import-project.js     <span class="c"># Import từ project.json vào DB</span>
+│       ├── migrate-auth.js       <span class="c"># Tạo bảng auth</span>
+│       ├── seed.js               <span class="c"># Seed dữ liệu mẫu</span>
+│       ├── seed-accounts.js      <span class="c"># Seed 3 tài khoản demo</span>
+│       └── seed-i18n.js          <span class="c"># Seed dictionary i18n</span>
+│
+├── img/                          <span class="c"># Logo + asset tĩnh</span>
+├── haivanbay_mysql.sql           <span class="c"># Dump schema MySQL</span>
+├── Dockerfile, COOLIFY.md        <span class="c"># Triển khai container</span>
+│
+└── docs/
+    ├── index.html                <span class="c"># File này — đặc tả dự án</span>
+    ├── huong-dan-khach.html      <span class="c"># HDSD khách</span>
+    ├── huong-dan-owner.html      <span class="c"># HDSD Owner</span>
+    └── huong-dan-sales.html      <span class="c"># HDSD Sales</span></pre>
+
+    <div class="callout warn">
+      <strong>Thay đổi lớn so với v1.2</strong>
+      Đã <strong>gỡ bỏ</strong>: <code>js/vr360.js</code> (Three.js), <code>data/project.json</code> như nguồn dữ liệu chính (giờ là DB), folder <code>img/</code> cho ảnh dự án (giờ trên R2). Đã <strong>thêm</strong>: thư mục <code>server/</code>, <code>js/gemini-live.js</code>, <code>js/vr-bridge.js</code>, <code>js/data-source.js</code>, <code>js/masterplan.js</code>, <code>js/properties.js</code>.
+    </div>
+  </section>
+
+  <!-- ═══ 4. Backend ═════════════════════════════════════ -->
+  <section id="backend">
+    <h2 data-num="4">Kiến Trúc Backend</h2>
+
+    <pre>┌──────────────────────────────────────────────────────────┐
+│   Trình duyệt (Khách / Owner / Sales)                    │
+│   ├─ index.html         → main.js + gemini-live          │
+│   ├─ admin/owner.html   → admin.js + admin-content.js    │
+│   └─ admin/sales.html   → sales.js                       │
+└──────────────────────┬───────────────────────────────────┘
+                       │ fetch (Authorization: Bearer &lt;token&gt;)
+                       ▼
+┌──────────────────────────────────────────────────────────┐
+│   Express App (server/src/index.js · port 3000)          │
+│   ├─ Middleware: cors, express.json, requireAuth         │
+│   ├─ Routes /api/*                                       │
+│   └─ Static: phục vụ thư mục gốc (trang public + admin)  │
+└────┬──────────────────────────────────────┬──────────────┘
+     │                                      │
+     ▼                                      ▼
+┌──────────────┐                    ┌──────────────────┐
+│  MySQL       │                    │ Cloudflare R2    │
+│  haivanbay   │                    │ ảnh + tài liệu   │
+│  ~50 bảng    │                    │ (presigned PUT)  │
+└──────────────┘                    └──────────────────┘</pre>
+
+    <section id="api">
+    <h3>4.1 Endpoints REST</h3>
+    <table>
+      <thead><tr><th>METHOD · PATH</th><th>Mô Tả</th><th>Auth</th></tr></thead>
+      <tbody>
+        <tr><td><code>POST /api/auth/login</code></td><td>Đăng nhập, trả <code>{ token, user }</code></td><td>Công khai</td></tr>
+        <tr><td><code>POST /api/auth/logout</code></td><td>Xoá session</td><td>Bearer</td></tr>
+        <tr><td><code>GET /api/auth/me</code></td><td>Lấy thông tin user hiện tại</td><td>Bearer</td></tr>
+        <tr><td><code>GET / POST / PUT / DELETE /api/users[/:id]</code></td><td>Quản lý user</td><td>dev / owner</td></tr>
+        <tr><td><code>POST /api/upload/presign</code></td><td>Lấy presigned PUT URL R2 (TTL 5 phút)</td><td>Công khai</td></tr>
+        <tr><td><code>GET /api/health</code></td><td>Trạng thái server + R2</td><td>Công khai</td></tr>
+        <tr><td><code>GET /api/project</code></td><td>Toàn bộ dữ liệu dự án (JSON)</td><td>Công khai</td></tr>
+        <tr><td><code>PUT /api/project</code></td><td>Ghi đè toàn bộ dữ liệu dự án (transaction)</td><td>Công khai*</td></tr>
+        <tr><td><code>PUT /api/subdivision/:code</code></td><td>Cập nhật 1 phân khu (timeline/legal/location/resources/gallery)</td><td>Công khai*</td></tr>
+        <tr><td><code>GET / POST /api/theme</code></td><td>Custom colors + effects toggle</td><td>Công khai*</td></tr>
+        <tr><td><code>GET /api/i18n</code></td><td>Tất cả bản dịch (langs + dict)</td><td>Công khai</td></tr>
+        <tr><td><code>GET /api/i18n/admin</code></td><td>Bản dịch dạng bảng key</td><td>Công khai*</td></tr>
+        <tr><td><code>PUT /api/i18n/entry</code></td><td>Sửa 1 entry dịch (inline edit)</td><td>Công khai*</td></tr>
+        <tr><td><code>POST / DELETE /api/i18n/language[/:code]</code></td><td>Thêm / xoá ngôn ngữ</td><td>Công khai*</td></tr>
+        <tr><td><code>GET /api/leads</code> + <code>POST/PUT/DELETE</code></td><td>CRUD leads</td><td>Công khai*</td></tr>
+        <tr><td><code>POST /api/leads/public</code></td><td>Form từ trang VR (auto-gán sales theo slug)</td><td>Công khai</td></tr>
+        <tr><td><code>GET /api/appointments</code> + <code>POST/PUT/DELETE</code></td><td>CRUD lịch hẹn</td><td>Công khai*</td></tr>
+        <tr><td><code>GET /api/activity</code></td><td>Feed hoạt động (leads, appointments, status changes)</td><td>Công khai*</td></tr>
+        <tr><td><code>GET /api/analytics</code></td><td>Daily views, devices, scenes, voice AI, funnel, leads by source</td><td>Công khai*</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:12px;color:var(--fg-muted)">* Mặc định mọi route nội dung hiện công khai. Trong production nên bọc middleware <code>requireAuth</code>.</p>
+    </section>
+
+    <section id="auth">
+    <h3>4.2 Auth & Roles</h3>
+    <p>Auth dùng <strong>session token</strong> (không phải JWT chuẩn — token là SHA-256 hash lưu DB với <code>expires_at</code>).</p>
+
+    <table>
+      <thead><tr><th>Role</th><th>Tài Khoản Demo</th><th>Quyền</th></tr></thead>
+      <tbody>
+        <tr><td><strong>developer</strong></td><td><code>dev / dev@2025</code></td><td>Toàn quyền + tab API (CRM key, GA, Google Maps)</td></tr>
+        <tr><td><strong>owner</strong></td><td><code>admin / aurora@2025</code></td><td>Toàn quyền nội dung + user, KHÔNG gán role <em>developer</em></td></tr>
+        <tr><td><strong>sales</strong></td><td><code>sales / sales@2025</code></td><td>Workspace <code>sales.html</code> riêng</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Flow Đăng Nhập</h4>
+    <pre>1. Client: POST /api/auth/login { username, password }
+2. Server:
+   a. bcrypt.compare(password, user.password_hash)
+   b. crypto.randomBytes(32).toString('hex') → token
+   c. INSERT auth_sessions (token_hash=SHA256(token), user_id, expires_at)
+   d. Trả { token, user: { id, role, name, ... } }
+3. Client: sessionStorage.setItem('ah_session', { token, role, ... })
+4. Sau đó mọi request: Authorization: Bearer &lt;token&gt;
+5. Server: SELECT * FROM auth_sessions WHERE token_hash = SHA256(token)
+   AND expires_at &gt; NOW() → đính req.user</pre>
+    </section>
+
+    <section id="db">
+    <h3>4.3 Bảng Database Chính</h3>
+    <p>Schema MySQL có ~50 bảng, nhóm theo chức năng:</p>
+
+    <table>
+      <thead><tr><th>Nhóm</th><th>Bảng</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Xác thực</strong></td><td><code>users · user_role_bindings · roles · auth_sessions</code></td></tr>
+        <tr><td><strong>Dự án</strong></td><td><code>projects · project_memberships · project_themes · project_statistics · project_card_overviews · project_card_highlights · project_card_quick_links · project_settings</code></td></tr>
+        <tr><td><strong>Menu VR</strong></td><td><code>menu_groups · menu_items · menu_item_details · menu_item_detail_images · menu_item_detail_specs · menu_item_subdivisions · menu_item_subdivision_facts · menu_item_subdivision_points</code></td></tr>
+        <tr><td><strong>Phân khu</strong></td><td><code>site_maps · site_map_points · construction_milestones · project_locations · nearby_places</code></td></tr>
+        <tr><td><strong>Gallery</strong></td><td><code>gallery_folders · gallery_items</code></td></tr>
+        <tr><td><strong>Pháp lý</strong></td><td><code>legal_documents · project_testimonials</code></td></tr>
+        <tr><td><strong>Tài liệu</strong></td><td><code>project_resources · key_visual_groups · key_visual_items</code></td></tr>
+        <tr><td><strong>Masterplan</strong></td><td><code>masterplans · masterplan_categories · masterplan_markers · masterplan_filter_groups · masterplan_filter_options</code></td></tr>
+        <tr><td><strong>Bất động sản</strong></td><td><code>properties · property_images · property_floor_plans · property_policies · property_documents · property_milestones · property_highlights</code></td></tr>
+        <tr><td><strong>CRM</strong></td><td><code>customers · leads · lead_sources · lead_assignments · lead_assignment_counters · appointments</code></td></tr>
+        <tr><td><strong>Analytics</strong></td><td><code>analytics_sessions · analytics_events · ai_conversations · ai_live_sessions · ai_live_events · ai_messages</code></td></tr>
+        <tr><td><strong>i18n</strong></td><td><code>languages · translation_keys · project_translations</code></td></tr>
+      </tbody>
+    </table>
+
+    <p>Schema đầy đủ trong <code>haivanbay_mysql.sql</code>. Sau khi clone repo, chạy:</p>
+    <pre><span class="c"># 1. Tạo DB</span>
+mysql -u root -p &lt; haivanbay_mysql.sql
+
+<span class="c"># 2. (tuỳ chọn) Tạo bảng auth nếu chưa có</span>
+node server/src/migrate-auth.js
+
+<span class="c"># 3. Seed dữ liệu mẫu</span>
+node server/src/seed.js
+node server/src/seed-accounts.js
+node server/src/seed-i18n.js</pre>
+    </section>
+
+    <section id="r2">
+    <h3>4.4 Upload Cloudflare R2</h3>
+    <pre>┌─ Frontend ──────────────────────────────────────────┐
+│ 1. User chọn file (drag-drop hoặc input)            │
+│ 2. fetch('/api/upload/presign', { folder, ext })    │
+└────────────────────────┬────────────────────────────┘
+                         │
+┌────────────────────────▼─────────────────────┐
+│ Backend: AWS SDK v3 + R2 endpoint            │
+│ getSignedUrl(PutObjectCommand, { expiresIn: │
+│ 300 }) → trả URL tạm và URL công khai        │
+└────────────────────────┬─────────────────────┘
+                         │
+┌────────────────────────▼────────────────────────────┐
+│ Frontend: PUT file thẳng lên R2                     │
+│ (không qua server, không tốn bandwidth backend)     │
+└────────────────────────┬────────────────────────────┘
+                         │
+                         ▼
+       Lưu URL công khai vào DB qua module CRUD</pre>
+
+    <h4>Biến Môi Trường R2</h4>
+    <table>
+      <tbody>
+        <tr><td><code>R2_ACCOUNT_ID</code></td><td>Cloudflare account ID</td></tr>
+        <tr><td><code>R2_ACCESS_KEY_ID</code> + <code>R2_SECRET_ACCESS_KEY</code></td><td>Credentials</td></tr>
+        <tr><td><code>R2_BUCKET</code></td><td>Tên bucket</td></tr>
+        <tr><td><code>R2_PUBLIC_BASE</code></td><td>URL public (Cloudflare custom domain hoặc <code>pub-*.r2.dev</code>)</td></tr>
+      </tbody>
+    </table>
+    <p>Test bằng <code>GET /api/health</code> — endpoint này trả về cả trạng thái R2.</p>
+    </section>
+  </section>
+
+  <!-- ═══ 5. VR Page Architecture ════════════════════════ -->
+  <section id="vr-architecture">
+    <h2 data-num="5">Kiến Trúc Trang VR</h2>
+
+    <pre>┌──────────────────────────────────────────────────────────┐
+│  ① Top Bar (z=110)                                       │
+│      [Logo] [Bản đồ][Gallery][Pháp lý][Vị trí]…         │
+│                              [🌐 Ngôn ngữ][CTA]          │
+├──────────────────────────────────────────────────────────┤
+│  ② Nav Panel (trái · z=100)  ④ Project Card (phải)      │
+│      Tìm kiếm cảnh                Stats + đếm ngược      │
+│      ▸ Tổng Quan                  Tiện ích nhanh         │
+│      ▸ Phân Khu …                 [Xem Bảng Giá]         │
+│         ├─ Tiện ích nội khu       [Đặt Lịch Tham Quan]   │
+│         ├─ Tiện ích ngoại khu                            │
+│         ├─ Mặt bằng tầng                                 │
+│         └─ View 360° căn hộ                              │
+├──────────────────────────────────────────────────────────┤
+│  ③ iframe 3DVista (z=0)                                  │
+│      Toàn bộ render VR + hotspot xảy ra trong iframe     │
+│                                                          │
+│  ── Overlay (z=200) ─────────────────────────────────    │
+│  #gallery-overlay #masterplan-overlay #legal-overlay    │
+│  #location-overlay #timeline-overlay #resources-overlay │
+│  #properties-modal (bảng giá)                            │
+│                                                          │
+│  ── Floating (z=300+) ───────────────────────────────    │
+│  💬 AI Chat FAB · Panel AI · Toast urgency               │
+└──────────────────────────────────────────────────────────┘</pre>
+
+    <h3>Bootstrap Sequence</h3>
+    <pre>1. &lt;base href="/"&gt; — đảm bảo URL /&lt;slug&gt; vẫn load đúng resources
+2. Tải CSS, Lucide CDN
+3. main.js khởi động:
+   a. Đọc slug từ URL (nếu có) → fetch thông tin sales
+   b. fetch /api/project → render Nav Panel + Project Card
+   c. fetch /api/i18n → áp dụng ngôn ngữ
+   d. fetch /api/theme → set CSS variables
+   e. Nhúng iframe 3DVista (data/index.htm)
+   f. Setup postMessage bridge
+   g. Wire-up các overlay button</pre>
+
+    <section id="3dvista">
+    <h3>5.1 Tích Hợp 3DVista</h3>
+    <p>Tour được build bằng <strong>3DVista Virtual Tour Pro</strong> rồi export ra HTML5 (folder <code>data/</code>). Trang VR public nhúng dưới dạng iframe và giao tiếp qua <code>postMessage</code>.</p>
+
+    <table>
+      <thead><tr><th>Hướng Tin</th><th>Format · Mục Đích</th></tr></thead>
+      <tbody>
+        <tr><td>Trang → iframe</td><td><code>{ type: "goToPanorama", name: "pano-13" }</code> — chuyển cảnh</td></tr>
+        <tr><td>Trang → iframe</td><td><code>{ type: "togglePlay" }</code> — bật/tắt tự xoay</td></tr>
+        <tr><td>iframe → Trang</td><td><code>{ type: "panoramaChanged", id: "..." }</code> — đồng bộ Nav Panel highlight</td></tr>
+      </tbody>
+    </table>
+
+    <p>Module <code>js/vr-bridge.js</code> đóng gói toàn bộ giao tiếp này.</p>
+
+    <div class="callout info">
+      <strong>Tại sao chuyển từ Three.js sang 3DVista?</strong>
+      Three.js (v1.x) tự render panorama bằng canvas thủ tục — chất lượng hạn chế, không có tile hi-res, hotspot phải tự code lại. 3DVista cung cấp: tile multi-res, hotspot info/scene built-in, gyroscope mobile, video pano, master rotation, tour editor cho marketer chỉnh trực quan.
+    </div>
+    </section>
+
+    <section id="nav-data">
+    <h3>5.2 Cấu Trúc Cảnh & Phân Khu</h3>
+    <p>Dữ liệu cảnh tổ chức 2 cấp, lấy từ <code>GET /api/project</code>:</p>
+
+    <pre>{
+  <span class="str">"menu"</span>: [
+    {
+      <span class="str">"key"</span>: <span class="str">"__all"</span>,           <span class="c">// Cấp dự án (Tổng Quan)</span>
+      <span class="str">"label"</span>: <span class="str">"Tổng Quan"</span>,
+      <span class="str">"items"</span>: [
+        { id, label, panoramaId, thumbnail }, ...
+      ]
+    },
+    {
+      <span class="str">"key"</span>: <span class="str">"bach-van"</span>,        <span class="c">// Cấp phân khu</span>
+      <span class="str">"label"</span>: <span class="str">"Phân Khu Bạch Vân"</span>,
+      <span class="str">"children"</span>: [
+        { key: <span class="str">"tien-ich-noi-khu"</span>,    label: ..., items: [...] },
+        { key: <span class="str">"tien-ich-ngoai-khu"</span>,  label: ..., items: [...] },
+        { key: <span class="str">"mat-bang-tang"</span>,       label: ..., items: [...] },
+        { key: <span class="str">"view-360-can"</span>,        label: ..., items: [...] }
+      ]
+    }
+  ]
+}</pre>
+
+    <p>Tổng có ~40+ panorama, được Owner cấu hình qua module <em>Danh Sách VR</em> trong admin (chọn panorama từ dropdown đọc động từ 3DVista locale).</p>
+    </section>
+
+    <section id="overlays">
+    <h3>5.3 Overlay Tính Năng</h3>
+    <p>Mọi overlay đều: phủ toàn màn hình, có nút đóng, click backdrop để đóng, phím <code>Esc</code> để đóng, animation fade.</p>
+
+    <table>
+      <thead><tr><th>Overlay</th><th>Module</th><th>Chức Năng</th></tr></thead>
+      <tbody>
+        <tr><td>Bản đồ 2D</td><td>js/masterplan.js</td><td>Ảnh quy hoạch + markers (Leaflet) + filter chip → bấm marker chuyển cảnh</td></tr>
+        <tr><td>Gallery</td><td>main.js</td><td>Ảnh + video (YouTube/Vimeo/Drive/mp4) · sidebar folder · lightbox · phím ←→</td></tr>
+        <tr><td>Pháp lý</td><td>main.js</td><td>4 stat CĐT · checklist giấy tờ · testimonial card</td></tr>
+        <tr><td>Vị trí</td><td>main.js</td><td>iframe Google Maps (lazy) · POI 7 nhóm</td></tr>
+        <tr><td>Tiến độ</td><td>main.js</td><td>Mốc XD với badge done/active/upcoming · progress bar · ảnh tiến độ</td></tr>
+        <tr><td>Tài liệu</td><td>main.js</td><td>5 loại: Brochure · Sales Kit · Brand Kit · Price List · Floor Plan PDF</td></tr>
+        <tr><td>Bảng giá</td><td>js/properties.js</td><td>List + detail BĐS · filter (loại/phân khu/giá) · form tư vấn</td></tr>
+      </tbody>
+    </table>
+    </section>
+
+    <section id="ai-gemini">
+    <h3>5.4 Trợ Lý AI — Google Gemini Live</h3>
+    <p>Module: <code>js/ai-panel.js</code> + <code>js/gemini-live.js</code></p>
+
+    <h4>Hai Chế Độ</h4>
+    <table>
+      <thead><tr><th>Chế Độ</th><th>Pipeline</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Văn bản</strong></td><td>Form text → WebSocket Gemini Live → trả text streaming</td></tr>
+        <tr><td><strong>Giọng nói</strong></td><td><code>getUserMedia()</code> → AudioContext PCM16 → WS Gemini Live → response audio + transcript đồng thời</td></tr>
+      </tbody>
+    </table>
+
+    <h4>AI Tự Chuyển Cảnh</h4>
+    <p>Gemini được khai báo "function tool" <code>navigateToScene(nodeId)</code>. Khi AI nhận thấy ý định khách muốn xem một cảnh cụ thể (vd "cho tôi xem bể bơi"), nó trả về tool call → frontend gửi postMessage qua <code>js/vr-bridge.js</code> chuyển panorama.</p>
+
+    <h4>Lưu Hội Thoại</h4>
+    <p>Phiên chat ghi vào bảng <code>ai_conversations</code>, <code>ai_messages</code>; phiên voice realtime ghi vào <code>ai_live_sessions</code>, <code>ai_live_events</code> — Owner xem được trong tab Analytics.</p>
+    </section>
+
+    <section id="booking-form">
+    <h3>5.5 Form Công Khai</h3>
+    <table>
+      <thead><tr><th>Trường</th><th>Kiểu</th><th>Bắt Buộc</th></tr></thead>
+      <tbody>
+        <tr><td>Họ và tên</td><td>text</td><td><span class="badge-err">Có</span></td></tr>
+        <tr><td>Số điện thoại</td><td>tel (regex)</td><td><span class="badge-err">Có</span></td></tr>
+        <tr><td>Căn hộ quan tâm</td><td>select (2PN / 3PN / Duplex / Shophouse / …)</td><td>Không</td></tr>
+        <tr><td>Ghi chú</td><td>textarea</td><td>Không</td></tr>
+      </tbody>
+    </table>
+
+    <p>Submit → <code>window.DataSource.submitLead(payload)</code> → <code>POST /api/leads/public</code>. Backend:</p>
+    <ol>
+      <li>INSERT vào <code>leads</code>.</li>
+      <li>Auto-gán <code>assigned_sale_id</code>:
+        <ul>
+          <li>Nếu URL có slug → tìm user với slug đó → gán.</li>
+          <li>Nếu không → round-robin theo <code>lead_assignment_counters</code>.</li>
+        </ul>
+      </li>
+      <li>Trả về <code>{ ok: true, sale: { name, phone, zalo } }</code> để FE hiện màn cảm ơn.</li>
+    </ol>
+    </section>
+
+    <section id="slug-routing">
+    <h3>5.6 URL <code>/&lt;slug&gt;</code> Giới Thiệu Sales</h3>
+    <p>Mỗi sales có <strong>slug</strong> (vd <code>andy</code>) do Owner đặt khi tạo tài khoản. URL có 2 dạng tương đương:</p>
+    <ul>
+      <li><code>https://&lt;domain&gt;/</code> — vào trang chung, round-robin gán sales.</li>
+      <li><code>https://&lt;domain&gt;/andy</code> — vào trang gắn với sales "andy". Project Card hiển thị thông tin liên hệ của andy; mọi lead về thẳng andy.</li>
+    </ul>
+
+    <p>Server-side: Express route fallback <code>app.get('/:slug', ...)</code> trả về <code>index.html</code>. Trang dùng <code>&lt;base href="/"&gt;</code> nên mọi resource tương đối vẫn load đúng.</p>
+    </section>
+  </section>
+
+  <!-- ═══ 6. Admin ═══════════════════════════════════════ -->
+  <section id="admin">
+    <h2 data-num="6">Workspace Admin</h2>
+
+    <h3>3 Trang Chính</h3>
+    <table>
+      <thead><tr><th>File</th><th>Vai Trò</th><th>Số Module</th><th>JS</th></tr></thead>
+      <tbody>
+        <tr><td><code>admin/index.html</code></td><td>Login</td><td>—</td><td>(inline)</td></tr>
+        <tr><td><code>admin/owner.html</code></td><td>Owner / Developer</td><td>14</td><td>admin.js + admin-content.js</td></tr>
+        <tr><td><code>admin/sales.html</code></td><td>Sales</td><td>7</td><td>sales.js</td></tr>
+      </tbody>
+    </table>
+
+    <section id="admin-owner">
+    <h3>6.1 Owner / Developer — 14 Module</h3>
+    <table>
+      <thead><tr><th>Nhóm</th><th>Module</th><th>Chức Năng Chính</th></tr></thead>
+      <tbody>
+        <tr><td rowspan="2"><strong>Quản Lý</strong></td><td>Tổng Quan</td><td>4 KPI · 2 chart · activity feed · quick actions (read-only)</td></tr>
+        <tr><td>Bất Động Sản</td><td>Grid BĐS + trang detail (ảnh, mặt bằng, highlights, policies, docs, milestones, gán sales)</td></tr>
+
+        <tr><td rowspan="8"><strong>Nội Dung VR</strong></td><td>Thư Viện Media</td><td>Ảnh + video · folder · upload R2 · drag sort · lightbox</td></tr>
+        <tr><td>Tài Liệu</td><td>5 loại: Brochure · Sales Kit · Brand Kit · Price List · Floor Plan</td></tr>
+        <tr><td>Tiến Độ XD</td><td>Mốc XD + status + ảnh · phát sóng real-time tới trang public</td></tr>
+        <tr><td>Danh Sách VR</td><td>Dual mode (__all / phân khu) · 4 nhóm con · chọn panorama từ 3DVista locale</td></tr>
+        <tr><td>Masterplan</td><td>Leaflet · click-to-add marker · filter group · category</td></tr>
+        <tr><td>Pháp Lý</td><td>3 section: hồ sơ pháp lý · stat CĐT (4 ô) · testimonial</td></tr>
+        <tr><td>Vị Trí & POI</td><td>Lat/Lng + Google Maps iframe + 7 nhóm POI</td></tr>
+        <tr><td>Ngôn Ngữ & i18n</td><td>Bảng dịch inline edit · thêm/xoá ngôn ngữ · filter status</td></tr>
+
+        <tr><td rowspan="3"><strong>Hệ Thống</strong></td><td>Giao Diện & Theme</td><td>9 biến màu · 5 preset · 6 toggle hiệu ứng · export CSS/JSON</td></tr>
+        <tr><td>Analytics</td><td>4 tab: Lượt Xem · VR Engagement · Chuyển Đổi · Leads (Chart.js)</td></tr>
+        <tr><td>Cài Đặt</td><td>4 tab: Project · API (dev-only) · Users · Backup</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Topbar Owner</h4>
+    <ul>
+      <li><strong>Preview VR</strong> — mở <code>../index.html</code> trong slide panel để xem thử.</li>
+      <li>User pill (avatar + name + role).</li>
+      <li>Nút Đăng xuất.</li>
+    </ul>
+    </section>
+
+    <section id="admin-sales">
+    <h3>6.2 Sales — 7 Module</h3>
+    <table>
+      <thead><tr><th>Nhóm</th><th>Module</th><th>Chức Năng Chính</th></tr></thead>
+      <tbody>
+        <tr><td rowspan="3"><strong>Công Việc</strong></td><td>Dashboard</td><td>4 KPI cá nhân + card lịch hẹn hôm nay/sắp tới</td></tr>
+        <tr><td>Leads & Booking</td><td>CRUD lead · xoay status · lọc · xuất CSV (10 cột tuỳ chọn)</td></tr>
+        <tr><td>Lịch Hẹn</td><td>3 chế độ: Danh sách · Tuần · Ngày · 4 status</td></tr>
+
+        <tr><td rowspan="3"><strong>Dự Án</strong></td><td>Tình Trạng Căn Hộ</td><td>Bảng BĐS (read-only) · filter · copy mã căn</td></tr>
+        <tr><td>Tour VR360</td><td>Lưới cảnh · mở trang VR trong slide panel cho demo</td></tr>
+        <tr><td>Bí Kíp Tư Vấn</td><td>Kho kiến thức bán hàng do Owner biên soạn</td></tr>
+
+        <tr><td><strong>Cá Nhân</strong></td><td>Cài Đặt Cá Nhân</td><td>5 tab: Hồ sơ · Liên hệ · MXH (7 nền tảng) · Link giới thiệu (QR) · Export CSV</td></tr>
+      </tbody>
+    </table>
+
+    <h4>Khác Biệt Owner ↔ Sales</h4>
+    <table>
+      <thead><tr><th>Mục</th><th>Owner</th><th>Sales</th></tr></thead>
+      <tbody>
+        <tr><td>Sửa giá / trạng thái BĐS</td><td>Có</td><td>Không (chỉ xem)</td></tr>
+        <tr><td>Sửa nội dung VR</td><td>Toàn quyền</td><td>Không</td></tr>
+        <tr><td>Xem leads</td><td>Tất cả</td><td>Chỉ leads được gán</td></tr>
+        <tr><td>Quản lý user khác</td><td>Có</td><td>Không (chỉ sửa profile cá nhân)</td></tr>
+        <tr><td>Notification dropdown topbar</td><td>Không</td><td>Có (chuông 🔔)</td></tr>
+        <tr><td>Màu avatar</td><td>Tím / mặc định</td><td>Xanh lá</td></tr>
+      </tbody>
+    </table>
+    </section>
+
+    <section id="admin-storage">
+    <h3>6.3 Storage & Đồng Bộ</h3>
+    <p>Khác biệt cốt lõi so với v1.x: không còn pattern "localStorage rồi publish thủ công". Tất cả đi qua API.</p>
+
+    <table>
+      <thead><tr><th>Loại Dữ Liệu</th><th>Lưu Ở</th><th>Endpoint Sync</th></tr></thead>
+      <tbody>
+        <tr><td>Session token</td><td>sessionStorage (key <code>ah_session</code>)</td><td>POST /api/auth/login</td></tr>
+        <tr><td>Cache UI state</td><td>localStorage (key <code>ah_admin_data</code>)</td><td>— (cache, không phải nguồn dữ liệu)</td></tr>
+        <tr><td>Dự án + nội dung VR</td><td>MySQL</td><td>PUT /api/project</td></tr>
+        <tr><td>Phân khu</td><td>MySQL</td><td>PUT /api/subdivision/:code (faster)</td></tr>
+        <tr><td>Theme</td><td>MySQL</td><td>POST /api/theme</td></tr>
+        <tr><td>i18n</td><td>MySQL</td><td>PUT /api/i18n/entry · POST /api/i18n/language</td></tr>
+        <tr><td>Leads / Appointments</td><td>MySQL</td><td>POST/PUT/DELETE /api/leads + /api/appointments</td></tr>
+        <tr><td>Users</td><td>MySQL</td><td>POST/PUT/DELETE /api/users</td></tr>
+        <tr><td>Ảnh + tài liệu</td><td>Cloudflare R2</td><td>POST /api/upload/presign → PUT R2</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout ok">
+      <strong>Hệ quả</strong>
+      Sau khi Owner bấm <em>Lưu</em> trong admin, trang public refresh là thấy thay đổi ngay — không còn quy trình export → đổi tên → upload <code>project.json</code> thủ công.
+    </div>
+    </section>
+  </section>
+
+  <!-- ═══ 7. i18n ════════════════════════════════════════ -->
+  <section id="i18n">
+    <h2 data-num="7">Đa Ngôn Ngữ</h2>
+
+    <table>
+      <thead><tr><th>Cờ</th><th>Ngôn Ngữ</th><th>Mã</th></tr></thead>
+      <tbody>
+        <tr><td>🇻🇳</td><td>Tiếng Việt (mặc định)</td><td><code>vi</code></td></tr>
+        <tr><td>🇬🇧</td><td>English</td><td><code>en</code></td></tr>
+        <tr><td>🇨🇳</td><td>中文 (giản thể)</td><td><code>zh</code></td></tr>
+        <tr><td>🇰🇷</td><td>한국어</td><td><code>ko</code></td></tr>
+        <tr><td>🇯🇵</td><td>日本語</td><td><code>ja</code></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Storage</h3>
+    <p>Bản dịch nằm trong DB (bảng <code>languages</code>, <code>translation_keys</code>, <code>project_translations</code>). Frontend fetch <code>GET /api/i18n</code> khi load. Có fallback dictionary VI nhúng trong <code>js/i18n.js</code> phòng khi backend tắt.</p>
+
+    <h3>Owner Thêm Ngôn Ngữ Mới</h3>
+    <ol>
+      <li>Vào admin → tab i18n → <em>+ Thêm ngôn ngữ</em>.</li>
+      <li><code>POST /api/i18n/language { code, name, flag }</code>.</li>
+      <li>Dịch từng key qua inline edit (<code>PUT /api/i18n/entry</code>).</li>
+      <li>Trang public tự thấy ngôn ngữ mới — không cần publish.</li>
+    </ol>
+  </section>
+
+  <!-- ═══ 8. Theme ═══════════════════════════════════════ -->
+  <section id="theme">
+    <h2 data-num="8">Theme & Hiệu Ứng</h2>
+
+    <h3>9 Biến Màu CSS</h3>
+    <pre>:root {
+  --bg:        #0f1117;
+  --fg:        #e8e6df;
+  --accent:    #e8c089;
+  --ok:        #7ad79a;
+  --danger:    #ff6b6b;
+  --warning:   #f5a623;
+  --hotspot:   #ffd66e;
+  --countdown: #ff8a65;
+  --loader:    #e8c089;
+}</pre>
+
+    <h3>5 Preset</h3>
+    <p>Aurora (mặc định) · Midnight Blue · Forest Dark · Rose Gold · Ocean Deep.</p>
+
+    <h3>6 Toggle Hiệu Ứng</h3>
+    <ul>
+      <li>Blur backdrop · Pulse hotspot · Vignette · Auto-rotate · Toast urgency · Countdown</li>
+    </ul>
+
+    <p>Lưu qua <code>POST /api/theme</code>. Trang public đọc <code>GET /api/theme</code> khi load và set CSS variables.</p>
+  </section>
+
+  <!-- ═══ 9. Analytics ═══════════════════════════════════ -->
+  <section id="analytics">
+    <h2 data-num="9">Analytics</h2>
+
+    <p>Số liệu thật từ DB (không còn mock). Endpoint <code>GET /api/analytics</code> trả về:</p>
+
+    <table>
+      <thead><tr><th>Field</th><th>Mô Tả</th></tr></thead>
+      <tbody>
+        <tr><td><code>daily</code></td><td>Lượt xem theo ngày (line chart)</td></tr>
+        <tr><td><code>devices</code></td><td>Tỉ lệ desktop/mobile/tablet (doughnut)</td></tr>
+        <tr><td><code>scenes</code></td><td>Top panorama được xem nhiều (bar)</td></tr>
+        <tr><td><code>voiceAI</code></td><td>Số phiên dùng giọng nói vs text</td></tr>
+        <tr><td><code>funnel</code></td><td>visit → ≥3 scenes → bảng giá → form → chốt</td></tr>
+        <tr><td><code>leadsDaily</code></td><td>Lead theo ngày</td></tr>
+        <tr><td><code>leadsBySource</code></td><td>Lead theo nguồn (Online / Offline …)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Nguồn Sự Kiện</h3>
+    <p>Frontend public log <code>analytics_sessions</code> + <code>analytics_events</code> tự động khi khách: load page, chuyển scene, mở overlay, gửi form, dùng AI voice.</p>
+  </section>
+
+  <!-- ═══ 10. Responsive ═════════════════════════════════ -->
+  <section id="responsive">
+    <h2 data-num="10">Responsive & Mobile</h2>
+
+    <h3>Breakpoint</h3>
+    <table>
+      <tbody>
+        <tr><td>Desktop</td><td>&gt; 768px</td></tr>
+        <tr><td>Mobile</td><td>≤ 768px</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Thay Đổi Trên Mobile</h3>
+    <table>
+      <thead><tr><th>Thành Phần</th><th>Mobile Behavior</th></tr></thead>
+      <tbody>
+        <tr><td>Top bar</td><td>Compact 56px · ẩn top-cta · burger button thay menu</td></tr>
+        <tr><td>Drawer (burger)</td><td>Trượt từ trên xuống · chứa các overlay button + đổi ngôn ngữ</td></tr>
+        <tr><td>Nav Panel</td><td>Ẩn mặc định · FAB mũi tên ở cạnh trái để mở</td></tr>
+        <tr><td>Project Card</td><td>Thu thành pill ở đáy · chạm để bung lên</td></tr>
+        <tr><td>Bảng giá / Form</td><td>Stepper ngang · vuốt trái/phải hoặc bullet để chuyển bước (<code>js/mobile-stepper.js</code>)</td></tr>
+        <tr><td>3DVista iframe</td><td>Toàn màn hình · hỗ trợ gyroscope (cần permission)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Admin Mobile</h3>
+    <p>Module <code>admin/js/mobile-nav.js</code> cung cấp burger menu cho cả Owner và Sales workspace.</p>
+  </section>
+
+  <!-- ═══ 11. Deploy ═════════════════════════════════════ -->
+  <section id="deploy">
+    <h2 data-num="11">Triển Khai</h2>
+
+    <h3>Container (Coolify / Docker)</h3>
+    <p>Project có sẵn <code>Dockerfile</code> + tài liệu <code>COOLIFY.md</code>. Quy trình:</p>
+    <ol>
+      <li>Build image với Node 18+.</li>
+      <li>Khởi động MySQL container (hoặc dùng MySQL managed bên ngoài).</li>
+      <li>Cấu hình env: <code>DATABASE_URL</code>, <code>R2_*</code>, <code>PORT</code>, <code>JWT_SECRET</code>, <code>AUTH_TOKEN_TTL_HOURS</code>.</li>
+      <li>Migrate + seed: chạy <code>migrate-auth.js</code> + <code>seed*.js</code>.</li>
+      <li>Mount thư mục <code>data/</code> (3DVista assets) nếu muốn cập nhật tour qua disk thay vì rebuild.</li>
+    </ol>
+
+    <h3>Server Tự Phục Vụ Tĩnh</h3>
+    <p>Express phục vụ cả static files (trang public + admin + data 3DVista) và REST API trên cùng port. Không cần Nginx riêng cho dev.</p>
+
+    <div class="callout warn">
+      <strong>Production</strong>
+      Nên đặt CDN (Cloudflare) trước cho tài nguyên 3DVista trong <code>data/media/</code> — tải hàng trăm tile/ảnh sẽ rất tốn nếu phục vụ thẳng từ Express.
+    </div>
+  </section>
+
+  <!-- ═══ 12. Limits ═════════════════════════════════════ -->
+  <section id="limits">
+    <h2 data-num="12">Giới Hạn Hiện Tại</h2>
+
+    <ul>
+      <li><strong>API mở</strong>: nhiều endpoint nội dung hiện công khai (không gắn <code>requireAuth</code>). Production cần bọc middleware.</li>
+      <li><strong>Audit log</strong>: chưa có log "ai đổi gì lúc nào" per-user. Hiện chỉ có <code>analytics_events</code>.</li>
+      <li><strong>Real-time</strong>: trang public chưa có WebSocket/SSE để nhận update khi Owner sửa. Khách phải refresh. (Riêng tính năng "Phát sóng tiến độ" trong Timeline đã có hook real-time qua broadcast.)</li>
+      <li><strong>i18n cho dữ liệu động</strong>: tên căn hộ / mô tả tiện ích / testimonial hiện chỉ có VI. Cần thêm <code>translations</code> per-entity nếu muốn dịch.</li>
+      <li><strong>Hiệu năng list BĐS</strong>: UI bắt đầu giảm khi vượt ~500 căn cùng lúc. Cần pagination thay vì load all.</li>
+      <li><strong>Audit role assignment</strong>: chưa giới hạn IP / 2FA cho tài khoản developer.</li>
+      <li><strong>R2 quota</strong>: phụ thuộc plan Cloudflare. Cần monitor.</li>
+    </ul>
+  </section>
+
+  <!-- ═══ 13. Changelog ══════════════════════════════════ -->
+  <section id="changelog">
+    <h2 data-num="13">Thay Đổi v2.0 (so với v1.2)</h2>
+
+    <h3>Breaking Changes</h3>
+    <ul>
+      <li><strong>VR engine</strong>: Three.js → <strong>3DVista iframe</strong>. Gỡ <code>js/vr360.js</code>.</li>
+      <li><strong>Storage</strong>: <code>data/project.json</code> tĩnh → <strong>MySQL backend</strong>. Mọi nội dung qua <code>/api/*</code>.</li>
+      <li><strong>Auth</strong>: mock sessionStorage → <strong>session token thật</strong> (bcrypt + SHA-256 hash, TTL 12h, lưu DB).</li>
+      <li><strong>Vai trò</strong>: 2 role (Owner/Sales) → <strong>3 role</strong> (Developer/Owner/Sales).</li>
+      <li><strong>AI</strong>: SpeechRecognition + SpeechSynthesis trình duyệt → <strong>Google Gemini Live</strong> WebSocket realtime.</li>
+      <li><strong>Media</strong>: base64/local → <strong>Cloudflare R2</strong> với presigned URL.</li>
+    </ul>
+
+    <h3>Module Admin Mới / Thay Đổi</h3>
+    <ul>
+      <li>Owner: thêm <strong>Bất Động Sản</strong> (thay Căn Hộ + Leads cũ), <strong>Tài Liệu</strong>, <strong>Masterplan (Leaflet)</strong>; bỏ <em>Leads/Booking</em> khỏi Owner (chuyển hoàn toàn về Sales workspace + Activity feed).</li>
+      <li>Sales: thêm <strong>Bí Kíp Tư Vấn</strong>, <strong>Cài Đặt Cá Nhân</strong> (5 tab) với <strong>link giới thiệu + QR</strong>.</li>
+      <li>Settings có 4 tab: Project · API (dev-only) · Users · Backup.</li>
+    </ul>
+
+    <h3>Tính Năng Mới Trang Public</h3>
+    <ul>
+      <li><strong>URL <code>/&lt;slug&gt;</code></strong> tự gán sales — replace round-robin.</li>
+      <li>Nav Panel 2 cấp với <strong>cấu trúc phân khu × 4 nhóm con</strong>.</li>
+      <li>Overlay <strong>Tài Liệu</strong> mới (5 loại resource).</li>
+      <li>Form gọn còn 4 trường (name/phone/interest/note).</li>
+      <li>Voice AI có thể tự chuyển cảnh qua function tool.</li>
+    </ul>
+
+    <h3>Gỡ Bỏ</h3>
+    <ul>
+      <li><strong>Form Tính Vay Vốn</strong> (overlay loan) — không còn trong trang public v2.0.</li>
+      <li><strong>Tour Hướng Dẫn 18 bước</strong> (Help Tour spotlight).</li>
+      <li><strong>Overlay "Chi tiết tiện ích"</strong> 4 tab độc lập (gộp vào module Danh Sách VR + Masterplan).</li>
+      <li><strong>Three.js</strong> và tất cả phụ thuộc VR thủ tục.</li>
+    </ul>
+  </section>
+
+  <hr />
+  <p style="color:var(--fg-muted);font-size:12px;text-align:center;padding-bottom:3rem">
+    Vinhomes Hai Van Bay VR360 · Đặc Tả Dự Án · v2.0 · 26-05-2026
+  </p>
+
+</main>
+</div>
+
+<script>
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-link[href^="#"]');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(l => l.classList.remove('active'));
+        const link = document.querySelector(`.nav-link[href="#${e.target.id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-20% 0px -70% 0px' });
+  sections.forEach(s => obs.observe(s));
+</script>
+</body>
+</html>
