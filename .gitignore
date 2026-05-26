@@ -2,3 +2,6 @@ node_modules/
 server/node_modules/
 server/.env
 *.log
+
+# Dữ liệu VR360 nặng — lưu trên VPS, mount vào container
+data/
