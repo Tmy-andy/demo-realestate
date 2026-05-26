@@ -882,15 +882,6 @@ function openModalWithUnit(code, type) {
   }
 }
 
-/* switchScene kept as a thin wrapper for backward compat — now delegates to goToPanorama */
-function switchScene(panoramaId) {
-  if (!panoramaId) return;
-  goToPanorama(panoramaId);
-  document.querySelectorAll(".np-card").forEach(c => {
-    c.classList.toggle("active", c.dataset.id === currentMenuItemId);
-  });
-}
-
 function buildNavPanel() {
   const searchEl = document.getElementById("np-search");
   searchEl?.addEventListener("input", renderNavList);
@@ -1393,12 +1384,10 @@ function bindBotchat() {
 
 function bindControls() {
   /* VR rotation/zoom controls removed — 3DVista has its own controls */
-  const ctrlRotate = document.getElementById("ctrl-rotate");
-  if (ctrlRotate) ctrlRotate.style.display = "none";
-  const ctrlZoomIn = document.getElementById("ctrl-zoom-in");
-  if (ctrlZoomIn) ctrlZoomIn.style.display = "none";
-  const ctrlZoomOut = document.getElementById("ctrl-zoom-out");
-  if (ctrlZoomOut) ctrlZoomOut.style.display = "none";
+  ["ctrl-rotate", "ctrl-zoom-in", "ctrl-zoom-out"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = "none";
+  });
   document.getElementById("ctrl-fullscreen").addEventListener("click", () => {
     if (!document.fullscreenElement) document.documentElement.requestFullscreen();
     else document.exitFullscreen();
@@ -1454,39 +1443,64 @@ function bindSmartHide() {
   const restore = document.getElementById("ui-restore");
   if (!ui || !stage) return;
 
-  let hideTimer = null;
+  /* Khóa cứng: khi true, mọi yêu cầu show() đều bị bỏ qua.
+     Chỉ click vào #ui-restore mới mở khóa. */
+  let uiLocked = false;
 
   const hide = () => {
     ui.classList.add("hidden");
     document.body.classList.add("ux-hidden");
-    clearTimeout(hideTimer);
+    uiLocked = true;
   };
   const show = () => {
+    if (uiLocked) return;
     ui.classList.remove("hidden");
     document.body.classList.remove("ux-hidden");
-    clearTimeout(hideTimer);
+  };
+  const forceShow = () => {
+    uiLocked = false;
+    ui.classList.remove("hidden");
+    document.body.classList.remove("ux-hidden");
   };
   window.__uxShow = show;
   window.__uxHide = hide;
+  window.__uxForceShow = forceShow;
 
-  /* Tương tác trực tiếp trên lớp UI (nút, panel) → vẫn hiện UI bình thường */
-  let pointerInUI = false;
-  ui.addEventListener("pointerenter", () => { pointerInUI = true; });
-  ui.addEventListener("pointerleave", () => { pointerInUI = false; });
+  /* Helper: target có thuộc về UI interactive element không?
+     Trả về true nếu touch xuất phát từ button/panel của UI hoặc nút restore. */
+  const isUiTarget = (target) => {
+    if (!target || target.nodeType !== 1) return false;
+    if (target.closest("#ui-restore")) return true;
+    if (target.closest("#ui")) {
+      /* Bên trong .ui — chỉ tính là UI nếu element thật sự có pointer-events
+         (tức là button/panel con); .ui và .tip có pointer-events:none */
+      const cs = getComputedStyle(target);
+      if (cs.pointerEvents !== "none") return true;
+    }
+    return false;
+  };
 
-  /* Không còn iframe → có thể bắt pointerdown trực tiếp trên #viewer.
-     Khi user kéo/chạm trên không gian 360 → ẩn UI để xem toàn cảnh. */
-  stage.addEventListener("pointerdown", () => {
-    if (pointerInUI) return;
+  /* Bắt ở CAPTURE phase trên window để KHÔNG bị TDV stopPropagation cản.
+     Hỗ trợ cả pointer/touch/mouse vì các browser/device khác nhau. */
+  const onDown = (e) => {
+    const t = e.target;
+    if (isUiTarget(t)) return;
     hide();
-    hideTimer = setTimeout(show, 2500);
-  });
-  stage.addEventListener("pointerup", () => {
-    clearTimeout(hideTimer);
-    hideTimer = setTimeout(show, 800);
-  });
+  };
+  window.addEventListener("pointerdown", onDown, true);
+  window.addEventListener("touchstart",  onDown, true);
+  window.addEventListener("mousedown",   onDown, true);
 
-  restore?.addEventListener("click", show);
+  if (restore) {
+    const onRestore = (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      forceShow();
+    };
+    restore.addEventListener("click",       onRestore, true);
+    restore.addEventListener("pointerdown", onRestore, true);
+    restore.addEventListener("touchstart",  onRestore, true);
+  }
 }
 
 /* ============================================
@@ -2126,8 +2140,6 @@ document.addEventListener("DOMContentLoaded", boot);
   });
 
   // ── Unit code tags (từ bảng giá → form) ──
-  // openModalWithUnit đã có sẵn trong main.js — ta extend nó
-  const _originalOpenModalWithUnit = window.openModalWithUnit || openModalWithUnit;
   window.addUnitCodeTag = function(code) {
     const wrap = document.getElementById('cf-codes-wrap');
     const row  = document.getElementById('cf-codes-tags');

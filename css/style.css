@@ -201,6 +201,20 @@ a { color: inherit; text-decoration: none; }
   pointer-events: none;
   transition: opacity 0.35s ease, transform 0.35s ease;
 }
+body.ux-hidden #mobile-burger,
+body.ux-hidden #mobile-drawer,
+body.ux-hidden #pc-info-fab,
+body.ux-hidden #pc-info-fab.fab-visible,
+body.ux-hidden #np-expand,
+body.ux-hidden #bb-chat-btn,
+body.ux-hidden #sub-dock,
+body.ux-hidden #sub-dock-popup {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+  transition: none !important;
+  transition-delay: 0s !important;
+}
 .ui.hidden .top-bar { transform: translateY(-18px); }
 .ui.hidden .nav-panel { transform: translateX(-18px); }
 .ui.hidden .project-card { transform: translateX(18px); }
@@ -209,7 +223,7 @@ a { color: inherit; text-decoration: none; }
   position: fixed;
   top: 18px;
   right: 22px;
-  z-index: 70;
+  z-index: 2147483000;
   width: 38px;
   height: 38px;
   display: grid;
