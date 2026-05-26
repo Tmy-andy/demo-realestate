@@ -2065,7 +2065,7 @@ function renderPropertyDetailPage(el) {
     `<button class="btn btn-secondary btn-sm" onclick="go('properties')">${ico('x',12)} Quay lại</button>
      <button class="btn btn-primary btn-sm" onclick="propSaveDetail()">${ico('save',12)} Lưu sản phẩm</button>`)
   + `
-  <div class="pd-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px;align-items:flex-start;min-width:0">
+  <div class="pd-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:flex-start">
 
     <!-- ── Thông tin cơ bản ── -->
     <div class="card">
