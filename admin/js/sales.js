@@ -615,10 +615,11 @@ function saveSaleProfileFromForm() {
 }
 
 function resetSaleProfile() {
-  if (!confirm('Khôi phục về thông tin mặc định? Các thay đổi cá nhân sẽ bị mất.')) return;
-  localStorage.removeItem(profileKey());
-  toast('Đã khôi phục mặc định', 'ok');
-  render('settings', document.getElementById('p-settings'));
+  uiConfirm('Khôi phục về thông tin mặc định? Các thay đổi cá nhân sẽ bị mất.', () => {
+    localStorage.removeItem(profileKey());
+    toast('Đã khôi phục mặc định', 'ok');
+    render('settings', document.getElementById('p-settings'));
+  }, { title:'Khôi phục mặc định', okText:'Khôi phục', okClass:'btn-danger' });
 }
 
 // ——— EXPORT KHACH HANG ————————————————————————
@@ -1452,13 +1453,62 @@ function closePanel() {
 }
 document.getElementById('sp-backdrop')?.addEventListener('click', closePanel);
 
-function confirmDel(title, sub, cb) {
+function openConfirmModal({ title='Xác nhận', sub='', body='', okText='Xác Nhận', cancelText='Huỷ bỏ', okClass='btn-danger', showCancel=true, onOk, onCancel } = {}) {
   document.getElementById('cm-title').textContent = title;
-  document.getElementById('cm-sub').textContent = sub || '';
-  document.getElementById('cm-ok').onclick = () => { closeConfirm(); cb(); };
+  const subEl = document.getElementById('cm-sub');
+  subEl.textContent = sub || '';
+  subEl.style.display = sub ? '' : 'none';
+  const bodyEl = document.getElementById('cm-body');
+  if (bodyEl) bodyEl.innerHTML = body || '';
+  const cancelBtn = document.getElementById('cm-cancel');
+  if (cancelBtn) {
+    cancelBtn.textContent = cancelText;
+    cancelBtn.style.display = showCancel ? '' : 'none';
+    cancelBtn.onclick = () => { closeConfirm(); if (onCancel) onCancel(); };
+  }
+  const okBtn = document.getElementById('cm-ok');
+  okBtn.textContent = okText;
+  okBtn.className = `btn ${okClass}`;
+  okBtn.onclick = () => {
+    if (onOk) {
+      const r = onOk();
+      if (r === false) return;
+    }
+    closeConfirm();
+  };
   document.getElementById('cm-back').classList.add('show');
+  setTimeout(() => {
+    const input = document.querySelector('#cm-body input, #cm-body textarea');
+    if (input) input.focus();
+  }, 30);
 }
-function closeConfirm() { document.getElementById('cm-back').classList.remove('show'); }
+function closeConfirm() {
+  document.getElementById('cm-back').classList.remove('show');
+  const bodyEl = document.getElementById('cm-body');
+  if (bodyEl) bodyEl.innerHTML = '';
+}
+function confirmDel(title, sub, cb) {
+  openConfirmModal({ title, sub, body: 'Hành động này không thể hoàn tác. Bạn có chắc chắn?', okText:'Xác Nhận', okClass:'btn-danger', onOk: cb });
+}
+function uiConfirm(message, onOk, { title='Xác nhận', okText='Xác Nhận', okClass='btn-primary' } = {}) {
+  openConfirmModal({ title, body: esc(message), okText, okClass, onOk });
+}
+function uiAlert(message, { title='Thông báo', okText='Đã hiểu' } = {}) {
+  return new Promise(res => {
+    openConfirmModal({ title, body: esc(message), okText, okClass:'btn-primary', showCancel:false, onOk: () => res(true) });
+  });
+}
+function uiPrompt(message, defaultValue='', onOk, { title='Nhập thông tin', okText='Xác Nhận', placeholder='' } = {}) {
+  const inputHtml = `<div style="margin-bottom:8px">${esc(message)}</div>
+    <input type="text" id="cm-prompt-input" class="form-control" value="${esc(defaultValue)}" placeholder="${esc(placeholder)}" style="width:100%">`;
+  openConfirmModal({
+    title, body: inputHtml, okText, okClass:'btn-primary',
+    onOk: () => {
+      const v = document.getElementById('cm-prompt-input')?.value ?? '';
+      return onOk(v);
+    }
+  });
+}
 document.getElementById('cm-back')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeConfirm(); });
 
 function toast(msg, type = 'ok') {

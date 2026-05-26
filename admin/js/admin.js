@@ -176,11 +176,11 @@ async function saveData(msg = 'Đã lưu') {
       body: JSON.stringify(S.data),
     });
     if (!r.ok) throw new Error('HTTP ' + r.status);
-    toast(msg + ' — đã đồng bộ CSDL', 'ok');
+    toast(msg, 'ok');
   } catch (e) {
     // Không chặn admin: dữ liệu vẫn còn ở localStorage, chỉ cảnh báo.
-    console.warn('Không đồng bộ được lên CSDL:', e);
-    toast(msg + ' (chỉ cục bộ — chưa lên CSDL)', 'warn');
+    console.warn('Đồng bộ thất bại:', e);
+    toast('Lưu thất bại', 'err');
   }
 }
 
@@ -3143,13 +3143,62 @@ function closePanel() {
   document.getElementById('sp-backdrop').classList.remove('open');
 }
 
-function confirmDel(title, sub, onOk) {
-  document.getElementById('cm-title').innerHTML   = title;
-  document.getElementById('cm-sub').textContent   = sub;
-  document.getElementById('cm-ok').onclick        = () => { document.getElementById('cm-back').classList.remove('open'); onOk(); };
+function openConfirmModal({ title='Xác nhận', sub='', body='', okText='Xác Nhận', cancelText='Huỷ bỏ', okClass='btn-danger', showCancel=true, onOk, onCancel } = {}) {
+  document.getElementById('cm-title').innerHTML = title;
+  const subEl = document.getElementById('cm-sub');
+  subEl.textContent = sub || '';
+  subEl.style.display = sub ? '' : 'none';
+  const bodyEl = document.getElementById('cm-body');
+  if (bodyEl) bodyEl.innerHTML = body || '';
+  const cancelBtn = document.getElementById('cm-cancel');
+  if (cancelBtn) {
+    cancelBtn.textContent = cancelText;
+    cancelBtn.style.display = showCancel ? '' : 'none';
+    cancelBtn.onclick = () => { closeConfirm(); if (onCancel) onCancel(); };
+  }
+  const okBtn = document.getElementById('cm-ok');
+  okBtn.textContent = okText;
+  okBtn.className = `btn ${okClass}`;
+  okBtn.onclick = () => {
+    if (onOk) {
+      const r = onOk();
+      if (r === false) return; // validation failure keeps modal open
+    }
+    closeConfirm();
+  };
   document.getElementById('cm-back').classList.add('open');
+  setTimeout(() => {
+    const input = document.querySelector('#cm-body input, #cm-body textarea');
+    if (input) input.focus();
+  }, 30);
 }
-function closeConfirm() { document.getElementById('cm-back').classList.remove('open'); }
+function closeConfirm() {
+  document.getElementById('cm-back').classList.remove('open');
+  const bodyEl = document.getElementById('cm-body');
+  if (bodyEl) bodyEl.innerHTML = '';
+}
+function confirmDel(title, sub, onOk) {
+  openConfirmModal({ title, sub, body: 'Hành động này không thể hoàn tác. Bạn có chắc chắn?', okText:'Xác Nhận', okClass:'btn-danger', onOk });
+}
+function uiConfirm(message, onOk, { title='Xác nhận', okText='Xác Nhận', okClass='btn-primary' } = {}) {
+  openConfirmModal({ title, body: esc(message), okText, okClass, onOk });
+}
+function uiAlert(message, { title='Thông báo', okText='Đã hiểu' } = {}) {
+  return new Promise(res => {
+    openConfirmModal({ title, body: esc(message), okText, okClass:'btn-primary', showCancel:false, onOk: () => res(true) });
+  });
+}
+function uiPrompt(message, defaultValue='', onOk, { title='Nhập thông tin', okText='Xác Nhận', placeholder='' } = {}) {
+  const inputHtml = `<div style="margin-bottom:8px">${esc(message)}</div>
+    <input type="text" id="cm-prompt-input" class="form-control" value="${esc(defaultValue)}" placeholder="${esc(placeholder)}" style="width:100%">`;
+  openConfirmModal({
+    title, body: inputHtml, okText, okClass:'btn-primary',
+    onOk: () => {
+      const v = document.getElementById('cm-prompt-input')?.value ?? '';
+      return onOk(v);
+    }
+  });
+}
 
 function toast(msg, type='info') {
   const wrap  = document.getElementById('toast-wrap');

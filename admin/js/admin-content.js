@@ -99,7 +99,9 @@ function confirmExitDirty(onConfirm) {
       'Bạn đã chỉnh sửa nội dung phân khu này nhưng chưa bấm "Lưu phân khu". Đổi phân khu sẽ mất các thay đổi chưa lưu.',
       onConfirm
     );
-  } else if (confirm('Thoát mà chưa lưu? Thay đổi sẽ bị mất.')) {
+  } else if (typeof uiConfirm === 'function') {
+    uiConfirm('Thoát mà chưa lưu? Thay đổi sẽ bị mất.', onConfirm, { title:'Thoát mà chưa lưu', okText:'Thoát', okClass:'btn-danger' });
+  } else {
     onConfirm();
   }
 }
@@ -186,7 +188,6 @@ function pageHeader(crumbs, title, actions = '') {
       <div class="btn-group">
         ${actions}
         <a href="../index.html" target="_blank" class="btn btn-secondary btn-sm">${ico('globe')} Xem trang VR</a>
-        <button class="btn btn-secondary btn-sm" onclick="exportJSON()">${ico('download')} Export JSON</button>
       </div>
     </div>`;
 }
@@ -438,9 +439,20 @@ function galleryListByTab() {
       ? true
       : (g.subdivision || null) === subKey);
 }
+function galleryFolderStore() {
+  S.data.galleryFolders ??= { image: [], video: [] };
+  S.data.galleryFolders.image ??= [];
+  S.data.galleryFolders.video ??= [];
+  return S.data.galleryFolders;
+}
+function galleryStoredFolders() {
+  const store = galleryFolderStore();
+  return (S.galleryTab === 'video' ? store.video : store.image) || [];
+}
 function galleryFolders() {
   const set = new Set();
   galleryListByTab().forEach(({g}) => { if (g.folder) set.add(g.folder); });
+  galleryStoredFolders().forEach(n => { if (n) set.add(n); });
   return [...set].sort((a,b) => a.localeCompare(b, 'vi'));
 }
 function galleryFilteredIndexes() {
@@ -511,8 +523,7 @@ function renderGalleryPage(el) {
   };
 
   el.innerHTML = pageHeader(['Dashboard','Nội Dung VR'], 'Thư Viện',
-    `<button class="btn btn-secondary btn-sm" onclick="resetData()" title="Xoá cache localStorage, đọc lại project.json">${ico('refresh')} Tải lại</button>
-     <button class="btn btn-secondary btn-sm" onclick="galleryNewFolder()">${ico('plus')} Thư mục mới</button>
+    `<button class="btn btn-secondary btn-sm" onclick="galleryNewFolder()">${ico('plus')} Thư mục mới</button>
      ${addBtn}`)
   + subSelectorBar('gallery')
   + `
@@ -565,7 +576,8 @@ function folderRow(value, label, iconName, current, deletable=false) {
       <span style="display:inline-flex;width:16px;height:16px;align-items:center;justify-content:center">${ico(iconName,14)}</span>
       <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(label)}</span>
       <span style="font-size:11px;color:var(--muted);background:var(--surface2);padding:2px 7px;border-radius:10px">${count}</span>
-      ${deletable ? `<button class="act-btn" title="Đổi tên" onclick="event.stopPropagation();galleryRenameFolder('${value.replace(/'/g,"\\'")}')" style="padding:2px;background:none;border:none;cursor:pointer;color:var(--muted)">${ico('edit',12)}</button>` : ''}
+      ${deletable ? `<button class="act-btn" title="Đổi tên" onclick="event.stopPropagation();galleryRenameFolder('${value.replace(/'/g,"\\'")}')" style="padding:2px;background:none;border:none;cursor:pointer;color:var(--muted)">${ico('edit',12)}</button>
+      <button class="act-btn" title="Xoá thư mục" onclick="event.stopPropagation();galleryDeleteFolder('${value.replace(/'/g,"\\'")}')" style="padding:2px;background:none;border:none;cursor:pointer;color:var(--muted)">${ico('trash',12)}</button>` : ''}
     </div>`;
 }
 
@@ -611,27 +623,54 @@ function galleryPickFolder(name) {
   go('gallery');
 }
 function galleryNewFolder() {
-  const name = prompt('Tên thư mục mới:');
-  if (!name) return;
-  const n = name.trim();
-  if (!n) return;
-  if (galleryFolders().includes(n)) { toast('Thư mục đã tồn tại', 'warn'); return; }
-  // Empty folder: persist by creating it via filter only — but we need at least one tag.
-  // Strategy: just switch view; folder appears after first item is assigned. So warn:
-  S.galleryFolder = n;
-  toast(`Đã chọn thư mục "${n}". Thêm mục mới hoặc gán mục cũ vào để thư mục hiển thị.`, 'info');
-  go('gallery');
+  showPanel('Thư mục mới', `
+    <div class="form-group">
+      <label class="form-label">Tên thư mục *</label>
+      <input class="form-control" id="gf-name" placeholder="VD: Mặt tiền, Nội thất…" autofocus>
+      <small class="c-muted">Thư mục sẽ được thêm vào danh sách. Mở thư mục để tải ảnh/video vào.</small>
+    </div>
+  `, () => {
+    const n = (document.getElementById('gf-name').value || '').trim();
+    if (!n) { toast('Nhập tên thư mục', 'warn'); return; }
+    if (galleryFolders().includes(n)) { toast('Thư mục đã tồn tại', 'warn'); return; }
+    const list = galleryStoredFolders();
+    list.push(n);
+    S.galleryFolder = n;
+    saveData(`Đã tạo thư mục "${n}"`);
+    closePanel();
+    go('gallery');
+  });
 }
 function galleryRenameFolder(oldName) {
-  const next = prompt(`Đổi tên thư mục "${oldName}" thành:`, oldName);
-  if (!next) return;
-  const n = next.trim();
-  if (!n || n === oldName) return;
-  let changed = 0;
-  (S.data.gallery || []).forEach(g => { if (g.folder === oldName) { g.folder = n; changed++; } });
-  if (S.galleryFolder === oldName) S.galleryFolder = n;
-  saveData(`Đã đổi tên ${changed} mục sang thư mục "${n}"`);
-  go('gallery');
+  uiPrompt(`Đổi tên thư mục "${oldName}" thành:`, oldName, (next) => {
+    if (!next) return false;
+    const n = next.trim();
+    if (!n || n === oldName) return true;
+    if (galleryFolders().includes(n)) { toast('Tên thư mục đã tồn tại', 'warn'); return false; }
+    let changed = 0;
+    (S.data.gallery || []).forEach(g => { if (g.folder === oldName) { g.folder = n; changed++; } });
+    const list = galleryStoredFolders();
+    const idx = list.indexOf(oldName);
+    if (idx >= 0) list[idx] = n;
+    if (S.galleryFolder === oldName) S.galleryFolder = n;
+    saveData(`Đã đổi tên thư mục thành "${n}"${changed?` (${changed} mục)`:''}`);
+    go('gallery');
+  }, { title:'Đổi tên thư mục', okText:'Lưu' });
+}
+function galleryDeleteFolder(name) {
+  const count = (S.data.gallery || []).filter(g => g.folder === name).length;
+  const msg = count
+    ? `Thư mục "${name}" đang chứa ${count} mục. Xoá thư mục sẽ chuyển các mục về "Chưa phân loại". Tiếp tục?`
+    : `Xoá thư mục rỗng "${name}"?`;
+  uiConfirm(msg, () => {
+    (S.data.gallery || []).forEach(g => { if (g.folder === name) delete g.folder; });
+    const list = galleryStoredFolders();
+    const idx = list.indexOf(name);
+    if (idx >= 0) list.splice(idx, 1);
+    if (S.galleryFolder === name) S.galleryFolder = '__all';
+    saveData(`Đã xoá thư mục "${name}"`);
+    go('gallery');
+  }, { title:'Xoá thư mục', okText:'Xoá', okClass:'btn-danger' });
 }
 
 /* ---------- CRUD ---------- */

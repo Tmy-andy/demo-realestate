@@ -39,6 +39,52 @@ window.AiPanel = (() => {
     }[c]));
   }
 
+  function aiAlert(message, { title = "Thông báo", okText = "Đã hiểu" } = {}) {
+    return new Promise(resolve => {
+      const back = document.createElement("div");
+      back.className = "ai-modal-back";
+      back.innerHTML = `
+        <div class="ai-modal">
+          <div class="ai-modal-title">${escapeHtml(title)}</div>
+          <div class="ai-modal-body">${escapeHtml(message)}</div>
+          <div class="ai-modal-footer">
+            <button class="ai-modal-ok">${escapeHtml(okText)}</button>
+          </div>
+        </div>`;
+      Object.assign(back.style, {
+        position: "fixed", inset: "0", background: "rgba(0,0,0,.5)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        zIndex: "100000", padding: "20px"
+      });
+      const modal = back.querySelector(".ai-modal");
+      Object.assign(modal.style, {
+        background: "#fff", borderRadius: "12px", maxWidth: "420px", width: "100%",
+        padding: "20px 22px", boxShadow: "0 20px 60px rgba(0,0,0,.3)", color: "#0f172a",
+        fontFamily: "inherit"
+      });
+      Object.assign(back.querySelector(".ai-modal-title").style, {
+        fontSize: "16px", fontWeight: "700", marginBottom: "10px"
+      });
+      Object.assign(back.querySelector(".ai-modal-body").style, {
+        fontSize: "14px", color: "#475569", marginBottom: "18px", lineHeight: "1.5"
+      });
+      Object.assign(back.querySelector(".ai-modal-footer").style, {
+        display: "flex", justifyContent: "flex-end"
+      });
+      const okBtn = back.querySelector(".ai-modal-ok");
+      Object.assign(okBtn.style, {
+        padding: "8px 18px", borderRadius: "8px", border: "none",
+        background: "#2563eb", color: "#fff", fontWeight: "600", cursor: "pointer",
+        fontSize: "14px"
+      });
+      const close = () => { back.remove(); resolve(true); };
+      okBtn.onclick = close;
+      back.addEventListener("click", e => { if (e.target === back) close(); });
+      document.body.appendChild(back);
+      okBtn.focus();
+    });
+  }
+
   function bubbleHtml(role, text) {
     return `<div class="ai-pn-bubble ${role}">${escapeHtml(text)}</div>`;
   }
@@ -247,7 +293,7 @@ window.AiPanel = (() => {
   /* ─── Voice mode (Gemini Live streaming) ────────────── */
   async function enterVoiceMode() {
     if (!window.GeminiLive) {
-      alert(t("ai.noSR"));
+      aiAlert(t("ai.noSR"));
       return;
     }
     voiceActive = true;
@@ -260,7 +306,7 @@ window.AiPanel = (() => {
       await gl.initAudio();
     } catch (e) {
       if (e && e.name === "NotAllowedError") {
-        alert(t("ai.micDenied"));
+        aiAlert(t("ai.micDenied"));
         voiceActive = false;
         document.body.classList.remove("ai-voice-active");
       }

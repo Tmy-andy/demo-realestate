@@ -321,10 +321,10 @@
         renderCenter(); renderDD(); return;
       }
       if (act === 'clear-all') {
-        if (confirm('Xoá tất cả thông báo?')) {
+        uiConfirm('Xoá tất cả thông báo?', () => {
           items = [];
           renderCenter(); renderDD();
-        }
+        }, { title:'Xoá thông báo', okText:'Xoá tất cả', okClass:'btn-danger' });
         return;
       }
       if (act === 'del') {
