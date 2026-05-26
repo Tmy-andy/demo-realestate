@@ -1483,6 +1483,11 @@ const INDEX_HTML = path.join(SITE_ROOT, 'index.html');
 // nuốt mọi request '/', dành quyền đó cho catch-all bên dưới.
 app.use(express.static(SITE_ROOT, { index: false, extensions: ['html'] }));
 
+// Thư mục admin — serve index.html tương ứng khi truy cập không có tên file.
+app.get(['/admin', '/admin/'], (_req, res) => {
+  res.sendFile(path.join(SITE_ROOT, 'admin', 'index.html'));
+});
+
 // Catch-all: '/' và '/<id-sale>' đều trả index.html.
 // FE (getSaleSlug) tự đọc id sale từ path. Không đụng tới /api/*.
 app.get(/^\/(?!api\/).*/, (req, res) => {
