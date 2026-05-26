@@ -15,7 +15,7 @@
   'use strict';
 
   var DATA_DIR = 'data/';
-  var VERSION  = '1779071649938';
+  var VERSION  = '1779765962850';
   var devicesUrl = {
     mobile:  DATA_DIR + 'script_mobile.js',
     general: DATA_DIR + 'script_general.js'
@@ -121,8 +121,10 @@
     var name = currentNameFromPlayList();
     if (!name || name === _currentName) return;
     _currentName = name;
+    // Chuyển pano-1 → pano-01 (3DVista v2026 bỏ leading zero, app dùng pano-01)
+    var appName = name.replace(/^(pano-)(\d)$/, '$10$2');
     window.dispatchEvent(new CustomEvent('panoramaChange', {
-      detail: { panoId: name }
+      detail: { panoId: appName }
     }));
   }
 
@@ -151,6 +153,8 @@
 
   function openPanoramaByName(name) {
     if (!name) return false;
+    // Normalize pano-01 → pano-1 (3DVista v2026 dùng label không có leading zero)
+    name = name.replace(/^(pano-)0(\d)$/, '$1$2');
     if (!tour) { console.warn('[panorama-host] tour chưa sẵn sàng:', name); return false; }
     try {
       tour.setMediaByName(name);
