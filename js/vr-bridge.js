@@ -1,6 +1,8 @@
 /* ==========================================================
    VR Bridge — js/vr-bridge.js
-   Cầu nối giữa trang chủ và iframe 3DVista.
+   Cầu nối giữa trang chủ và 3DVista (giờ đã nhúng trực tiếp,
+   không còn iframe). Bridge giữ nguyên API cũ để ai-panel /
+   gemini-live không phải đổi.
 
    API:
      window.VRBridge.navigateTo(id)          — điều hướng (tdvPanoramaId hoặc sceneId)
@@ -12,16 +14,11 @@
 window.VRBridge = (function () {
   'use strict';
 
-  var _currentPanoId     = null;
-  var _panoToScene       = {};  /* tdvPanoramaId → sceneId */
-  var _sceneToPano       = {};  /* sceneId → tdvPanoramaId */
-  var _callbacks         = [];
-  var _origGoToPanorama  = null; /* tham chiếu gốc của window.goToPanorama */
-
-  /* ─── Lấy iframe 3DVista ──────────────────────────────── */
-  function getFrame() {
-    return document.getElementById('vr-iframe');
-  }
+  var _currentPanoId    = null;
+  var _panoToScene      = {};  /* tdvPanoramaId → sceneId */
+  var _sceneToPano      = {};  /* sceneId → tdvPanoramaId */
+  var _callbacks        = [];
+  var _origGoToPanorama = null;
 
   /* ─── Thiết lập bản đồ scene từ menu items hoặc scenes ──
      Chấp nhận:
@@ -66,18 +63,13 @@ window.VRBridge = (function () {
       return;
     }
 
-    /* Fallback: gửi trực tiếp đến iframe nếu main.js chưa sẵn sàng */
-    var frame = getFrame();
-    if (!frame || !frame.contentWindow) {
-      console.warn('[VRBridge] iframe not ready:', panoId);
+    /* Fallback: gọi thẳng host nếu main.js chưa sẵn sàng */
+    if (typeof window.openPanoramaByName === 'function') {
+      window.openPanoramaByName(panoId);
+      _fire(panoId);
       return;
     }
-    try {
-      frame.contentWindow.postMessage({ type: 'goToPanorama', name: panoId }, '*');
-      _fire(panoId);
-    } catch (e) {
-      console.error('[VRBridge] postMessage error:', e);
-    }
+    console.warn('[VRBridge] panorama host chưa sẵn sàng:', panoId);
   }
 
   /* ─── Đăng ký callback khi cảnh thay đổi ────────────── */
@@ -87,10 +79,9 @@ window.VRBridge = (function () {
 
   function currentPanoId() { return _currentPanoId; }
 
-  /* ─── Lắng nghe sự kiện panoramaChange từ main.js ──────
-     main.js dispatch 'panoramaChange' mỗi khi goToPanorama() được gọi
-     (cả từ menu UI lẫn từ VRBridge.navigateTo).
-  ─────────────────────────────────────────────────────── */
+  /* ─── Lắng nghe sự kiện panoramaChange từ main.js + panorama-host.js ──
+     Cả hai đều dispatch CustomEvent 'panoramaChange'. Bridge gom về
+     một nguồn sự kiện duy nhất cho consumer. ────────────────────────── */
   window.addEventListener('panoramaChange', function (e) {
     if (e && e.detail && e.detail.panoId) {
       _fire(e.detail.panoId);
@@ -98,34 +89,10 @@ window.VRBridge = (function () {
   });
 
   /* ─── Lưu tham chiếu gốc window.goToPanorama ──────────
-     Thực hiện ngay sau khi main.js gán window.goToPanorama.
-     vr-bridge.js được load SAU main.js nên hàm đã tồn tại.
-  ─────────────────────────────────────────────────────── */
+     vr-bridge.js được load SAU main.js nên hàm đã tồn tại. ─ */
   if (typeof window.goToPanorama === 'function') {
     _origGoToPanorama = window.goToPanorama;
   }
-
-  /* ─── Xử lý message từ iframe 3DVista (nếu có) ─────── */
-  window.addEventListener('message', function (e) {
-    if (!e.data) return;
-    var msg;
-    try {
-      msg = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
-    } catch (_) { return; }
-
-    var panoId =
-      msg.panoramaId ||
-      msg.panorama   ||
-      (msg.data && (msg.data.panoramaId || msg.data.label)) ||
-      null;
-
-    if (!panoId || typeof panoId !== 'string') return;
-
-    /* Hỗ trợ cả hai format: "pano-01" và "panorama_3Fxx..." */
-    if (!/^pano-\d/.test(panoId) && !panoId.startsWith('panorama_')) return;
-
-    _fire(panoId.replace(/_0$/, ''));
-  });
 
   return {
     navigateTo:    navigateTo,
