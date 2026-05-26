@@ -1130,4 +1130,22 @@ textarea.form-control { resize: vertical; min-height: 80px }
 .mp-edit-dot-tienich { background: #34d399; }
 .mp-edit-dot-phuchop { background: #f4c97d; }
 .mp-edit-dot-cangbien { background: #38bdf8; }
+
+/* ===== Property Detail — chống tràn ngang ===== */
+#p-property-detail { min-width: 0; overflow-x: hidden }
+#p-property-detail .pd-grid > .card { min-width: 0 }
+#p-property-detail .card-body > div[style*="display:flex"],
+#p-property-detail .card-body > div[style*="display: flex"] {
+  flex-wrap: wrap;
+}
+#p-property-detail .card-body .form-group { min-width: 0 }
+#p-property-detail .form-control { max-width: 100%; box-sizing: border-box }
+#p-property-detail #pd-sale-info { word-break: break-word; overflow-wrap: anywhere }
+#p-property-detail #pd-sale-info b { word-break: break-all }
+@media (max-width: 600px) {
+  #p-property-detail .card-body > div[style*="display:flex"] > .form-group,
+  #p-property-detail .card-body > div[style*="display: flex"] > .form-group {
+    flex: 1 1 100% !important;
+  }
+}
 .mp-edit-dot-marina  { background: #22d3ee; }
