@@ -20,7 +20,7 @@ const CHILD_GROUPS = [
 ];
 const _tr = (s) => (window.I18n ? window.I18n.tr(s) : s);
 const _t  = (k, v) => (window.I18n ? window.I18n.t(k, v) : k);
-let openGroupKey = "tongQuan";   // nhóm gốc đang mở
+let openGroupKey = null;   // nhóm gốc đang mở (mặc định Tổng quan thu lại)
 let openSubItemId = null;        // id phân khu đang được xổ trong np-list
 /* Phân khu đang ACTIVE để tự động lọc 5 overlay + BĐS.
    null = chế độ Tổng quan (không lọc). */
@@ -918,108 +918,68 @@ function renderNavList() {
   const menu = DATA.menu || {};
   const query = (document.getElementById("np-search")?.value || "").trim().toLowerCase();
 
-  /* ── Nhóm Phân khu — chỉ liệt kê các phân khu (phẳng).
-     4 nhóm con (NK/NG/MB/VR) giờ truy cập qua dock 4 nút ở bottom. ── */
-  function phanKhuGroupHTML() {
-    const list = menu.phanKhu || [];
-    const visible = list.filter(pk => !query || npMatch(pk, query));
-    const ogk = openGroupKey || "";
-    const isOpen = query
-      ? visible.length > 0
-      : ogk === "phanKhu" || list.some(pk => ogk === pk.id);
-    const rows = visible.map((pk, i) => {
-      const isActive = pk.id === currentMenuItemId;
-      return `
-        <div class="np-pk ${pk.id === activeSubdivision ? 'pk-active' : ''}" data-pk="${pk.id}">
-          <div class="np-card np-pk-head ${isActive ? 'active' : ''}"
-               data-id="${pk.id}" data-panorama="${pk.tdvPanoramaId || ''}">
-            <div class="np-card-idx">${String(i + 1).padStart(2, '0')}</div>
-            <div class="np-card-info">
-              <div class="np-card-name">${_tr(pk.label)}</div>
-              <div class="np-card-sub">${pk.id === activeSubdivision ? _t("ui.filtering") : (pk.tdvPanoramaId || '')}</div>
-            </div>
-            <i class="np-card-arrow" data-lucide="chevron-right" width="14" height="14"></i>
-          </div>
-        </div>`;
-    }).join("");
-    if (query && !visible.length) return "";
-    return `
-      <div class="np-group ${isOpen ? 'open' : ''}" data-group="phanKhu">
-        <button class="np-group-head" type="button">
-          <span class="np-group-icon">PK</span>
-          <span class="np-group-title">${_t("ui.subdivisions") || 'Phân khu'}</span>
-          <span class="np-group-count">${visible.length}</span>
-          <i class="np-group-chev" data-lucide="chevron-right" width="14" height="14"></i>
-        </button>
-        <div class="np-group-body np-pk-list">${rows}</div>
-      </div>`;
-  }
+  // Nhóm Tổng quan (xổ list các điểm) + 4 card phân khu phẳng.
+  const tqItems = (menu.tongQuan || []).filter(m => npMatch(m, query));
+  const pkList = menu.phanKhu || [];
 
-  /* ── Nhóm Tổng quan (phẳng) ── */
-  function tongQuanGroupHTML() {
-    const items = (menu.tongQuan || []).filter(m => npMatch(m, query));
-    if (query && !items.length) return "";
-    const isOpen = query ? items.length > 0 : openGroupKey === "tongQuan";
-    const cards = items.map((m, i) => npCardHTML(m, i)).join("");
-    return `
+  const parts = [];
+
+  // ── Nhóm Tổng quan: gom thành group có thể xổ/thu ──
+  if (tqItems.length || !query) {
+    const isOpen = query ? tqItems.length > 0 : openGroupKey === "tongQuan";
+    const cards = tqItems.map((m, i) => npCardHTML(m, i)).join("");
+    parts.push(`
       <div class="np-group ${isOpen ? 'open' : ''}" data-group="tongQuan">
         <button class="np-group-head" type="button">
           <span class="np-group-icon">TQ</span>
           <span class="np-group-title">${_tr('Tổng quan')}</span>
-          <span class="np-group-count">${items.length}</span>
+          <span class="np-group-count">${tqItems.length}</span>
           <i class="np-group-chev" data-lucide="chevron-right" width="14" height="14"></i>
         </button>
         <div class="np-group-body">${cards}</div>
-      </div>`;
+      </div>`);
   }
 
-  const html = tongQuanGroupHTML() + phanKhuGroupHTML();
-  if (!html.trim()) {
+  // ── 4 phân khu: card phẳng ──
+  pkList.forEach((pk, i) => {
+    if (!npMatch(pk, query)) return;
+    const isActive = pk.id === activeSubdivision || pk.id === currentMenuItemId;
+    parts.push(`
+      <div class="np-card np-card-flat np-pk-head ${pk.id === activeSubdivision ? 'pk-active' : ''} ${isActive ? 'active' : ''}"
+           data-kind="phanKhu" data-pk="${pk.id}" data-id="${pk.id}" data-panorama="${pk.tdvPanoramaId || ''}">
+        <div class="np-card-idx">${String(i + 1).padStart(2, '0')}</div>
+        <div class="np-card-info">
+          <div class="np-card-name">${_tr(pk.label)}</div>
+          <div class="np-card-sub">${pk.id === activeSubdivision ? _t('ui.filtering') : (pk.tdvPanoramaId || '')}</div>
+        </div>
+        <i class="np-card-arrow" data-lucide="chevron-right" width="14" height="14"></i>
+      </div>`);
+  });
+
+  if (!parts.length) {
     listEl.innerHTML = `<div class="np-empty">${_t("ui.noResults")}</div>`;
     return;
   }
-  listEl.innerHTML = html;
+  listEl.innerHTML = parts.join("");
   bindNavListEvents(listEl);
 }
 
-/* Gắn sự kiện cho np-list sau mỗi lần render */
+/* Gắn sự kiện cho np-list (group Tổng quan + card phân khu phẳng) */
 function bindNavListEvents(listEl) {
-  /* Toggle nhóm gốc (Tổng quan / Phân khu) + nhóm con */
+  /* Toggle group Tổng quan */
   listEl.querySelectorAll(".np-group > .np-group-head").forEach(head => {
     const group = head.parentElement;
     head.addEventListener("click", () => {
       const key = group.dataset.group;
       const wasOpen = group.classList.contains("open");
-      // Đóng các nhóm CÙNG CẤP
-      const siblings = group.parentElement.querySelectorAll(":scope > .np-group");
-      siblings.forEach(g => { if (g !== group) g.classList.remove("open"); });
       group.classList.toggle("open", !wasOpen);
       if (!wasOpen) openGroupKey = key;
       else if (openGroupKey === key) openGroupKey = null;
     });
   });
 
-  /* Chọn 1 phân khu */
-  listEl.querySelectorAll(".np-pk-head").forEach(head => {
-    head.addEventListener("click", () => {
-      const pkEl = head.closest(".np-pk");
-      const pkId = pkEl.dataset.pk;
-      currentMenuItemId = pkId;
-      openSubItemId = pkId;
-      lockNavSelection();
-      setActiveSubdivision(pkId);
-      const panoId = head.dataset.panorama;
-      if (panoId) goToPanorama(panoId);
-      else syncProjectCard();
-      listEl.querySelectorAll(".np-card").forEach(c =>
-        c.classList.toggle("active", c.dataset.id === currentMenuItemId));
-      listEl.querySelectorAll(".np-pk").forEach(e =>
-        e.classList.toggle("pk-active", e.dataset.pk === activeSubdivision));
-    });
-  });
-
-  /* Click 1 item Tổng quan (np-card không phải pk-head) */
-  listEl.querySelectorAll(".np-card:not(.np-pk-head)").forEach(card => {
+  /* Click 1 item bên trong Tổng quan */
+  listEl.querySelectorAll(".np-group[data-group='tongQuan'] .np-card").forEach(card => {
     card.addEventListener("click", () => {
       currentMenuItemId = card.dataset.id;
       lockNavSelection();
@@ -1029,6 +989,25 @@ function bindNavListEvents(listEl) {
       else syncProjectCard();
       listEl.querySelectorAll(".np-card").forEach(c =>
         c.classList.toggle("active", c.dataset.id === currentMenuItemId));
+    });
+  });
+
+  /* Click 1 card phân khu phẳng */
+  listEl.querySelectorAll(".np-card-flat").forEach(card => {
+    card.addEventListener("click", () => {
+      const id = card.dataset.id;
+      currentMenuItemId = id;
+      openGroupKey = "phanKhu";
+      openSubItemId = id;
+      lockNavSelection();
+      setActiveSubdivision(id);
+      const panoId = card.dataset.panorama;
+      if (panoId) goToPanorama(panoId);
+      else syncProjectCard();
+      listEl.querySelectorAll(".np-card-flat").forEach(c => {
+        c.classList.toggle("active", c.dataset.id === currentMenuItemId);
+        c.classList.toggle("pk-active", c.dataset.pk === activeSubdivision);
+      });
     });
   });
 }

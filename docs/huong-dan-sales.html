@@ -113,23 +113,28 @@
 
   <div class="nav-section-label" style="margin-top:1rem">Công Việc Hàng Ngày</div>
   <a class="nav-link" href="#dashboard"><span class="num">4</span>Dashboard Cá Nhân</a>
-  <a class="nav-link" href="#leads"><span class="num">5</span>Quản Lý Leads</a>
+  <a class="nav-link" href="#leads"><span class="num">5</span>Leads & Booking</a>
   <a class="nav-link" href="#dat-lich"><span class="num">6</span>Đặt Lịch Hẹn</a>
   <a class="nav-link" href="#calendar"><span class="num">7</span>Lịch Hẹn</a>
 
   <div class="nav-section-label" style="margin-top:1rem">Dự Án</div>
   <a class="nav-link" href="#units"><span class="num">8</span>Tình Trạng Căn Hộ</a>
-  <a class="nav-link" href="#tour-vr"><span class="num">9</span>Tour VR360 Cho Khách</a>
+  <a class="nav-link" href="#tour-vr"><span class="num">9</span>Tour VR360</a>
+  <a class="nav-link" href="#saleskit"><span class="num">10</span>Bí Kíp Tư Vấn</a>
+
+  <div class="nav-section-label" style="margin-top:1rem">Cá Nhân</div>
+  <a class="nav-link" href="#settings"><span class="num">11</span>Cài Đặt Cá Nhân</a>
+  <a class="nav-link" href="#link-gioi-thieu"><span class="num">12</span>Link Giới Thiệu</a>
 
   <div class="nav-section-label" style="margin-top:1rem">Quy Trình</div>
-  <a class="nav-link" href="#tu-van"><span class="num">10</span>Quy Trình Tư Vấn</a>
-  <a class="nav-link" href="#tu-vung"><span class="num">11</span>Từ Vựng Trạng Thái</a>
-  <a class="nav-link" href="#nguon-lead"><span class="num">12</span>Nguồn Lead</a>
+  <a class="nav-link" href="#tu-van"><span class="num">13</span>Quy Trình Tư Vấn</a>
+  <a class="nav-link" href="#tu-vung"><span class="num">14</span>Từ Vựng Trạng Thái</a>
+  <a class="nav-link" href="#nguon-lead"><span class="num">15</span>Nguồn Lead</a>
 
   <div class="nav-section-label" style="margin-top:1rem">Khác</div>
-  <a class="nav-link" href="#meo"><span class="num">13</span>Mẹo Sử Dụng</a>
-  <a class="nav-link" href="#faq"><span class="num">14</span>FAQ & Sự Cố</a>
-  <a class="nav-link" href="#kpi"><span class="num">15</span>KPI & Báo Cáo</a>
+  <a class="nav-link" href="#meo"><span class="num">16</span>Mẹo Sử Dụng</a>
+  <a class="nav-link" href="#faq"><span class="num">17</span>FAQ & Sự Cố</a>
+  <a class="nav-link" href="#kpi"><span class="num">18</span>KPI & Báo Cáo</a>
 </nav>
 
 <main id="content">
@@ -137,14 +142,14 @@
   <h1>Hướng Dẫn Sử Dụng Cho Nhân Viên Sales</h1>
   <p style="color:var(--fg-muted);margin-bottom:2rem">
     Workspace <code>admin/sales.html</code> dành riêng cho nhân viên kinh doanh dự án Vinhomes Hai Van Bay.
-    Tập trung vào 3 việc chính: <strong>theo dõi leads</strong>, <strong>quản lý lịch hẹn</strong>, và <strong>tư vấn căn hộ qua VR360</strong>.
+    Tập trung vào: <strong>quản lý leads</strong>, <strong>đặt và theo dõi lịch hẹn</strong>, <strong>tư vấn căn hộ qua VR360</strong>, và <strong>link giới thiệu cá nhân</strong>.
   </p>
 
   <div class="intro">
     <div class="intro-item"><div class="label">Vai Trò</div><div class="value">Sales · Bất Động Sản</div></div>
     <div class="intro-item"><div class="label">URL</div><div class="value">admin/sales.html</div></div>
     <div class="intro-item"><div class="label">Tài Khoản Demo</div><div class="value">sales / sales@2025</div></div>
-    <div class="intro-item"><div class="label">Số Trang</div><div class="value">5 module</div></div>
+    <div class="intro-item"><div class="label">Số Module</div><div class="value">7 trang</div></div>
     <div class="intro-item"><div class="label">Quyền Sửa Căn</div><div class="value">Không (chỉ xem)</div></div>
     <div class="intro-item"><div class="label">Quyền Sửa Lead</div><div class="value">Có (CRUD)</div></div>
   </div>
@@ -154,23 +159,25 @@
     <h2 data-num="1">Giới Thiệu Vai Trò</h2>
     <p>Với tài khoản <strong>Sales</strong>, bạn có quyền:</p>
     <ul>
-      <li><strong>Xem & quản lý leads</strong> bạn phụ trách: thêm mới, cập nhật trạng thái, ghi chú lịch sử tư vấn.</li>
-      <li><strong>Đặt và quản lý lịch hẹn</strong> với khách (xem nhà mẫu, tư vấn VP, demo VR online).</li>
+      <li><strong>Xem & quản lý leads</strong>: thêm mới, cập nhật trạng thái, ghi chú lịch sử tư vấn, xuất CSV.</li>
+      <li><strong>Đặt và quản lý lịch hẹn</strong> với khách (xem 3 chế độ: danh sách / tuần / ngày).</li>
       <li><strong>Xem tình trạng căn hộ</strong> (chỉ đọc — không sửa được trạng thái).</li>
-      <li><strong>Mở tour VR360</strong> ngay trong workspace để demo cho khách online.</li>
+      <li><strong>Mở Tour VR360</strong> ngay trong workspace để demo cho khách online.</li>
+      <li>Xem <strong>Bí Kíp Tư Vấn</strong> — kho kiến thức bán hàng.</li>
+      <li>Tự quản lý <strong>hồ sơ cá nhân</strong>: tên, SĐT, Zalo, mạng xã hội, link giới thiệu.</li>
     </ul>
 
     <h3>Không Có Quyền</h3>
     <ul>
-      <li>Sửa giá / trạng thái căn hộ (chỉ Owner).</li>
-      <li>Chỉnh nội dung trang VR (cảnh, hotspot, tiện ích, pháp lý…).</li>
-      <li>Đổi theme / ngôn ngữ.</li>
-      <li>Xem leads của sales khác (nếu hệ thống có phân quyền theo người dùng).</li>
+      <li>Sửa giá / trạng thái căn hộ (chỉ Owner / Developer).</li>
+      <li>Chỉnh nội dung trang VR (cảnh, gallery, pháp lý, theme…).</li>
+      <li>Quản lý user khác / đổi role.</li>
+      <li>Xem leads của sales khác (mỗi sales chỉ thấy leads được gán).</li>
     </ul>
 
     <div class="callout info">
-      <strong>Hai tài khoản Sales demo</strong>
-      <code>sales</code> và <code>sales2</code> — cùng mật khẩu <code>sales@2025</code>. Dùng để thử nghiệm scenario nhiều sales cùng làm việc.
+      <strong>Link giới thiệu cá nhân</strong>
+      Mỗi sales có một <strong>slug</strong> (vd <code>andy</code>). Khi bạn gửi cho khách link <code>/&lt;slug&gt;</code> (ví dụ trang web dự án thêm <code>/andy</code> ở cuối), <strong>mọi lead khách gửi sẽ tự động về thẳng bạn</strong> — không qua round-robin. Xem mục 12.
     </div>
   </section>
 
@@ -184,16 +191,16 @@
     </div></div>
     <div class="step"><div class="step-num">2</div><div class="step-body">
       <div class="step-title">Nhập tài khoản Sales</div>
-      <div class="step-desc">Tên đăng nhập: <code>sales</code> hoặc <code>sales2</code>. Mật khẩu: <code>sales@2025</code>.</div>
+      <div class="step-desc">Tài khoản demo: <code>sales</code> / <code>sales@2025</code>. Tài khoản thật do Owner cấp trong tab Settings → Users.</div>
     </div></div>
     <div class="step"><div class="step-num">3</div><div class="step-body">
       <div class="step-title">Bấm "Đăng Nhập"</div>
-      <div class="step-desc">Hệ thống chuyển sang <code>sales.html</code>. Avatar topbar hiện chữ <strong>SL</strong> với màu xanh lá đặc trưng của sales.</div>
+      <div class="step-desc">Backend trả về token (TTL 12h) lưu trong sessionStorage. Hệ thống tự chuyển sang <code>sales.html</code>. Avatar topbar hiện chữ <strong>SL</strong> với gradient xanh lá đặc trưng của sales.</div>
     </div></div>
 
     <div class="callout warn">
-      <strong>Nếu vào nhầm</strong>
-      Sales <strong>không vào được</strong> <code>owner.html</code> — hệ thống sẽ tự đẩy về login. Tương tự, Owner không thể vào <code>sales.html</code>.
+      <strong>Vào nhầm workspace?</strong>
+      Sales <strong>không vào được</strong> <code>owner.html</code> — guard script tự đẩy về login. Tương tự, Owner mở <code>sales.html</code> cũng bị đẩy về login. Mỗi role chỉ vào đúng workspace của mình.
     </div>
   </section>
 
@@ -202,16 +209,17 @@
     <h2 data-num="3">Giao Diện Tổng Quan</h2>
 
     <pre>┌──────────────────────────────────────────────────────────┐
-│  ① Sidebar (trái)         ② Topbar                      │
-│      Công Việc                 [🔔] [Sales Agent ▼]      │
-│      ├─ Dashboard              [Đăng xuất]               │
-│      ├─ Leads & Booking                                  │
-│      └─ Lịch Hẹn          ③ Khu Vực Nội Dung Chính       │
-│                              (Render trang được chọn)    │
-│      Dự Án                                               │
-│      ├─ Tình Trạng Căn Hộ ④ Slide Panel (trượt phải)     │
-│      └─ Tour VR360           Form lead / lịch hẹn        │
-│                                                          │
+│  ① Sidebar (trái)         ② Topbar                       │
+│      CÔNG VIỆC                 [🔔 Thông báo]            │
+│      ├─ Dashboard              [Sales pill · SL · xanh]  │
+│      ├─ Leads & Booking        [Đăng xuất]               │
+│      └─ Lịch Hẹn                                         │
+│      DỰ ÁN                ③ Khu Vực Nội Dung Chính       │
+│      ├─ Tình Trạng Căn Hộ    (Render trang được chọn)    │
+│      ├─ Tour VR360                                       │
+│      └─ Bí Kíp Tư Vấn     ④ Slide Panel (trượt phải)     │
+│      CÁ NHÂN                 Form lead / lịch hẹn / VR   │
+│      └─ Cài Đặt Cá Nhân                                  │
 │                           ⑤ Modal Xác Nhận               │
 │                              Khi xoá lead / huỷ hẹn      │
 │                                                          │
@@ -222,11 +230,13 @@
     <table>
       <thead><tr><th>Mục</th><th>Owner</th><th>Sales</th></tr></thead>
       <tbody>
-        <tr><td>Số nhóm sidebar</td><td>3 (Quản Lý · Nội Dung VR · Hệ Thống)</td><td>2 (Công Việc · Dự Án)</td></tr>
-        <tr><td>Số trang</td><td>14</td><td>5</td></tr>
-        <tr><td>Preview VR (topbar)</td><td>Có</td><td>Không có (dùng trang Tour VR thay thế)</td></tr>
-        <tr><td>Màu avatar</td><td>Tím (Owner)</td><td>Xanh lá (Sales)</td></tr>
+        <tr><td>Số nhóm sidebar</td><td>3 (Quản Lý · Nội Dung VR · Hệ Thống)</td><td>3 (Công Việc · Dự Án · Cá Nhân)</td></tr>
+        <tr><td>Số module</td><td>14</td><td>7</td></tr>
+        <tr><td>Preview VR (topbar)</td><td>Có nút riêng</td><td>Không — dùng trang Tour VR360 thay thế</td></tr>
+        <tr><td>Notification dropdown</td><td>Không</td><td>Có (chuông 🔔)</td></tr>
+        <tr><td>Màu avatar</td><td>Tím / mặc định</td><td>Xanh lá (gradient #10b981 → #059669)</td></tr>
         <tr><td>Sửa căn hộ</td><td>Có</td><td>Không (chỉ xem)</td></tr>
+        <tr><td>Quản lý user</td><td>Có</td><td>Không (chỉ sửa profile của chính mình)</td></tr>
       </tbody>
     </table>
   </section>
@@ -234,33 +244,39 @@
   <!-- 4 -->
   <section id="dashboard">
     <h2 data-num="4">Dashboard Cá Nhân</h2>
-    <p>Trang đầu tiên khi bạn đăng nhập. Tổng quan công việc trong ngày.</p>
+    <p>Trang đầu tiên khi đăng nhập. Tổng quan công việc của bạn.</p>
 
-    <h3>Các Thẻ KPI</h3>
+    <h3>4 Thẻ KPI</h3>
     <table>
       <thead><tr><th>Thẻ</th><th>Số Liệu</th></tr></thead>
       <tbody>
-        <tr><td><strong>Leads mới hôm nay</strong></td><td>Số lead mới được giao trong 24h qua</td></tr>
-        <tr><td><strong>Đang quan tâm</strong></td><td>Lead trạng thái <code>interested</code> bạn phụ trách</td></tr>
-        <tr><td><strong>Đã chốt tháng này</strong></td><td>Số deal đã ký từ đầu tháng</td></tr>
-        <tr><td><strong>Lịch hẹn hôm nay</strong></td><td>Số booking dự kiến diễn ra trong ngày</td></tr>
-        <tr><td><strong>Lịch hẹn tuần này</strong></td><td>Tổng số booking trong 7 ngày tới</td></tr>
+        <tr><td><strong>Tổng leads</strong></td><td>Tổng số lead bạn đang phụ trách</td></tr>
+        <tr><td><strong>Mới hôm nay</strong></td><td>Số lead được gán trong 24h qua</td></tr>
+        <tr><td><strong>Đang quan tâm</strong></td><td>Lead trạng thái <code>interested</code></td></tr>
+        <tr><td><strong>Đã chốt (%)</strong></td><td>Số lead <code>closed</code> và tỉ lệ trên tổng</td></tr>
       </tbody>
     </table>
 
+    <h3>Lịch Hẹn</h3>
+    <p>Dưới phần KPI là 2 card:</p>
+    <ul>
+      <li><strong>Lịch hẹn hôm nay</strong> — danh sách appointments dự kiến trong ngày, hiển thị tên / SĐT / loại / giờ.</li>
+      <li><strong>Lịch hẹn sắp tới</strong> — các appointment trong 7 ngày kế tiếp.</li>
+    </ul>
+
     <div class="callout info">
       <strong>Mẹo bắt đầu ngày</strong>
-      Mỗi sáng, vào Dashboard → kiểm tra <strong>"Lịch hẹn hôm nay"</strong> để chuẩn bị. Sau đó qua <strong>Leads</strong> xem có lead mới cần gọi không.
+      Mỗi sáng: vào Dashboard → kiểm tra <strong>Lịch hẹn hôm nay</strong> để chuẩn bị. Sau đó qua <strong>Leads</strong> xem có lead mới (trạng thái <code>new</code>) cần gọi không.
     </div>
   </section>
 
   <!-- 5 -->
   <section id="leads">
-    <h2 data-num="5">Quản Lý Leads</h2>
-    <p>Trang quan trọng nhất với sales — quản lý toàn bộ khách hàng tiềm năng.</p>
+    <h2 data-num="5">Leads & Booking</h2>
+    <p>Trang quan trọng nhất với sales — quản lý toàn bộ khách hàng tiềm năng được gán cho bạn.</p>
 
     <h3>Bảng Lead</h3>
-    <p>Mỗi dòng là một khách hàng, với các cột: <strong>Họ tên · SĐT · Email · Nguồn · Căn quan tâm · Trạng thái · Lịch hẹn (nếu có)</strong>.</p>
+    <p>Mỗi dòng là một khách hàng, với các cột: <strong>Họ tên · SĐT · Email · Nguồn · Quan tâm · Trạng thái · Lịch hẹn (nếu có)</strong>.</p>
 
     <h3>Thêm Lead Mới</h3>
     <div class="step"><div class="step-num">1</div><div class="step-body">
@@ -269,37 +285,44 @@
     </div></div>
     <div class="step"><div class="step-num">2</div><div class="step-body">
       <div class="step-title">Điền thông tin khách</div>
-      <div class="step-desc">Họ tên · SĐT (bắt buộc) · Email · Zalo · Căn quan tâm · Ngân sách · Mục đích.</div>
+      <div class="step-desc">
+        <strong>Bắt buộc</strong>: Họ tên · SĐT.<br>
+        <strong>Tuỳ chọn</strong>: Email · Zalo · Căn quan tâm · Ngân sách · Mục đích (<em>Ở thực</em> / <em>Đầu tư</em> / <em>Cho thuê</em>) · Ghi chú.
+      </div>
     </div></div>
     <div class="step"><div class="step-num">3</div><div class="step-body">
       <div class="step-title">Chọn nguồn lead</div>
-      <div class="step-desc">Combobox có thanh tìm kiếm — gõ vài chữ để tìm nhanh (vd: gõ "fac" → Facebook).</div>
+      <div class="step-desc">Combobox có thanh tìm kiếm — gõ vài chữ để lọc nhanh (vd: gõ "fac" → Facebook). 8 nhóm nguồn — xem mục 15.</div>
     </div></div>
     <div class="step"><div class="step-num">4</div><div class="step-body">
       <div class="step-title">Bấm Lưu</div>
-      <div class="step-desc">Lead xuất hiện trên bảng với trạng thái mặc định <span class="badge-info">Mới</span>.</div>
+      <div class="step-desc">Gọi <code>POST /api/leads</code>. Lead xuất hiện trên bảng với trạng thái mặc định <span class="badge-info">Mới</span>.</div>
     </div></div>
 
     <h3>Xoay Trạng Thái Nhanh</h3>
-    <p>Bấm badge trạng thái trên dòng lead → xoay vòng theo thứ tự:</p>
+    <p>Bấm badge trạng thái trên dòng lead → xoay vòng:</p>
     <pre>Mới → Đã gọi → Đang quan tâm → Đã chốt → Không tiếp tục → (về Mới)</pre>
-    <p>Tiện cho việc cập nhật nhanh sau cuộc gọi mà không cần mở form đầy đủ.</p>
+    <p>Cách này tiện cập nhật nhanh sau cuộc gọi mà không cần mở form đầy đủ.</p>
 
     <h3>Sửa Lead</h3>
-    <p>Bấm icon ✏️ hoặc click dòng → slide panel với dữ liệu cũ → chỉnh → Lưu.</p>
+    <p>Bấm icon ✏️ hoặc click dòng → slide panel với dữ liệu cũ → chỉnh → Lưu (gọi <code>PUT /api/leads/:id</code>).</p>
 
     <h3>Xoá Lead</h3>
-    <p>Bấm icon 🗑️ → xác nhận. <strong>Không khôi phục được</strong> — chỉ xoá khi chắc chắn lead không còn giá trị.</p>
+    <p>Bấm icon 🗑️ → xác nhận → <code>DELETE /api/leads/:id</code>. <strong>Không khôi phục được</strong> — chỉ xoá khi chắc chắn.</p>
 
     <h3>Lọc & Tìm Kiếm</h3>
     <table>
       <thead><tr><th>Bộ Lọc</th><th>Tác Dụng</th></tr></thead>
       <tbody>
         <tr><td>Theo trạng thái</td><td>Click các badge ở đầu trang để xem nhóm tương ứng</td></tr>
-        <tr><td>Theo nguồn</td><td>Combobox — tìm trong toàn bộ Online + Offline</td></tr>
+        <tr><td>Theo nguồn</td><td>Combobox tìm kiếm — gõ tên nguồn</td></tr>
+        <tr><td>Theo mục đích</td><td>Ở thực / Đầu tư / Cho thuê</td></tr>
         <tr><td>Tìm tự do</td><td>Gõ tên / SĐT / email vào ô tìm kiếm</td></tr>
       </tbody>
     </table>
+
+    <h3>Xuất CSV</h3>
+    <p>Bấm <strong>"Xuất CSV"</strong> — modal cho bạn chọn cột muốn export (10 cột tuỳ chọn: tên, SĐT, email, nguồn, mục đích, ngân sách, căn quan tâm, trạng thái, ngày tạo, ghi chú). Tải về Excel làm pivot phân tích.</p>
   </section>
 
   <!-- 6 -->
@@ -308,56 +331,69 @@
     <p>Khi lead đã sẵn sàng gặp mặt, bạn có thể đặt lịch ngay từ trang Leads.</p>
 
     <div class="step"><div class="step-num">1</div><div class="step-body">
-      <div class="step-title">Trên dòng lead → bấm icon lịch (📅) hoặc nút "Đặt Hẹn"</div>
-      <div class="step-desc">Panel đặt hẹn mở ra, đã chọn sẵn khách hàng này.</div>
+      <div class="step-title">Trên dòng lead → bấm icon lịch 📅 hoặc nút "Đặt Hẹn"</div>
+      <div class="step-desc">Panel đặt hẹn mở ra, đã chọn sẵn khách hàng này (link tới <code>lead_id</code>).</div>
     </div></div>
     <div class="step"><div class="step-num">2</div><div class="step-body">
       <div class="step-title">Chọn loại hẹn</div>
       <div class="step-desc">
         <ul>
           <li><strong>Xem nhà mẫu</strong> — khách đến site dự án</li>
-          <li><strong>Tư vấn tại VP</strong> — gặp tại văn phòng</li>
-          <li><strong>Xem VR online</strong> — demo qua video call</li>
+          <li><strong>Tư vấn tại VP</strong> — gặp tại văn phòng bán hàng</li>
+          <li><strong>Xem VR online</strong> — demo qua video call kèm Tour VR360</li>
           <li><strong>Khác</strong> — ghi rõ trong ghi chú</li>
         </ul>
       </div>
     </div></div>
     <div class="step"><div class="step-num">3</div><div class="step-body">
       <div class="step-title">Chọn ngày + giờ</div>
-      <div class="step-desc">Date picker + time picker. Hệ thống hiện cảnh báo nếu trùng lịch hẹn khác của bạn.</div>
+      <div class="step-desc">Date picker + time picker. Timestamp lưu dạng ISO.</div>
     </div></div>
     <div class="step"><div class="step-num">4</div><div class="step-body">
       <div class="step-title">Thêm ghi chú</div>
-      <div class="step-desc">Ví dụ: "Khách muốn xem cả 3PN và Duplex", "Đi cùng vợ và 2 con nhỏ", "Cần xe đưa đón từ Hồ Tây".</div>
+      <div class="step-desc">Ví dụ: "Khách muốn xem cả 3PN và Duplex", "Đi cùng vợ và 2 con nhỏ", "Cần xe đưa đón từ Đà Nẵng".</div>
     </div></div>
     <div class="step"><div class="step-num">5</div><div class="step-body">
       <div class="step-title">Lưu</div>
-      <div class="step-desc">Lịch hẹn xuất hiện trên trang <strong>Lịch Hẹn</strong> với trạng thái <span class="badge-warn">Chờ xác nhận</span>.</div>
+      <div class="step-desc">Gọi <code>POST /api/appointments</code>. Lịch hẹn xuất hiện trên trang <strong>Lịch Hẹn</strong> với trạng thái <span class="badge-warn">Chờ xác nhận</span>.</div>
     </div></div>
 
     <h3>Huỷ Lịch Hẹn</h3>
-    <p>Bấm icon ❌ trên dòng lịch hẹn → xác nhận. Khi huỷ, trạng thái chuyển sang <span class="badge-err">Đã huỷ</span> (không xoá khỏi lịch sử).</p>
+    <p>Bấm icon ❌ trên dòng lịch hẹn → xác nhận. Trạng thái chuyển sang <span class="badge-err">Đã huỷ</span> (không xoá khỏi lịch sử). <code>PUT /api/appointments/:id</code>.</p>
   </section>
 
   <!-- 7 -->
   <section id="calendar">
     <h2 data-num="7">Lịch Hẹn</h2>
-    <p>Xem toàn bộ lịch hẹn của bạn theo 2 chế độ.</p>
+    <p>Xem toàn bộ lịch hẹn của bạn theo 3 chế độ.</p>
 
-    <h3>Chế Độ Tuần</h3>
-    <p>Lưới 7 ngày × 12 giờ. Mỗi ô là một lịch hẹn, hiện tên khách + loại hẹn.</p>
+    <h3>3 Chế Độ Xem</h3>
     <table>
-      <thead><tr><th>Thao Tác</th><th>Tác Dụng</th></tr></thead>
+      <thead><tr><th>Chế Độ</th><th>Hiển Thị</th></tr></thead>
       <tbody>
-        <tr><td>← →</td><td>Chuyển sang tuần trước / tuần sau</td></tr>
-        <tr><td>Hôm Nay</td><td>Quay về tuần hiện tại</td></tr>
-        <tr><td>Click ô trống</td><td>Mở form tạo lịch hẹn nhanh tại giờ đó</td></tr>
-        <tr><td>Click lịch hẹn</td><td>Xem chi tiết / chỉnh sửa</td></tr>
+        <tr><td><strong>Danh sách</strong></td><td>Bảng phẳng tất cả lịch hẹn theo thứ tự thời gian — dễ scan, tốt để xuất CSV</td></tr>
+        <tr><td><strong>Tuần</strong></td><td>Lưới 7 ngày × các giờ trong ngày làm việc. Mỗi ô là một lịch hẹn, hiện tên khách + loại</td></tr>
+        <tr><td><strong>Ngày</strong></td><td>Timeline dọc 24h của 1 ngày — chi tiết nhất, hợp khi bạn có nhiều hẹn trong ngày</td></tr>
       </tbody>
     </table>
 
-    <h3>Chế Độ Danh Sách</h3>
-    <p>Bảng phẳng tất cả lịch hẹn theo thứ tự thời gian — dễ scan nhanh, xuất CSV.</p>
+    <h3>Bộ Lọc Nhanh</h3>
+    <ul>
+      <li><strong>Tất cả</strong> — mọi appointment.</li>
+      <li><strong>Hôm nay</strong> — chỉ lịch hôm nay.</li>
+      <li><strong>Tuần</strong> — 7 ngày tới.</li>
+    </ul>
+
+    <h3>Thao Tác Trên Lịch</h3>
+    <table>
+      <thead><tr><th>Hành Động</th><th>Tác Dụng</th></tr></thead>
+      <tbody>
+        <tr><td>← →</td><td>Chuyển sang tuần/ngày trước/sau</td></tr>
+        <tr><td>Hôm Nay</td><td>Quay về tuần/ngày hiện tại</td></tr>
+        <tr><td>Click ô trống (chế độ Tuần)</td><td>Mở form tạo lịch hẹn nhanh tại giờ đó</td></tr>
+        <tr><td>Click lịch hẹn</td><td>Xem chi tiết / chỉnh sửa / đổi trạng thái</td></tr>
+      </tbody>
+    </table>
 
     <h3>4 Trạng Thái Booking</h3>
     <table>
@@ -365,126 +401,229 @@
       <tbody>
         <tr><td><span class="badge-warn">Chờ xác nhận</span></td><td>Vừa đặt, đang chờ gọi xác nhận với khách</td></tr>
         <tr><td><span class="badge-info">Đã xác nhận</span></td><td>Khách đã đồng ý lịch, sẽ đến đúng giờ</td></tr>
-        <tr><td><span class="badge-ok">Đã hoàn tất</span></td><td>Lịch hẹn đã diễn ra (tự động hoặc bấm chuyển)</td></tr>
+        <tr><td><span class="badge-ok">Đã hoàn tất</span></td><td>Lịch hẹn đã diễn ra</td></tr>
         <tr><td><span class="badge-err">Đã huỷ</span></td><td>Khách hoặc sales huỷ</td></tr>
       </tbody>
     </table>
-
-    <div class="callout warn">
-      <strong>Tính năng đang phát triển</strong>
-      Theo <code>note để hôm sau sửa.MD</code>: sắp tới khi click vào lịch hẹn, bạn sẽ <strong>đổi được trạng thái trực tiếp trên panel chi tiết</strong>, không cần quay về trang Leads để cập nhật.
-    </div>
   </section>
 
   <!-- 8 -->
   <section id="units">
     <h2 data-num="8">Tình Trạng Căn Hộ (Chỉ Đọc)</h2>
-    <p>Xem nhanh kho căn hộ để tư vấn cho khách.</p>
+    <p>Xem nhanh kho bất động sản để tư vấn cho khách. Dữ liệu đọc từ backend (cùng nguồn với trang VR public).</p>
 
     <h3>Bảng Hiển Thị</h3>
-    <p>Mỗi dòng: <strong>Mã căn · Loại · Tầng · Diện tích · Hướng · Giá · Trạng thái</strong>.</p>
+    <p>Mỗi dòng: <strong>Mã căn · Tên · Loại · Phân khu · Tầng · Diện tích · Giá · Trạng thái</strong>.</p>
 
     <table>
       <thead><tr><th>Badge</th><th>Ý Nghĩa</th><th>Khi Tư Vấn</th></tr></thead>
       <tbody>
-        <tr><td><span class="badge-ok">Còn hàng</span></td><td>Sẵn sàng đặt cọc</td><td>Ưu tiên giới thiệu cho khách quan tâm</td></tr>
-        <tr><td><span class="badge-warn">Đang giữ chỗ</span></td><td>Đã có khách giữ tạm, chưa ký hợp đồng cọc</td><td>Có thể đề xuất căn tương đương; nếu khách kiên quyết thì đặt vào danh sách chờ</td></tr>
-        <tr><td><span class="badge-err">Đã bán</span></td><td>Hoàn thành giao dịch</td><td>Không nhận đặt thêm; nhân tiện báo cho khách biết "đã hết" để tăng tính khẩn cấp với căn còn lại</td></tr>
+        <tr><td><span class="badge-ok">available</span></td><td>Sẵn sàng đặt cọc</td><td>Ưu tiên giới thiệu cho khách quan tâm</td></tr>
+        <tr><td><span class="badge-err">sold</span></td><td>Đã bán</td><td>Báo "đã hết" để tăng tính khẩn cấp với căn còn lại</td></tr>
       </tbody>
     </table>
 
-    <h3>Lọc Theo Loại</h3>
-    <p>Bấm tab loại (2PN / 2PN+1 / 3PN / Duplex) để lọc nhanh. Tương ứng với nhu cầu khách.</p>
+    <h3>Lọc & Tìm</h3>
+    <ul>
+      <li>Theo <strong>loại bất động sản</strong> (Căn hộ / Shophouse / Penthouse / Duplex…).</li>
+      <li>Theo <strong>phân khu</strong>.</li>
+      <li>Theo <strong>khoảng giá</strong>.</li>
+      <li>Tìm theo mã căn.</li>
+    </ul>
+
+    <h3>Sao Chép Mã Căn</h3>
+    <p>Bấm vào mã căn trên dòng để copy clipboard — nhanh chóng paste vào form tạo lead "Căn quan tâm".</p>
 
     <div class="callout info">
       <strong>Cần đổi trạng thái căn?</strong>
-      Sales <strong>không thể</strong> sửa trực tiếp. Liên hệ <strong>Owner</strong> để cập nhật (vd: chuyển từ "Còn hàng" sang "Đang giữ chỗ" khi bạn vừa nhận đặt cọc).
+      Sales <strong>không thể</strong> sửa trực tiếp (chỉ Owner / Developer). Khi bạn vừa nhận đặt cọc của khách, báo Owner đổi trạng thái căn sang "đang giữ chỗ" hoặc "sold" tương ứng.
     </div>
   </section>
 
   <!-- 9 -->
   <section id="tour-vr">
-    <h2 data-num="9">Tour VR360 Cho Khách</h2>
-    <p>Khi tư vấn online (qua Zoom, Google Meet hoặc gọi video Zalo), bạn có thể <strong>mở tour VR ngay trong workspace</strong> để chia sẻ màn hình cho khách.</p>
+    <h2 data-num="9">Tour VR360 — Demo Cho Khách</h2>
+    <p>Khi tư vấn online (qua Zoom / Google Meet / Zalo video), bạn có thể <strong>mở tour VR ngay trong workspace</strong> để chia sẻ màn hình cho khách.</p>
+
+    <h3>Cấu Trúc Lưới Cảnh</h3>
+    <p>Trang Tour VR gom cảnh theo 2 cấp:</p>
+    <ul>
+      <li><strong>Tổng quan</strong> — các pano aerial / tổng thể dự án.</li>
+      <li><strong>Mỗi phân khu</strong> — chia 4 nhóm con: Tiện ích nội khu · Tiện ích ngoại khu · Mặt bằng tầng · View 360° căn hộ.</li>
+    </ul>
 
     <div class="step"><div class="step-num">1</div><div class="step-body">
       <div class="step-title">Vào trang "Tour VR360" trên sidebar</div>
-      <div class="step-desc">Bạn thấy lưới các cảnh VR có sẵn (Sky Lounge, Penthouse, Bể bơi…).</div>
+      <div class="step-desc">Bạn thấy lưới các cảnh VR đã được Owner cấu hình.</div>
     </div></div>
     <div class="step"><div class="step-num">2</div><div class="step-body">
       <div class="step-title">Bấm cảnh muốn mở</div>
-      <div class="step-desc">Trang VR (<code>index.html</code>) hiện ra trong slide panel bên phải, đã chuyển sẵn về cảnh đó.</div>
+      <div class="step-desc">Trang VR (<code>index.html</code>) mở trong <strong>slide panel</strong> bên phải, đã chuyển sẵn về panorama tương ứng (qua URL với hash <code>#pano-id</code>).</div>
     </div></div>
     <div class="step"><div class="step-num">3</div><div class="step-body">
       <div class="step-title">Chia sẻ màn hình với khách</div>
-      <div class="step-desc">Trong Zoom/Meet, chia sẻ toàn bộ cửa sổ trình duyệt hoặc chỉ tab này. Khách sẽ thấy VR cùng lúc với bạn.</div>
+      <div class="step-desc">Trong Zoom/Meet/Zalo: chia sẻ toàn bộ cửa sổ trình duyệt hoặc chỉ tab này. Khách thấy VR cùng lúc với bạn.</div>
     </div></div>
     <div class="step"><div class="step-num">4</div><div class="step-body">
       <div class="step-title">Điều khiển VR theo yêu cầu của khách</div>
-      <div class="step-desc">Bạn xoay, zoom, chuyển cảnh — khách xem theo. Có thể bấm hotspot để giải thích, mở bảng giá để so sánh căn…</div>
+      <div class="step-desc">Xoay, zoom, chuyển cảnh — khách xem theo. Có thể bấm hotspot để giải thích, mở bảng giá để so sánh căn, mở Pháp lý / Vị trí khi khách hỏi…</div>
     </div></div>
 
     <div class="callout ok">
       <strong>Mẹo demo hiệu quả</strong>
       <ul style="margin:0.5rem 0 0">
         <li>Bắt đầu từ <strong>Toàn cảnh dự án</strong> (aerial) để khách định hình vị trí.</li>
-        <li>Tiếp theo <strong>cảnh phù hợp với nhu cầu</strong> (penthouse cho khách cao cấp, công viên cho gia đình…).</li>
+        <li>Tiếp theo <strong>cảnh phù hợp với nhu cầu</strong>: penthouse cho khách cao cấp, công viên cho gia đình…</li>
         <li>Luôn kết thúc bằng <strong>Bảng giá</strong> để chốt vào căn cụ thể.</li>
-        <li>Sau demo, gửi link trang VR cho khách tự xem lại — họ sẽ quay lại bạn để đặt cọc.</li>
+        <li>Sau demo, gửi <strong>link giới thiệu cá nhân</strong> <code>/&lt;slug&gt;</code> (mục 12) cho khách tự xem lại — họ sẽ quay lại bạn để đặt cọc.</li>
       </ul>
     </div>
   </section>
 
   <!-- 10 -->
-  <section id="tu-van">
-    <h2 data-num="10">Quy Trình Tư Vấn Một Lead Hoàn Chỉnh</h2>
+  <section id="saleskit">
+    <h2 data-num="10">Bí Kíp Tư Vấn</h2>
+    <p>Kho kiến thức bán hàng do Owner / Marketing biên soạn. Bao gồm:</p>
+    <ul>
+      <li>Đối tượng khách hàng mục tiêu của từng phân khu / loại căn.</li>
+      <li>Câu chuyện thương hiệu, USP (Unique Selling Points).</li>
+      <li>Mẫu chốt — cách trả lời các phản đối thường gặp ("giá cao quá", "có dự án rẻ hơn"…).</li>
+      <li>Chính sách bán hàng đang áp dụng, ưu đãi hiện hành.</li>
+      <li>Thông tin pháp lý / uy tín chủ đầu tư để tăng độ tin cậy.</li>
+    </ul>
 
-    <pre>1. Nhận Lead (từ marketing / website / hotline)
-   └── Trạng thái: Mới  · Bạn thấy lead trên Dashboard sáng hôm sau
+    <div class="callout info">
+      <strong>Nội dung do Owner cập nhật</strong>
+      Khi marketing / Owner cập nhật chính sách mới, mẫu chốt mới — bạn sẽ thấy ngay tại đây. Vào trang này định kỳ để cập nhật kiến thức.
+    </div>
+  </section>
+
+  <!-- 11 -->
+  <section id="settings">
+    <h2 data-num="11">Cài Đặt Cá Nhân</h2>
+    <p>Quản lý hồ sơ của chính bạn. Có 5 tab:</p>
+
+    <h3>Tab 1 — Hồ Sơ</h3>
+    <ul>
+      <li><strong>Tên hiển thị</strong> (sẽ xuất hiện trên trang VR khi khách dùng link giới thiệu của bạn).</li>
+      <li><strong>Title / chức danh</strong> (vd "Chuyên viên tư vấn cấp cao").</li>
+      <li><strong>Avatar</strong> — upload qua R2.</li>
+      <li>Mật khẩu (đổi tại đây).</li>
+    </ul>
+
+    <h3>Tab 2 — Liên Hệ</h3>
+    <ul>
+      <li><strong>SĐT</strong> — sẽ hiển thị trên trang public khi khách mở link <code>/&lt;slug&gt;</code> của bạn.</li>
+      <li><strong>Zalo</strong> — số Zalo (hoặc deeplink).</li>
+      <li>Email</li>
+    </ul>
+
+    <h3>Tab 3 — Mạng Xã Hội (7 nền tảng)</h3>
+    <p>Link tới Facebook · TikTok · YouTube · Instagram · LinkedIn · Threads · X (Twitter). Khách có thể xem từ trang VR.</p>
+
+    <h3>Tab 4 — Link Giới Thiệu</h3>
+    <p>Hiển thị URL <code>https://&lt;domain&gt;/&lt;slug&gt;</code> với nút copy 1 chạm. QR code tạo sẵn để in card / chia sẻ Zalo. Xem mục 12.</p>
+
+    <h3>Tab 5 — Export Khách Hàng</h3>
+    <p>Chọn cột muốn xuất CSV: tên · SĐT · email · nguồn · mục đích · ngân sách · trạng thái · ngày tạo · ghi chú. Tải về Excel làm pivot.</p>
+  </section>
+
+  <!-- 12 -->
+  <section id="link-gioi-thieu">
+    <h2 data-num="12">Link Giới Thiệu Cá Nhân</h2>
+    <p>Đây là <strong>công cụ chốt deal mạnh nhất</strong> của sales — mỗi bạn có một URL riêng dạng:</p>
+    <pre>https://&lt;domain-dự-án&gt;/&lt;slug-của-bạn&gt;
+ví dụ:
+https://vinhomeshaivanbay.vn/andy
+https://vinhomeshaivanbay.vn/linh-nguyen</pre>
+
+    <h3>Slug Của Bạn Được Tạo Như Thế Nào?</h3>
+    <p>Owner tạo tài khoản sales và đặt slug khi cấp tài khoản (vào tab Settings → Users trong workspace Owner). Bạn không tự đổi được slug — phải nhờ Owner.</p>
+
+    <h3>Khi Khách Mở Link Của Bạn — Điều Gì Xảy Ra?</h3>
+    <ul>
+      <li>Trang VR mở bình thường với <code>&lt;base href="/"&gt;</code> đảm bảo mọi đường dẫn tài nguyên vẫn hoạt động.</li>
+      <li>Frontend đọc slug từ URL → gọi backend lấy thông tin sales (tên, SĐT, Zalo, avatar, social).</li>
+      <li><strong>Project Card</strong> trên trang VR hiển thị thông tin liên hệ của <strong>chính bạn</strong> thay vì sales chung.</li>
+      <li>Khi khách gửi form đặt lịch / để lại SĐT qua AI chat → <code>POST /api/leads/public</code> tự gán <code>assigned_sale_id</code> = ID của bạn (không qua round-robin).</li>
+    </ul>
+
+    <h3>Cách Gửi Link Cho Khách</h3>
+    <div class="step"><div class="step-num">1</div><div class="step-body">
+      <div class="step-title">Copy URL từ Cài Đặt Cá Nhân → Link Giới Thiệu</div>
+      <div class="step-desc">Hoặc tải QR code in lên name card.</div>
+    </div></div>
+    <div class="step"><div class="step-num">2</div><div class="step-body">
+      <div class="step-title">Gửi cho khách qua Zalo / SMS / Email</div>
+      <div class="step-desc">Kèm câu giới thiệu ngắn: "Anh/Chị xem trước qua link này, mọi thông tin em đã chuẩn bị sẵn — em là người trực tiếp hỗ trợ".</div>
+    </div></div>
+    <div class="step"><div class="step-num">3</div><div class="step-body">
+      <div class="step-title">Theo dõi lead về</div>
+      <div class="step-desc">Khi khách gửi form, bạn sẽ thấy lead xuất hiện trong trang Leads với nguồn tự động ghi là "Website" + nguồn chi tiết (FB / Zalo / email tuỳ kênh bạn gửi).</div>
+    </div></div>
+
+    <div class="callout ok">
+      <strong>Best practice</strong>
+      <ul style="margin:0.5rem 0 0">
+        <li>Đính link giới thiệu trong <strong>chữ ký email</strong> + Zalo OA + tất cả bài đăng Facebook cá nhân.</li>
+        <li>In QR code lên <strong>name card</strong> — khách quét là vào thẳng trang VR có gán bạn.</li>
+        <li>Khi đăng bài quảng cáo Facebook / Tiktok — luôn dùng link cá nhân thay vì link chung của dự án.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 13 -->
+  <section id="tu-van">
+    <h2 data-num="13">Quy Trình Tư Vấn Một Lead Hoàn Chỉnh</h2>
+
+    <pre>1. Nhận Lead
+   ├── Khách điền form trên /&lt;slug-của-bạn&gt; → tự gán cho bạn
+   │   HOẶC Owner / Marketing phân lead thủ công
+   └── Trạng thái: Mới · Hiện trên Dashboard sáng hôm sau
 
 2. Gọi Lần Đầu (trong 30 phút)
-   ├── Xác nhận thông tin, hiểu nhu cầu
-   └── Cập nhật trạng thái: Đã gọi  · Ghi note vào lead
+   ├── Xác nhận thông tin, hiểu nhu cầu (mục đích: Ở thực / Đầu tư / Cho thuê)
+   └── Cập nhật trạng thái: Đã gọi · Ghi note vào lead
 
 3. Tư Vấn Sâu (gọi lần 2 / video call / hẹn gặp)
    ├── Mở Tour VR360 demo cho khách
    ├── So sánh các căn phù hợp với ngân sách
-   ├── Tính khoản vay với khách
+   ├── Mở Bí Kíp Tư Vấn nếu cần xử lý phản đối
    └── Cập nhật trạng thái: Đang quan tâm
 
 4. Đặt Lịch Xem Trực Tiếp
    ├── Vào trang Leads → Đặt Hẹn
-   ├── Loại: Xem nhà mẫu / Tư vấn tại VP
+   ├── Loại: Xem nhà mẫu / Tư vấn tại VP / Xem VR online
    └── Gửi xác nhận qua Zalo / SMS
 
 5. Sau Buổi Gặp
    ├── Cập nhật booking → Đã hoàn tất
    ├── Nếu khách ký cọc → trạng thái lead: Đã chốt
-   └── Báo Owner đổi trạng thái căn → Đang giữ chỗ</pre>
+   └── Báo Owner đổi trạng thái căn → sold (hoặc đang giữ chỗ)</pre>
 
     <div class="callout info">
-      <strong>Số liệu tham khảo</strong>
-      Tỉ lệ chuyển đổi trung bình ngành BĐS cao cấp: 100 lead → 30 tư vấn sâu → 10 hẹn gặp → 3 chốt cọc.
+      <strong>Số liệu tham khảo ngành BĐS cao cấp</strong>
+      Tỉ lệ chuyển đổi trung bình: 100 lead → 30 tư vấn sâu → 10 hẹn gặp → 3 chốt cọc.
     </div>
   </section>
 
-  <!-- 11 -->
+  <!-- 14 -->
   <section id="tu-vung">
-    <h2 data-num="11">Từ Vựng Trạng Thái</h2>
+    <h2 data-num="14">Từ Vựng Trạng Thái</h2>
 
-    <h3>Lead Status</h3>
+    <h3>Lead Status (5 trạng thái)</h3>
     <table>
       <thead><tr><th>Mã</th><th>Hiển Thị</th><th>Khi Nào Chuyển</th></tr></thead>
       <tbody>
-        <tr><td><code>new</code></td><td><span class="badge-info">Mới</span></td><td>Vừa được thêm vào hệ thống</td></tr>
+        <tr><td><code>new</code></td><td><span class="badge-info">Mới</span></td><td>Vừa được thêm vào hệ thống (qua form public hoặc thêm tay)</td></tr>
         <tr><td><code>called</code></td><td><span class="badge-warn">Đã gọi</span></td><td>Sau cuộc gọi đầu tiên (bắt máy hoặc không)</td></tr>
-        <tr><td><code>interested</code></td><td><span class="badge-info">Đang quan tâm</span></td><td>Khách thể hiện sự quan tâm thực sự — đang tư vấn</td></tr>
+        <tr><td><code>interested</code></td><td><span class="badge-info">Đang quan tâm</span></td><td>Khách thể hiện sự quan tâm thực sự — đang tư vấn sâu</td></tr>
         <tr><td><code>closed</code></td><td><span class="badge-ok">Đã chốt</span></td><td>Đã ký hợp đồng cọc</td></tr>
         <tr><td><code>stopped</code></td><td><span class="badge-err">Không tiếp tục</span></td><td>Khách báo không còn nhu cầu / không liên hệ lại sau 3 lần thử</td></tr>
       </tbody>
     </table>
 
-    <h3>Booking Status</h3>
+    <h3>Booking Status (4 trạng thái)</h3>
     <table>
       <thead><tr><th>Mã</th><th>Hiển Thị</th><th>Ý Nghĩa</th></tr></thead>
       <tbody>
@@ -495,92 +634,99 @@
       </tbody>
     </table>
 
-    <h3>Booking Type</h3>
+    <h3>Mục Đích Mua (Purpose)</h3>
     <ul>
-      <li><strong>Xem nhà mẫu</strong> — khách đến tận site dự án</li>
-      <li><strong>Tư vấn tại VP</strong> — gặp tại văn phòng bán hàng</li>
-      <li><strong>Xem VR online</strong> — demo qua video call kèm chia sẻ Tour VR</li>
-      <li><strong>Khác</strong> — ghi rõ trong ghi chú (vd: gặp café, đi xem dự án khác cùng…)</li>
+      <li><strong>Ở thực</strong> — khách mua để ở.</li>
+      <li><strong>Đầu tư</strong> — chờ tăng giá.</li>
+      <li><strong>Cho thuê</strong> — mua để cho thuê.</li>
+    </ul>
+
+    <h3>Loại Booking</h3>
+    <ul>
+      <li><strong>Xem nhà mẫu</strong> — khách đến tận site</li>
+      <li><strong>Tư vấn tại VP</strong> — gặp tại văn phòng</li>
+      <li><strong>Xem VR online</strong> — demo qua video call + Tour VR360</li>
+      <li><strong>Khác</strong> — ghi rõ trong note</li>
     </ul>
   </section>
 
-  <!-- 12 -->
+  <!-- 15 -->
   <section id="nguon-lead">
-    <h2 data-num="12">Nguồn Lead</h2>
+    <h2 data-num="15">Nguồn Lead (8 Nhóm)</h2>
+    <p>Combobox nguồn được phân theo 8 nhóm. Khi thêm lead, gõ vào ô tìm kiếm để lọc nhanh.</p>
 
     <h3>Online</h3>
     <table>
       <tbody>
-        <tr><td><strong>Facebook</strong></td><td>Quảng cáo / fanpage / inbox</td></tr>
-        <tr><td><strong>Zalo</strong></td><td>Zalo OA, tin nhắn quảng cáo</td></tr>
-        <tr><td><strong>Google</strong></td><td>Google Ads, Search organic</td></tr>
-        <tr><td><strong>Website</strong></td><td>Form trên trang VR (auroraheights.vn)</td></tr>
-        <tr><td><strong>TikTok</strong></td><td>Video viral, livestream</td></tr>
+        <tr><td><strong>Website / VR</strong></td><td>Form đặt lịch trên trang VR (auroraheights.vn / vinhomeshaivanbay.vn)</td></tr>
+        <tr><td><strong>Quảng cáo</strong></td><td>Google Ads · Facebook Ads · Zalo Ads</td></tr>
+        <tr><td><strong>Mạng xã hội</strong></td><td>Facebook (fanpage / inbox) · TikTok · YouTube · Instagram</td></tr>
+        <tr><td><strong>Sàn BĐS</strong></td><td>5 cổng phổ biến (Batdongsan.com.vn, Chợ Tốt, Alonhadat…)</td></tr>
       </tbody>
     </table>
 
-    <h3>Offline</h3>
+    <h3>Offline & Khác</h3>
     <table>
       <tbody>
-        <tr><td><strong>Hotline</strong></td><td>Khách gọi 0901 234 567</td></tr>
-        <tr><td><strong>Walk-in</strong></td><td>Khách trực tiếp đến văn phòng / sales gallery</td></tr>
-        <tr><td><strong>Sự kiện</strong></td><td>Open house, lễ ra mắt, hội chợ BĐS</td></tr>
-        <tr><td><strong>Giới thiệu</strong></td><td>Khách cũ giới thiệu khách mới</td></tr>
+        <tr><td><strong>Đại lý / CTV</strong></td><td>F1, F2 đối tác môi giới</td></tr>
+        <tr><td><strong>Liên hệ trực tiếp</strong></td><td>6 cách: hotline · email · Zalo OA · Messenger · live chat · webform</td></tr>
+        <tr><td><strong>Offline</strong></td><td>4 cách: walk-in · open house · sự kiện ra mắt · hội chợ BĐS</td></tr>
+        <tr><td><strong>Khác</strong></td><td>4 cách: giới thiệu (referral) · báo chí · podcast · tự tìm</td></tr>
       </tbody>
     </table>
 
     <div class="callout info">
       <strong>Vì sao nguồn quan trọng?</strong>
-      Marketing dùng nguồn để đánh giá hiệu quả từng kênh, từ đó phân bổ ngân sách. <strong>Đừng quên gán nguồn</strong> khi thêm lead mới — gán sai/bỏ trống làm sai báo cáo.
+      Marketing dùng nguồn để đánh giá hiệu quả từng kênh, phân bổ ngân sách. <strong>Đừng quên gán nguồn</strong> khi thêm lead — bỏ trống làm sai báo cáo và bạn có thể bị khiếu nại.
     </div>
   </section>
 
-  <!-- 13 -->
+  <!-- 16 -->
   <section id="meo">
-    <h2 data-num="13">Mẹo Sử Dụng Hiệu Quả</h2>
+    <h2 data-num="16">Mẹo Sử Dụng Hiệu Quả</h2>
 
     <h3>Tối Ưu Workflow Hàng Ngày</h3>
     <ol>
-      <li><strong>Mở admin ngay từ sáng</strong> — bookmark trang <code>admin/sales.html</code> để mở 1 chạm.</li>
-      <li>Sáng: Dashboard → Leads (sort theo trạng thái Mới) → gọi lần lượt.</li>
-      <li>Trưa: Lịch hẹn → xác nhận với khách có hẹn buổi chiều.</li>
-      <li>Chiều: Lịch hẹn → đánh dấu "Đã hoàn tất" sau mỗi buổi.</li>
-      <li>Tối: Leads → cập nhật ghi chú/trạng thái sau ngày làm việc.</li>
+      <li><strong>Bookmark</strong> <code>admin/sales.html</code> để mở 1 chạm.</li>
+      <li>Sáng: Dashboard → Leads (lọc trạng thái Mới) → gọi lần lượt trong 30 phút đầu.</li>
+      <li>Trưa: Lịch hẹn (chế độ Ngày) → xác nhận với khách có hẹn buổi chiều.</li>
+      <li>Chiều: sau mỗi buổi gặp → đánh dấu booking "Đã hoàn tất".</li>
+      <li>Tối: Leads → cập nhật ghi chú + chuyển trạng thái sau ngày làm việc.</li>
     </ol>
 
-    <h3>Lúc Demo Tour VR Cho Khách</h3>
+    <h3>Demo Tour VR Cho Khách</h3>
     <ul>
-      <li>Mở <strong>Tour VR360</strong> trước khi gọi — sẵn sàng share screen.</li>
-      <li>Đặt cảnh đầu là <strong>"Toàn cảnh dự án"</strong> để khách có bối cảnh.</li>
-      <li>Lúc chuyển cảnh, <strong>nói chậm</strong> để khách kịp nhìn — "Bây giờ chị có thể thấy đây là bể bơi vô cực tầng 8…".</li>
+      <li>Mở <strong>Tour VR360</strong> trong slide panel <em>trước</em> khi gọi — sẵn sàng share screen.</li>
+      <li>Đặt cảnh đầu là <strong>Toàn cảnh dự án</strong> để khách có bối cảnh.</li>
+      <li>Lúc chuyển cảnh, <strong>nói chậm</strong> để khách kịp nhìn — "Bây giờ chị có thể thấy đây là bể bơi vô cực…".</li>
       <li>Khi khách hỏi giá → mở <strong>Bảng Giá</strong> ngay trong VR để dẫn vào căn cụ thể.</li>
-      <li>Kết thúc demo → gửi link VR + Zalo của bạn cho khách tự xem lại.</li>
+      <li>Kết thúc demo → gửi <strong>link giới thiệu cá nhân</strong> để khách tự xem lại.</li>
     </ul>
 
     <h3>Đặt Lịch Hẹn Thông Minh</h3>
     <ul>
-      <li>Đặt hẹn <strong>cách 2–3 giờ</strong> giữa các buổi — tránh trễ giờ ảnh hưởng khách kế tiếp.</li>
+      <li>Cách <strong>2–3 giờ</strong> giữa các buổi — tránh trễ giờ ảnh hưởng khách kế tiếp.</li>
       <li>Khách offline buổi sáng (9h–11h) thường nghiêm túc hơn buổi tối.</li>
-      <li>Demo online buổi tối (19h–21h) phù hợp với khách đi làm văn phòng.</li>
-      <li>Sau khi đặt → gửi <strong>tin nhắn xác nhận</strong> qua Zalo trong vòng 5 phút.</li>
+      <li>Demo online buổi tối (19h–21h) phù hợp với khách văn phòng.</li>
+      <li>Sau khi đặt → gửi <strong>xác nhận qua Zalo</strong> trong vòng 5 phút.</li>
     </ul>
 
     <h3>Ghi Chú Lead Đúng Cách</h3>
-    <p>Mỗi lần liên hệ, ghi vào field <em>note/ghi chú</em>:</p>
-    <pre>05/16 14:30 - Gọi lần 1, bắt máy. Quan tâm 3PN tầng cao,
+    <p>Mỗi lần liên hệ, ghi vào field <em>note</em>:</p>
+    <pre>26/05 14:30 - Gọi lần 1, bắt máy. Quan tâm 3PN view biển,
               ngân sách 9-10 tỷ. Muốn xem Penthouse mẫu cuối tuần.
               Hẹn gọi lại thứ Sáu sau 17h.
-05/17 17:15 - Gọi lại, đã hẹn xem VR online tối thứ Bảy 20h.</pre>
-    <p>Ghi rõ <strong>ngày · giờ · nội dung</strong> giúp bạn nhớ và đồng nghiệp dễ tiếp nhận khi bạn nghỉ.</p>
+27/05 17:15 - Gọi lại, đã hẹn xem VR online tối thứ Bảy 20h.</pre>
+    <p>Ghi rõ <strong>ngày · giờ · nội dung</strong> giúp bạn nhớ và đồng nghiệp tiếp nhận khi bạn nghỉ.</p>
   </section>
 
-  <!-- 14 -->
+  <!-- 17 -->
   <section id="faq">
-    <h2 data-num="14">FAQ & Xử Lý Sự Cố</h2>
+    <h2 data-num="17">FAQ & Xử Lý Sự Cố</h2>
 
     <details>
-      <summary>Tôi cập nhật lead mà đồng nghiệp không thấy?</summary>
-      <p>Đúng — dữ liệu lead lưu trong localStorage của <strong>từng trình duyệt</strong>. Hệ thống chưa có backend đồng bộ. Để chia sẻ thông tin: thông báo qua Zalo nội bộ, hoặc đề xuất Owner export-import.</p>
+      <summary>Tôi cập nhật lead mà đồng nghiệp / Owner không thấy ngay?</summary>
+      <p>Dữ liệu lưu trên backend MySQL — đồng nghiệp / Owner refresh trang (hoặc reload tab Leads) là thấy ngay. Nếu vẫn không thấy, có thể session token của họ bị cache cũ — đăng xuất rồi đăng nhập lại.</p>
     </details>
 
     <details>
@@ -590,46 +736,51 @@
 
     <details>
       <summary>Tôi mở Tour VR mà thấy ảnh trống / cảnh đen?</summary>
-      <p>Trình duyệt có thể tắt WebGL. Thử trên Chrome / Edge bản mới nhất. Nếu vẫn vậy, có thể card đồ hoạ máy bạn không đủ — chuyển sang máy khác để demo.</p>
+      <p>3DVista cần WebGL. Thử trên Chrome / Edge bản mới nhất. Nếu vẫn vậy, có thể card đồ hoạ máy bạn không đủ — chuyển sang máy khác để demo.</p>
     </details>
 
     <details>
       <summary>Khách hỏi về căn đã bán, có cách nào cập nhật lại?</summary>
-      <p>Bạn không sửa được. Báo Owner để họ chuyển trạng thái — và đề xuất căn tương đương cho khách trong lúc chờ.</p>
+      <p>Bạn không sửa được trạng thái căn. Báo Owner để họ chuyển trạng thái — trong lúc chờ, đề xuất căn tương đương cho khách.</p>
     </details>
 
     <details>
       <summary>Có thể xem leads của sales khác không?</summary>
-      <p>Trong phiên bản hiện tại, tất cả sales chia sẻ chung pool lead trên cùng máy (do localStorage chung). Khi triển khai backend, mỗi sales chỉ thấy lead được phân.</p>
+      <p>Không — mỗi sales chỉ thấy lead được gán (<code>assigned_sale_id = your_user_id</code>). Owner / Developer có thể xem tất cả và phân lại nếu cần.</p>
     </details>
 
     <details>
       <summary>Mất kết nối mạng — admin có chạy được không?</summary>
-      <p>Sau khi đã đăng nhập và mở trang lần đầu, admin chạy được offline — vì dữ liệu nằm trong localStorage. Tuy nhiên Tour VR cần mạng để tải Three.js từ CDN.</p>
+      <p>Không — workspace cần backend để fetch leads / appointments / xác thực token. Khi mất mạng, các API call báo lỗi. Tour VR cũng cần mạng để load 3DVista assets.</p>
     </details>
 
     <details>
       <summary>Quên đăng xuất khi rời máy?</summary>
-      <p>Phiên đăng nhập lưu trong sessionStorage — tự xoá khi đóng tab. Nhưng để an toàn, <strong>luôn bấm "Đăng xuất"</strong> khi rời máy chung.</p>
+      <p>Token TTL 12 giờ, lưu trong sessionStorage — tự xoá khi đóng tab/cửa sổ. Nhưng để an toàn, <strong>luôn bấm "Đăng xuất"</strong> khi rời máy chung — backend sẽ xoá session ngay khỏi DB.</p>
     </details>
 
     <details>
       <summary>Khách yêu cầu tài liệu PDF, gửi từ đâu?</summary>
-      <p>Admin hiện chưa có chức năng quản lý tài liệu marketing. Lấy PDF từ Drive nội bộ rồi gửi cho khách qua email/Zalo.</p>
+      <p>Vào trang VR public (qua link giới thiệu của bạn) → bấm <strong>Tài liệu</strong> trên top bar → mở Brochure / Price List → copy link gửi cho khách. Hoặc lấy trực tiếp từ Drive nội bộ.</p>
+    </details>
+
+    <details>
+      <summary>Khách hỏi "ai sẽ tư vấn tôi?" — làm sao chứng minh chính là tôi?</summary>
+      <p>Bảo khách mở link giới thiệu của bạn (<code>/&lt;slug&gt;</code>) — Project Card sẽ hiển thị <strong>tên · avatar · SĐT · Zalo</strong> của bạn. Đó là cam kết của hệ thống về việc lead được gán đúng người.</p>
     </details>
   </section>
 
-  <!-- 15 -->
+  <!-- 18 -->
   <section id="kpi">
-    <h2 data-num="15">KPI & Báo Cáo</h2>
-    <p>Sales tự theo dõi KPI cá nhân qua Dashboard. Báo cáo tổng hợp thuộc về Owner.</p>
+    <h2 data-num="18">KPI & Báo Cáo</h2>
+    <p>Sales tự theo dõi KPI cá nhân qua Dashboard. Báo cáo tổng hợp toàn đội thuộc về Owner (xem trong tab Analytics).</p>
 
     <h3>KPI Tham Khảo</h3>
     <table>
       <thead><tr><th>Chỉ Số</th><th>Mục Tiêu Tháng</th></tr></thead>
       <tbody>
         <tr><td>Số lead xử lý</td><td>≥ 80</td></tr>
-        <tr><td>Tỉ lệ "Đã gọi" trong 24h</td><td>≥ 95%</td></tr>
+        <tr><td>Tỉ lệ "Đã gọi" trong 24h kể từ khi nhận lead</td><td>≥ 95%</td></tr>
         <tr><td>Số booking đặt được</td><td>≥ 20</td></tr>
         <tr><td>Tỉ lệ booking "Đã hoàn tất"</td><td>≥ 70%</td></tr>
         <tr><td>Số căn chốt cọc</td><td>≥ 3</td></tr>
@@ -637,20 +788,22 @@
       </tbody>
     </table>
 
-    <div class="callout info">
-      <strong>Xuất CSV cho báo cáo</strong>
-      Trang Leads có nút <strong>"Xuất CSV"</strong> — tải toàn bộ lead bạn phụ trách dạng spreadsheet. Mở trong Excel để làm pivot table tự phân tích.
-    </div>
+    <h3>Xuất CSV Cho Báo Cáo</h3>
+    <ul>
+      <li>Trang <strong>Leads</strong> có nút "Xuất CSV" — chọn 10 cột tuỳ thích.</li>
+      <li>Trang <strong>Cài Đặt Cá Nhân → Export Khách Hàng</strong> cũng có chức năng tương tự, lưu preset cột.</li>
+    </ul>
+    <p>Mở trong Excel để làm pivot table tự phân tích.</p>
 
     <div class="callout ok">
       <strong>Chúc bạn chốt deal thành công!</strong>
-      Mọi câu hỏi về quy trình nội bộ — liên hệ trực tiếp với Owner. Mọi sự cố kỹ thuật — báo IT hoặc dev đội ngũ admin.
+      Mọi câu hỏi về quy trình nội bộ — liên hệ trực tiếp với Owner. Mọi sự cố kỹ thuật — báo IT / dev đội ngũ admin.
     </div>
   </section>
 
   <hr />
   <p style="color:var(--fg-muted);font-size:12px;text-align:center;padding-bottom:3rem">
-    Vinhomes Hai Van Bay VR360 · HDSD Nhân Viên Sales · v1.0 · 16-05-2026
+    Vinhomes Hai Van Bay VR360 · HDSD Nhân Viên Sales · v2.0 · 26-05-2026
   </p>
 
 </main>
