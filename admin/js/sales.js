@@ -186,13 +186,48 @@ const menu   = () => S.data?.menu             || {};
 
 // ——— LOAD DATA ————————————————————————————————
 async function loadData() {
+  S.data = null;
+  // Nguồn sự thật: DB qua /api/project (giống admin & trang VR).
   try {
-    const r = await fetch('../data/project.json');
-    S.data = await r.json();
-  } catch {
-    S.data = { project:{}, menu:{}, scenes:[], floorplan:{units:[]} };
+    const r = await fetch(API_BASE + '/api/project', { cache: 'no-store' });
+    if (r.ok) S.data = await r.json();
+  } catch { /* server tắt — fallback bên dưới */ }
+  // Fallback: thử file tĩnh (chỉ tồn tại trong môi trường dev cũ).
+  if (!S.data) {
+    try {
+      const r = await fetch('../data/project.json');
+      if (r.ok) S.data = await r.json();
+    } catch {}
   }
+  if (!S.data) S.data = { project:{}, menu:{}, scenes:[], properties:[], floorplan:{units:[]} };
+  // Admin đã chuyển sang `properties` làm nguồn căn hộ duy nhất.
+  // Trang Sales vẫn đọc `floorplan.units` → trỏ về properties để tương thích.
+  S.data.floorplan = S.data.floorplan || {};
+  if (Array.isArray(S.data.properties) && S.data.properties.length) {
+    S.data.floorplan.units = S.data.properties;
+  } else if (!Array.isArray(S.data.floorplan.units)) {
+    S.data.floorplan.units = [];
+  }
+  S.data.menu   ??= {};
+  S.data.scenes ??= [];
   S.leads = getMockLeads();
+  await loadSaleProfile();
+}
+
+// Nạp profile của sale đang đăng nhập từ server (lưu trong DB).
+async function loadSaleProfile() {
+  const s = JSON.parse(sessionStorage.getItem('ah_session') || 'null');
+  const token = s?.token;
+  if (!token) { S.saleProfile = null; return; }
+  try {
+    const r = await fetch(API_BASE + '/api/sale/profile', {
+      cache: 'no-store',
+      headers: { Authorization: 'Bearer ' + token },
+    });
+    if (r.ok) S.saleProfile = await r.json();
+  } catch {
+    /* server tắt — fallback dùng seed/localStorage cũ */
+  }
 }
 
 function getMockLeads() {
@@ -286,6 +321,8 @@ function getSaleProfile() {
   const u = currentUsername();
   if (!u) return null;
   const seed = ((S.data && S.data.sales) || []).find(s => (s.username || '').toLowerCase() === u.toLowerCase()) || { username: u };
+  // Server (DB) là nguồn sự thật. Khi server tắt, fallback localStorage cũ.
+  if (S.saleProfile) return { ...seed, ...S.saleProfile };
   let override = {};
   try { override = JSON.parse(localStorage.getItem(profileKey(u)) || '{}') || {}; } catch (e) {}
   return { ...seed, ...override };
@@ -295,8 +332,10 @@ function saveSaleProfile(patch) {
   if (!u) return;
   const current = getSaleProfile() || {};
   const next = { ...current, ...patch };
-  // strip seed-only fields we don't want to duplicate
   delete next.username;
+  // Cập nhật cache hiển thị ngay; bản lưu chính thức do saveSaleProfileFromForm
+  // gọi API thực hiện.
+  S.saleProfile = { ...(S.saleProfile || {}), ...patch };
   localStorage.setItem(profileKey(u), JSON.stringify(next));
 }
 function referralUrl() {
@@ -587,7 +626,7 @@ function saveBarHTML() {
     </div>`;
 }
 
-function saveSaleProfileFromForm() {
+async function saveSaleProfileFromForm() {
   const patch = {};
   // Profile tab
   ['name','title','avatar','phone','email'].forEach(k => {
@@ -599,14 +638,41 @@ function saveSaleProfileFromForm() {
     const el = document.getElementById('sp-soc-'+key);
     if (el) patch[key] = el.value.trim();
   });
+
+  // Đồng bộ lên server (DB) — nguồn sự thật.
+  const sess = JSON.parse(sessionStorage.getItem('ah_session') || 'null');
+  const token = sess?.token;
+  let serverOk = false;
+  try {
+    const body = { ...(S.saleProfile || {}), ...patch };
+    const r = await fetch(API_BASE + '/api/sale/profile', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: 'Bearer ' + token } : {}),
+      },
+      body: JSON.stringify(body),
+    });
+    serverOk = r.ok;
+    if (!r.ok) {
+      let msg = 'HTTP ' + r.status;
+      try { msg = (await r.json()).error || msg; } catch {}
+      throw new Error(msg);
+    }
+    // Đọc lại từ server để cache khớp với DB.
+    await loadSaleProfile();
+  } catch (err) {
+    console.warn('Đồng bộ profile thất bại:', err);
+    toast('Lưu vào server thất bại — đã lưu tạm cục bộ', 'err');
+  }
+  // Luôn lưu bản nháp local để giữ thay đổi khi offline.
   saveSaleProfile(patch);
-  toast('Đã lưu thông tin cá nhân', 'ok');
+  if (serverOk) toast('Đã lưu thông tin cá nhân', 'ok');
   // refresh topbar name in case it changed
-  const _sess = JSON.parse(sessionStorage.getItem('ah_session') || 'null');
-  if (_sess && patch.name) {
-    _sess.name = patch.name;
-    if (patch.title) _sess.title = patch.title;
-    sessionStorage.setItem('ah_session', JSON.stringify(_sess));
+  if (sess && patch.name) {
+    sess.name = patch.name;
+    if (patch.title) sess.title = patch.title;
+    sessionStorage.setItem('ah_session', JSON.stringify(sess));
     const nm = document.getElementById('tb-name'); if (nm) nm.textContent = patch.name;
     const rl = document.getElementById('tb-role'); if (rl && patch.title) rl.textContent = patch.title;
     const av = document.getElementById('tb-avatar'); if (av) av.textContent = patch.name.slice(0,2).toUpperCase();
@@ -615,8 +681,23 @@ function saveSaleProfileFromForm() {
 }
 
 function resetSaleProfile() {
-  uiConfirm('Khôi phục về thông tin mặc định? Các thay đổi cá nhân sẽ bị mất.', () => {
+  uiConfirm('Khôi phục về thông tin mặc định? Các thay đổi cá nhân sẽ bị mất.', async () => {
     localStorage.removeItem(profileKey());
+    S.saleProfile = null;
+    // Reset trên server: gửi mọi field rỗng -> server set NULL.
+    const sess = JSON.parse(sessionStorage.getItem('ah_session') || 'null');
+    const token = sess?.token;
+    try {
+      await fetch(API_BASE + '/api/sale/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: 'Bearer ' + token } : {}),
+        },
+        body: JSON.stringify({}),
+      });
+      await loadSaleProfile();
+    } catch { /* server tắt — đã reset cục bộ */ }
     toast('Đã khôi phục mặc định', 'ok');
     render('settings', document.getElementById('p-settings'));
   }, { title:'Khôi phục mặc định', okText:'Khôi phục', okClass:'btn-danger' });

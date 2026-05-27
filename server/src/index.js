@@ -88,28 +88,55 @@ async function buildProjectJson() {
   };
 
   // --- sales ---
-  const sales = (
-    await query(
-      `SELECT u.username, u.full_name, u.title, u.phone, u.email, u.avatar_url,
-              m.public_slug
-       FROM users u
-       JOIN project_memberships m ON m.user_id = u.id
-       JOIN roles r ON r.id = m.role_id
-       WHERE m.project_id=? AND r.code='sales' AND m.is_active=TRUE
-       ORDER BY u.username`,
-      [pid]
-    )
-  ).rows.map((r) => ({
-    username: r.username,
-    slug: r.public_slug || r.username,
-    name: r.full_name,
-    title: r.title,
-    phone: r.phone,
-    zalo: (r.phone || '').replace(/\s/g, ''),
-    facebook: '',
-    email: r.email || '',
-    avatar: r.avatar_url || '',
-  }));
+  // social_links_json (zalo/facebook/...) là cột tùy chọn, có thể chưa được
+  // tạo trên DB cũ → bọc try/catch và fallback cột rỗng.
+  let salesRows;
+  try {
+    salesRows = (
+      await query(
+        `SELECT u.username, u.full_name, u.title, u.phone, u.email, u.avatar_url,
+                u.social_links_json, m.public_slug
+         FROM users u
+         JOIN project_memberships m ON m.user_id = u.id
+         JOIN roles r ON r.id = m.role_id
+         WHERE m.project_id=? AND r.code='sales' AND m.is_active=TRUE
+         ORDER BY u.username`,
+        [pid]
+      )
+    ).rows;
+  } catch {
+    salesRows = (
+      await query(
+        `SELECT u.username, u.full_name, u.title, u.phone, u.email, u.avatar_url,
+                m.public_slug
+         FROM users u
+         JOIN project_memberships m ON m.user_id = u.id
+         JOIN roles r ON r.id = m.role_id
+         WHERE m.project_id=? AND r.code='sales' AND m.is_active=TRUE
+         ORDER BY u.username`,
+        [pid]
+      )
+    ).rows;
+  }
+  const sales = salesRows.map((r) => {
+    const social = r.social_links_json || {};
+    return {
+      username: r.username,
+      slug: r.public_slug || r.username,
+      name: r.full_name,
+      title: r.title,
+      phone: r.phone,
+      email: r.email || '',
+      avatar: r.avatar_url || '',
+      zalo:      social.zalo      || (r.phone || '').replace(/\s/g, ''),
+      facebook:  social.facebook  || '',
+      tiktok:    social.tiktok    || '',
+      instagram: social.instagram || '',
+      youtube:   social.youtube   || '',
+      linkedin:  social.linkedin  || '',
+      telegram:  social.telegram  || '',
+    };
+  });
 
   // --- menu ---
   // Dựng 1 menu_item đầy đủ: detail/subdivision + children (4 nhóm con của
@@ -609,6 +636,86 @@ app.post('/api/auth/logout', requireAuth(), async (req, res) => {
 });
 
 app.get('/api/auth/me', requireAuth(), (req, res) => res.json({ user: req.user }));
+
+// =====================================================================
+// Sale tự sửa profile của chính mình. Mạng xã hội & các trường mở rộng
+// lưu trong users.social_links_json (cột JSON nullable).
+// =====================================================================
+const SOCIAL_KEYS = ['zalo', 'facebook', 'tiktok', 'instagram', 'youtube', 'linkedin', 'telegram'];
+
+async function ensureUsersSocialColumn() {
+  // MySQL 8 không có ADD COLUMN IF NOT EXISTS; check INFORMATION_SCHEMA trước.
+  const r = await query(
+    `SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_SCHEMA = DATABASE()
+        AND TABLE_NAME = 'users' AND COLUMN_NAME = 'social_links_json'`
+  );
+  if (!r.rows.length) {
+    await query('ALTER TABLE users ADD COLUMN social_links_json JSON NULL');
+    console.log('  ✓ Thêm cột users.social_links_json');
+  }
+}
+
+app.get('/api/sale/profile', requireAuth(), async (req, res) => {
+  try {
+    const r = await query(
+      `SELECT username, full_name, title, phone, email, avatar_url, social_links_json
+         FROM users WHERE id=?`,
+      [req.user.id]
+    );
+    const u = r.rows[0];
+    if (!u) return res.status(404).json({ error: 'Không tìm thấy user' });
+    const social = u.social_links_json || {};
+    res.json({
+      username: u.username,
+      name: u.full_name || '',
+      title: u.title || '',
+      phone: u.phone || '',
+      email: u.email || '',
+      avatar: u.avatar_url || '',
+      zalo:      social.zalo      || '',
+      facebook:  social.facebook  || '',
+      tiktok:    social.tiktok    || '',
+      instagram: social.instagram || '',
+      youtube:   social.youtube   || '',
+      linkedin:  social.linkedin  || '',
+      telegram:  social.telegram  || '',
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/sale/profile', requireAuth(), async (req, res) => {
+  try {
+    const b = req.body || {};
+    const social = {};
+    for (const k of SOCIAL_KEYS) {
+      const v = (b[k] || '').toString().trim();
+      if (v) social[k] = v;
+    }
+    await query(
+      `UPDATE users SET
+         full_name = ?, title = ?, phone = ?, email = ?, avatar_url = ?,
+         social_links_json = ?, updated_at = NOW()
+       WHERE id = ?`,
+      [
+        (b.name  || '').trim() || null,
+        (b.title || '').trim() || null,
+        (b.phone || '').trim() || null,
+        (b.email || '').trim() || null,
+        (b.avatar|| '').trim() || null,
+        Object.keys(social).length ? JSON.stringify(social) : null,
+        req.user.id,
+      ]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // =====================================================================
 // Quản lý người dùng — developer + owner cấp tài khoản, đặt mật khẩu
@@ -1569,7 +1676,12 @@ app.get(/^\/(?!api\/).*/, (req, res) => {
   res.sendFile(INDEX_HTML);
 });
 
-app.listen(PORT, () => {
-  console.log(`API + trang VR chạy tại http://localhost:${PORT}/`);
-  console.log(`  Trang sale:  http://localhost:${PORT}/<id-sale>`);
-});
+(async () => {
+  try { await ensureUsersSocialColumn(); } catch (e) {
+    console.warn('Bỏ qua ensureUsersSocialColumn:', e.message);
+  }
+  app.listen(PORT, () => {
+    console.log(`API + trang VR chạy tại http://localhost:${PORT}/`);
+    console.log(`  Trang sale:  http://localhost:${PORT}/<id-sale>`);
+  });
+})();
