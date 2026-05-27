@@ -1530,25 +1530,31 @@ function bindLanguage() {
         <span class="cli-code">${l.code.toUpperCase()}</span>
       </button>
     `).join("");
-    menu.querySelectorAll(".ctrl-lang-item").forEach(it => {
-      it.addEventListener("click", (e) => {
-        e.stopPropagation();
-        window.I18n.set(it.dataset.code);
-        codeEl.textContent = it.dataset.code.toUpperCase();
-        menu.classList.remove("open");
-        renderMenu();
-      });
-    });
   };
   renderMenu();
+
+  // Event delegation — handlers gắn 1 lần trên menu, không bị mất sau re-render.
+  menu.addEventListener("click", (e) => {
+    const it = e.target.closest(".ctrl-lang-item");
+    if (!it) return;
+    e.stopPropagation();
+    window.I18n.set(it.dataset.code);
+    menu.classList.remove("open");
+    renderMenu();
+  });
 
   btn.addEventListener("click", (e) => {
     e.stopPropagation();
     menu.classList.toggle("open");
   });
   document.addEventListener("click", (e) => {
-    if (!menu.contains(e.target) && e.target !== btn) menu.classList.remove("open");
+    if (!menu.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+      menu.classList.remove("open");
+    }
   });
+
+  // Đồng bộ menu khi ngôn ngữ đổi từ nơi khác (mobile drawer, admin, v.v.)
+  window.I18n.onChange(renderMenu);
 }
 
 function rebuildDynamic() {

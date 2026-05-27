@@ -9,5 +9,5 @@
  * File này phải load TRƯỚC mọi file gọi API (data-source.js, admin.js, sales.js, i18n.js).
  */
 window.APP_CONFIG = {
-  API_BASE: 'http://localhost:3000',   // '' = cùng domain (production). Đổi thành 'http://localhost:3000' khi dev local với Live Server.
+  API_BASE: '',   // '' = cùng domain (production). Đổi thành 'http://localhost:3000' khi dev local với Live Server.
 };
