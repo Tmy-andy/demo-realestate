@@ -18,7 +18,14 @@ const CHILD_GROUPS = [
   { key: "matBangTang",     i18n: "group.matBangTang",     label: "Mặt bằng tầng",       short: "MB" },
   { key: "view360Can",      i18n: "group.view360",         label: "View 360 căn hộ",     short: "VR" },
 ];
-const _gl = (g) => (g && g.i18n ? _t(g.i18n) : (g ? g.label : ''));
+const _gl = (g) => {
+  if (!g) return '';
+  if (g.i18n) {
+    const v = _t(g.i18n);
+    if (v && v !== g.i18n) return v;
+  }
+  return _tr(g.label);
+};
 const _tr = (s) => (window.I18n ? window.I18n.tr(s) : s);
 const _t  = (k, v) => (window.I18n ? window.I18n.t(k, v) : k);
 let openGroupKey = null;   // nhóm gốc đang mở (mặc định Tổng quan thu lại)
