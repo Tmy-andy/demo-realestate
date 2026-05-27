@@ -490,11 +490,16 @@
   function openBookingFor(p) {
     const bd = $("modal-backdrop");
     if (bd) bd.classList.add("open");
+    // Dùng tag chính thức để payload submit có trường "Căn quan tâm".
+    if (p && p.code && typeof window.addUnitCodeTag === "function") {
+      window.addUnitCodeTag(p.code);
+    }
+    // Ghi tên sản phẩm vào note để sale có thêm ngữ cảnh (không trùng mã).
     const note = document.querySelector("#modal-backdrop textarea");
-    if (note && p.code) {
-      const tag = "Quan tâm sản phẩm: " + p.code + " — " + tr(p.name || "");
-      if (note.value.indexOf(p.code) === -1) {
-        note.value = (note.value ? note.value + "\n" : "") + tag;
+    if (note && p && p.name) {
+      const ctx = "Sản phẩm: " + tr(p.name);
+      if (note.value.indexOf(ctx) === -1) {
+        note.value = (note.value ? note.value + "\n" : "") + ctx;
       }
     }
   }

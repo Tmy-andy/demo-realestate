@@ -1471,6 +1471,13 @@ function bindSmartHide() {
   const isUiTarget = (target) => {
     if (!target || target.nodeType !== 1) return false;
     if (target.closest("#ui-restore")) return true;
+    /* Modal/overlay/popup nằm ngoài #ui vẫn phải được coi là UI để không
+       kích hoạt smart-hide khi user thao tác trong chúng. */
+    if (target.closest(
+      "#masterplan-overlay, #modal-backdrop, .modal, .modal-backdrop, " +
+      ".mp-overlay, .popup, .popover, .dropdown, .menu, [role='dialog'], " +
+      "[data-ui-keep]"
+    )) return true;
     if (target.closest("#ui")) {
       /* Bên trong .ui — chỉ tính là UI nếu element thật sự có pointer-events
          (tức là button/panel con); .ui và .tip có pointer-events:none */

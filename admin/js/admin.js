@@ -91,10 +91,25 @@ const CHILD_GROUP_META = {
 const LS_KEY = 'ah_admin_data';
 
 async function loadData() {
-  // Ưu tiên localStorage (admin đã sửa) — nếu không có, fetch JSON gốc
-  const cached = localStorage.getItem(LS_KEY);
-  if (cached) {
-    try { S.data = JSON.parse(cached); } catch { S.data = null; }
+  // Nguồn sự thật là DB qua /api/project — luôn fetch trước để dashboard
+  // hiển thị đúng những gì FE/VR đang thấy. localStorage chỉ là bản nháp
+  // offline khi server tắt.
+  S.data = null;
+  try {
+    const r = await fetch(API_BASE + '/api/project', { cache: 'no-store' });
+    if (r.ok) {
+      S.data = await r.json();
+      // Đồng bộ lại nháp localStorage theo DB để lần sau offline vẫn khớp.
+      try { localStorage.setItem(LS_KEY, JSON.stringify(S.data)); } catch {}
+    }
+  } catch {
+    /* server tắt — fallback bên dưới */
+  }
+  if (!S.data) {
+    const cached = localStorage.getItem(LS_KEY);
+    if (cached) {
+      try { S.data = JSON.parse(cached); } catch { S.data = null; }
+    }
   }
   if (!S.data) {
     try {
