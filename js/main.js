@@ -44,6 +44,8 @@ function setActiveSubdivision(subId) {
   buildTimelinePanel();
   buildResourcesPanel();
   renderSubdivisionDock();
+  // Project card cần render lại để nút Tiến độ ẩn/hiện theo phân khu mới.
+  if (typeof syncProjectCard === "function") syncProjectCard();
   // BĐS: properties.js tự đọc getActiveSubdivision() khi mở modal
   if (typeof window.syncPropertiesSubdivision === "function") {
     window.syncPropertiesSubdivision();
@@ -357,6 +359,17 @@ function renderProjectCard(item) {
   bindPcDynamic(host);
 }
 
+/* Có mốc tiến độ cho phân khu chỉ định?
+   Ở Tổng quan (subId = null) → KHÔNG hiện, vì tiến độ chỉ áp dụng cho
+   từng phân khu cụ thể. */
+function hasTimelineFor(subId) {
+  if (!subId) return false;
+  const tl = DATA && DATA.timeline;
+  if (!tl) return false;
+  const arr = tl[subId];
+  return Array.isArray(arr) && arr.length > 0;
+}
+
 /* Khối nút nội dung trong project-card */
 function pcContentButtonsHTML() {
   const sub = activeSubdivision
@@ -377,7 +390,7 @@ function pcContentButtonsHTML() {
       <div class="pc-cbtn-grid">
         ${btn("open-legal",     "doc",  "ui.legal",     "Pháp lý")}
         ${btn("open-location",  "pin",  "ui.location",  "Vị trí")}
-        ${btn("open-timeline",  "road", "ui.timeline",  "Tiến độ")}
+        ${hasTimelineFor(activeSubdivision) ? btn("open-timeline", "road", "ui.timeline", "Tiến độ") : ''}
         ${btn("open-gallery",   "grid", "ui.gallery",   "Thư viện")}
         ${btn("open-resources", "doc",  "ui.resources", "Tài liệu")}
       </div>
@@ -1480,7 +1493,9 @@ function bindSmartHide() {
        kích hoạt smart-hide khi user thao tác trong chúng. */
     if (target.closest(
       "#masterplan-overlay, #modal-backdrop, .modal, .modal-backdrop, " +
-      ".mp-overlay, .popup, .popover, .dropdown, .menu, [role='dialog'], " +
+      ".mp-overlay, .adv-overlay, .fpv-overlay, .gallery-overlay, " +
+      ".lightbox, .image-viewer, .video-viewer, " +
+      ".popup, .popover, .dropdown, .menu, [role='dialog'], " +
       "[data-ui-keep]"
     )) return true;
     if (target.closest("#ui")) {
@@ -2023,6 +2038,13 @@ let timelineSubKey = null;
 
 function buildTimelinePanel() {
   if (!DATA.timeline) return;
+  // Ẩn nút mở overlay (cả desktop & mobile) nếu không có bất kỳ mốc nào.
+  const hasAny = Object.keys(DATA.timeline || {}).some(k => Array.isArray(DATA.timeline[k]) && DATA.timeline[k].length);
+  ['btn-timeline', 'mob-timeline-btn'].forEach(id => {
+    const b = document.getElementById(id);
+    if (b) b.style.display = hasAny ? '' : 'none';
+  });
+  if (!hasAny) return;
   const key = effectiveSubKey(timelineSubKey);
   renderSubdivisionTabs('.timeline-frame', 'timeline-subtabs', key, (k) => {
     timelineSubKey = k;

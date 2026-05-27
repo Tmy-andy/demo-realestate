@@ -380,6 +380,8 @@ async function buildProjectJson() {
       [pid]
     )
   ).rows) {
+    // Bỏ qua row không gắn phân khu — không còn dùng "timeline chung".
+    if (!r.subdivision_code) continue;
     (timeline[skey(r.subdivision_code)] ||= []).push({
       phase: r.phase_name,
       date: r.milestone_date_text,
@@ -387,7 +389,6 @@ async function buildProjectJson() {
       desc: r.description,
     });
   }
-  if (!timeline.__all) timeline.__all = [];
 
   // --- masterplan ---
   const mpRow = (
@@ -454,6 +455,18 @@ async function buildProjectJson() {
   const propRows = (
     await query('SELECT * FROM properties WHERE project_id=? ORDER BY sort_order', [pid])
   ).rows;
+  // Nạp toàn bộ bản dịch property 1 lần để gắn vào từng item.
+  const propTransRows = (await query(
+    `SELECT et.entity_id, et.field_name, l.code AS lang_code, et.text_value
+       FROM entity_translations et
+       JOIN languages l ON l.id = et.language_id
+      WHERE et.entity_type='property'`
+  )).rows;
+  const propTransByItem = {}; // { propertyCode: { field: { lang: text } } }
+  for (const r of propTransRows) {
+    const code = r.entity_id; // entity_id = property_code
+    ((propTransByItem[code] ||= {})[r.field_name] ||= {})[r.lang_code] = r.text_value;
+  }
   const properties = [];
   for (const pr of propRows) {
     const meta = pr.metadata || {};
@@ -522,6 +535,7 @@ async function buildProjectJson() {
       handover: pr.handover_text,
       desc: pr.description,
       highlights: propHighlights,
+      translations: propTransByItem[pr.property_code] || {},
     });
   }
 
@@ -1486,6 +1500,67 @@ app.use(express.static(SITE_ROOT, { index: false, extensions: ['html'] }));
 // Thư mục admin — serve index.html tương ứng khi truy cập không có tên file.
 app.get(['/admin', '/admin/'], (_req, res) => {
   res.sendFile(path.join(SITE_ROOT, 'admin', 'index.html'));
+});
+
+// =====================================================================
+// Entity translations — bản dịch text động (tên BDS, mô tả, ...) cho
+// các bảng nghiệp vụ. Whitelist entity + field để không cho dịch bừa.
+// =====================================================================
+const TRANSLATABLE = {
+  property: ['name', 'desc', 'legal', 'handover', 'highlights', 'progress'],
+};
+
+// GET /api/translations/:entity/:id
+// → { name: { en: '...' }, desc: { en: '...' }, ... }
+app.get('/api/translations/:entity/:id', async (req, res) => {
+  try {
+    const { entity, id } = req.params;
+    if (!TRANSLATABLE[entity]) return res.status(400).json({ error: 'Unknown entity' });
+    const rows = (await query(
+      `SELECT et.field_name, l.code AS lang_code, et.text_value
+         FROM entity_translations et
+         JOIN languages l ON l.id = et.language_id
+        WHERE et.entity_type=? AND et.entity_id=?`,
+      [entity, id]
+    )).rows;
+    const out = {};
+    for (const r of rows) (out[r.field_name] ||= {})[r.lang_code] = r.text_value;
+    res.json(out);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT /api/translations/:entity/:id
+// Body: { field, lang, text }  (text rỗng → xoá bản dịch)
+app.put('/api/translations/:entity/:id', async (req, res) => {
+  try {
+    const { entity, id } = req.params;
+    const { field, lang, text } = req.body || {};
+    if (!TRANSLATABLE[entity]) return res.status(400).json({ error: 'Unknown entity' });
+    if (!TRANSLATABLE[entity].includes(field)) return res.status(400).json({ error: 'Unknown field' });
+    const langRow = (await query('SELECT id FROM languages WHERE code=? AND is_active=1', [lang])).rows[0];
+    if (!langRow) return res.status(400).json({ error: 'Unknown language' });
+
+    if (text == null || text === '') {
+      await query(
+        'DELETE FROM entity_translations WHERE entity_type=? AND entity_id=? AND field_name=? AND language_id=?',
+        [entity, id, field, langRow.id]
+      );
+    } else {
+      await query(
+        `INSERT INTO entity_translations (entity_type, entity_id, field_name, language_id, text_value)
+              VALUES (?, ?, ?, ?, ?)
+         ON DUPLICATE KEY UPDATE text_value=VALUES(text_value)`,
+        [entity, id, field, langRow.id, text]
+      );
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Catch-all: '/' và '/<id-sale>' đều trả index.html.

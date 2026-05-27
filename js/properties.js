@@ -11,6 +11,14 @@
 
   const tr = (s) => (window.I18n && typeof s === "string" ? window.I18n.tr(s) : s);
   const t  = (k, fb) => (window.I18n ? window.I18n.t(k) : (fb || k));
+  // Lấy bản dịch cho 1 field của property theo lang hiện tại; fallback bản gốc.
+  const tField = (p, field) => {
+    const lang = window.I18n ? window.I18n.get() : 'vi';
+    const orig = p && p[field];
+    if (lang === 'vi') return orig;
+    const v = p && p.translations && p.translations[field] && p.translations[field][lang];
+    return (v != null && v !== '') ? v : orig;
+  };
   const $ = (id) => document.getElementById(id);
 
   /* Trạng thái bộ lọc danh sách */
@@ -123,7 +131,7 @@
           "</div>" +
           '<div class="prop-card-body">' +
           '<div class="prop-card-code">' + (p.code || "") + "</div>" +
-          '<div class="prop-card-name">' + tr(p.name || "") + "</div>" +
+          '<div class="prop-card-name">' + (tField(p,'name') || "") + "</div>" +
           '<div class="prop-card-price">' + formatPrice(p.price) + "</div>" +
           '<div class="prop-card-meta">' +
           metaChip("DT", p.area + " m²") +
@@ -255,7 +263,11 @@
           '" data-src="' + src + '"><img src="' + src + '" alt=""/></button>'
       )
       .join("");
-    const highlights = (p.highlights || [])
+    const lang = window.I18n ? window.I18n.get() : 'vi';
+    const hlSrc = (p.translations && p.translations.highlights && p.translations.highlights[lang])
+      ? String(p.translations.highlights[lang]).split('\n').filter(Boolean)
+      : (p.highlights || []);
+    const highlights = hlSrc
       .map(
         (h) =>
           '<li><i data-lucide="check" width="14" height="14"></i>' +
@@ -271,7 +283,7 @@
           '<span class="pd-status pd-status-' + statusClass(p.status) + '">' +
           tr(p.statusLabel || "") + "</span>" +
         "</div>" +
-        '<h2 class="pd-name">' + tr(p.name || "") + "</h2>" +
+        '<h2 class="pd-name">' + (tField(p,'name') || "") + "</h2>" +
         '<div class="pd-gallery">' +
           '<div class="pd-gallery-main"><img id="pd-main-img" src="' +
           (imgs[0] || "") + '" alt=""/></div>' +
@@ -286,11 +298,11 @@
         (highlights ?
           '<div class="pd-highlights"><div class="pd-block-title">Điểm nổi bật</div>' +
           "<ul>" + highlights + "</ul></div>" : "") +
-        /* Tabs (#10) */
+        /* Tabs (#10) — tab Tiến độ chỉ hiện khi BDS có mốc tiến độ */
         '<div class="pd-tabs" id="pd-tabs">' +
           '<button class="pd-tab active" data-tab="overview">Tổng quan</button>' +
           '<button class="pd-tab" data-tab="floorplan">Mặt bằng</button>' +
-          '<button class="pd-tab" data-tab="progress">Tiến độ</button>' +
+          ((p.progress && p.progress.length) ? '<button class="pd-tab" data-tab="progress">Tiến độ</button>' : '') +
           '<button class="pd-tab" data-tab="policy">Chính sách</button>' +
           '<button class="pd-tab" data-tab="docs">Tài liệu</button>' +
         "</div>" +
@@ -358,8 +370,8 @@
           '<div class="pd-side-rows">' +
             sideRow(t('ui.props.detail.status'),   tr(p.statusLabel || "")) +
             sideRow(t('ui.props.detail.type'),     tr(p.typeLabel || "")) +
-            sideRow(t('ui.props.detail.legal'),    tr(p.legal || "—")) +
-            sideRow(t('ui.props.detail.handover'), tr(p.handover || "—")) +
+            sideRow(t('ui.props.detail.legal'),    (tField(p,'legal')    || "—")) +
+            sideRow(t('ui.props.detail.handover'), (tField(p,'handover') || "—")) +
           "</div>" +
           '<button class="pd-side-cta" id="pd-quote">Nhận báo giá chi tiết</button>' +
         "</div>" +
@@ -388,7 +400,7 @@
   /* ── Nội dung tab (#10) ── */
   function tabContent(p, tab) {
     if (tab === "overview") {
-      return '<p class="pd-desc">' + tr(p.desc || "") + "</p>";
+      return '<p class="pd-desc">' + (tField(p,'desc') || "") + "</p>";
     }
     if (tab === "floorplan") {
       const thumbs = (p.thumbsFloor || [])
@@ -405,7 +417,24 @@
       );
     }
     if (tab === "progress") {
-      const rows = (p.progress || [])
+      // Bản dịch progress lưu dạng text: mỗi dòng "phase | date | done".
+      // Khớp số dòng với p.progress để giữ trạng thái done từ bản gốc.
+      const lang = window.I18n ? window.I18n.get() : 'vi';
+      const transText = p.translations && p.translations.progress && p.translations.progress[lang];
+      let items = p.progress || [];
+      if (lang !== 'vi' && transText) {
+        const lines = String(transText).split('\n').map(s => s.trim()).filter(Boolean);
+        items = lines.map((ln, i) => {
+          const parts = ln.split('|').map(s => s.trim());
+          const fb = items[i] || {};
+          return {
+            phase: parts[0] || fb.phase || '',
+            date:  parts[1] || fb.date  || '',
+            done:  parts[2] != null ? (parts[2] === '1' || /^true$/i.test(parts[2])) : !!fb.done,
+          };
+        });
+      }
+      const rows = items
         .map(
           (t) =>
             '<div class="pd-prog-row ' + (t.done ? "done" : "") + '">' +

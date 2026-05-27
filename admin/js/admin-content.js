@@ -55,8 +55,14 @@ function subSlice(section, page, emptyVal) {
    page: tên trang ('timeline'|'legal'|'location'|'resources'|'gallery') */
 function subSelectorBar(page) {
   const subs = adminSubList();
-  const cur = curSubKey(page);
-  const opts = [{ id: '__all', label: 'Tất cả (cấp dự án)' }, ...subs];
+  let cur = curSubKey(page);
+  // Page 'timeline' chỉ quản lý theo phân khu — bỏ tab "Tất cả".
+  const hideAll = page === 'timeline';
+  if (hideAll && cur === '__all') {
+    cur = subs[0]?.id || '';
+    S.subKey[page] = cur;
+  }
+  const opts = hideAll ? subs : [{ id: '__all', label: 'Tất cả (cấp dự án)' }, ...subs];
   const dirty = !!S.dirtySub[page];
   return `
     <div class="card sub-bar" style="margin-bottom:12px">
@@ -2047,11 +2053,101 @@ function propBlank() {
   };
 }
 
+/* ── Inline translation popover ─────────────────────────────────────
+   Gọi từ HTML: openTransPopover('property', '<id>', 'name', anchorEl)
+   Lưu qua PUT /api/translations/:entity/:id. */
+window.openTransPopover = function(entity, entityId, field, anchorEl) {
+  // Tránh mở nhiều popover cùng lúc
+  document.querySelectorAll('.trans-pop').forEach(el => el.remove());
+  if (!entityId) { toast('Lưu sản phẩm trước khi nhập bản dịch', 'warn'); return; }
+
+  const pop = document.createElement('div');
+  pop.className = 'trans-pop';
+  // Field nhiều dòng — gợi ý cú pháp cho user.
+  const MULTI_HINT = {
+    highlights: 'Mỗi dòng một ý (khớp số dòng với phần gốc).',
+    progress:   'Mỗi dòng: phase | date | done(0/1). VD: Bàn giao | Q4/2026 | 0',
+  };
+  const isMulti = !!MULTI_HINT[field];
+  const rows = isMulti ? 6 : 3;
+  const hint = MULTI_HINT[field] || '';
+
+  pop.innerHTML = `
+    <div class="tp-head">
+      <span class="tp-title">${ico('globe',12)} Bản dịch — <b>${esc(field)}</b></span>
+      <button class="tp-x" type="button">&times;</button>
+    </div>
+    <div class="tp-body">
+      <div class="tp-lang">English (en)</div>
+      <textarea class="tp-input" rows="${rows}" placeholder="Bản dịch tiếng Anh..."></textarea>
+      ${hint ? `<div class="tp-hint">${esc(hint)}</div>` : ''}
+      <div class="tp-actions">
+        <button class="btn btn-secondary btn-sm tp-cancel" type="button">Huỷ</button>
+        <button class="btn btn-primary btn-sm tp-save" type="button">Lưu</button>
+      </div>
+      <div class="tp-status"></div>
+    </div>`;
+  Object.assign(pop.style, {
+    position: 'absolute', zIndex: 9999, width: '320px',
+    background: 'var(--surface, #1a1f2e)',
+    border: '1px solid var(--border, #2a3245)',
+    borderRadius: '8px', padding: '12px',
+    boxShadow: '0 10px 30px rgba(0,0,0,.5)', color: 'var(--text, #e5e7eb)'
+  });
+  document.body.appendChild(pop);
+  const r = anchorEl.getBoundingClientRect();
+  pop.style.left = Math.min(window.innerWidth - 340, r.left + window.scrollX) + 'px';
+  pop.style.top  = (r.bottom + window.scrollY + 6) + 'px';
+
+  const ta = pop.querySelector('.tp-input');
+  const status = pop.querySelector('.tp-status');
+
+  // Nạp bản dịch hiện có
+  fetch(`/api/translations/${entity}/${entityId}`)
+    .then(r => r.ok ? r.json() : {})
+    .then(data => { ta.value = (data && data[field] && data[field].en) || ''; })
+    .catch(() => {});
+
+  const close = () => pop.remove();
+  pop.querySelector('.tp-x').onclick = close;
+  pop.querySelector('.tp-cancel').onclick = close;
+  pop.querySelector('.tp-save').onclick = async () => {
+    status.textContent = 'Đang lưu...';
+    try {
+      const r = await fetch(`/api/translations/${entity}/${entityId}`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ field, lang: 'en', text: ta.value })
+      });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      toast('Đã lưu bản dịch EN', 'ok');
+      close();
+    } catch (e) {
+      status.textContent = 'Lỗi: ' + e.message;
+    }
+  };
+
+  setTimeout(() => {
+    const off = (e) => { if (!pop.contains(e.target)) { close(); document.removeEventListener('mousedown', off, true); } };
+    document.addEventListener('mousedown', off, true);
+  }, 10);
+};
+
+/* Tạo HTML icon translate gắn cạnh input. propId rỗng = chưa save → disabled. */
+function transBtn(entity, entityId, field) {
+  const disabled = !entityId;
+  const title = disabled ? 'Lưu sản phẩm trước khi nhập bản dịch' : 'Nhập bản dịch ngôn ngữ khác';
+  return `<button type="button" class="trans-btn" title="${title}"
+    ${disabled ? 'disabled' : ''}
+    onclick="openTransPopover('${entity}','${entityId||''}','${field}',this)">${ico('globe',13)}</button>`;
+}
+
 function renderPropertyDetailPage(el) {
   const list = S.data.properties || (S.data.properties = []);
   const isNew = propDetailIdx < 0;
   const p = isNew ? propBlank() : (list[propDetailIdx] || propBlank());
   const sales = S.data.sales || [];
+  // entity_id = property code; nút dịch chỉ enable khi đã có code.
+  const transCode = p.code || '';
 
   const pkItems = (S.data.menu && S.data.menu.phanKhu) || [];
   const pkOpts = '<option value="">— Chọn phân khu —</option>' +
@@ -2074,7 +2170,7 @@ function renderPropertyDetailPage(el) {
         <div style="display:flex;gap:10px">
           <div class="form-group" style="flex:1"><label class="form-label">Mã căn *</label>
             <input class="form-control" id="pd-code" value="${esc(p.code||'')}" placeholder="VM-SH-06.03"></div>
-          <div class="form-group" style="flex:1"><label class="form-label">Tên sản phẩm *</label>
+          <div class="form-group" style="flex:1"><label class="form-label">Tên sản phẩm * ${transBtn('property', transCode, 'name')}</label>
             <input class="form-control" id="pd-name" value="${esc(p.name||'')}"></div>
         </div>
         <div style="display:flex;gap:10px">
@@ -2101,7 +2197,7 @@ function renderPropertyDetailPage(el) {
         </div>
         <div class="form-group"><label class="form-label">Hướng</label>
           <input class="form-control" id="pd-dir" value="${esc(p.direction||'')}"></div>
-        <div class="form-group"><label class="form-label">Mô tả</label>
+        <div class="form-group"><label class="form-label">Mô tả ${transBtn('property', transCode, 'desc')}</label>
           <textarea class="form-control" id="pd-desc" rows="3">${esc(p.desc||'')}</textarea></div>
       </div>
     </div>
@@ -2119,9 +2215,9 @@ function renderPropertyDetailPage(el) {
         <div class="form-group"><label class="form-label">Trạng thái</label>
           <select class="form-control" id="pd-status">${statusOpts}</select></div>
         <div style="display:flex;gap:10px">
-          <div class="form-group" style="flex:1"><label class="form-label">Pháp lý</label>
+          <div class="form-group" style="flex:1"><label class="form-label">Pháp lý ${transBtn('property', transCode, 'legal')}</label>
             <input class="form-control" id="pd-legal" value="${esc(p.legal||'')}"></div>
-          <div class="form-group" style="flex:1"><label class="form-label">Dự kiến bàn giao</label>
+          <div class="form-group" style="flex:1"><label class="form-label">Dự kiến bàn giao ${transBtn('property', transCode, 'handover')}</label>
             <input class="form-control" id="pd-handover" value="${esc(p.handover||'')}"></div>
         </div>
         <div class="form-group">
@@ -2161,7 +2257,10 @@ function renderPropertyDetailPage(el) {
 
     <!-- ── Điểm nổi bật ── -->
     <div class="card">
-      <div class="card-header"><span class="card-title">${ico('check',16)} Điểm nổi bật</span></div>
+      <div class="card-header">
+        <span class="card-title">${ico('check',16)} Điểm nổi bật</span>
+        ${transBtn('property', transCode, 'highlights')}
+      </div>
       <div class="card-body">
         <div class="form-hint" style="margin-bottom:6px">Mỗi dòng một ý.</div>
         <textarea class="form-control" id="pd-highlights" rows="5" placeholder="View trực diện vịnh biển&#10;Bàn giao nội thất cơ bản">${esc((p.highlights||[]).join('\n'))}</textarea>
@@ -2189,7 +2288,7 @@ function renderPropertyDetailPage(el) {
     <!-- ── Tiến độ ── -->
     <div class="card">
       <div class="card-header">
-        <span class="card-title">${ico('calendar',16)} Tiến độ</span>
+        <span class="card-title">${ico('calendar',16)} Tiến độ ${transBtn('property', transCode, 'progress')}</span>
         <button class="btn btn-secondary btn-sm" onclick="propAddProgress()">${ico('plus',12)} Thêm mốc</button>
       </div>
       <div class="card-body"><div id="pd-progress-list">${propProgressHTML(p.progress)}</div></div>
