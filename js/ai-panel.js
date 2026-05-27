@@ -28,9 +28,20 @@ window.AiPanel = (() => {
     { role: "bot",  text: "Xin chào! Tôi là trợ lý AI của Vinhomes Hai Van Bay. Bạn cần tìm hiểu về dự án nào?" },
   ];
 
+  // Map short alias (dùng trong code) → key đầy đủ trong DB i18n.
+  const I18N_ALIAS = {
+    placeholder: 'inputPh',
+    noSR:        'errBrowser',
+    micDenied:   'errMic',
+  };
   function t(key) {
-    if (window.I18n && typeof window.I18n.t === "function") return window.I18n.t(key);
-    return DEFAULTS[key.replace(/^ai\./, "")] || key;
+    const short = key.replace(/^ai\./, '');
+    const dbKey = 'ui.ai.' + (I18N_ALIAS[short] || short);
+    if (window.I18n && typeof window.I18n.t === "function") {
+      const v = window.I18n.t(dbKey);
+      if (v && v !== dbKey) return v;
+    }
+    return DEFAULTS[short] || key;
   }
 
   function escapeHtml(s) {
@@ -39,7 +50,9 @@ window.AiPanel = (() => {
     }[c]));
   }
 
-  function aiAlert(message, { title = "Thông báo", okText = "Đã hiểu" } = {}) {
+  function aiAlert(message, { title, okText } = {}) {
+    title  = title  || t('ui.ai.alertTitle');
+    okText = okText || t('ui.ai.alertOk');
     return new Promise(resolve => {
       const back = document.createElement("div");
       back.className = "ai-modal-back";

@@ -8,16 +8,17 @@ let currentMenuItemId = null;
 /* Nhóm gốc của np-list — chỉ Tổng quan + Phân khu. 4 nhóm còn lại
    (Tiện ích nội/ngoại khu, Mặt bằng, View 360) giờ là CON của mỗi phân khu. */
 const ROOT_GROUPS = [
-  { key: "tongQuan", label: "Tổng quan", short: "TQ" },
-  { key: "phanKhu",  label: "Phân khu",  short: "PK" },
+  { key: "tongQuan", i18n: "group.tongQuan", label: "Tổng quan", short: "TQ" },
+  { key: "phanKhu",  i18n: "group.phanKhu",  label: "Phân khu",  short: "PK" },
 ];
 /* Nhóm con bên trong 1 phân khu */
 const CHILD_GROUPS = [
-  { key: "tienIchNoiKhu",   label: "Tiện ích nội khu",    short: "NK" },
-  { key: "tienIchNgoaiKhu", label: "Tiện ích ngoại khu",  short: "NG" },
-  { key: "matBangTang",     label: "Mặt bằng tầng",       short: "MB" },
-  { key: "view360Can",      label: "View 360 căn hộ",     short: "VR" },
+  { key: "tienIchNoiKhu",   i18n: "group.tienIchNoiKhu",   label: "Tiện ích nội khu",    short: "NK" },
+  { key: "tienIchNgoaiKhu", i18n: "group.tienIchNgoaiKhu", label: "Tiện ích ngoại khu",  short: "NG" },
+  { key: "matBangTang",     i18n: "group.matBangTang",     label: "Mặt bằng tầng",       short: "MB" },
+  { key: "view360Can",      i18n: "group.view360",         label: "View 360 căn hộ",     short: "VR" },
 ];
+const _gl = (g) => (g && g.i18n ? _t(g.i18n) : (g ? g.label : ''));
 const _tr = (s) => (window.I18n ? window.I18n.tr(s) : s);
 const _t  = (k, v) => (window.I18n ? window.I18n.t(k, v) : k);
 let openGroupKey = null;   // nhóm gốc đang mở (mặc định Tổng quan thu lại)
@@ -362,8 +363,8 @@ function pcContentButtonsHTML() {
     ? subdivisionList().find(s => s.id === activeSubdivision)
     : null;
   const note = sub
-    ? `<div class="pc-cbtn-note">${pcIcon("pin", 12)} ${_t("ui.filteringBy") || "Đang lọc theo"}: <strong>${_tr(sub.label)}</strong></div>`
-    : `<div class="pc-cbtn-note">${_t("ui.overviewMode") || "Tổng quan — hiển thị đầy đủ"}</div>`;
+    ? `<div class="pc-cbtn-note">${pcIcon("pin", 12)} ${_t("ui.pc.filteringBy")}: <strong>${_tr(sub.label)}</strong></div>`
+    : `<div class="pc-cbtn-note">${_t("ui.pc.overviewFull")}</div>`;
   const btn = (action, icon, labelKey, fallback) => `
     <button class="pc-cbtn" data-action="${action}">
       <span class="pc-cbtn-ico">${pcIcon(icon, 15)}</span>
@@ -403,7 +404,7 @@ function pcOverviewHTML() {
     <div class="pc-section pc-overview">
       ${ov.description ? `<p class="pc-desc">${_tr(ov.description)}</p>` : ""}
       ${highlights ? `
-        <div class="pc-block-title">Thông tin nổi bật</div>
+        <div class="pc-block-title">${_t('ui.pc.highlightInfo')}</div>
         <div class="pc-hl-list">${highlights}</div>` : ""}
       ${links ? `
         <div class="pc-block-title">Liên kết nhanh</div>
@@ -464,29 +465,29 @@ function pcSubdivisionHTML(s, panoId) {
   const mediaInner = s.video
     ? `<button class="pc-video-btn" data-video="${s.video}">
          <i data-lucide="play-circle" width="40" height="40"></i>
-         <span>Xem video giới thiệu</span>
+         <span>${_t('ui.pc.watchIntroVideo')}</span>
        </button>`
     : "";
   return `
     <div class="pc-section pc-subdivision">
-      <div class="pc-detail-eyebrow">Phân khu</div>
+      <div class="pc-detail-eyebrow">${_t('ui.pc.subdivision')}</div>
       <div class="pc-sub-title">${_tr(s.name)}</div>
       ${s.cover ? `
         <div class="pc-sub-media" ${s.cover ? `style="background-image:url('${s.cover}')"` : ""}>
           ${mediaInner}
         </div>` : ""}
       ${facts ? `
-        <div class="pc-block-title">Thông tin tổng quan</div>
+        <div class="pc-block-title">${_t('ui.pc.overviewInfo')}</div>
         <div class="pc-spec-list">${facts}</div>` : ""}
       ${s.desc ? `<p class="pc-desc">${_tr(s.desc)}</p>` : ""}
       ${points ? `
-        <div class="pc-block-title">Điểm nhấn nổi bật</div>
+        <div class="pc-block-title">${_t('ui.pc.highlightPoints')}</div>
         <div class="pc-point-list">${points}</div>` : ""}
       <div class="pc-sub-actions">
-        <button class="tb-btn tb-btn-primary tb-btn-block" data-action="open-properties">Xem sản phẩm tại phân khu</button>
+        <button class="tb-btn tb-btn-primary tb-btn-block" data-action="open-properties">${_t('ui.pc.viewProductsInPk')}</button>
         ${panoId
-          ? `<button class="tb-btn tb-btn-block" data-action="goto-pano" data-pano="${panoId}">Khám phá VR Tour phân khu</button>`
-          : `<button class="tb-btn tb-btn-block" data-action="open-masterplan">Khám phá VR Tour phân khu</button>`}
+          ? `<button class="tb-btn tb-btn-block" data-action="goto-pano" data-pano="${panoId}">${_t('ui.pc.exploreVrTour')}</button>`
+          : `<button class="tb-btn tb-btn-block" data-action="open-masterplan">${_t('ui.pc.exploreVrTour')}</button>`}
       </div>
     </div>`;
 }
@@ -816,7 +817,11 @@ function renderFpTable() {
     return;
   }
 
-  const statusLabel = { available: "Còn trống", holding: "Đang giữ", sold: "Đã bán" };
+  const statusLabel = {
+    available: _t('ui.status.available'),
+    holding:   _t('ui.status.holding'),
+    sold:      _t('ui.status.sold'),
+  };
   /* properties lưu giá dạng số ("5400000000") — chuyển sang "5.4 tỷ" */
   const fpMoney = (v) => {
     if (v == null || v === "") return "—";
@@ -931,7 +936,7 @@ function renderNavList() {
       <div class="np-group ${isOpen ? 'open' : ''}" data-group="tongQuan">
         <button class="np-group-head" type="button">
           <span class="np-group-icon">TQ</span>
-          <span class="np-group-title">${_tr('Tổng quan')}</span>
+          <span class="np-group-title">${_t('ui.group.tongQuan')}</span>
           <span class="np-group-count">${tqItems.length}</span>
           <i class="np-group-chev" data-lucide="chevron-right" width="14" height="14"></i>
         </button>
@@ -1048,7 +1053,7 @@ function renderSubdivisionDock() {
       return `
         <button class="sub-dock-btn" data-group="${cg.key}" ${items.length ? "" : "disabled"}>
           <i data-lucide="${ico}" width="18" height="18"></i>
-          <span class="sub-dock-btn-label">${_tr(cg.label)}</span>
+          <span class="sub-dock-btn-label">${_gl(cg)}</span>
           <span class="sub-dock-btn-count">${items.length}</span>
         </button>`;
     }).join("") +
@@ -1071,7 +1076,7 @@ function openSubDockPopup(groupKey) {
     `<div class="sdp-head">
        <div>
          <div class="sdp-eyebrow">${_tr(pk.label)}</div>
-         <div class="sdp-title">${_tr(cg.label)} <span class="sdp-count">${items.length}</span></div>
+         <div class="sdp-title">${_gl(cg)} <span class="sdp-count">${items.length}</span></div>
        </div>
        <button class="sdp-close" id="sdp-close" aria-label="Đóng">×</button>
      </div>
@@ -1216,7 +1221,7 @@ function buildGallery() {
   const items = visibleGalleryItems();
   if (items.length === 0) {
     grid.innerHTML = `<div style="grid-column:1/-1;padding:48px 20px;text-align:center;color:rgba(255,255,255,.5);font-size:14px">
-      ${galleryTabFilter === 'video' ? 'Chưa có video nào trong thư viện.' : 'Chưa có ảnh nào trong thư viện.'}
+      ${galleryTabFilter === 'video' ? _t('ui.gallery.emptyVideo') : _t('ui.gallery.emptyPhoto')}
     </div>`;
     return;
   }
@@ -1479,6 +1484,10 @@ function bindSmartHide() {
       "[data-ui-keep]"
     )) return true;
     if (target.closest("#ui")) {
+      /* Nếu nằm trong một button/link/input thực sự thì coi là UI ngay —
+         không xét pointer-events vì SVG/icon con của Lucide có thể trả
+         pointer-events:none nhưng click vẫn được bubble qua button cha. */
+      if (target.closest("button, a, input, select, textarea, [role='button']")) return true;
       /* Bên trong .ui — chỉ tính là UI nếu element thật sự có pointer-events
          (tức là button/panel con); .ui và .tip có pointer-events:none */
       const cs = getComputedStyle(target);
@@ -1543,15 +1552,22 @@ function bindLanguage() {
     renderMenu();
   });
 
-  btn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    menu.classList.toggle("open");
-  });
-  document.addEventListener("click", (e) => {
-    if (!menu.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+  // Bắt ở capture phase ngay trên window — chạy TRƯỚC mọi handler khác
+  // (kể cả bindSmartHide). Dùng pointerdown để không bị Lucide SVG / icon
+  // pointer-events nuốt.
+  window.addEventListener("pointerdown", (e) => {
+    const hit = e.target.closest && e.target.closest("#ctrl-lang");
+    if (hit) {
+      e.stopPropagation();
+      // Đợi micro-task để toggle xảy ra sau khi DOM ổn định
+      setTimeout(() => menu.classList.toggle("open"), 0);
+      return;
+    }
+    // Click ngoài → đóng menu
+    if (menu.classList.contains("open") && !menu.contains(e.target)) {
       menu.classList.remove("open");
     }
-  });
+  }, true);
 
   // Đồng bộ menu khi ngôn ngữ đổi từ nơi khác (mobile drawer, admin, v.v.)
   window.I18n.onChange(renderMenu);
@@ -1900,7 +1916,7 @@ function buildLegalPanel() {
           <div class="legal-check-detail">${d.detail}</div>
         </div>
       </div>
-    `).join('') : `<div class="np-empty">${_t('ui.noContent') || 'Chưa có nội dung'}</div>`;
+    `).join('') : `<div class="np-empty">${_t('ui.empty.content')}</div>`;
   }
 
   // Testimonials
@@ -1908,7 +1924,7 @@ function buildLegalPanel() {
   if (testEl) {
     const list = legal.testimonials || [];
     if (!list.length) {
-      testEl.innerHTML = `<div class="np-empty">${_t('ui.noContent') || 'Chưa có nội dung'}</div>`;
+      testEl.innerHTML = `<div class="np-empty">${_t('ui.empty.content')}</div>`;
     } else {
       let tIdx = 0;
       const render = () => {
@@ -1979,7 +1995,7 @@ function renderLocationList(cat) {
   const loc = currentLocationData();
   const items = (loc.nearby || []).filter(n => !cat || n.cat === cat);
   if (!items.length) {
-    el.innerHTML = `<div class="np-empty">${_t('ui.noContent') || 'Chưa có địa điểm'}</div>`;
+    el.innerHTML = `<div class="np-empty">${_t('ui.empty.location')}</div>`;
     return;
   }
   el.innerHTML = items.map(n => `
@@ -2028,7 +2044,7 @@ function buildTimelinePanel() {
   const trackEl0 = document.getElementById('tl-track');
   if (trackEl0 && !items.length) {
     document.getElementById('tl-overview').innerHTML = '';
-    trackEl0.innerHTML = `<div class="np-empty">${_t('ui.noContent') || 'Chưa có mốc tiến độ'}</div>`;
+    trackEl0.innerHTML = `<div class="np-empty">${_t('ui.empty.milestone')}</div>`;
     return;
   }
 
@@ -2077,7 +2093,7 @@ function buildTimelinePanel() {
         <div class="tl-card">
           <div class="tl-card-top">
             <div class="tl-card-date">${_tr(t.date)}</div>
-            <span class="tl-badge ${cls}">${cls === 'done' ? 'Hoàn thành' : cls === 'active' ? 'Đang thực hiện' : 'Sắp tới'}</span>
+            <span class="tl-badge ${cls}">${cls === 'done' ? _t('ui.timeline.done') : cls === 'active' ? _t('ui.timeline.doing') : _t('ui.timeline.upcoming')}</span>
           </div>
           <div class="tl-card-phase">${_tr(t.phase)}</div>
           ${t.desc ? `<div class="tl-card-desc">${t.desc}</div>` : ''}
@@ -2350,10 +2366,10 @@ document.addEventListener("DOMContentLoaded", boot);
    RESOURCES PANEL
    ============================================ */
 const RESOURCE_META = {
-  brochure:    { label: 'Brochure dự án',           icon: 'doc' },
-  brandKit:    { label: 'Bộ nhận diện thương hiệu', icon: 'brand' },
-  priceList:   { label: 'Bảng giá & chính sách',    icon: 'price' },
-  floorPlanPdf:{ label: 'TMB mã căn & diện tích',   icon: 'plan' }
+  brochure:    { i18n: 'res.brochure',     label: 'Brochure dự án',           icon: 'doc' },
+  brandKit:    { i18n: 'res.brandKit',     label: 'Bộ nhận diện thương hiệu', icon: 'brand' },
+  priceList:   { i18n: 'res.priceList',    label: 'Bảng giá & chính sách',    icon: 'price' },
+  floorPlanPdf:{ i18n: 'res.floorPlanPdf', label: 'TMB mã căn & diện tích',   icon: 'plan' }
 };
 
 const RES_ICONS = {
@@ -2379,7 +2395,7 @@ function buildResourcesPanel() {
   grid.innerHTML = keys.map(k => {
     const item = res[k] || {};
     const meta = RESOURCE_META[k];
-    const title = item.title || meta.label;
+    const title = item.title || (meta.i18n ? _t('ui.' + meta.i18n) : meta.label);
     const has = !!item.url;
     const typeTag = item.type ? `<span class="res-type">${item.type.toUpperCase()}</span>` : '';
     return `

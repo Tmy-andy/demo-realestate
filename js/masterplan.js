@@ -11,6 +11,7 @@
   let mpFilter = null; // trạng thái bộ lọc (Set theo nhóm)
 
   const tr = (s) => (window.I18n ? window.I18n.tr(s) : s);
+  const t  = (k, fb) => (window.I18n ? window.I18n.t(k) : (fb || k));
   function icon(name, size) {
     return typeof window.pcIcon === "function"
       ? window.pcIcon(name, size || 16)
@@ -95,7 +96,7 @@
       )
       .join("");
     el.innerHTML =
-      '<div class="mp-intro-eyebrow">Tổng quan dự án</div>' +
+      '<div class="mp-intro-eyebrow">' + t('ui.mp.overviewEyebrow') + '</div>' +
       '<p class="mp-intro-desc">' +
       tr(m.intro || "") +
       "</p>" +
@@ -104,7 +105,7 @@
       "</div>" +
       '<button class="mp-filter-btn" id="mp-filter-btn">' +
       '<i data-lucide="sliders-horizontal" width="15" height="15"></i>' +
-      "<span>Lọc</span></button>";
+      "<span>" + t('ui.mp.filter') + "</span></button>";
     // Bind lại nút Lọc (được render mỗi lần mở overlay)
     const fb = document.getElementById("mp-filter-btn");
     if (fb) fb.addEventListener("click", openFilterPanel);
@@ -172,7 +173,7 @@
       (hasItem
         ? '<button class="mp-tip-go" data-go="' +
           mk.menuItemId +
-          '">Khám phá VR Tour →</button>'
+          '">' + t('ui.mp.exploreVrTour') + '</button>'
         : "");
     tip.style.left = anchorEl.style.left;
     tip.style.top = anchorEl.style.top;
@@ -189,12 +190,13 @@
   }
 
   /* ── Bộ lọc (ảnh 4) ── */
-  const GROUP_TITLES = {
-    phanKhu: "Phân khu",
-    loaiHienThi: "Loại hiển thị",
-    batDongSan: "Bất động sản",
-    trangThai: "Trạng thái",
+  const GROUP_I18N = {
+    phanKhu:     'ui.mp.group.subdivision',
+    loaiHienThi: 'ui.mp.group.displayType',
+    batDongSan:  'ui.mp.group.property',
+    trangThai:   'ui.mp.group.status',
   };
+  const groupTitle = (k) => (GROUP_I18N[k] ? t(GROUP_I18N[k]) : k);
   function renderFilterPanel() {
     const body = document.getElementById("mpf-body");
     const m = mp();
@@ -226,13 +228,13 @@
         return (
           '<div class="mpf-group"><div class="mpf-group-head">' +
           '<span class="mpf-group-title">' +
-          (GROUP_TITLES[key] || key) +
+          groupTitle(key) +
           "</span>" +
           '<label class="mpf-all"><input type="checkbox" data-all="' +
           key +
           '" ' +
           (allOn ? "checked" : "") +
-          "/> Chọn tất cả</label></div>" +
+          "/> " + t('ui.mp.selectAll') + "</label></div>" +
           '<div class="mpf-opts">' +
           items +
           "</div></div>"

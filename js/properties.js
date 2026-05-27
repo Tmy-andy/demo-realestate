@@ -10,6 +10,7 @@
   "use strict";
 
   const tr = (s) => (window.I18n && typeof s === "string" ? window.I18n.tr(s) : s);
+  const t  = (k, fb) => (window.I18n ? window.I18n.t(k) : (fb || k));
   const $ = (id) => document.getElementById(id);
 
   /* Trạng thái bộ lọc danh sách */
@@ -107,7 +108,7 @@
     if (countEl) countEl.textContent = list.length + " sản phẩm";
     if (!list.length) {
       grid.innerHTML =
-        '<div class="props-empty">Không có sản phẩm phù hợp bộ lọc.</div>';
+        '<div class="props-empty">' + t('ui.props.empty') + '</div>';
       return;
     }
     grid.innerHTML = list
@@ -165,10 +166,10 @@
     const mx = Math.ceil(maxPrice());
     body.innerHTML =
       filterGroup("Phân khu", "phanKhu", pk) +
-      filterGroup("Loại hình", "type", ty) +
+      filterGroup(t('ui.props.filter.type'), "type", ty) +
       filterGroup("Trạng thái", "status", st) +
       '<div class="pf-group">' +
-      '<div class="pf-group-title">Mức giá tối đa</div>' +
+      '<div class="pf-group-title">' + t('ui.props.filter.maxPrice') + '</div>' +
       '<input type="range" id="pf-price" min="0" max="' + mx +
       '" step="1" value="' + (filter.priceMax || mx) + '" class="pf-range"/>' +
       '<div class="pf-price-label" id="pf-price-label">' +
@@ -331,7 +332,7 @@
     const zaloSvg = '<i data-lucide="message-circle" width="14" height="14"></i>';
     return (
       '<div class="pd-side-card">' +
-        '<div class="pd-side-label">Nhân viên tư vấn</div>' +
+        '<div class="pd-side-label">' + t('ui.props.detail.consultant') + '</div>' +
         '<div class="pd-sale-name">' + (s.name || "") + "</div>" +
         (s.title ? '<div class="pd-sale-title">' + s.title + "</div>" : "") +
         (s.phone ? '<a class="pd-contact pd-contact-phone" href="tel:' +
@@ -351,14 +352,14 @@
     return (
       '<aside class="pd-side">' +
         '<div class="pd-side-card">' +
-          '<div class="pd-side-label">Giá bán dự kiến</div>' +
+          '<div class="pd-side-label">' + t('ui.props.detail.price') + '</div>' +
           '<div class="pd-side-price">' + (p.price ? formatFullPrice(p.price) : "—") + "</div>" +
           (p.pricePerM2 ? '<div class="pd-side-ppm">~ ' + formatFullPrice(p.pricePerM2) + "/m²</div>" : "") +
           '<div class="pd-side-rows">' +
-            sideRow("Tình trạng", tr(p.statusLabel || "")) +
-            sideRow("Loại hình", tr(p.typeLabel || "")) +
-            sideRow("Pháp lý", tr(p.legal || "—")) +
-            sideRow("Dự kiến bàn giao", tr(p.handover || "—")) +
+            sideRow(t('ui.props.detail.status'),   tr(p.statusLabel || "")) +
+            sideRow(t('ui.props.detail.type'),     tr(p.typeLabel || "")) +
+            sideRow(t('ui.props.detail.legal'),    tr(p.legal || "—")) +
+            sideRow(t('ui.props.detail.handover'), tr(p.handover || "—")) +
           "</div>" +
           '<button class="pd-side-cta" id="pd-quote">Nhận báo giá chi tiết</button>' +
         "</div>" +
@@ -400,7 +401,7 @@
         .join("");
       return (
         '<div class="pd-fp-note">Chọn một bản vẽ để xem chi tiết.</div>' +
-        '<div class="pd-fp-grid">' + (thumbs || '<div class="props-empty">Chưa có mặt bằng.</div>') + "</div>"
+        '<div class="pd-fp-grid">' + (thumbs || '<div class="props-empty">' + t('ui.props.emptyFloorplan') + '</div>') + "</div>"
       );
     }
     if (tab === "progress") {
