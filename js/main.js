@@ -1021,6 +1021,9 @@ function bindNavListEvents(listEl) {
       const panoId = card.dataset.panorama;
       if (panoId) goToPanorama(panoId);
       else syncProjectCard();
+      // Chọn ngoài Tổng quan → thu group Tổng quan lại
+      const tqGroup = listEl.querySelector(".np-group[data-group='tongQuan']");
+      if (tqGroup) tqGroup.classList.remove("open");
       listEl.querySelectorAll(".np-card-flat").forEach(c => {
         c.classList.toggle("active", c.dataset.id === currentMenuItemId);
         c.classList.toggle("pk-active", c.dataset.pk === activeSubdivision);
