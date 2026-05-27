@@ -33,10 +33,20 @@ function ensureSubShape(section, emptyVal) {
   // dạng cũ: mảng, hoặc object không có __all
   const isNew = d && typeof d === 'object' && !Array.isArray(d) && ('__all' in d);
   if (!isNew) {
-    d = { __all: d != null ? d : clone(emptyVal) };
+    // Nếu giá trị cũ không cùng "hình dạng" với emptyVal (vd emptyVal là [] nhưng d là object),
+    // thì coi như chưa có dữ liệu — tránh để __all bị kẹt dạng sai làm vỡ .map.
+    const sameShape = Array.isArray(emptyVal) ? Array.isArray(d) : (d && typeof d === 'object' && !Array.isArray(d));
+    d = { __all: (d != null && sameShape) ? d : clone(emptyVal) };
+  }
+  // Nếu __all bị sai hình dạng từ trước, cũng chuẩn hoá lại.
+  if (Array.isArray(emptyVal) ? !Array.isArray(d.__all) : (typeof d.__all !== 'object' || Array.isArray(d.__all))) {
+    d.__all = clone(emptyVal);
   }
   for (const s of subs) {
     if (d[s.id] == null) d[s.id] = clone(emptyVal);
+    else if (Array.isArray(emptyVal) ? !Array.isArray(d[s.id]) : (typeof d[s.id] !== 'object' || Array.isArray(d[s.id]))) {
+      d[s.id] = clone(emptyVal);
+    }
   }
   S.data[section] = d;
   return d;
@@ -1090,7 +1100,15 @@ const TL_STATUS = { done:'Hoàn thành', active:'Đang thực hiện', upcoming:
 function tlSlice() { return subSlice('timeline', 'timeline', []); }
 
 function renderTimelinePage(el) {
-  const tl = tlSlice();
+  let tl = tlSlice();
+  // Phòng thủ: nếu slice vì lý do nào đó không phải mảng (data cũ/lỗi từ server),
+  // chuẩn hoá lại thành mảng rỗng để không vỡ render.
+  if (!Array.isArray(tl)) {
+    const d = ensureSubShape('timeline', []);
+    const k = curSubKey('timeline');
+    d[k] = [];
+    tl = d[k];
+  }
   const lastPulse = +localStorage.getItem('ah_timeline_pulse') || 0;
   const pulseLabel = lastPulse
     ? new Date(lastPulse).toLocaleString('vi-VN')
