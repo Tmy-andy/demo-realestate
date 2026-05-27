@@ -210,8 +210,32 @@ async function loadData() {
   }
   S.data.menu   ??= {};
   S.data.scenes ??= [];
-  S.leads = getMockLeads();
+  await loadLeads();
   await loadSaleProfile();
+}
+
+// Nạp leads từ DB qua API. Khi server tắt -> mảng rỗng (không bịa mock).
+async function loadLeads() {
+  try {
+    const r = await fetch(API_BASE + '/api/leads', { cache: 'no-store' });
+    S.leads = r.ok ? await r.json() : [];
+  } catch {
+    S.leads = [];
+  }
+  // appt: gộp từ /api/appointments (1 lead có thể có nhiều lịch — lấy cái sớm nhất sắp tới)
+  try {
+    const r = await fetch(API_BASE + '/api/appointments', { cache: 'no-store' });
+    if (r.ok) {
+      const bookings = await r.json();
+      const byLead = {};
+      for (const b of bookings) {
+        if (!b.leadId || !b.date) continue;
+        const iso = b.time ? `${b.date}T${b.time}` : b.date;
+        if (!byLead[b.leadId] || iso < byLead[b.leadId]) byLead[b.leadId] = iso;
+      }
+      S.leads.forEach(l => { if (byLead[l.id]) l.appt = byLead[l.id]; });
+    }
+  } catch {}
 }
 
 // Nạp profile của sale đang đăng nhập từ server (lưu trong DB).
