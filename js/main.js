@@ -2146,6 +2146,65 @@ document.addEventListener("DOMContentLoaded", boot);
     });
   });
 
+  /* ── Custom dropdown: thay native <select> để không bị OS render trắng.
+        Giữ nguyên <select> ẩn để form submit + i18n vẫn hoạt động. ── */
+  function buildCustomDropdown(sel) {
+    if (!sel || sel.dataset.cdBuilt) return;
+    sel.dataset.cdBuilt = '1';
+    sel.classList.add('cd-native-hidden');
+
+    const wrap = document.createElement('div');
+    wrap.className = 'cd-wrap';
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'cd-trigger';
+    const label = document.createElement('span');
+    label.className = 'cd-label';
+    const arrow = document.createElement('span');
+    arrow.className = 'cd-arrow';
+    arrow.textContent = '▾';
+    trigger.append(label, arrow);
+    const menu = document.createElement('ul');
+    menu.className = 'cd-menu';
+    menu.setAttribute('role', 'listbox');
+    wrap.append(trigger, menu);
+    sel.insertAdjacentElement('afterend', wrap);
+
+    function syncFromSelect() {
+      const opt = sel.options[sel.selectedIndex];
+      label.textContent = opt ? opt.textContent : '';
+      label.classList.toggle('cd-placeholder', !sel.value);
+      menu.innerHTML = '';
+      Array.from(sel.options).forEach((o, i) => {
+        const li = document.createElement('li');
+        li.className = 'cd-item' + (i === sel.selectedIndex ? ' selected' : '') + (o.disabled ? ' disabled' : '');
+        li.textContent = o.textContent;
+        li.dataset.value = o.value;
+        li.setAttribute('role', 'option');
+        li.addEventListener('click', () => {
+          if (o.disabled) return;
+          sel.selectedIndex = i;
+          sel.dispatchEvent(new Event('change', { bubbles: true }));
+          syncFromSelect();
+          close();
+        });
+        menu.appendChild(li);
+      });
+    }
+    function open()  { wrap.classList.add('open');  document.addEventListener('click', onDocClick, true); }
+    function close() { wrap.classList.remove('open'); document.removeEventListener('click', onDocClick, true); }
+    function onDocClick(e) { if (!wrap.contains(e.target)) close(); }
+    trigger.addEventListener('click', e => {
+      e.stopPropagation();
+      wrap.classList.contains('open') ? close() : open();
+    });
+    // i18n có thể đổi text option → re-sync
+    const mo = new MutationObserver(syncFromSelect);
+    mo.observe(sel, { childList: true, subtree: true, characterData: true });
+    syncFromSelect();
+  }
+  document.querySelectorAll('#cf-unit-type').forEach(buildCustomDropdown);
+
   // ── Unit code tags (từ bảng giá → form) ──
   window.addUnitCodeTag = function(code) {
     const wrap = document.getElementById('cf-codes-wrap');
