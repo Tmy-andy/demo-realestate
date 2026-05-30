@@ -1425,12 +1425,13 @@ function poiForm(o, idx) {
 // ========================================================================
 // 7) RESOURCES ─ Tài liệu bán hàng (Brochure, Sales kit, Brand kit, ...)
 // ========================================================================
-const RESOURCE_FIELDS = [
-  { key: 'brochure',     label: 'Brochure dự án',            defaultType: 'pdf' },
-  { key: 'salesKit',     label: 'Bộ bí kíp tư vấn (nội bộ)', defaultType: 'pdf' },
-  { key: 'brandKit',     label: 'Bộ nhận diện thương hiệu',  defaultType: 'folder' },
-  { key: 'priceList',    label: 'Bảng giá & chính sách',     defaultType: 'pdf' },
-  { key: 'floorPlanPdf', label: 'TMB mã căn & diện tích',    defaultType: 'pdf' },
+// Gợi ý tài liệu thường gặp — chỉ hiển thị khi list rỗng để user tạo nhanh.
+const RESOURCE_PRESETS = [
+  { label: 'Brochure dự án',            type: 'pdf' },
+  { label: 'Bộ bí kíp tư vấn (nội bộ)', type: 'pdf' },
+  { label: 'Bộ nhận diện thương hiệu',  type: 'folder' },
+  { label: 'Bảng giá & chính sách',     type: 'pdf' },
+  { label: 'TMB mã căn & diện tích',    type: 'pdf' },
 ];
 
 const RESOURCE_TYPES = [
@@ -1449,26 +1450,45 @@ function resourcesSlice() {
 
 function renderResourcesPage(el) {
   const res = resourcesSlice();
+  const keys = Object.keys(res);
+  const withUrl = keys.filter(k => res[k]?.url).length;
   el.innerHTML = pageHeader(['Dashboard','Nội Dung VR'], 'Tài Liệu')
   + subSelectorBar('resources') + `
     <div class="card" style="margin-bottom:16px">
       <div class="card-header">
         <span class="card-title">${ico('image',16)} Bộ tài liệu chính thức</span>
-        <span class="card-subtitle">${RESOURCE_FIELDS.filter(f => res[f.key]?.url).length}/${RESOURCE_FIELDS.length} đã có link</span>
+        <span class="card-subtitle">${keys.length === 0 ? 'Chưa có tài liệu nào' : `${withUrl}/${keys.length} đã có link`}</span>
+        <div style="margin-left:auto;display:flex;gap:8px">
+          <button class="btn btn-primary btn-sm" onclick="resourceAdd()">${ico('plus',12)} Thêm tài liệu</button>
+        </div>
       </div>
       <div class="card-body">
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px">
-          ${RESOURCE_FIELDS.map(f => resourceCard(f, res[f.key] || {})).join('')}
-        </div>
+        ${keys.length === 0 ? resourceEmptyState() : `
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px">
+            ${keys.map(k => resourceCard(k, res[k] || {})).join('')}
+          </div>`}
       </div>
     </div>
   `;
 }
 
-function resourceCard(field, item) {
+function resourceEmptyState() {
+  return `
+    <div style="text-align:center;padding:32px 16px;color:var(--muted)">
+      <div style="font-size:13px;margin-bottom:14px">Chưa có tài liệu nào — bấm <b>Thêm tài liệu</b> hoặc chọn nhanh từ gợi ý dưới đây:</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">
+        ${RESOURCE_PRESETS.map(p => `
+          <button class="btn btn-secondary btn-sm" onclick="resourceAdd('${esc(p.label)}','${p.type}')">
+            ${ico('plus',12)} ${esc(p.label)}
+          </button>`).join('')}
+      </div>
+    </div>`;
+}
+
+function resourceCard(key, item) {
   const has = !!item.url;
-  const title = item.title || field.label;
-  const type = item.type || field.defaultType;
+  const title = item.title || 'Tài liệu chưa đặt tên';
+  const type = item.type || 'pdf';
   return `
     <div style="border:1px solid var(--border);border-radius:10px;padding:14px;background:var(--surface)">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
@@ -1478,7 +1498,7 @@ function resourceCard(field, item) {
         <div style="flex:1;min-width:0">
           <div style="font-weight:600;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(title)}</div>
           <div style="font-size:11px;color:var(--muted);margin-top:2px">
-            ${has ? `<span class="badge badge-ok">${esc(type.toUpperCase())}</span> đã cập nhật` : `<span class="badge badge-muted">Chưa có</span>`}
+            ${has ? `<span class="badge badge-ok">${esc(type.toUpperCase())}</span> đã cập nhật` : `<span class="badge badge-muted">Chưa có link</span>`}
           </div>
         </div>
       </div>
@@ -1487,20 +1507,44 @@ function resourceCard(field, item) {
       ` : ''}
       <div style="display:flex;gap:6px">
         ${has ? `<a href="${esc(item.url)}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm" style="flex:1;text-align:center;text-decoration:none">${ico('globe',12)} Mở</a>` : ''}
-        <button class="btn btn-primary btn-sm" style="flex:1" onclick="resourceEdit('${field.key}')">${ico('edit',12)} ${has ? 'Sửa' : 'Thêm'}</button>
-        ${has ? `<button class="act-btn danger" title="Xoá liên kết" onclick="resourceClear('${field.key}')">${ico('trash')}</button>` : ''}
+        <button class="btn btn-primary btn-sm" style="flex:1" onclick="resourceEdit('${esc(key)}')">${ico('edit',12)} ${has ? 'Sửa' : 'Thêm link'}</button>
+        <button class="act-btn danger" title="Xoá tài liệu" onclick="resourceClear('${esc(key)}')">${ico('trash')}</button>
       </div>
     </div>`;
 }
 
+function _resourceMakeKey(label) {
+  const slug = (label || 'tai-lieu').toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 32) || 'tai-lieu';
+  const res = resourcesSlice();
+  let key = slug, i = 2;
+  while (res[key]) key = `${slug}-${i++}`;
+  return key;
+}
+
+function resourceAdd(presetLabel, presetType) {
+  // Mở panel với entry tạm — chỉ ghi vào slice khi user Lưu.
+  _resourceOpenPanel(null, {
+    title: presetLabel || '',
+    url: '',
+    type: presetType || 'pdf',
+  });
+}
+
 function resourceEdit(key) {
-  const field = RESOURCE_FIELDS.find(f => f.key === key);
-  if (!field) return;
-  const item = resourcesSlice()[key] || {};
-  showPanel(`${item.url ? 'Sửa' : 'Thêm'} — ${field.label}`, `
+  const res = resourcesSlice();
+  const item = res[key];
+  if (!item) return;
+  _resourceOpenPanel(key, item);
+}
+
+function _resourceOpenPanel(key, item) {
+  const isNew = !key;
+  showPanel(`${isNew ? 'Thêm' : 'Sửa'} tài liệu`, `
     <div class="form-group">
-      <label class="form-label">Tiêu đề hiển thị</label>
-      <input class="form-control" id="res-title" value="${esc(item.title || field.label)}" placeholder="${esc(field.label)}">
+      <label class="form-label">Tiêu đề hiển thị *</label>
+      <input class="form-control" id="res-title" value="${esc(item.title || '')}" placeholder="VD: Brochure dự án">
     </div>
     <div class="form-group">
       <label class="form-label">URL / Link Drive *</label>
@@ -1508,17 +1552,45 @@ function resourceEdit(key) {
       <small class="c-muted">Dán link Google Drive, OneDrive hoặc URL trực tiếp.</small>
     </div>
     <div class="form-group">
+      <label class="form-label">Hoặc tải file từ máy</label>
+      <div class="dropzone" id="res-dz"
+           onclick="document.getElementById('res-file').click()"
+           ondragenter="resDzEnter(event)"
+           ondragover="resDzEnter(event)"
+           ondragleave="resDzLeave(event)"
+           ondrop="resDzDrop(event)">
+        <div class="dz-icon">${ico('upload',24)}</div>
+        <div class="dz-title">Kéo & thả file vào đây</div>
+        <div class="dz-sub">hoặc <span class="dz-browse">chọn từ máy</span></div>
+        <div class="dz-meta" id="res-dz-meta">Mọi định dạng · file lưu trên server</div>
+        <input type="file" id="res-file" style="display:none" onchange="resourceUploadFile(this.files && this.files[0])">
+      </div>
+      <div id="res-upload-progress" style="display:none;margin-top:10px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:4px">
+          <span id="res-progress-label">Đang tải lên…</span>
+          <span id="res-progress-pct">0%</span>
+        </div>
+        <div style="height:6px;background:var(--surface2);border-radius:3px;overflow:hidden">
+          <div id="res-progress-bar" style="height:100%;width:0%;background:var(--primary);transition:width .15s"></div>
+        </div>
+      </div>
+      <div id="res-upload-info" style="display:none;margin-top:10px" class="dz-fileinfo"></div>
+    </div>
+    <div class="form-group">
       <label class="form-label">Loại</label>
       <select class="form-control" id="res-type">
-        ${RESOURCE_TYPES.map(([v,l]) => `<option value="${v}" ${(item.type || field.defaultType) === v ? 'selected' : ''}>${l}</option>`).join('')}
+        ${RESOURCE_TYPES.map(([v,l]) => `<option value="${v}" ${(item.type || 'pdf') === v ? 'selected' : ''}>${l}</option>`).join('')}
       </select>
     </div>
   `, () => {
     const url = document.getElementById('res-url').value.trim();
-    if (!url) { toast('Cần nhập URL', 'warn'); return false; }
-    const res = resourcesSlice();
-    res[key] = {
-      title: document.getElementById('res-title').value.trim() || field.label,
+    const title = document.getElementById('res-title').value.trim();
+    if (!title) { toast('Cần nhập tiêu đề', 'warn'); return false; }
+    if (!url) { toast('Cần nhập URL hoặc upload file', 'warn'); return false; }
+    const r = resourcesSlice();
+    const finalKey = key || _resourceMakeKey(title);
+    r[finalKey] = {
+      title,
       url,
       type: document.getElementById('res-type').value,
     };
@@ -1526,11 +1598,113 @@ function resourceEdit(key) {
   });
 }
 
+function resDzEnter(e) {
+  e.preventDefault(); e.stopPropagation();
+  document.getElementById('res-dz')?.classList.add('dragover');
+}
+function resDzLeave(e) {
+  e.preventDefault(); e.stopPropagation();
+  document.getElementById('res-dz')?.classList.remove('dragover');
+}
+function resDzDrop(e) {
+  e.preventDefault(); e.stopPropagation();
+  document.getElementById('res-dz')?.classList.remove('dragover');
+  const file = e.dataTransfer?.files?.[0];
+  if (file) resourceUploadFile(file);
+}
+
+function fmtBytes(b) {
+  if (b < 1024) return b + ' B';
+  if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
+  if (b < 1024 * 1024 * 1024) return (b / 1024 / 1024).toFixed(2) + ' MB';
+  return (b / 1024 / 1024 / 1024).toFixed(2) + ' GB';
+}
+
+async function resourceUploadFile(file) {
+  if (!file) return;
+  const urlEl = document.getElementById('res-url');
+  const typeEl = document.getElementById('res-type');
+  const titleEl = document.getElementById('res-title');
+  const progressBox = document.getElementById('res-upload-progress');
+  const progressBar = document.getElementById('res-progress-bar');
+  const progressPct = document.getElementById('res-progress-pct');
+  const progressLabel = document.getElementById('res-progress-label');
+  const infoBox = document.getElementById('res-upload-info');
+  const base = (typeof API_BASE !== 'undefined' && API_BASE) ? API_BASE : '';
+
+  progressBox.style.display = 'block';
+  infoBox.style.display = 'none';
+  progressBar.style.width = '0%';
+  progressBar.style.background = 'var(--primary)';
+  progressPct.textContent = '0%';
+  progressLabel.textContent = `Đang tải ${file.name}`;
+
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', base + '/api/upload/local');
+    xhr.upload.onprogress = ev => {
+      if (ev.lengthComputable) {
+        const pct = Math.round(ev.loaded / ev.total * 100);
+        progressBar.style.width = pct + '%';
+        progressPct.textContent = pct + '%';
+      }
+    };
+    const result = await new Promise((resolve, reject) => {
+      xhr.onload = () => {
+        try {
+          const json = JSON.parse(xhr.responseText || '{}');
+          if (xhr.status >= 200 && xhr.status < 300) resolve(json);
+          else reject(new Error(json.error || ('HTTP ' + xhr.status)));
+        } catch (e) { reject(e); }
+      };
+      xhr.onerror = () => reject(new Error('Lỗi mạng'));
+      xhr.send(fd);
+    });
+
+    const fullUrl = result.url.startsWith('http') ? result.url : (base + result.url);
+    urlEl.value = fullUrl;
+    const ext = (file.name.split('.').pop() || '').toLowerCase();
+    const typeMap = { pdf:'pdf', doc:'doc', docx:'doc', xls:'xls', xlsx:'xls',
+                      png:'image', jpg:'image', jpeg:'image', gif:'image', webp:'image' };
+    if (typeMap[ext]) typeEl.value = typeMap[ext];
+    if (titleEl && !titleEl.value.trim()) {
+      titleEl.value = file.name.replace(/\.[^.]+$/, '');
+    }
+
+    progressBox.style.display = 'none';
+    infoBox.style.display = 'block';
+    infoBox.innerHTML = `
+      <div class="dz-info-row">
+        <div style="width:36px;height:36px;border-radius:8px;background:var(--primary-soft);color:var(--primary);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          ${ico('check',18)}
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:600;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(file.name)}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px">
+            <span class="badge badge-ok">${esc((ext || 'FILE').toUpperCase())}</span>
+            ${fmtBytes(file.size)} · đã lưu trên server
+          </div>
+        </div>
+        <button type="button" class="act-btn" title="Tải file khác" onclick="document.getElementById('res-file').click()">
+          ${ico('refresh-cw',14)}
+        </button>
+      </div>`;
+  } catch (err) {
+    progressBar.style.background = 'var(--danger, #ef4444)';
+    progressPct.textContent = 'Lỗi';
+    progressLabel.textContent = err.message;
+    toast('Upload thất bại: ' + err.message, 'err');
+  }
+}
+
 function resourceClear(key) {
-  const field = RESOURCE_FIELDS.find(f => f.key === key);
-  confirmDel('Xoá liên kết tài liệu?', field?.label || '', () => {
+  const item = resourcesSlice()[key];
+  if (!item) return;
+  confirmDel('Xoá tài liệu?', item.title || key, () => {
     delete resourcesSlice()[key];
-    markSubDirty('resources'); saveData('Đã xoá liên kết'); go('resources');
+    markSubDirty('resources'); saveData('Đã xoá tài liệu'); go('resources');
   });
 }
 

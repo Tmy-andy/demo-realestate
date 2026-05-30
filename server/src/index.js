@@ -12,6 +12,8 @@ import {
   findSaleBySlug, pickNextSale,
 } from './users.js';
 import { createPresignedPut, r2Enabled } from './r2.js';
+import multer from 'multer';
+import fs from 'node:fs';
 
 const app = express();
 app.use(cors());
@@ -589,6 +591,103 @@ app.get('/api/health', (_req, res) => res.json({ ok: true, r2: r2Enabled }));
 // Upload — cấp presigned PUT URL để frontend upload trực tiếp lên R2
 // Body: { filename, contentType, folder? }
 // =====================================================================
+// =====================================================================
+// Upload local — lưu file vào thư mục uploads/ trên server, trả URL công khai.
+// Giới hạn dung lượng đọc từ project_settings.feature_flags_json.upload.maxMb
+// (mặc định 100MB nếu chưa cấu hình). Cho phép mọi loại file.
+// =====================================================================
+const SITE_ROOT_EARLY = path.resolve(fileURLToPath(import.meta.url), '../../..');
+const UPLOADS_DIR = path.join(SITE_ROOT_EARLY, 'uploads');
+if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+app.use('/uploads', express.static(UPLOADS_DIR));
+
+async function getUploadMaxBytes() {
+  try {
+    const pid = await getProjectId();
+    const r = await query(
+      'SELECT feature_flags_json FROM project_settings WHERE project_id=?',
+      [pid]
+    );
+    const mb = r.rows[0]?.feature_flags_json?.upload?.maxMb;
+    if (mb && Number(mb) > 0) return Number(mb) * 1024 * 1024;
+  } catch {}
+  return 100 * 1024 * 1024; // default 100MB
+}
+
+const uploadStorage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, UPLOADS_DIR),
+  filename: (_req, file, cb) => {
+    const ts = Date.now();
+    const rand = Math.random().toString(36).slice(2, 8);
+    // giữ extension, đổi tên gốc để tránh trùng + ký tự lạ
+    const safeBase = path.basename(file.originalname, path.extname(file.originalname))
+      .replace(/[^a-zA-Z0-9_-]+/g, '-').slice(0, 40) || 'file';
+    cb(null, `${ts}-${rand}-${safeBase}${path.extname(file.originalname)}`);
+  },
+});
+
+// Multer cần limits sync → đọc cài đặt trong middleware riêng và bơm vào.
+app.post('/api/upload/local', async (req, res) => {
+  let maxBytes;
+  try { maxBytes = await getUploadMaxBytes(); }
+  catch { maxBytes = 100 * 1024 * 1024; }
+  const upload = multer({ storage: uploadStorage, limits: { fileSize: maxBytes } }).single('file');
+  upload(req, res, (err) => {
+    if (err) {
+      const code = err.code === 'LIMIT_FILE_SIZE' ? 413 : 400;
+      return res.status(code).json({ error: err.message, maxBytes });
+    }
+    if (!req.file) return res.status(400).json({ error: 'Không có file' });
+    const url = `/uploads/${req.file.filename}`;
+    res.json({
+      url,
+      name: req.file.originalname,
+      size: req.file.size,
+      mime: req.file.mimetype,
+    });
+  });
+});
+
+// =====================================================================
+// Cài đặt upload — đọc/ghi maxMb vào project_settings.feature_flags_json.upload
+// =====================================================================
+app.get('/api/settings/upload', async (_req, res) => {
+  try {
+    const pid = await getProjectId();
+    const r = await query(
+      'SELECT feature_flags_json FROM project_settings WHERE project_id=?',
+      [pid]
+    );
+    const cfg = r.rows[0]?.feature_flags_json?.upload || {};
+    res.json({ maxMb: Number(cfg.maxMb) || 100 });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/settings/upload', async (req, res) => {
+  try {
+    const pid = await getProjectId();
+    const maxMb = Math.max(1, Math.min(10240, Number(req.body?.maxMb) || 100));
+    const r = await query(
+      'SELECT feature_flags_json FROM project_settings WHERE project_id=?',
+      [pid]
+    );
+    const flags = r.rows[0]?.feature_flags_json || {};
+    flags.upload = { ...(flags.upload || {}), maxMb };
+    await query(
+      `INSERT INTO project_settings (project_id, feature_flags_json)
+       VALUES (?, ?)
+       ON DUPLICATE KEY UPDATE feature_flags_json = VALUES(feature_flags_json)`,
+      [pid, JSON.stringify(flags)]
+    );
+    res.json({ ok: true, maxMb });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/api/upload/presign', async (req, res) => {
   try {
     if (!r2Enabled) {

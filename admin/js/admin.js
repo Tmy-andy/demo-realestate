@@ -2823,6 +2823,15 @@ function renderSettings(el) {
       <div class="vtab-content">${settingsTabHTML(p)}</div>
     </div>
   `;
+  // Đồng bộ giá trị giới hạn upload từ server (lưu trong DB, không nằm sẵn trong project.json).
+  if (S.settingsTab === 'project') {
+    fetch(API_BASE + '/api/settings/upload').then(r => r.ok ? r.json() : null).then(j => {
+      if (!j) return;
+      S.data.project.uploadMaxMb = j.maxMb;
+      const inp = document.getElementById('sp-upload-maxmb');
+      if (inp && !inp.dataset.touched) inp.value = j.maxMb;
+    }).catch(() => {});
+  }
 }
 
 function settingsTabHTML(p) {
@@ -2923,6 +2932,26 @@ function settingsTabHTML(p) {
             'Sidebar admin, loader VR, brand topbar VR', 'dark')}
           ${logoSlotHTML('sp-logoLight', 'Logo màu (nền sáng)', p.logoLight || '../img/logo/LOGO-LV (2).png',
             'Topbar admin, trang đăng nhập', 'light')}
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-header">
+        <span class="card-title">Cấu Hình Upload File</span>
+        <span class="card-subtitle">Áp dụng cho upload tài liệu (Brochure, Bảng giá, …)</span>
+      </div>
+      <div class="card-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Giới hạn dung lượng mỗi file (MB)</label>
+            <input class="form-control" type="number" min="1" max="10240" id="sp-upload-maxmb"
+              value="${(p.uploadMaxMb)||100}" placeholder="100">
+            <small class="c-muted">Mặc định 100 MB. Tăng nếu cần upload video/CAD lớn.</small>
+          </div>
+          <div class="form-group" style="display:flex;align-items:flex-end">
+            <button class="btn btn-primary" onclick="saveUploadSettings()">${ico('save')} Lưu cấu hình upload</button>
+          </div>
         </div>
       </div>
     </div>
@@ -3130,6 +3159,24 @@ function coRemoveLink(i) {
   const list = coReadLinks();
   list.splice(i, 1);
   document.getElementById('sp-co-link-list').innerHTML = coLinksHTML(list);
+}
+
+async function saveUploadSettings() {
+  const el = document.getElementById('sp-upload-maxmb');
+  const maxMb = Math.max(1, parseInt(el.value, 10) || 100);
+  try {
+    const r = await fetch(API_BASE + '/api/settings/upload', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ maxMb }),
+    });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || 'Lỗi không xác định');
+    S.data.project.uploadMaxMb = j.maxMb;
+    toast(`Đã lưu — giới hạn ${j.maxMb} MB/file`, 'ok');
+  } catch (err) {
+    toast('Lưu thất bại: ' + err.message, 'err');
+  }
 }
 
 function saveProjectSettings() {
