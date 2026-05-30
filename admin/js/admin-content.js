@@ -653,6 +653,33 @@ function renderGalleryPage(el) {
         </div>
       </div>
     </div>`;
+  // Lazy load ảnh: chỉ set src khi card vào gần viewport — giảm tải khi nhiều ảnh
+  setupGalleryLazyLoad();
+}
+
+/* Quan sát các <img data-src> và chỉ load khi sắp vào màn hình. */
+let _galleryIO = null;
+function setupGalleryLazyLoad() {
+  // Disconnect observer cũ (re-render)
+  if (_galleryIO) { _galleryIO.disconnect(); _galleryIO = null; }
+  const imgs = document.querySelectorAll('#gallery-grid img[data-src]');
+  if (!imgs.length) return;
+  if (!('IntersectionObserver' in window)) {
+    // Fallback: load hết
+    imgs.forEach(img => { img.src = img.dataset.src; delete img.dataset.src; });
+    return;
+  }
+  _galleryIO = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (e.isIntersecting) {
+        const img = e.target;
+        img.src = img.dataset.src;
+        delete img.dataset.src;
+        _galleryIO.unobserve(img);
+      }
+    }
+  }, { rootMargin: '300px 0px', threshold: 0.01 });
+  imgs.forEach(img => _galleryIO.observe(img));
 }
 
 function folderRow(value, label, iconName, current, deletable=false) {
@@ -681,7 +708,11 @@ function mediaCardHTML(g, i) {
          ondrop="galleryDrop(${i})">
       <div class="gal-thumb" onclick="galleryOpenPreview(${i})" style="cursor:pointer;position:relative">
         ${thumb
-          ? `<img src="${esc(thumb)}" alt="${esc(g.title||'')}" loading="lazy" onerror="this.style.opacity=.2">`
+          ? `<img data-src="${esc(thumb)}" alt="${esc(g.title||'')}"
+                  loading="lazy" decoding="async"
+                  style="opacity:0;transition:opacity .2s;background:var(--surface2)"
+                  onload="this.style.opacity=1"
+                  onerror="this.style.opacity=.2">`
           : `<div style="display:flex;align-items:center;justify-content:center;height:100%;background:#0f172a;color:#475569">${ico('video',32)}</div>`}
         <div class="gal-idx">#${i+1}</div>
         ${isVideo ? `
