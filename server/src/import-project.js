@@ -361,14 +361,16 @@ export async function importProjectJson(c, projectCode, data) {
     : Object.values(resRaw).some((v) => v && typeof v === 'object' && 'url' in v)
       ? { __all: resRaw } // dạng cũ phẳng
       : resRaw;
+  const ALLOWED_RES_TYPES = new Set(['folder', 'file', 'pdf', 'image', 'video', 'link']);
   for (const [rk, resObj] of Object.entries(resByKey)) {
     for (const [i, key] of Object.keys(resObj || {}).entries()) {
       const r = resObj[key];
+      const type = ALLOWED_RES_TYPES.has(r.type) ? r.type : 'file';
       await c.query(
         `INSERT INTO project_resources
            (project_id, subdivision_code, resource_key, title, resource_type, resource_url, sort_order)
          VALUES (?,?,?,?,?,?,?)`,
-        [projectId, subCode(rk), key, r.title, r.type, r.url || '', i]
+        [projectId, subCode(rk), String(key).slice(0, 100), r.title, type, r.url || '', i]
       );
     }
   }
@@ -626,13 +628,17 @@ export async function importSubdivision(c, projectId, code, payload) {
     `DELETE FROM project_resources WHERE project_id=? AND subdivision_code ${eqSub}`,
     subParams
   );
+  // CHECK constraint trên resource_type chỉ cho: folder|file|pdf|image|video|link
+  // → map các loại UI mở rộng (doc/xls/...) về 'file'.
+  const ALLOWED_RES_TYPES = new Set(['folder', 'file', 'pdf', 'image', 'video', 'link']);
   for (const [i, key] of Object.keys(payload.resources || {}).entries()) {
     const r = payload.resources[key];
+    const type = ALLOWED_RES_TYPES.has(r.type) ? r.type : 'file';
     await c.query(
       `INSERT INTO project_resources
          (project_id, subdivision_code, resource_key, title, resource_type, resource_url, sort_order)
        VALUES (?,?,?,?,?,?,?)`,
-      [projectId, sub, key, r.title, r.type, r.url || '', i]
+      [projectId, sub, String(key).slice(0, 100), r.title, type, r.url || '', i]
     );
   }
 
