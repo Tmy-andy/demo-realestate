@@ -608,7 +608,9 @@ async function getUploadMaxBytes() {
       'SELECT feature_flags_json FROM project_settings WHERE project_id=?',
       [pid]
     );
-    const mb = r.rows[0]?.feature_flags_json?.upload?.maxMb;
+    const raw = r.rows[0]?.feature_flags_json;
+    const flags = typeof raw === 'string' ? (JSON.parse(raw) || {}) : (raw || {});
+    const mb = flags.upload?.maxMb;
     if (mb && Number(mb) > 0) return Number(mb) * 1024 * 1024;
   } catch {}
   return 100 * 1024 * 1024; // default 100MB
@@ -651,6 +653,15 @@ app.post('/api/upload/local', async (req, res) => {
 // =====================================================================
 // Cài đặt upload — đọc/ghi maxMb vào project_settings.feature_flags_json.upload
 // =====================================================================
+// MySQL driver có lúc trả JSON column dạng string (tuỳ driver/version) — chuẩn hoá về object.
+function parseFlags(raw) {
+  if (!raw) return {};
+  if (typeof raw === 'string') {
+    try { return JSON.parse(raw) || {}; } catch { return {}; }
+  }
+  return raw;
+}
+
 app.get('/api/settings/upload', async (_req, res) => {
   try {
     const pid = await getProjectId();
@@ -658,7 +669,8 @@ app.get('/api/settings/upload', async (_req, res) => {
       'SELECT feature_flags_json FROM project_settings WHERE project_id=?',
       [pid]
     );
-    const cfg = r.rows[0]?.feature_flags_json?.upload || {};
+    const flags = parseFlags(r.rows[0]?.feature_flags_json);
+    const cfg = flags.upload || {};
     res.json({ maxMb: Number(cfg.maxMb) || 100 });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -673,7 +685,7 @@ app.put('/api/settings/upload', async (req, res) => {
       'SELECT feature_flags_json FROM project_settings WHERE project_id=?',
       [pid]
     );
-    const flags = r.rows[0]?.feature_flags_json || {};
+    const flags = parseFlags(r.rows[0]?.feature_flags_json);
     flags.upload = { ...(flags.upload || {}), maxMb };
     await query(
       `INSERT INTO project_settings (project_id, feature_flags_json)
@@ -1778,8 +1790,10 @@ app.put('/api/translations/:entity/:id', async (req, res) => {
 });
 
 // Catch-all: '/' và '/<id-sale>' đều trả index.html.
-// FE (getSaleSlug) tự đọc id sale từ path. Không đụng tới /api/*.
-app.get(/^\/(?!api\/).*/, (req, res) => {
+// FE (getSaleSlug) tự đọc id sale từ path. Không đụng /api/* và /uploads/*
+// (file upload không tồn tại → trả 404 thật thay vì index.html, để PDF/file
+// không bị render thành trang VR).
+app.get(/^\/(?!api\/|uploads\/).*/, (req, res) => {
   res.sendFile(INDEX_HTML);
 });
 
