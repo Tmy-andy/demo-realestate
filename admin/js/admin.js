@@ -2813,9 +2813,11 @@ function renderSettings(el) {
       <div class="vtabs">
         ${[
           ['project',`${ico('hardhat',14)} Dự án`],
-          // Tab API là phần kỹ thuật — chỉ developer thấy.
-          ...(authRole()==='developer' ? [['api',`${ico('plug',14)} API & Tích hợp`]] : []),
-          ['upload',`${ico('upload',14)} Tải lên`],
+          // Tab API & Tải lên là phần kỹ thuật — chỉ developer thấy.
+          ...(authRole()==='developer' ? [
+            ['api',`${ico('plug',14)} API & Tích hợp`],
+            ['upload',`${ico('upload',14)} Tải lên`],
+          ] : []),
           ['users',`${ico('users',14)} Người dùng`],
           ['backup',`${ico('harddrive',14)} Backup`],
         ].map(([id,l])=>`
@@ -2839,7 +2841,7 @@ function renderSettings(el) {
 function settingsTabHTML(p) {
   const VALID_TABS = authRole()==='developer'
     ? ['project','api','upload','users','backup']
-    : ['project','upload','users','backup'];   // owner không có tab API (kỹ thuật)
+    : ['project','users','backup'];   // owner không thấy API & Tải lên (kỹ thuật)
   if (!VALID_TABS.includes(S.settingsTab)) S.settingsTab = 'project';
   const t = S.settingsTab;
   if (t==='project') return `
