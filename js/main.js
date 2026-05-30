@@ -1250,10 +1250,16 @@ function buildGallery() {
   }
   grid.innerHTML = items.map((g, i) => {
     let thumb = g.poster || g.thumb || '';
-    // Link Google Drive → thumbnail tự động qua API thumbnail của Drive
-    const did = driveFileId(g.src);
-    if (!thumb && did) thumb = `https://drive.google.com/thumbnail?id=${did}&sz=w640`;
-    if (!thumb) thumb = g.src || '';
+    if (!thumb) {
+      // Drive → API thumbnail; YouTube → i.ytimg; còn lại dùng chính src
+      const did = driveFileId(g.src);
+      if (did) thumb = `https://drive.google.com/thumbnail?id=${did}&sz=w640`;
+      else {
+        const yt = (g.src || '').match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{6,})/);
+        if (yt) thumb = `https://i.ytimg.com/vi/${yt[1]}/hqdefault.jpg`;
+        else thumb = g.src || '';
+      }
+    }
     const isVideo = g.type === 'video';
     return `
       <div class="gal-item" data-idx="${i}" style="position:relative">
