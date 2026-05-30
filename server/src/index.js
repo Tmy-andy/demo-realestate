@@ -1136,7 +1136,15 @@ app.put('/api/subdivision/:code', async (req, res) => {
   } catch (err) {
     await c.query('ROLLBACK');
     console.error('PUT /api/subdivision lỗi:', err);
-    res.status(500).json({ error: err.message });
+    // Trả thêm chi tiết để debug từ DevTools (sqlMessage / code / sqlState)
+    res.status(500).json({
+      error: err.message,
+      code: err.code,
+      sqlState: err.sqlState,
+      sqlMessage: err.sqlMessage,
+      sql: err.sql ? String(err.sql).slice(0, 500) : undefined,
+      stack: String(err.stack || '').split('\n').slice(0, 6).join('\n'),
+    });
   } finally {
     c.release();
   }
