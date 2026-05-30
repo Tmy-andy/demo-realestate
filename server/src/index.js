@@ -671,7 +671,10 @@ app.get('/api/settings/upload', async (_req, res) => {
     );
     const flags = parseFlags(r.rows[0]?.feature_flags_json);
     const cfg = flags.upload || {};
-    res.json({ maxMb: Number(cfg.maxMb) || 100 });
+    res.json({
+      maxMb:      Number(cfg.maxMb)      || 100,
+      imageMaxMb: Number(cfg.imageMaxMb) || 10,
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -680,20 +683,21 @@ app.get('/api/settings/upload', async (_req, res) => {
 app.put('/api/settings/upload', async (req, res) => {
   try {
     const pid = await getProjectId();
-    const maxMb = Math.max(1, Math.min(10240, Number(req.body?.maxMb) || 100));
+    const maxMb      = Math.max(1, Math.min(10240, Number(req.body?.maxMb)      || 100));
+    const imageMaxMb = Math.max(1, Math.min(1024,  Number(req.body?.imageMaxMb) || 10));
     const r = await query(
       'SELECT feature_flags_json FROM project_settings WHERE project_id=?',
       [pid]
     );
     const flags = parseFlags(r.rows[0]?.feature_flags_json);
-    flags.upload = { ...(flags.upload || {}), maxMb };
+    flags.upload = { ...(flags.upload || {}), maxMb, imageMaxMb };
     await query(
       `INSERT INTO project_settings (project_id, feature_flags_json)
        VALUES (?, ?)
        ON DUPLICATE KEY UPDATE feature_flags_json = VALUES(feature_flags_json)`,
       [pid, JSON.stringify(flags)]
     );
-    res.json({ ok: true, maxMb });
+    res.json({ ok: true, maxMb, imageMaxMb });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });

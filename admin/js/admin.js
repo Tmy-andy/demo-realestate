@@ -2815,6 +2815,7 @@ function renderSettings(el) {
           ['project',`${ico('hardhat',14)} Dự án`],
           // Tab API là phần kỹ thuật — chỉ developer thấy.
           ...(authRole()==='developer' ? [['api',`${ico('plug',14)} API & Tích hợp`]] : []),
+          ['upload',`${ico('upload',14)} Tải lên`],
           ['users',`${ico('users',14)} Người dùng`],
           ['backup',`${ico('harddrive',14)} Backup`],
         ].map(([id,l])=>`
@@ -2823,21 +2824,22 @@ function renderSettings(el) {
       <div class="vtab-content">${settingsTabHTML(p)}</div>
     </div>
   `;
-  // Đồng bộ giá trị giới hạn upload từ server (lưu trong DB, không nằm sẵn trong project.json).
-  if (S.settingsTab === 'project') {
+  // Đồng bộ cấu hình upload từ server khi mở tab tương ứng
+  if (S.settingsTab === 'upload') {
     fetch(API_BASE + '/api/settings/upload').then(r => r.ok ? r.json() : null).then(j => {
       if (!j) return;
-      S.data.project.uploadMaxMb = j.maxMb;
-      const inp = document.getElementById('sp-upload-maxmb');
-      if (inp && !inp.dataset.touched) inp.value = j.maxMb;
+      const f = document.getElementById('sp-upload-file-maxmb');
+      const i = document.getElementById('sp-upload-image-maxmb');
+      if (f && !f.dataset.touched) f.value = j.maxMb || 100;
+      if (i && !i.dataset.touched) i.value = j.imageMaxMb || 10;
     }).catch(() => {});
   }
 }
 
 function settingsTabHTML(p) {
   const VALID_TABS = authRole()==='developer'
-    ? ['project','api','users','backup']
-    : ['project','users','backup'];   // owner không có tab API (kỹ thuật)
+    ? ['project','api','upload','users','backup']
+    : ['project','upload','users','backup'];   // owner không có tab API (kỹ thuật)
   if (!VALID_TABS.includes(S.settingsTab)) S.settingsTab = 'project';
   const t = S.settingsTab;
   if (t==='project') return `
@@ -2936,29 +2938,47 @@ function settingsTabHTML(p) {
       </div>
     </div>
 
+    <div style="display:flex;justify-content:flex-end;margin-top:4px">
+      <button class="btn btn-primary" onclick="saveProjectSettings()">${ico('save')} Lưu tất cả</button>
+    </div>`;
+
+  if (t==='upload') return `
     <div class="card" style="margin-bottom:16px">
       <div class="card-header">
-        <span class="card-title">Cấu Hình Upload File</span>
-        <span class="card-subtitle">Áp dụng cho upload tài liệu (Brochure, Bảng giá, …)</span>
+        <span class="card-title">Cấu Hình Tải Lên</span>
+        <span class="card-subtitle">Giới hạn dung lượng cho ảnh và file tài liệu</span>
       </div>
       <div class="card-body">
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Giới hạn dung lượng mỗi file (MB)</label>
-            <input class="form-control" type="number" min="1" max="10240" id="sp-upload-maxmb"
-              value="${(p.uploadMaxMb)||100}" placeholder="100">
-            <small class="c-muted">Mặc định 100 MB. Tăng nếu cần upload video/CAD lớn.</small>
-          </div>
-          <div class="form-group" style="display:flex;align-items:flex-end">
-            <button class="btn btn-primary" onclick="saveUploadSettings()">${ico('save')} Lưu cấu hình upload</button>
-          </div>
+        <div class="form-group">
+          <label class="form-label">Giới hạn ảnh (MB / ảnh)</label>
+          <input class="form-control" type="number" min="1" max="1024" id="sp-upload-image-maxmb"
+            value="10" placeholder="10" oninput="this.dataset.touched=1">
+          <small class="c-muted">Áp dụng cho thư viện ảnh và logo. Mặc định 10 MB / ảnh.</small>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Giới hạn file tài liệu (MB / file)</label>
+          <input class="form-control" type="number" min="1" max="10240" id="sp-upload-file-maxmb"
+            value="100" placeholder="100" oninput="this.dataset.touched=1">
+          <small class="c-muted">Áp dụng cho PDF, video, file lớn. Mặc định 100 MB / file.</small>
+        </div>
+        <div style="display:flex;justify-content:flex-end">
+          <button class="btn btn-primary" onclick="saveUploadSettings()">${ico('save')} Lưu cấu hình</button>
         </div>
       </div>
     </div>
 
-    <div style="display:flex;justify-content:flex-end;margin-top:4px">
-      <button class="btn btn-primary" onclick="saveProjectSettings()">${ico('save')} Lưu tất cả</button>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Ghi chú</span>
+      </div>
+      <div class="card-body">
+        <div style="font-size:13px;color:var(--muted);line-height:1.6">
+          <p>• Tất cả file tải lên (ảnh + tài liệu) được lưu trên <b>Cloudflare R2</b> — không phụ thuộc storage server, không mất khi redeploy.</p>
+          <p>• Giới hạn ở đây chỉ kiểm soát phía client trước khi upload. Để tăng cao hơn cho video lớn, cần đảm bảo proxy (Traefik/Coolify) cũng cho phép body lớn tương ứng.</p>
+        </div>
+      </div>
     </div>`;
+
   if (t==='social') return `
     <div class="card">
       <div class="card-header"><span class="card-title">Mạng Xã Hội & Liên Kết</span></div>
@@ -3162,18 +3182,23 @@ function coRemoveLink(i) {
 }
 
 async function saveUploadSettings() {
-  const el = document.getElementById('sp-upload-maxmb');
-  const maxMb = Math.max(1, parseInt(el.value, 10) || 100);
+  const fileEl  = document.getElementById('sp-upload-file-maxmb');
+  const imageEl = document.getElementById('sp-upload-image-maxmb');
+  const maxMb      = Math.max(1, parseInt(fileEl?.value, 10) || 100);
+  const imageMaxMb = Math.max(1, parseInt(imageEl?.value, 10) || 10);
   try {
     const r = await fetch(API_BASE + '/api/settings/upload', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ maxMb }),
+      body: JSON.stringify({ maxMb, imageMaxMb }),
     });
     const j = await r.json();
     if (!r.ok) throw new Error(j.error || 'Lỗi không xác định');
-    S.data.project.uploadMaxMb = j.maxMb;
-    toast(`Đã lưu — giới hạn ${j.maxMb} MB/file`, 'ok');
+    toast(`Đã lưu — ảnh ${j.imageMaxMb} MB · file ${j.maxMb} MB`, 'ok');
+    // Áp dụng ngay cho session hiện tại
+    if (typeof MAX_IMG_BYTES_RUNTIME !== 'undefined') {
+      window.MAX_IMG_BYTES_RUNTIME = j.imageMaxMb * 1024 * 1024;
+    }
   } catch (err) {
     toast('Lưu thất bại: ' + err.message, 'err');
   }

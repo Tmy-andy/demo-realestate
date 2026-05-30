@@ -247,7 +247,21 @@ function esc(v) {
 }
 
 // ===== IMAGE UPLOAD HELPERS =====
-const MAX_IMG_BYTES   = 10 * 1024 * 1024;          // 10MB / ảnh
+// 10MB / ảnh — giá trị mặc định; admin có thể đổi trong Cài Đặt → Tải lên.
+// Sau khi sửa, window.IMAGE_MAX_BYTES_OVERRIDE được cập nhật để dùng ngay.
+let MAX_IMG_BYTES = 10 * 1024 * 1024;
+// Đọc cấu hình từ server lần đầu (nếu khả dụng)
+(async () => {
+  try {
+    const base = (typeof API_BASE !== 'undefined' && API_BASE) ? API_BASE : '';
+    const r = await fetch(base + '/api/settings/upload');
+    if (!r.ok) return;
+    const j = await r.json();
+    if (j.imageMaxMb && Number(j.imageMaxMb) > 0) {
+      MAX_IMG_BYTES = Number(j.imageMaxMb) * 1024 * 1024;
+    }
+  } catch {}
+})();
 const MAX_TOTAL_BYTES = 5  * 1024 * 1024;          // 5MB tổng localStorage
 
 /* Upload 1 file ảnh lên Cloudflare R2 qua presigned URL.
@@ -1801,30 +1815,43 @@ async function resourceUploadFile(file) {
   progressLabel.textContent = `Đang tải ${file.name}`;
 
   try {
-    const fd = new FormData();
-    fd.append('file', file);
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', base + '/api/upload/local');
-    xhr.upload.onprogress = ev => {
-      if (ev.lengthComputable) {
-        const pct = Math.round(ev.loaded / ev.total * 100);
-        progressBar.style.width = pct + '%';
-        progressPct.textContent = pct + '%';
-      }
-    };
-    const result = await new Promise((resolve, reject) => {
-      xhr.onload = () => {
-        try {
-          const json = JSON.parse(xhr.responseText || '{}');
-          if (xhr.status >= 200 && xhr.status < 300) resolve(json);
-          else reject(new Error(json.error || ('HTTP ' + xhr.status)));
-        } catch (e) { reject(e); }
+    // Xin presigned URL cho R2 — upload thẳng lên Cloudflare, không qua server.
+    const presignRes = await fetch(base + '/api/upload/presign', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        filename: file.name,
+        contentType: file.type || 'application/octet-stream',
+        folder: 'resources',
+      }),
+    });
+    if (!presignRes.ok) {
+      const msg = (await presignRes.json().catch(() => ({}))).error || presignRes.statusText;
+      throw new Error('Không xin được presigned URL: ' + msg);
+    }
+    const { uploadUrl, publicUrl, headers } = await presignRes.json();
+
+    // PUT trực tiếp lên R2 (dùng XHR để có progress)
+    await new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('PUT', uploadUrl);
+      Object.entries(headers || {}).forEach(([k, v]) => xhr.setRequestHeader(k, v));
+      xhr.upload.onprogress = ev => {
+        if (ev.lengthComputable) {
+          const pct = Math.round(ev.loaded / ev.total * 100);
+          progressBar.style.width = pct + '%';
+          progressPct.textContent = pct + '%';
+        }
       };
-      xhr.onerror = () => reject(new Error('Lỗi mạng'));
-      xhr.send(fd);
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) resolve();
+        else reject(new Error('R2 trả ' + xhr.status));
+      };
+      xhr.onerror = () => reject(new Error('Lỗi mạng khi upload lên R2'));
+      xhr.send(file);
     });
 
-    const fullUrl = result.url.startsWith('http') ? result.url : (base + result.url);
+    const fullUrl = publicUrl;
     urlEl.value = fullUrl;
     const ext = (file.name.split('.').pop() || '').toLowerCase();
     const typeMap = { pdf:'pdf', doc:'doc', docx:'doc', xls:'xls', xlsx:'xls',

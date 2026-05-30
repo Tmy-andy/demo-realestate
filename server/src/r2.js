@@ -30,21 +30,17 @@ const s3 = r2Enabled
     })
   : null;
 
-const ALLOWED_MIME = new Set([
-  'image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml', 'image/avif',
-]);
-
 function sanitizeName(name) {
   const ext = path.extname(name || '').toLowerCase().replace(/[^.a-z0-9]/g, '').slice(0, 8);
   return ext || '.bin';
 }
 
 // Trả { uploadUrl, publicUrl, key, headers } để frontend PUT trực tiếp.
+// Không whitelist MIME — cho phép upload mọi loại (PDF, doc, video…). Validation
+// dung lượng được kiểm soát ở phía client + cấu hình maxMb trong project_settings.
 export async function createPresignedPut({ filename, contentType, folder = 'uploads' }) {
   if (!r2Enabled) throw new Error('R2 chưa được cấu hình (.env)');
-  if (!contentType || !ALLOWED_MIME.has(contentType)) {
-    throw new Error('Content-Type không hợp lệ');
-  }
+  if (!contentType) contentType = 'application/octet-stream';
   const ext = sanitizeName(filename);
   const safeFolder = String(folder).replace(/[^a-z0-9/_-]/gi, '').replace(/^\/+|\/+$/g, '') || 'uploads';
   const key = `${safeFolder}/${Date.now()}-${crypto.randomBytes(8).toString('hex')}${ext}`;
