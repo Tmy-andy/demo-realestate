@@ -3197,9 +3197,9 @@ async function saveUploadSettings() {
     const j = await r.json();
     if (!r.ok) throw new Error(j.error || 'Lỗi không xác định');
     toast(`Đã lưu — ảnh ${j.imageMaxMb} MB · file ${j.maxMb} MB`, 'ok');
-    // Áp dụng ngay cho session hiện tại
-    if (typeof MAX_IMG_BYTES_RUNTIME !== 'undefined') {
-      window.MAX_IMG_BYTES_RUNTIME = j.imageMaxMb * 1024 * 1024;
+    // Áp dụng ngay cho session hiện tại — không cần reload
+    if (typeof window.refreshUploadLimits === 'function') {
+      await window.refreshUploadLimits();
     }
   } catch (err) {
     toast('Lưu thất bại: ' + err.message, 'err');

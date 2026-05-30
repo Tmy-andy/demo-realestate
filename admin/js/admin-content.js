@@ -248,20 +248,27 @@ function esc(v) {
 
 // ===== IMAGE UPLOAD HELPERS =====
 // 10MB / ảnh — giá trị mặc định; admin có thể đổi trong Cài Đặt → Tải lên.
-// Sau khi sửa, window.IMAGE_MAX_BYTES_OVERRIDE được cập nhật để dùng ngay.
 let MAX_IMG_BYTES = 10 * 1024 * 1024;
-// Đọc cấu hình từ server lần đầu (nếu khả dụng)
-(async () => {
-  try {
-    const base = (typeof API_BASE !== 'undefined' && API_BASE) ? API_BASE : '';
-    const r = await fetch(base + '/api/settings/upload');
-    if (!r.ok) return;
-    const j = await r.json();
-    if (j.imageMaxMb && Number(j.imageMaxMb) > 0) {
-      MAX_IMG_BYTES = Number(j.imageMaxMb) * 1024 * 1024;
-    }
-  } catch {}
-})();
+
+// Promise đảm bảo limit đã được fetch trước khi check. Refresh được khi cần.
+let _uploadLimitsPromise = null;
+function refreshUploadLimits() {
+  const base = (typeof API_BASE !== 'undefined' && API_BASE) ? API_BASE : '';
+  _uploadLimitsPromise = fetch(base + '/api/settings/upload')
+    .then(r => r.ok ? r.json() : null)
+    .then(j => {
+      if (j && j.imageMaxMb && Number(j.imageMaxMb) > 0) {
+        MAX_IMG_BYTES = Number(j.imageMaxMb) * 1024 * 1024;
+      }
+      return MAX_IMG_BYTES;
+    })
+    .catch(() => MAX_IMG_BYTES);
+  return _uploadLimitsPromise;
+}
+refreshUploadLimits(); // chạy 1 lần khi load
+
+// Cho phép gọi từ saveUploadSettings để cập nhật ngay sau khi đổi
+window.refreshUploadLimits = refreshUploadLimits;
 const MAX_TOTAL_BYTES = 5  * 1024 * 1024;          // 5MB tổng localStorage
 
 /* Upload 1 file ảnh lên Cloudflare R2 qua presigned URL.
@@ -421,6 +428,8 @@ async function imgFieldReadFile(id, file) {
   if (!file.type.startsWith('image/')) {
     toast('File không phải ảnh', 'err'); return;
   }
+  // Đảm bảo đã đọc cấu hình limit từ server (tránh race khi mới load trang)
+  if (_uploadLimitsPromise) { try { await _uploadLimitsPromise; } catch {} }
   if (file.size > MAX_IMG_BYTES) {
     toast(`Ảnh ${fmtSize(file.size)} vượt 10MB. Chọn ảnh nhỏ hơn.`, 'err'); return;
   }
@@ -785,6 +794,7 @@ function galleryEdit(i)    { galleryForm({ type:'image', ...S.data.gallery[i] },
 async function galleryBulkUploadImages(files) {
   const list = Array.from(files).filter(f => f.type.startsWith('image/'));
   if (list.length === 0) { toast('Không có ảnh hợp lệ', 'warn'); return; }
+  if (_uploadLimitsPromise) { try { await _uploadLimitsPromise; } catch {} }
   const oversized = list.filter(f => f.size > MAX_IMG_BYTES);
   if (oversized.length) {
     toast(`${oversized.length} ảnh vượt 10MB sẽ bị bỏ qua`, 'warn');
