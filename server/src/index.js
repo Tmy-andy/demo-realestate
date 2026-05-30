@@ -1794,11 +1794,18 @@ app.put('/api/translations/:entity/:id', async (req, res) => {
 });
 
 // Catch-all: '/' và '/<id-sale>' đều trả index.html.
-// FE (getSaleSlug) tự đọc id sale từ path. Không đụng /api/* và /uploads/*
-// (file upload không tồn tại → trả 404 thật thay vì index.html, để PDF/file
-// không bị render thành trang VR).
-app.get(/^\/(?!api\/|uploads\/).*/, (req, res) => {
+// FE (getSaleSlug) tự đọc id sale từ path. Loại trừ:
+//   - /api/*, /uploads/* (handler riêng)
+//   - Path chứa dấu chấm (.js, .css, .pdf, ảnh…) — phải là file asset thật,
+//     không tìm thấy thì trả 404 thay vì HTML (tránh lỗi "Unexpected token '<'").
+app.get(/^\/(?!api\/|uploads\/).*/, (req, res, next) => {
+  if (req.path.includes('.')) return next();
   res.sendFile(INDEX_HTML);
+});
+
+// 404 cho asset không tồn tại — trả text thay vì HTML để client biết file thiếu.
+app.use((req, res) => {
+  res.status(404).type('text/plain').send('Not Found: ' + req.originalUrl);
 });
 
 (async () => {
