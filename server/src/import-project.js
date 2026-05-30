@@ -613,7 +613,14 @@ export async function importSubdivision(c, projectId, code, payload) {
     `DELETE FROM construction_milestones WHERE project_id=? AND subdivision_code ${eqSub}`,
     subParams
   );
-  for (const [i, t] of (payload.timeline || []).entries()) {
+  // FE đôi khi gửi timeline dạng object {__all:[...], 'pk-xxx':[...]} thay vì array
+  // (do buildSubdivisionPayload rơi vào nhánh sai khi state chưa có __all). Tự lấy phần tử đúng.
+  let timelineArr = payload.timeline;
+  if (timelineArr && !Array.isArray(timelineArr) && typeof timelineArr === 'object') {
+    timelineArr = timelineArr[sub === null ? '__all' : sub] || [];
+  }
+  if (!Array.isArray(timelineArr)) timelineArr = [];
+  for (const [i, t] of timelineArr.entries()) {
     await c.query(
       `INSERT INTO construction_milestones
          (project_id, subdivision_code, phase_name, milestone_date_text,

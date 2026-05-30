@@ -150,8 +150,12 @@ async function saveSubdivision(page) {
 function buildSubdivisionPayload(code) {
   const pick = (section, empty) => {
     const d = S.data[section];
-    if (d && typeof d === 'object' && !Array.isArray(d) && ('__all' in d)) {
-      return d[code] != null ? d[code] : empty;
+    // Dạng phân tách theo phân khu: {__all:..., 'pk-xxx':...} → lấy slice tương ứng
+    if (d && typeof d === 'object' && !Array.isArray(d)) {
+      // ưu tiên key code/__all; nếu không có, trả empty thay vì cả object cha
+      if (code in d) return d[code] != null ? d[code] : empty;
+      if (Array.isArray(empty)) return empty;       // section vốn là mảng → tránh trả object
+      if ('__all' in d || Object.keys(d).some(k => k.startsWith('pk-'))) return empty;
     }
     return code === '__all' ? (d != null ? d : empty) : empty;
   };
