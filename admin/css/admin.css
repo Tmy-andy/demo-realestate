@@ -878,6 +878,15 @@ textarea.form-control { resize: vertical; min-height: 80px }
 }
 
 /* ===== GALLERY GRID ===== */
+.gallery-dropzone { position: relative; transition: background .15s, box-shadow .15s; }
+.gallery-dropzone.dragover { background: var(--primary-soft); box-shadow: inset 0 0 0 2px var(--primary); border-radius: 8px; }
+.gallery-dropzone.dragover::before {
+  content: 'Thả ảnh để tải lên';
+  position: absolute; inset: 0; z-index: 5; pointer-events: none;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 600; color: var(--primary);
+  background: rgba(255,255,255,.65); border-radius: 8px;
+}
 .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
 .gal-card { border: 1px solid var(--border); border-radius: var(--r); background: var(--surface); overflow: hidden; cursor: grab; display: flex; flex-direction: column; transition: var(--t); }
 .gal-card:hover { border-color: var(--primary); box-shadow: 0 4px 16px rgba(0,0,0,.06); }

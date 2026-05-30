@@ -608,14 +608,21 @@ function renderGalleryPage(el) {
       <div class="card">
         <div class="card-header">
           <span class="card-title">${tabLabel} · ${esc(curLabel)} · ${filtered.length} mục</span>
-          <span class="card-subtitle">${all.length} tổng · ${vidCount} video · ${imgCount} ảnh</span>
+          <span class="card-subtitle">${all.length} tổng · ${vidCount} video · ${imgCount} ảnh${tab === 'image' ? ' · kéo-thả ảnh vào đây để tải lên' : ''}</span>
         </div>
-        <div class="card-body">
+        <div class="card-body${tab === 'image' ? ' gallery-dropzone' : ''}" id="gallery-body"
+             ${tab === 'image' ? `
+               ondragenter="galleryGridDzEnter(event)"
+               ondragover="galleryGridDzEnter(event)"
+               ondragleave="galleryGridDzLeave(event)"
+               ondrop="galleryGridDzDrop(event)"
+             ` : ''}>
+          <div id="gallery-bulk-progress" style="display:none;margin-bottom:14px"></div>
           ${filtered.length === 0 ? `
             <div style="text-align:center;padding:40px;color:var(--muted)">
               ${cur === '__all'
-                ? `Chưa có ${tabLabel.toLowerCase()} nào. Bấm <b>Thêm ${tab === 'video' ? 'video' : 'ảnh'}</b> để bắt đầu.`
-                : `Không có mục nào trong thư mục này.`}
+                ? `Chưa có ${tabLabel.toLowerCase()} nào. ${tab === 'image' ? 'Kéo-thả ảnh vào đây hoặc bấm' : 'Bấm'} <b>Thêm ${tab === 'video' ? 'video' : 'ảnh'}</b> để bắt đầu.`
+                : (tab === 'image' ? `Thư mục trống — kéo-thả ảnh vào đây để tải lên.` : `Không có mục nào trong thư mục này.`)}
             </div>` : `
             <div class="gallery-grid" id="gallery-grid">
               ${filtered.map(({g, i}) => mediaCardHTML(g, i)).join('')}
@@ -732,10 +739,117 @@ function galleryDeleteFolder(name) {
 }
 
 /* ---------- CRUD ---------- */
-function galleryAddImage() { S.galleryTab = 'image'; galleryForm({ type:'image', src:'', title:'', folder: defaultFolderForNew() }, -1); }
+function galleryAddImage() {
+  S.galleryTab = 'image';
+  // Tạo input ẩn cho phép chọn nhiều ảnh cùng lúc → upload thẳng, không mở form từng ảnh.
+  const inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = 'image/*';
+  inp.multiple = true;
+  inp.style.display = 'none';
+  inp.onchange = () => {
+    const files = Array.from(inp.files || []);
+    inp.remove();
+    if (files.length === 0) return;
+    if (files.length === 1) {
+      // 1 ảnh → mở form đầy đủ như trước (để user nhập title/folder)
+      galleryForm({ type:'image', src:'', title:'', folder: defaultFolderForNew() }, -1);
+      // Đẩy file vào field upload sau khi panel render
+      setTimeout(() => imgFieldReadFile('g-src', files[0]), 100);
+    } else {
+      galleryBulkUploadImages(files);
+    }
+  };
+  document.body.appendChild(inp);
+  inp.click();
+}
 function galleryAddVideo() { S.galleryTab = 'video'; galleryForm({ type:'video', src:'', title:'', folder: defaultFolderForNew(), videoSource:'youtube', poster:'' }, -1); }
 function galleryAdd()      { galleryAddImage(); } // back-compat
 function galleryEdit(i)    { galleryForm({ type:'image', ...S.data.gallery[i] }, i); }
+
+/* Upload hàng loạt ảnh — dùng cho cả nút "Thêm ảnh" (multi) và kéo-thả vào lưới */
+async function galleryBulkUploadImages(files) {
+  const list = Array.from(files).filter(f => f.type.startsWith('image/'));
+  if (list.length === 0) { toast('Không có ảnh hợp lệ', 'warn'); return; }
+  const oversized = list.filter(f => f.size > MAX_IMG_BYTES);
+  if (oversized.length) {
+    toast(`${oversized.length} ảnh vượt 10MB sẽ bị bỏ qua`, 'warn');
+  }
+  const queue = list.filter(f => f.size <= MAX_IMG_BYTES);
+  if (queue.length === 0) return;
+
+  // Xác định thư mục đích: nếu đang ở thư mục cụ thể → gán luôn folder
+  const cur = S.galleryFolder;
+  const targetFolder = (cur && cur !== '__all' && cur !== '__none') ? cur : '';
+  const sk = curSubKey('gallery');
+  const subdivision = sk === '__all' ? null : sk;
+
+  const box = document.getElementById('gallery-bulk-progress');
+  if (box) {
+    box.style.display = '';
+    box.innerHTML = `
+      <div style="border:1px solid var(--border);border-radius:8px;padding:12px;background:var(--surface)">
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px">
+          <span><b id="glb-done">0</b>/${queue.length} ảnh — đang tải lên${targetFolder ? ` vào "${esc(targetFolder)}"` : ''}…</span>
+          <span id="glb-pct">0%</span>
+        </div>
+        <div style="height:6px;background:var(--surface2);border-radius:3px;overflow:hidden">
+          <div id="glb-bar" style="height:100%;width:0%;background:var(--primary);transition:width .2s"></div>
+        </div>
+      </div>`;
+  }
+
+  let done = 0, ok = 0, fail = 0;
+  for (const file of queue) {
+    try {
+      const publicUrl = await uploadImageToR2(file, { folder: 'gallery' });
+      const item = {
+        type: 'image',
+        src: publicUrl,
+        title: file.name.replace(/\.[^.]+$/, ''),
+        subdivision,
+      };
+      if (targetFolder) item.folder = targetFolder;
+      S.data.gallery.push(item);
+      ok++;
+    } catch (err) {
+      console.error('Upload thất bại:', file.name, err);
+      fail++;
+    }
+    done++;
+    const pct = Math.round(done / queue.length * 100);
+    const bar = document.getElementById('glb-bar');
+    const pctEl = document.getElementById('glb-pct');
+    const doneEl = document.getElementById('glb-done');
+    if (bar) bar.style.width = pct + '%';
+    if (pctEl) pctEl.textContent = pct + '%';
+    if (doneEl) doneEl.textContent = done;
+  }
+
+  markSubDirty('gallery');
+  saveData(fail ? `Đã thêm ${ok} ảnh · ${fail} lỗi` : `Đã thêm ${ok} ảnh`);
+  go('gallery');
+}
+
+/* Dropzone cho lưới ảnh — kéo-thả nhiều file vào để upload */
+function galleryGridDzEnter(e) {
+  if (!e.dataTransfer?.types?.includes('Files')) return;
+  e.preventDefault(); e.stopPropagation();
+  document.getElementById('gallery-body')?.classList.add('dragover');
+}
+function galleryGridDzLeave(e) {
+  e.preventDefault(); e.stopPropagation();
+  // chỉ remove khi rời khỏi vùng body, không phải con
+  if (e.target?.id === 'gallery-body') {
+    document.getElementById('gallery-body')?.classList.remove('dragover');
+  }
+}
+function galleryGridDzDrop(e) {
+  e.preventDefault(); e.stopPropagation();
+  document.getElementById('gallery-body')?.classList.remove('dragover');
+  const files = Array.from(e.dataTransfer?.files || []);
+  if (files.length) galleryBulkUploadImages(files);
+}
 function defaultFolderForNew() {
   const f = S.galleryFolder;
   return (f === '__all' || f === '__none') ? '' : f;
