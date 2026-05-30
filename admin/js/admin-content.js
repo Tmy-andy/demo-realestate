@@ -138,11 +138,11 @@ async function saveSubdivision(page) {
     });
     if (!r.ok) throw new Error('HTTP ' + r.status);
     S.dirtySub[page] = false;
-    toast('Đã lưu phân khu "' + code + '" lên CSDL', 'ok');
+    toast('Đã lưu phân khu "' + code + '"', 'ok');
     go(page);
   } catch (e) {
-    // vẫn giữ ở localStorage (saveData lo việc đó), báo chưa lên CSDL
-    toast('Đã lưu cục bộ — chưa lên CSDL (' + e.message + ')', 'warn');
+    // vẫn giữ ở localStorage, báo lưu tạm
+    toast('Lưu tạm trên máy — chưa đồng bộ được (' + e.message + ')', 'warn');
   }
 }
 
