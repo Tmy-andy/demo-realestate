@@ -2397,20 +2397,35 @@ document.addEventListener("DOMContentLoaded", boot);
 /* ============================================
    RESOURCES PANEL
    ============================================ */
-const RESOURCE_META = {
-  brochure:    { i18n: 'res.brochure',     label: 'Brochure dự án',           icon: 'doc' },
-  brandKit:    { i18n: 'res.brandKit',     label: 'Bộ nhận diện thương hiệu', icon: 'brand' },
-  priceList:   { i18n: 'res.priceList',    label: 'Bảng giá & chính sách',    icon: 'price' },
-  floorPlanPdf:{ i18n: 'res.floorPlanPdf', label: 'TMB mã căn & diện tích',   icon: 'plan' }
+const RES_ICONS = {
+  doc:    '<i data-lucide="file-text" width="22" height="22"></i>',
+  kit:    '<i data-lucide="briefcase" width="22" height="22"></i>',
+  brand:  '<i data-lucide="globe" width="22" height="22"></i>',
+  price:  '<i data-lucide="tag" width="22" height="22"></i>',
+  plan:   '<i data-lucide="layout-grid" width="22" height="22"></i>',
+  folder: '<i data-lucide="folder" width="22" height="22"></i>',
+  image:  '<i data-lucide="image" width="22" height="22"></i>',
+  video:  '<i data-lucide="play-circle" width="22" height="22"></i>',
+  link:   '<i data-lucide="link" width="22" height="22"></i>',
+  file:   '<i data-lucide="file" width="22" height="22"></i>',
 };
 
-const RES_ICONS = {
-  doc:   '<i data-lucide="file-text" width="22" height="22"></i>',
-  kit:   '<i data-lucide="briefcase" width="22" height="22"></i>',
-  brand: '<i data-lucide="globe" width="22" height="22"></i>',
-  price: '<i data-lucide="tag" width="22" height="22"></i>',
-  plan:  '<i data-lucide="layout-grid" width="22" height="22"></i>'
-};
+// Đoán icon từ key/title/type của tài liệu
+function resourceIconFor(key, item) {
+  const k = String(key || '').toLowerCase();
+  const t = String(item.title || '').toLowerCase();
+  const type = String(item.type || '').toLowerCase();
+  if (/brand|nhan-dien|nhận diện/.test(k + ' ' + t)) return 'brand';
+  if (/price|gia|giá|bảng giá/.test(k + ' ' + t)) return 'price';
+  if (/plan|floor|tmb|mặt bằng/.test(k + ' ' + t)) return 'plan';
+  if (/sales?-?kit|bi-kip|bí kíp/.test(k + ' ' + t)) return 'kit';
+  if (type === 'folder') return 'folder';
+  if (type === 'image') return 'image';
+  if (type === 'video') return 'video';
+  if (type === 'link') return 'link';
+  if (type === 'pdf' || /brochure/.test(k + ' ' + t)) return 'doc';
+  return 'file';
+}
 
 let resourcesSubKey = null;
 
@@ -2423,17 +2438,24 @@ function buildResourcesPanel() {
     buildResourcesPanel();
   });
   const res = pickSubData(DATA.resources, key) || {};
-  const keys = Object.keys(RESOURCE_META);
+  const keys = Object.keys(res);
+
+  if (keys.length === 0) {
+    grid.innerHTML = `<div class="res-empty" style="grid-column:1/-1;text-align:center;padding:32px;color:var(--muted,#888)">Chưa có tài liệu nào.</div>`;
+    if (window.lucide?.createIcons) window.lucide.createIcons();
+    return;
+  }
+
   grid.innerHTML = keys.map(k => {
     const item = res[k] || {};
-    const meta = RESOURCE_META[k];
-    const title = item.title || (meta.i18n ? _t('ui.' + meta.i18n) : meta.label);
+    const title = item.title || k;
     const has = !!item.url;
     const typeTag = item.type ? `<span class="res-type">${item.type.toUpperCase()}</span>` : '';
+    const iconKey = resourceIconFor(k, item);
     return `
       <a class="res-card ${has ? '' : 'res-disabled'}"
          ${has ? `href="${item.url}" target="_blank" rel="noopener"` : ''}>
-        <div class="res-icon">${RES_ICONS[meta.icon] || RES_ICONS.doc}</div>
+        <div class="res-icon">${RES_ICONS[iconKey] || RES_ICONS.file}</div>
         <div class="res-body">
           <div class="res-title">${title}</div>
           <div class="res-sub">${has ? 'Mở / Tải xuống' : 'Chưa cập nhật'}</div>
@@ -2442,4 +2464,5 @@ function buildResourcesPanel() {
       </a>
     `;
   }).join('');
+  if (window.lucide?.createIcons) window.lucide.createIcons();
 }

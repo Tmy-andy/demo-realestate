@@ -190,11 +190,39 @@ function adminDriveFileId(url) {
   if ((m = url.match(/[?&]id=([\w-]+)/))) return m[1];
   return null;
 }
-/* Thumbnail hiển thị được cho 1 asset (xử lý link Drive) */
+/* Trích ID YouTube từ nhiều dạng link: watch?v=, youtu.be/, shorts/, embed/ */
+function youtubeId(url) {
+  if (!url) return null;
+  let m;
+  if ((m = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{6,})/))) return m[1];
+  return null;
+}
+/* Trích ID Vimeo (số) từ link vimeo.com/123456 hoặc player.vimeo.com/video/123456 */
+function vimeoId(url) {
+  if (!url) return null;
+  const m = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  return m ? m[1] : null;
+}
+/* Thumbnail hiển thị được cho 1 asset (Drive / YouTube / Vimeo / URL thường) */
 function thumbPath(p) {
   const did = adminDriveFileId(p);
   if (did) return 'https://drive.google.com/thumbnail?id=' + did + '&sz=w640';
+  const yt = youtubeId(p);
+  if (yt) return `https://i.ytimg.com/vi/${yt}/hqdefault.jpg`;
+  // Vimeo cần gọi oEmbed (async) — không xử lý ở thumbPath đồng bộ, để caller dùng resolveThumb()
   return assetPath(p);
+}
+/* Lấy thumbnail kèm async cho Vimeo (oEmbed). Trả Promise<string>. */
+async function resolveThumb(p) {
+  const vid = vimeoId(p);
+  if (vid) {
+    try {
+      const r = await fetch(`https://vimeo.com/api/oembed.json?url=${encodeURIComponent('https://vimeo.com/' + vid)}`);
+      const j = await r.json();
+      if (j.thumbnail_url) return j.thumbnail_url.replace(/_\d+x\d+/, '_640');
+    } catch {}
+  }
+  return thumbPath(p);
 }
 
 // ——— Page header chung ————————————————————————
@@ -319,7 +347,8 @@ function imageField(id, label, currentValue = '', opts = {}) {
       <input type="hidden" id="${id}-val" value="${esc(currentValue||'')}">
 
       <div class="img-preview" id="${id}-prev" style="${currentValue?'':'display:none'}">
-        <img src="${esc(currentValue||'')}" onerror="this.style.opacity=.15">
+        <img src="${esc(thumbPath(currentValue)||'')}" onerror="this.style.opacity=.15"
+             referrerpolicy="no-referrer">
         <button type="button" class="img-prev-clear" onclick="imgFieldClear('${id}')" title="Xoá ảnh">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </button>
@@ -337,11 +366,20 @@ function imgFieldSyncURL(id, val) {
   document.getElementById(id+'-val').value = val;
   const prev = document.getElementById(id+'-prev');
   const img  = prev.querySelector('img');
-  if (val) { prev.style.display = ''; img.src = val; img.style.opacity = 1; }
-  else     { prev.style.display = 'none'; }
+  if (val) {
+    prev.style.display = '';
+    img.src = thumbPath(val);
+    img.style.opacity = 1;
+    // Vimeo cần oEmbed async — cập nhật khi có
+    if (vimeoId(val)) {
+      resolveThumb(val).then(t => { if (img && t) img.src = t; });
+    }
+  } else {
+    prev.style.display = 'none';
+  }
   /* sync logo-slot preview if present */
   const si = document.getElementById(id+'-slot-img');
-  if (si) { si.src = val || ''; si.style.opacity = val ? 1 : .2; }
+  if (si) { si.src = val ? thumbPath(val) : ''; si.style.opacity = val ? 1 : .2; }
 }
 function imgFieldClear(id) {
   document.getElementById(id+'-val').value = '';
@@ -762,7 +800,12 @@ function galleryForm(g, idx) {
       const vs = document.getElementById('g-vsource').value;
       o.src = src;
       o.videoSource = vs;
-      const poster = imgFieldValue('g-poster');
+      let poster = imgFieldValue('g-poster');
+      // Nếu user không nhập poster, tự sinh từ link nguồn (YouTube/Drive)
+      if (!poster) {
+        if (youtubeId(src)) poster = `https://i.ytimg.com/vi/${youtubeId(src)}/hqdefault.jpg`;
+        else if (adminDriveFileId(src)) poster = `https://drive.google.com/thumbnail?id=${adminDriveFileId(src)}&sz=w640`;
+      }
       if (poster) o.poster = poster;
     } else {
       const src = imgFieldValue('g-src');
