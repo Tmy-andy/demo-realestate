@@ -125,7 +125,7 @@
         return (
           '<div class="prop-card" data-id="' + p.id + '">' +
           '<div class="prop-card-img">' +
-          (img ? '<img data-lazy="' + img + '" alt="" loading="lazy" decoding="async" style="opacity:0;transition:opacity .2s;background:#1e293b" onload="this.style.opacity=1"/>' : "") +
+          (img ? '<img src="' + img + '" alt="" loading="lazy" decoding="async" style="background:#1e293b"/>' : "") +
           '<span class="prop-badge prop-badge-' + statusClass(p.status) + '">' +
           tr(p.statusLabel || "") + "</span>" +
           "</div>" +
@@ -263,8 +263,8 @@
       .map(
         (src, i) =>
           '<button class="pd-thumb ' + (i === 0 ? "active" : "") +
-          '" data-src="' + src + '"><img data-lazy="' + src +
-          '" alt="" loading="lazy" decoding="async" style="opacity:0;transition:opacity .2s" onload="this.style.opacity=1"/></button>'
+          '" data-src="' + src + '"><img src="' + src +
+          '" alt="" loading="lazy" decoding="async"/></button>'
       )
       .join("");
     const lang = window.I18n ? window.I18n.get() : 'vi';

@@ -436,11 +436,10 @@ function pcOverviewHTML() {
 function pcDetailHTML(d) {
   const imgs = d.images || [];
   const main = imgs[0] || "";
-  // Thumbnail thanh dưới: lazy load — ảnh nhỏ nhưng vẫn nhiều
+  // Thumbnail thanh dưới
   const thumbs = imgs.map((src, i) => `
     <button class="pc-thumb ${i === 0 ? "active" : ""}" data-src="${src}">
-      <img data-lazy="${src}" alt="" loading="lazy" decoding="async"
-           style="opacity:0;transition:opacity .2s" onload="this.style.opacity=1"/>
+      <img src="${src}" alt="" loading="lazy" decoding="async"/>
     </button>`).join("");
   const specs = (d.specs || []).map(s => `
     <div class="pc-spec-row">
@@ -1268,10 +1267,9 @@ function buildGallery() {
     return `
       <div class="gal-item" data-idx="${i}" style="position:relative">
         ${thumb
-          ? `<img data-src="${thumb}" alt="${_tr(g.title) || ''}"
+          ? `<img src="${thumb}" alt="${_tr(g.title) || ''}"
                   loading="lazy" decoding="async"
-                  style="opacity:0;transition:opacity .25s;background:#1e293b"
-                  onload="this.style.opacity=1"/>`
+                  style="background:#1e293b" referrerpolicy="no-referrer"/>`
           : `<div style="aspect-ratio:1;background:#0f172a;display:flex;align-items:center;justify-content:center;color:#475569"><i data-lucide="play" width="36" height="36"></i></div>`}
         ${isVideo ? `
           <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none">
@@ -1286,7 +1284,6 @@ function buildGallery() {
   grid.querySelectorAll(".gal-item").forEach(el => {
     el.addEventListener("click", () => openLightbox(parseInt(el.dataset.idx, 10)));
   });
-  setupPublicGalleryLazyLoad(grid);
 }
 
 /* IntersectionObserver: chỉ tải thumbnail khi card vào gần viewport */
