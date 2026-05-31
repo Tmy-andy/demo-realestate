@@ -2040,38 +2040,49 @@ body.nav-panel-collapsed .np-expand {
   border-radius: 8px;
   box-shadow: 0 20px 60px rgba(0,0,0,0.6);
 }
-/* Blur-up: thumb nhỏ phóng to + blur dưới, ảnh full fade in đè lên trên
-   khi đã load xong. Cả 2 cùng size để fade không bị nhảy layout. */
+/* Blur-up: thumb đóng vai trò "ruler" định size cho stage + làm nền mờ
+   chiếm full khung. Ảnh full position:absolute đè khít lên thumb, fade
+   in khi load xong → người dùng thấy nội dung mờ ngay tức thì. */
 .lb-stage {
   position: relative;
   display: inline-block;
+  line-height: 0;
   max-width: 90vw;
   max-height: 82vh;
+  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
 }
-.lb-stage .lb-thumb,
-.lb-stage .lb-full {
+.lb-stage .lb-thumb {
   display: block;
   max-width: 90vw;
   max-height: 82vh;
-  border-radius: 8px;
+  width: auto;
+  height: auto;
+  filter: blur(18px);
+  transform: scale(1.06); /* che viền blur tràn ra khỏi mép */
 }
-.lb-stage .lb-thumb {
+.lb-stage .lb-full {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  filter: blur(18px);
-  transform: scale(1.04); /* che viền blur tràn */
-  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-}
-.lb-stage .lb-full {
-  position: relative;
+  object-fit: cover;
   opacity: 0;
-  transition: opacity .35s ease;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  transition: opacity .4s ease;
 }
 .lb-stage .lb-full.loaded { opacity: 1; }
+/* Fallback khi không có thumb (thumb chưa load) — stage không có ruler,
+   để full image tự định size như cũ. */
+.lb-stage:not(:has(.lb-thumb)) .lb-full {
+  position: relative;
+  inset: auto;
+  width: auto;
+  height: auto;
+  max-width: 90vw;
+  max-height: 82vh;
+  object-fit: contain;
+}
 .lb-figure figcaption {
   color: var(--muted);
   font-size: 13px;
