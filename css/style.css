@@ -2103,6 +2103,23 @@ body.nav-panel-collapsed .np-expand {
   transition: all 0.2s;
 }
 .lb-close:hover { background: rgba(255,255,255,0.18); }
+.lb-download {
+  position: absolute;
+  top: 20px;
+  right: 76px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  text-decoration: none;
+  transition: all 0.2s;
+  z-index: 2;
+}
+.lb-download:hover { background: rgba(255,255,255,0.18); }
+.lb-download[hidden] { display: none; }
 .lb-nav {
   position: absolute;
   top: 50%;

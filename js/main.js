@@ -1356,8 +1356,22 @@ function safeUrl(u) {
 function setLightboxMedia(item) {
   const host = document.getElementById('lb-media-host');
   const cap  = document.getElementById('lb-cap');
+  const dl   = document.getElementById('lb-download');
   if (!host) return;
   host.innerHTML = '';
+  // Nút tải: chỉ hiện cho ảnh (video Drive/YouTube không tải trực tiếp được)
+  if (dl) {
+    if (item.type === 'video') {
+      dl.hidden = true;
+      dl.removeAttribute('href');
+    } else {
+      dl.hidden = false;
+      dl.href = safeUrl(item.src);
+      // Đặt tên file gợi ý từ title hoặc cuối path
+      const fname = (_tr(item.title) || item.src.split('/').pop() || 'image').trim();
+      dl.setAttribute('download', fname);
+    }
+  }
   if (item.type === 'video') {
     const embed = lbVideoEmbedUrl(item.src);
     if (embed) {
