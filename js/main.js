@@ -133,12 +133,12 @@ function goToPanorama(panoName) {
   if (typeof window.openPanoramaByName === 'function') {
     var ok = window.openPanoramaByName(panoName);
     if (!ok && !window.__panoramaHostReady) {
-      // Tour chưa sẵn sàng — chờ tourInitialized rồi thử lại đúng 1 lần.
+      // Tour chưa load xong (tour.player chưa có) — chờ tourLoaded rồi thử lại.
       var retry = function () {
-        window.removeEventListener('tourInitialized', retry);
+        window.removeEventListener('tourLoaded', retry);
         window.openPanoramaByName(panoName);
       };
-      window.addEventListener('tourInitialized', retry);
+      window.addEventListener('tourLoaded', retry);
     }
   }
   // Update scene info bar
@@ -1267,9 +1267,9 @@ function buildGallery() {
     return `
       <div class="gal-item" data-idx="${i}" style="position:relative">
         ${thumb
-          ? `<img src="${thumb}" alt="${_tr(g.title) || ''}"
+          ? `<img data-src="${thumb}" alt="${_tr(g.title) || ''}"
                   loading="lazy" decoding="async"
-                  style="background:#1e293b" referrerpolicy="no-referrer"/>`
+                  style="background:#1e293b;aspect-ratio:1" referrerpolicy="no-referrer"/>`
           : `<div style="aspect-ratio:1;background:#0f172a;display:flex;align-items:center;justify-content:center;color:#475569"><i data-lucide="play" width="36" height="36"></i></div>`}
         ${isVideo ? `
           <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none">
@@ -1284,6 +1284,9 @@ function buildGallery() {
   grid.querySelectorAll(".gal-item").forEach(el => {
     el.addEventListener("click", () => openLightbox(parseInt(el.dataset.idx, 10)));
   });
+  // Lazy load thumbnail bằng IntersectionObserver — tránh 24 request R2
+  // đua nhau khi mở overlay khiến lightbox kẹt sau hàng dài pending.
+  setupPublicGalleryLazyLoad(grid);
 }
 
 /* IntersectionObserver: chỉ tải thumbnail khi card vào gần viewport */
@@ -1368,8 +1371,26 @@ function openLightbox(idx) {
   const items = visibleGalleryItems();
   if (!items.length) return;
   lbIdx = idx;
+  // Hủy mọi thumbnail đang tải dở để giải phóng slot connection cho ảnh lightbox.
+  // Browser HTTP/1.x giới hạn ~6 connection/origin → R2 dễ bị queue.
+  cancelPendingThumbs();
   setLightboxMedia(items[lbIdx]);
   document.getElementById("lightbox").classList.add("open");
+}
+
+function cancelPendingThumbs() {
+  const grid = document.getElementById("gal-grid");
+  if (!grid) return;
+  grid.querySelectorAll('img[src]:not([data-src])').forEach(img => {
+    // Chỉ hủy ảnh chưa hoàn tất (complete=false hoặc naturalWidth=0)
+    if (!img.complete || img.naturalWidth === 0) {
+      const src = img.src;
+      img.removeAttribute('src');
+      img.setAttribute('data-src', src); // để IntersectionObserver retry sau
+    }
+  });
+  // Re-arm observer cho các img vừa chuyển về data-src
+  setupPublicGalleryLazyLoad(grid);
 }
 function navLightbox(dir) {
   const items = visibleGalleryItems();

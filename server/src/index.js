@@ -1755,6 +1755,15 @@ app.use((req, res, next) => {
     }
   }
 
+  // 4) Asset chung — /img/, /css/, /js/ — khi URL có prefix lạ (/sales1/img/x.png)
+  //    express.static gốc không match, ta cắt prefix và serve từ SITE_ROOT.
+  for (const d of ['/img/', '/css/', '/js/']) {
+    const i = req.path.indexOf(d);
+    if (i > 0) { // chỉ xử lý khi có prefix (i === 0 thì static đã match)
+      return res.sendFile(path.join(SITE_ROOT, req.path.slice(i + 1)), err => err && next());
+    }
+  }
+
   next();
 });
 

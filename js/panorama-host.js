@@ -104,11 +104,13 @@
   }
 
   function onInit() {
-    window.__panoramaHostReady = true;
     window.dispatchEvent(new CustomEvent('tourInitialized'));
   }
 
   function onLoaded() {
+    // tour.player chỉ tồn tại sau EVENT_TOUR_LOADED — set ready ở đây
+    // để openPanoramaByName không gọi setMediaByName lúc player còn null.
+    window.__panoramaHostReady = true;
     var playList = getMainPlayList();
     if (playList && playList.bind) {
       playList.bind('change', onPlayListChange);
@@ -155,7 +157,11 @@
     if (!name) return false;
     // Normalize pano-01 → pano-1 (3DVista v2026 dùng label không có leading zero)
     name = name.replace(/^(pano-)0(\d)$/, '$1$2');
-    if (!tour) { console.warn('[panorama-host] tour chưa sẵn sàng:', name); return false; }
+    // Chưa có tour hoặc player chưa init → báo caller chờ (main.js tự retry trên tourLoaded)
+    if (!tour || !tour.player) {
+      console.warn('[panorama-host] tour/player chưa sẵn sàng, chờ tourLoaded:', name);
+      return false;
+    }
     try {
       tour.setMediaByName(name);
       return true;
