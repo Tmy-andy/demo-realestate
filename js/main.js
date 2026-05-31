@@ -1267,7 +1267,7 @@ function buildGallery() {
     return `
       <div class="gal-item" data-idx="${i}" style="position:relative">
         ${thumb
-          ? `<img data-src="${thumb}" alt="${_tr(g.title) || ''}"
+          ? `<img data-src="${safeUrl(thumb)}" alt="${_tr(g.title) || ''}"
                   loading="lazy" decoding="async"
                   style="background:#1e293b;aspect-ratio:1" referrerpolicy="no-referrer"/>`
           : `<div style="aspect-ratio:1;background:#0f172a;display:flex;align-items:center;justify-content:center;color:#475569"><i data-lucide="play" width="36" height="36"></i></div>`}
@@ -1341,6 +1341,22 @@ function lbVideoEmbedUrl(url) {
   return null;
 }
 
+/* Encode dấu cách + ký tự lạ trong path mà KHÔNG đụng vào ?query, #hash,
+   protocol (http://) hay dấu / phân cách. Cần thiết khi tên file có
+   space hoặc unicode (vd ".../30032026-MB TONG HAI...jpg"). */
+function safeUrl(u) {
+  if (!u) return u;
+  // Đã có %XX → coi như đã encode rồi
+  if (/%[0-9a-f]{2}/i.test(u)) return u;
+  try {
+    const url = new URL(u, location.href);
+    url.pathname = url.pathname.split('/').map(encodeURIComponent).join('/');
+    return url.toString();
+  } catch {
+    return encodeURI(u);
+  }
+}
+
 function setLightboxMedia(item) {
   const host = document.getElementById('lb-media-host');
   const cap  = document.getElementById('lb-cap');
@@ -1352,7 +1368,7 @@ function setLightboxMedia(item) {
       const sep = embed.includes('?') ? '&' : '?';
       host.innerHTML = `<iframe src="${embed}${sep}autoplay=1" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen frameborder="0" style="width:min(1100px,90vw);aspect-ratio:16/9;background:#000;border-radius:8px;max-height:80vh"></iframe>`;
     } else {
-      host.innerHTML = `<video src="${item.src}" ${item.poster?`poster="${item.poster}"`:''} controls autoplay style="max-width:90vw;max-height:80vh;background:#000;border-radius:8px"></video>`;
+      host.innerHTML = `<video src="${safeUrl(item.src)}" ${item.poster?`poster="${safeUrl(item.poster)}"`:''} controls autoplay style="max-width:90vw;max-height:80vh;background:#000;border-radius:8px"></video>`;
     }
   } else {
     // Ảnh Google Drive: link /file/d/.../view không hiển thị trực tiếp
@@ -1360,7 +1376,7 @@ function setLightboxMedia(item) {
     const did = driveFileId(item.src);
     const imgSrc = did
       ? `https://drive.google.com/thumbnail?id=${did}&sz=w1600`
-      : item.src;
+      : safeUrl(item.src);
     host.innerHTML = `<img id="lb-img" src="${imgSrc}" alt="${_tr(item.title) || ''}"/>`;
   }
   if (cap) cap.textContent = _tr(item.title) || '';
