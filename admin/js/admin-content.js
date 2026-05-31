@@ -271,10 +271,52 @@ refreshUploadLimits(); // chạy 1 lần khi load
 window.refreshUploadLimits = refreshUploadLimits;
 const MAX_TOTAL_BYTES = 5  * 1024 * 1024;          // 5MB tổng localStorage
 
+/* Resize ảnh client-side bằng Canvas trước khi upload — file gốc 50MB sau
+   resize chỉ còn ~1MB. Bỏ qua: file không phải ảnh, SVG (vector), GIF
+   (mất animation), hoặc file đã nhỏ (< MIN_RESIZE_BYTES).
+   maxDim: cạnh dài nhất (px). quality: 0..1 cho JPEG/WebP. */
+const RESIZE_MAX_DIM = 2000;
+const RESIZE_QUALITY = 0.85;
+const MIN_RESIZE_BYTES = 500 * 1024; // < 500KB thì không resize
+
+async function resizeImageFile(file) {
+  if (!file || !file.type || !file.type.startsWith('image/')) return file;
+  if (file.type === 'image/svg+xml' || file.type === 'image/gif') return file;
+  if (file.size < MIN_RESIZE_BYTES) return file;
+
+  const bitmap = await createImageBitmap(file).catch(() => null);
+  if (!bitmap) return file; // browser không decode được → upload raw
+
+  const { width: w, height: h } = bitmap;
+  const scale = Math.min(1, RESIZE_MAX_DIM / Math.max(w, h));
+  const newW = Math.round(w * scale);
+  const newH = Math.round(h * scale);
+
+  const canvas = document.createElement('canvas');
+  canvas.width = newW;
+  canvas.height = newH;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(bitmap, 0, 0, newW, newH);
+  bitmap.close && bitmap.close();
+
+  // PNG có alpha → giữ PNG, không alpha → ép JPEG (nhẹ hơn rất nhiều)
+  const outType = file.type === 'image/png' ? 'image/jpeg' : (file.type || 'image/jpeg');
+  const blob = await new Promise(res => canvas.toBlob(res, outType, RESIZE_QUALITY));
+  if (!blob || blob.size >= file.size) return file; // resize không hiệu quả
+
+  // Đổi extension nếu chuyển PNG → JPEG
+  const newName = outType === 'image/jpeg' && /\.png$/i.test(file.name)
+    ? file.name.replace(/\.png$/i, '.jpg')
+    : file.name;
+  return new File([blob], newName, { type: outType, lastModified: Date.now() });
+}
+
 /* Upload 1 file ảnh lên Cloudflare R2 qua presigned URL.
    onProgress(pct 0..100) tuỳ chọn. Trả về public URL.
+   Tự động resize ảnh > 500KB xuống max 2000px trước khi upload.
    Fallback: nếu server chưa cấu hình R2 (503) -> ném lỗi để caller xử lý. */
 async function uploadImageToR2(file, { folder = 'uploads', onProgress } = {}) {
+  file = await resizeImageFile(file);
   const base = (typeof API_BASE !== 'undefined' && API_BASE) ? API_BASE : '';
   const presignRes = await fetch(base + '/api/upload/presign', {
     method: 'POST',
