@@ -1341,20 +1341,16 @@ function lbVideoEmbedUrl(url) {
   return null;
 }
 
-/* Encode dấu cách + ký tự lạ trong path mà KHÔNG đụng vào ?query, #hash,
-   protocol (http://) hay dấu / phân cách. Cần thiết khi tên file có
-   space hoặc unicode (vd ".../30032026-MB TONG HAI...jpg"). */
+/* Encode khoảng trắng + một số ký tự lạ (")(<>) trong path mà KHÔNG đụng
+   vào ký tự đã encode sẵn (%XX), query/hash, hay protocol. Chỉ xử lý
+   space + ký tự phá HTML attribute — browser tự lo phần còn lại. */
 function safeUrl(u) {
   if (!u) return u;
-  // Đã có %XX → coi như đã encode rồi
-  if (/%[0-9a-f]{2}/i.test(u)) return u;
-  try {
-    const url = new URL(u, location.href);
-    url.pathname = url.pathname.split('/').map(encodeURIComponent).join('/');
-    return url.toString();
-  } catch {
-    return encodeURI(u);
-  }
+  return String(u)
+    .replace(/ /g, '%20')
+    .replace(/"/g, '%22')
+    .replace(/</g, '%3C')
+    .replace(/>/g, '%3E');
 }
 
 function setLightboxMedia(item) {
