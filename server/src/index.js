@@ -1725,7 +1725,14 @@ const INDEX_HTML = path.join(SITE_ROOT, 'index.html');
 
 // File tĩnh thật (js, css, ảnh, data/...) — index:false để không tự
 // nuốt mọi request '/', dành quyền đó cho catch-all bên dưới.
-app.use(express.static(SITE_ROOT, { index: false, extensions: ['html'] }));
+// maxAge 30d: browser cache ảnh/js/css 30 ngày → user vào lần 2 không
+// tải lại. Khi cập nhật code, query string ?v=... ép browser tải mới.
+app.use(express.static(SITE_ROOT, {
+  index: false,
+  extensions: ['html'],
+  maxAge: '30d',
+  etag: true,
+}));
 
 // 3DVista tour + app dùng relative path — khi URL là /sales1 trình duyệt
 // có thể request /sales1/<file> hoặc /<file>. Map về vị trí thật để tránh 404.
