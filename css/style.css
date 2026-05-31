@@ -2040,6 +2040,38 @@ body.nav-panel-collapsed .np-expand {
   border-radius: 8px;
   box-shadow: 0 20px 60px rgba(0,0,0,0.6);
 }
+/* Blur-up: thumb nhỏ phóng to + blur dưới, ảnh full fade in đè lên trên
+   khi đã load xong. Cả 2 cùng size để fade không bị nhảy layout. */
+.lb-stage {
+  position: relative;
+  display: inline-block;
+  max-width: 90vw;
+  max-height: 82vh;
+}
+.lb-stage .lb-thumb,
+.lb-stage .lb-full {
+  display: block;
+  max-width: 90vw;
+  max-height: 82vh;
+  border-radius: 8px;
+}
+.lb-stage .lb-thumb {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: blur(18px);
+  transform: scale(1.04); /* che viền blur tràn */
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+.lb-stage .lb-full {
+  position: relative;
+  opacity: 0;
+  transition: opacity .35s ease;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+}
+.lb-stage .lb-full.loaded { opacity: 1; }
 .lb-figure figcaption {
   color: var(--muted);
   font-size: 13px;

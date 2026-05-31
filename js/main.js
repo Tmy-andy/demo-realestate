@@ -1377,9 +1377,36 @@ function setLightboxMedia(item) {
     const imgSrc = did
       ? `https://drive.google.com/thumbnail?id=${did}&sz=w1600`
       : safeUrl(item.src);
-    host.innerHTML = `<img id="lb-img" src="${imgSrc}" alt="${_tr(item.title) || ''}"/>`;
+    // Blur-up: nếu có thumbSrc (ảnh nhỏ đã cache từ grid) → hiện ngay làm
+    // background mờ, fade sang ảnh full khi load xong. Giúp người dùng
+    // thấy nội dung trong khi R2 vẫn còn đang trả ảnh full.
+    const thumb = item.thumbSrc ? safeUrl(item.thumbSrc) : '';
+    const alt = (_tr(item.title) || '').replace(/"/g, '&quot;');
+    host.innerHTML = `
+      <div class="lb-stage">
+        ${thumb ? `<img class="lb-thumb" src="${thumb}" alt="" aria-hidden="true"/>` : ''}
+        <img id="lb-img" class="lb-full" src="${imgSrc}" alt="${alt}"/>
+      </div>`;
+    const fullImg = host.querySelector('#lb-img');
+    if (fullImg) {
+      const reveal = () => fullImg.classList.add('loaded');
+      if (fullImg.complete && fullImg.naturalWidth) reveal();
+      else fullImg.addEventListener('load', reveal, { once: true });
+    }
   }
   if (cap) cap.textContent = _tr(item.title) || '';
+}
+
+/* Lấy URL thumbnail của card grid thứ idx (DOM đã resolve Drive/YouTube/...).
+   Trả về src hiện tại nếu ảnh đã load xong; nếu chưa thì lấy data-src
+   để vẫn có ảnh nhỏ làm placeholder blur. */
+function thumbSrcForIdx(idx) {
+  const grid = document.getElementById("gal-grid");
+  if (!grid) return '';
+  const card = grid.querySelector(`.gal-item[data-idx="${idx}"] img`);
+  if (!card) return '';
+  if (card.complete && card.naturalWidth) return card.src;
+  return card.getAttribute('data-src') || card.src || '';
 }
 
 let lbIdx = 0;
@@ -1390,7 +1417,7 @@ function openLightbox(idx) {
   // Hủy mọi thumbnail đang tải dở để giải phóng slot connection cho ảnh lightbox.
   // Browser HTTP/1.x giới hạn ~6 connection/origin → R2 dễ bị queue.
   cancelPendingThumbs();
-  setLightboxMedia(items[lbIdx]);
+  setLightboxMedia({ ...items[lbIdx], thumbSrc: thumbSrcForIdx(lbIdx) });
   document.getElementById("lightbox").classList.add("open");
 }
 
@@ -1412,7 +1439,7 @@ function navLightbox(dir) {
   const items = visibleGalleryItems();
   if (!items.length) return;
   lbIdx = (lbIdx + dir + items.length) % items.length;
-  setLightboxMedia(items[lbIdx]);
+  setLightboxMedia({ ...items[lbIdx], thumbSrc: thumbSrcForIdx(lbIdx) });
 }
 function closeLightbox() {
   // stop any playing video / iframe before hiding
