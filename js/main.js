@@ -436,9 +436,11 @@ function pcOverviewHTML() {
 function pcDetailHTML(d) {
   const imgs = d.images || [];
   const main = imgs[0] || "";
+  // Thumbnail thanh dưới: lazy load — ảnh nhỏ nhưng vẫn nhiều
   const thumbs = imgs.map((src, i) => `
     <button class="pc-thumb ${i === 0 ? "active" : ""}" data-src="${src}">
-      <img src="${src}" alt=""/>
+      <img data-lazy="${src}" alt="" loading="lazy" decoding="async"
+           style="opacity:0;transition:opacity .2s" onload="this.style.opacity=1"/>
     </button>`).join("");
   const specs = (d.specs || []).map(s => `
     <div class="pc-spec-row">
@@ -514,6 +516,8 @@ function pcSubdivisionHTML(s, panoId) {
 
 /* Bind tương tác trong vùng pc-dynamic */
 function bindPcDynamic(host) {
+  // Lazy load thumbnails trong panel chi tiết
+  lazyLoadImages(host.querySelectorAll('img[data-lazy]'), 'data-lazy');
   // Gallery thumbnail switch
   host.querySelectorAll(".pc-thumb").forEach(t => {
     t.addEventListener("click", () => {
@@ -1251,12 +1255,12 @@ function buildGallery() {
   grid.innerHTML = items.map((g, i) => {
     let thumb = g.poster || g.thumb || '';
     if (!thumb) {
-      // Drive → API thumbnail; YouTube → i.ytimg; còn lại dùng chính src
+      // Drive → API thumbnail kích thước nhỏ; YouTube → i.ytimg; còn lại dùng chính src
       const did = driveFileId(g.src);
-      if (did) thumb = `https://drive.google.com/thumbnail?id=${did}&sz=w640`;
+      if (did) thumb = `https://drive.google.com/thumbnail?id=${did}&sz=w320`;
       else {
         const yt = (g.src || '').match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{6,})/);
-        if (yt) thumb = `https://i.ytimg.com/vi/${yt[1]}/hqdefault.jpg`;
+        if (yt) thumb = `https://i.ytimg.com/vi/${yt[1]}/mqdefault.jpg`;
         else thumb = g.src || '';
       }
     }
@@ -1264,7 +1268,10 @@ function buildGallery() {
     return `
       <div class="gal-item" data-idx="${i}" style="position:relative">
         ${thumb
-          ? `<img src="${thumb}" alt="${_tr(g.title) || ''}" loading="lazy"/>`
+          ? `<img data-src="${thumb}" alt="${_tr(g.title) || ''}"
+                  loading="lazy" decoding="async"
+                  style="opacity:0;transition:opacity .25s;background:#1e293b"
+                  onload="this.style.opacity=1"/>`
           : `<div style="aspect-ratio:1;background:#0f172a;display:flex;align-items:center;justify-content:center;color:#475569"><i data-lucide="play" width="36" height="36"></i></div>`}
         ${isVideo ? `
           <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none">
@@ -1279,6 +1286,37 @@ function buildGallery() {
   grid.querySelectorAll(".gal-item").forEach(el => {
     el.addEventListener("click", () => openLightbox(parseInt(el.dataset.idx, 10)));
   });
+  setupPublicGalleryLazyLoad(grid);
+}
+
+/* IntersectionObserver: chỉ tải thumbnail khi card vào gần viewport */
+let _publicGalleryIO = null;
+function setupPublicGalleryLazyLoad(grid) {
+  if (_publicGalleryIO) { _publicGalleryIO.disconnect(); _publicGalleryIO = null; }
+  _publicGalleryIO = lazyLoadImages(grid.querySelectorAll('img[data-src]'), 'data-src');
+}
+
+/* Helper chung: nhận NodeList img + tên attribute chứa URL thật, trả observer */
+window.lazyLoadImages = lazyLoadImages;
+function lazyLoadImages(imgs, attrName) {
+  imgs = imgs && imgs.length ? imgs : [];
+  if (!imgs.length) return null;
+  if (!('IntersectionObserver' in window)) {
+    imgs.forEach(img => { img.src = img.getAttribute(attrName); img.removeAttribute(attrName); });
+    return null;
+  }
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (e.isIntersecting) {
+        const img = e.target;
+        const src = img.getAttribute(attrName);
+        if (src) { img.src = src; img.removeAttribute(attrName); }
+        io.unobserve(img);
+      }
+    }
+  }, { rootMargin: '400px 0px', threshold: 0.01 });
+  imgs.forEach(img => io.observe(img));
+  return io;
 }
 
 /* Trích FILE_ID từ link Google Drive (file hoặc ?id=) */

@@ -125,7 +125,7 @@
         return (
           '<div class="prop-card" data-id="' + p.id + '">' +
           '<div class="prop-card-img">' +
-          (img ? '<img src="' + img + '" alt="" loading="lazy"/>' : "") +
+          (img ? '<img data-lazy="' + img + '" alt="" loading="lazy" decoding="async" style="opacity:0;transition:opacity .2s;background:#1e293b" onload="this.style.opacity=1"/>' : "") +
           '<span class="prop-badge prop-badge-' + statusClass(p.status) + '">' +
           tr(p.statusLabel || "") + "</span>" +
           "</div>" +
@@ -147,6 +147,9 @@
     grid.querySelectorAll(".prop-card").forEach((c) => {
       c.addEventListener("click", () => openPropertyDetail(c.dataset.id));
     });
+    if (typeof window.lazyLoadImages === 'function') {
+      window.lazyLoadImages(grid.querySelectorAll('img[data-lazy]'), 'data-lazy');
+    }
   }
   function metaChip(k, v) {
     return '<span class="prop-meta-chip"><b>' + v + "</b> " + k + "</span>";
@@ -260,7 +263,8 @@
       .map(
         (src, i) =>
           '<button class="pd-thumb ' + (i === 0 ? "active" : "") +
-          '" data-src="' + src + '"><img src="' + src + '" alt=""/></button>'
+          '" data-src="' + src + '"><img data-lazy="' + src +
+          '" alt="" loading="lazy" decoding="async" style="opacity:0;transition:opacity .2s" onload="this.style.opacity=1"/></button>'
       )
       .join("");
     const lang = window.I18n ? window.I18n.get() : 'vi';
@@ -286,7 +290,7 @@
         '<h2 class="pd-name">' + (tField(p,'name') || "") + "</h2>" +
         '<div class="pd-gallery">' +
           '<div class="pd-gallery-main"><img id="pd-main-img" src="' +
-          (imgs[0] || "") + '" alt=""/></div>' +
+          (imgs[0] || "") + '" alt="" decoding="async"/></div>' +
           (imgs.length > 1 ? '<div class="pd-thumbs">' + thumbs + "</div>" : "") +
         "</div>" +
         '<div class="pd-quickfacts">' +
@@ -474,6 +478,10 @@
   function bindDetail(p) {
     const body = $("pd-body");
     if (!body) return;
+    /* Lazy load thumbnails — chỉ tải khi vào viewport */
+    if (typeof window.lazyLoadImages === 'function') {
+      window.lazyLoadImages(body.querySelectorAll('img[data-lazy]'), 'data-lazy');
+    }
     /* Gallery thumbnails */
     body.querySelectorAll(".pd-thumb").forEach((t) => {
       t.addEventListener("click", () => {
