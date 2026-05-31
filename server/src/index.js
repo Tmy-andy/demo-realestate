@@ -12,6 +12,7 @@ import {
   findSaleBySlug, pickNextSale,
 } from './users.js';
 import { createPresignedPut, r2Enabled } from './r2.js';
+import { collectUsedUrls, cleanupOrphans, dbRunner } from './file-cleanup.js';
 import multer from 'multer';
 import fs from 'node:fs';
 
@@ -810,6 +811,7 @@ app.put('/api/sale/profile', requireAuth(), async (req, res) => {
       const v = (b[k] || '').toString().trim();
       if (v) social[k] = v;
     }
+    const beforeUrls = await collectUsedUrls(dbRunner);
     await query(
       `UPDATE users SET
          full_name = ?, title = ?, phone = ?, email = ?, avatar_url = ?,
@@ -826,6 +828,9 @@ app.put('/api/sale/profile', requireAuth(), async (req, res) => {
       ]
     );
     res.json({ ok: true });
+    cleanupOrphans(beforeUrls, dbRunner).catch(e =>
+      console.error('[file-cleanup] PUT /api/sale/profile:', e)
+    );
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message });
@@ -865,8 +870,12 @@ app.put('/api/users/:id', requireAuth('developer', 'owner'), async (req, res) =>
     if (req.user.role === 'owner' && (req.body.role || '').toLowerCase() === 'developer') {
       return res.status(403).json({ error: 'Owner không thể gán quyền Developer' });
     }
+    const beforeUrls = await collectUsedUrls(dbRunner);
     await updateUser(pid, parseInt(req.params.id, 10), req.body || {});
     res.json({ ok: true });
+    cleanupOrphans(beforeUrls, dbRunner).catch(e =>
+      console.error('[file-cleanup] PUT /api/users:', e)
+    );
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -878,8 +887,12 @@ app.delete('/api/users/:id', requireAuth('developer', 'owner'), async (req, res)
     if (id === req.user.id) {
       return res.status(400).json({ error: 'Không thể xoá chính tài khoản đang đăng nhập' });
     }
+    const beforeUrls = await collectUsedUrls(dbRunner);
     await deleteUser(id);
     res.json({ ok: true });
+    cleanupOrphans(beforeUrls, dbRunner).catch(e =>
+      console.error('[file-cleanup] DELETE /api/users:', e)
+    );
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -1122,17 +1135,28 @@ app.put('/api/project', async (req, res) => {
     return res.status(400).json({ error: 'Body thiếu object "project"' });
   }
   const c = await pool.connect();
+  let beforeUrls = null;
+  let committed = false;
   try {
     await c.query('BEGIN');
+    beforeUrls = await collectUsedUrls(c);
     const projectId = await importProjectJson(c, PROJECT_CODE, data);
     await c.query('COMMIT');
+    committed = true;
     res.json({ ok: true, projectId });
   } catch (err) {
-    await c.query('ROLLBACK');
+    await c.query('ROLLBACK').catch(() => {});
     console.error('PUT /api/project lỗi:', err);
     res.status(500).json({ error: err.message });
   } finally {
-    c.release();
+    // Cleanup chạy sau response, dùng cùng connection (rồi mới release)
+    if (committed && beforeUrls) {
+      cleanupOrphans(beforeUrls, c)
+        .catch(e => console.error('[file-cleanup] PUT /api/project:', e))
+        .finally(() => c.release());
+    } else {
+      c.release();
+    }
   }
 });
 
@@ -1143,16 +1167,19 @@ app.put('/api/subdivision/:code', async (req, res) => {
   const code = req.params.code;
   const payload = req.body || {};
   const c = await pool.connect();
+  let beforeUrls = null;
+  let committed = false;
   try {
     await c.query('BEGIN');
+    beforeUrls = await collectUsedUrls(c);
     const projectId = await getProjectId();
     await importSubdivision(c, projectId, code, payload);
     await c.query('COMMIT');
+    committed = true;
     res.json({ ok: true, code });
   } catch (err) {
-    await c.query('ROLLBACK');
+    await c.query('ROLLBACK').catch(() => {});
     console.error('PUT /api/subdivision lỗi:', err);
-    // Trả thêm chi tiết để debug từ DevTools (sqlMessage / code / sqlState)
     res.status(500).json({
       error: err.message,
       code: err.code,
@@ -1162,7 +1189,13 @@ app.put('/api/subdivision/:code', async (req, res) => {
       stack: String(err.stack || '').split('\n').slice(0, 6).join('\n'),
     });
   } finally {
-    c.release();
+    if (committed && beforeUrls) {
+      cleanupOrphans(beforeUrls, c)
+        .catch(e => console.error('[file-cleanup] PUT /api/subdivision:', e))
+        .finally(() => c.release());
+    } else {
+      c.release();
+    }
   }
 });
 
