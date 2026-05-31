@@ -1727,6 +1727,37 @@ const INDEX_HTML = path.join(SITE_ROOT, 'index.html');
 // nuốt mọi request '/', dành quyền đó cho catch-all bên dưới.
 app.use(express.static(SITE_ROOT, { index: false, extensions: ['html'] }));
 
+// 3DVista tour + app dùng relative path — khi URL là /sales1 trình duyệt
+// có thể request /sales1/<file> hoặc /<file>. Map về vị trí thật để tránh 404.
+const DATA_DIR_VR = path.join(SITE_ROOT, 'data');
+const JS_DIR = path.join(SITE_ROOT, 'js');
+app.use((req, res, next) => {
+  if (req.method !== 'GET') return next();
+  const fileName = req.path.split('/').pop();
+  if (!fileName) return next();
+
+  // 1) File JS của 3DVista — ưu tiên data/
+  const TDV_FILES = new Set(['script_general.js', 'script.js', 'tdvplayer.js', 'script_mobile.js', 'tdvplayersw.js']);
+  if (TDV_FILES.has(fileName) && req.path !== '/data/' + fileName) {
+    return res.sendFile(path.join(DATA_DIR_VR, fileName), err => err && next());
+  }
+
+  // 2) config.js của app — thường được preload relative ở trang sale → map về js/
+  if (fileName === 'config.js' && req.path !== '/js/config.js') {
+    return res.sendFile(path.join(JS_DIR, 'config.js'), err => err && next());
+  }
+
+  // 3) Thư mục locale/, skin/, media/ — tài sản của tour 3DVista
+  for (const d of ['/locale/', '/skin/', '/media/']) {
+    const i = req.path.indexOf(d);
+    if (i !== -1 && !req.path.startsWith('/data/')) {
+      return res.sendFile(path.join(DATA_DIR_VR, req.path.slice(i + 1)), err => err && next());
+    }
+  }
+
+  next();
+});
+
 // Thư mục admin — serve index.html tương ứng khi truy cập không có tên file.
 app.get(['/admin', '/admin/'], (_req, res) => {
   res.sendFile(path.join(SITE_ROOT, 'admin', 'index.html'));
