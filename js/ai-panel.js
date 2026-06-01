@@ -238,12 +238,31 @@ window.AiPanel = (() => {
   }
 
   /* ─── Gemini Live connection ─────────────────────────── */
-  function _ensureGeminiLive() {
-    if (geminiLive && geminiLive.isConnected()) return geminiLive;
-
-    const wsUrl = (typeof window.AI_BACKEND_WS !== "undefined")
+  /* ─── WS URL builder (fetches short-lived token if configured) ───────── */
+  async function _buildWsUrl() {
+    const base = (typeof window.AI_BACKEND_WS !== "undefined")
       ? window.AI_BACKEND_WS
       : (location.protocol === "https:" ? "wss:" : "ws:") + "//" + location.hostname + ":8000/ws";
+    const cfg = window.AI_CONFIG;
+    if (!cfg || !cfg.wsTokenEndpoint) return base;
+    try {
+      const resp = await fetch(cfg.wsTokenEndpoint, { method: "POST" });
+      if (!resp.ok) throw new Error("HTTP " + resp.status);
+      const data = await resp.json();
+      if (data && data.token) {
+        const sep = base.indexOf("?") === -1 ? "?" : "&";
+        return base + sep + "token=" + encodeURIComponent(data.token);
+      }
+    } catch (e) {
+      console.warn("[AiPanel] Failed to fetch ws-token, connecting without token:", e);
+    }
+    return base;
+  }
+
+  async function _ensureGeminiLive() {
+    if (geminiLive && geminiLive.isConnected()) return geminiLive;
+
+    const wsUrl = await _buildWsUrl();
 
     geminiLive = new GeminiLive({
       wsUrl,
@@ -314,7 +333,7 @@ window.AiPanel = (() => {
     setStatusText(t("ai.connecting"));
 
     try {
-      const gl = _ensureGeminiLive();
+      const gl = await _ensureGeminiLive();
       /* initAudio must be called in user gesture */
       await gl.initAudio();
     } catch (e) {
@@ -338,7 +357,7 @@ window.AiPanel = (() => {
   }
 
   /* ─── Text input ─────────────────────────────────────── */
-  function sendTextQuestion(text) {
+  async function sendTextQuestion(text) {
     appendBubble("user", text);
     if (!window.GeminiLive) return;
     if (geminiLive && geminiLive.isConnected()) {
@@ -346,9 +365,7 @@ window.AiPanel = (() => {
       return;
     }
     /* Auto-connect for text-only mode */
-    const wsUrl = (typeof window.AI_BACKEND_WS !== "undefined")
-      ? window.AI_BACKEND_WS
-      : (location.protocol === "https:" ? "wss:" : "ws:") + "//" + location.hostname + ":8000/ws";
+    const wsUrl = await _buildWsUrl();
     geminiLive = new GeminiLive({
       wsUrl,
       onOpen: () => {
