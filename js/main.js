@@ -1287,9 +1287,12 @@ function buildGallery() {
   chipBar.style.cssText = 'display:flex;flex-direction:column;gap:8px;padding:0 0 12px';
 
   if (rootFolders.length || tabItems.some(g => !g.folder)) {
-    // val: '__all' | '__none' | <path>. active=đang chọn. dim=chip con phụ.
+    // Chip CHA: pill bo tròn, đặc — cấp gốc.
     const chip = (val, label, count, active) =>
-      `<button data-folder="${val}" style="padding:6px 12px;border-radius:999px;border:1px solid ${active?'#3b82f6':'rgba(255,255,255,.18)'};background:${active?'rgba(59,130,246,.25)':'rgba(255,255,255,.04)'};color:${active?'#fff':'rgba(255,255,255,.7)'};font-size:12px;font-weight:600;cursor:pointer;transition:all .15s">${label} <span style="opacity:.6;font-weight:400">${count}</span></button>`;
+      `<button data-folder="${val}" style="padding:7px 14px;border-radius:999px;border:1px solid ${active?'#3b82f6':'rgba(255,255,255,.18)'};background:${active?'rgba(59,130,246,.28)':'rgba(255,255,255,.05)'};color:${active?'#fff':'rgba(255,255,255,.72)'};font-size:12px;font-weight:600;cursor:pointer;transition:all .15s">${label} <span style="opacity:.6;font-weight:400">${count}</span></button>`;
+    // Chip CON: nhỏ hơn, bo góc vuông, có mũi ↳ + icon thư mục — trông rõ là cấp con.
+    const subChip = (val, label, count, active) =>
+      `<button data-folder="${val}" style="display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:7px;border:1px solid ${active?'#3b82f6':'rgba(255,255,255,.12)'};background:${active?'rgba(59,130,246,.22)':'rgba(255,255,255,.025)'};color:${active?'#fff':'rgba(255,255,255,.6)'};font-size:11.5px;font-weight:500;cursor:pointer;transition:all .15s"><i data-lucide="folder" width="13" height="13" style="opacity:.65"></i>${label} <span style="opacity:.55;font-weight:400">${count}</span></button>`;
     const countIn = (folder) => tabItems.filter(g => galItemInFolder(g, folder)).length;
 
     // Hàng cha: chip cha "active" nếu nó là gốc của filter hiện tại.
@@ -1297,18 +1300,21 @@ function buildGallery() {
       + (tabItems.some(g=>!g.folder) ? chip('__none', 'Chưa phân loại', tabItems.filter(g=>!g.folder).length, galleryFolderFilter==='__none') : '')
       + rootFolders.map(f => chip(f, galFolderName(f), countIn(f), activeRoot === f)).join('');
 
-    // Hàng con (chỉ khi đang chọn 1 cha có con).
+    // Hàng con: thụt lề + nhãn breadcrumb, chip kiểu khác hẳn cha.
     const childRow = childFolders.length
-      ? `<div style="display:flex;flex-wrap:wrap;gap:6px;padding-left:14px;border-left:2px solid rgba(59,130,246,.3)">`
+      ? `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:2px;padding:8px 0 4px 16px;border-left:2px solid rgba(59,130,246,.35)">`
+        + `<span style="display:inline-flex;align-items:center;gap:5px;color:rgba(255,255,255,.4);font-size:11px;font-weight:500;letter-spacing:.02em">`
+        +   `<i data-lucide="corner-down-right" width="13" height="13"></i>${galFolderName(activeRoot)}</span>`
         + childFolders.map(f => {
             const active = galleryFolderFilter === f || galIsDescendant(galleryFolderFilter, f);
-            return chip(f, galFolderName(f), countIn(f), active);
+            return subChip(f, galFolderName(f), countIn(f), active);
           }).join('')
         + `</div>`
       : '';
 
     chipBar.innerHTML =
       `<div style="display:flex;flex-wrap:wrap;gap:6px">${parentRow}</div>` + childRow;
+    if (window.lucide?.createIcons) window.lucide.createIcons();
     chipBar.style.display = 'flex';
     chipBar.querySelectorAll('button').forEach(btn => {
       btn.addEventListener('click', () => {
