@@ -1614,6 +1614,9 @@ function bindSmartHide() {
   const isUiTarget = (target) => {
     if (!target || target.nodeType !== 1) return false;
     if (target.closest("#ui-restore")) return true;
+    /* Nút nổi (chat AI, ...) nằm ngoài #ui nhưng vẫn là UI tương tác —
+       không được kích hoạt smart-hide khi user bấm vào chúng. */
+    if (target.closest(".bb-float")) return true;
     /* Modal/overlay/popup nằm ngoài #ui vẫn phải được coi là UI để không
        kích hoạt smart-hide khi user thao tác trong chúng. */
     if (target.closest(
