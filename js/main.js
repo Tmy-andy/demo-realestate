@@ -1148,9 +1148,23 @@ document.addEventListener("keydown", (e) => {
 });
 window.renderSubdivisionDock = renderSubdivisionDock;
 
-let galleryFolderFilter = '__all'; // '__all' | '__none' | folder name
+let galleryFolderFilter = '__all'; // '__all' | '__none' | folder path
 let galleryTabFilter = 'image';    // 'image' | 'video'
 let gallerySubKey = null;          // null = bám activeSubdivision
+
+/* Folder path utils (phân cấp bằng '/') — khớp với admin. */
+function galFolderParts(p)  { return String(p||'').split('/').map(s=>s.trim()).filter(Boolean); }
+function galFolderParent(p) { const a = galFolderParts(p); a.pop(); return a.join('/'); }
+function galFolderName(p)   { const a = galFolderParts(p); return a[a.length-1] || ''; }
+/* path là con/cháu của parent (không tính chính nó) */
+function galIsDescendant(path, parent) {
+  if (!parent) return true;
+  return path === parent ? false : String(path||'').startsWith(parent + '/');
+}
+/* ảnh/video nằm trong folder (gồm cả thư mục con) */
+function galItemInFolder(g, folder) {
+  return g.folder === folder || galIsDescendant(g.folder || '', folder);
+}
 
 /* Ảnh/video của phân khu đang chọn. Tab "Tất cả" (__all) = toàn bộ gallery. */
 function galleryItemsBySub() {
@@ -1169,7 +1183,8 @@ function visibleGalleryItems() {
   const items = galleryItemsByTab();
   if (galleryFolderFilter === '__all')  return items;
   if (galleryFolderFilter === '__none') return items.filter(g => !g.folder);
-  return items.filter(g => g.folder === galleryFolderFilter);
+  // Lọc gom cả thư mục con (chọn cha → thấy ảnh trong con/cháu).
+  return items.filter(g => galItemInFolder(g, galleryFolderFilter));
 }
 
 function buildGallery() {
@@ -1212,26 +1227,53 @@ function buildGallery() {
     });
   });
 
-  // Build folder chip bar (theo tab hiện hành)
-  const folders = [...new Set(tabItems.map(g => g.folder).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'vi'));
+  // Build folder chip bar (2 tầng: cha → con) theo tab hiện hành.
+  // Tập path có liên quan (gồm cả path cha suy ra từ con).
+  const allPaths = new Set();
+  tabItems.forEach(g => {
+    let p = g.folder;
+    while (p) { allPaths.add(p); p = galFolderParent(p); }
+  });
+  const rootFolders = [...allPaths].filter(p => !galFolderParent(p)).sort((a,b)=>a.localeCompare(b,'vi'));
+  // Cha cấp gốc đang chọn (để biết có hiện hàng con không).
+  const activeRoot = (galleryFolderFilter !== '__all' && galleryFolderFilter !== '__none')
+    ? galFolderParts(galleryFolderFilter)[0] || ''
+    : '';
+  const childFolders = activeRoot
+    ? [...allPaths].filter(p => galFolderParent(p) === activeRoot).sort((a,b)=>a.localeCompare(b,'vi'))
+    : [];
+
   let chipBar = document.getElementById('gal-folder-chips');
   if (!chipBar) {
     chipBar = document.createElement('div');
     chipBar.id = 'gal-folder-chips';
-    chipBar.style.cssText = 'display:flex;flex-wrap:wrap;gap:6px;padding:0 0 12px';
     grid.parentNode.insertBefore(chipBar, grid);
   }
-  if (folders.length || tabItems.some(g => !g.folder)) {
-    const chip = (val, label) => {
-      const active = galleryFolderFilter === val;
-      const count = val === '__all' ? tabItems.length
-                  : val === '__none' ? tabItems.filter(g => !g.folder).length
-                  : tabItems.filter(g => g.folder === val).length;
-      return `<button data-folder="${val}" style="padding:6px 12px;border-radius:999px;border:1px solid ${active?'#3b82f6':'rgba(255,255,255,.18)'};background:${active?'rgba(59,130,246,.25)':'rgba(255,255,255,.04)'};color:${active?'#fff':'rgba(255,255,255,.7)'};font-size:12px;font-weight:600;cursor:pointer;transition:all .15s">${label} <span style="opacity:.6;font-weight:400">${count}</span></button>`;
-    };
-    chipBar.innerHTML = chip('__all', 'Tất cả')
-      + (tabItems.some(g=>!g.folder) ? chip('__none', 'Chưa phân loại') : '')
-      + folders.map(f => chip(f, f)).join('');
+  chipBar.style.cssText = 'display:flex;flex-direction:column;gap:8px;padding:0 0 12px';
+
+  if (rootFolders.length || tabItems.some(g => !g.folder)) {
+    // val: '__all' | '__none' | <path>. active=đang chọn. dim=chip con phụ.
+    const chip = (val, label, count, active) =>
+      `<button data-folder="${val}" style="padding:6px 12px;border-radius:999px;border:1px solid ${active?'#3b82f6':'rgba(255,255,255,.18)'};background:${active?'rgba(59,130,246,.25)':'rgba(255,255,255,.04)'};color:${active?'#fff':'rgba(255,255,255,.7)'};font-size:12px;font-weight:600;cursor:pointer;transition:all .15s">${label} <span style="opacity:.6;font-weight:400">${count}</span></button>`;
+    const countIn = (folder) => tabItems.filter(g => galItemInFolder(g, folder)).length;
+
+    // Hàng cha: chip cha "active" nếu nó là gốc của filter hiện tại.
+    const parentRow = chip('__all', 'Tất cả', tabItems.length, galleryFolderFilter === '__all')
+      + (tabItems.some(g=>!g.folder) ? chip('__none', 'Chưa phân loại', tabItems.filter(g=>!g.folder).length, galleryFolderFilter==='__none') : '')
+      + rootFolders.map(f => chip(f, galFolderName(f), countIn(f), activeRoot === f)).join('');
+
+    // Hàng con (chỉ khi đang chọn 1 cha có con).
+    const childRow = childFolders.length
+      ? `<div style="display:flex;flex-wrap:wrap;gap:6px;padding-left:14px;border-left:2px solid rgba(59,130,246,.3)">`
+        + childFolders.map(f => {
+            const active = galleryFolderFilter === f || galIsDescendant(galleryFolderFilter, f);
+            return chip(f, galFolderName(f), countIn(f), active);
+          }).join('')
+        + `</div>`
+      : '';
+
+    chipBar.innerHTML =
+      `<div style="display:flex;flex-wrap:wrap;gap:6px">${parentRow}</div>` + childRow;
     chipBar.style.display = 'flex';
     chipBar.querySelectorAll('button').forEach(btn => {
       btn.addEventListener('click', () => {
