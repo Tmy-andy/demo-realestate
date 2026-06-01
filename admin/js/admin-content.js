@@ -1003,27 +1003,9 @@ function galleryDeleteFolder(path) {
 /* ---------- CRUD ---------- */
 function galleryAddImage() {
   S.galleryTab = 'image';
-  // Tạo input ẩn cho phép chọn nhiều ảnh cùng lúc → upload thẳng, không mở form từng ảnh.
-  const inp = document.createElement('input');
-  inp.type = 'file';
-  inp.accept = 'image/*';
-  inp.multiple = true;
-  inp.style.display = 'none';
-  inp.onchange = () => {
-    const files = Array.from(inp.files || []);
-    inp.remove();
-    if (files.length === 0) return;
-    if (files.length === 1) {
-      // 1 ảnh → mở form đầy đủ như trước (để user nhập title/folder)
-      galleryForm({ type:'image', src:'', title:'', folder: defaultFolderForNew() }, -1);
-      // Đẩy file vào field upload sau khi panel render
-      setTimeout(() => imgFieldReadFile('g-src', files[0]), 100);
-    } else {
-      galleryBulkUploadImages(files);
-    }
-  };
-  document.body.appendChild(inp);
-  inp.click();
+  // Mở form đầy đủ: tab Dán URL (gồm link Google Drive) + tab Tải lên + tiêu đề + thư mục.
+  // Upload nhanh hàng loạt vẫn dùng được qua kéo-thả nhiều ảnh vào lưới.
+  galleryForm({ type:'image', src:'', title:'', folder: defaultFolderForNew() }, -1);
 }
 function galleryAddVideo() { S.galleryTab = 'video'; galleryForm({ type:'video', src:'', title:'', folder: defaultFolderForNew(), videoSource:'youtube', poster:'' }, -1); }
 function galleryAdd()      { galleryAddImage(); } // back-compat
