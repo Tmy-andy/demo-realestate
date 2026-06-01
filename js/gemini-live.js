@@ -25,6 +25,7 @@ function GeminiLive(config) {
   this.onRecordingStart = config.onRecordingStart || null;
   this.onRecordingStop  = config.onRecordingStop  || null;
   this.onInterrupted    = config.onInterrupted    || null;
+  this.onEvent          = config.onEvent          || null; /* raw event hook */
 
   this.ws              = null;
   this.audioCtx        = null;
@@ -105,6 +106,12 @@ GeminiLive.prototype._handleMessage = function (msg) {
   /* Server-injected VR navigation command */
   if (msg.type === 'vr_navigate') {
     if (msg.nodeId && self.onNavigate) self.onNavigate(msg.nodeId);
+    return;
+  }
+
+  /* Session info — server tells client the assigned session_id */
+  if (msg.type === 'session_info') {
+    if (self.onEvent) self.onEvent(msg);
     return;
   }
 

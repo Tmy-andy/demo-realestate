@@ -2,6 +2,58 @@
    AI PANEL — BotChat (voice + text via Gemini Live)
    Kết nối: ws://AI_BACKEND_WS → FastAPI backend → Gemini Live API
    ============================================ */
+
+/* ─── SessionManager ────────────────────────────────────── */
+var SessionManager = {
+  CLIENT_ID_KEY: 'ai_client_id',
+  CURRENT_KEY:   'ai_current_session',
+
+  getClientId: function() {
+    var id = localStorage.getItem(this.CLIENT_ID_KEY);
+    if (!id) {
+      id = 'client_' + Math.random().toString(36).slice(2) + Date.now();
+      localStorage.setItem(this.CLIENT_ID_KEY, id);
+    }
+    return id;
+  },
+
+  getCurrentSessionId: function() {
+    return localStorage.getItem(this.CURRENT_KEY) || null;
+  },
+
+  setCurrentSessionId: function(id) {
+    localStorage.setItem(this.CURRENT_KEY, id);
+  },
+
+  clearCurrentSession: function() {
+    localStorage.removeItem(this.CURRENT_KEY);
+  },
+
+  loadSessions: async function() {
+    try {
+      var clientId = this.getClientId();
+      var resp = await fetch('/api/sessions?client_id=' + encodeURIComponent(clientId));
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      return await resp.json();
+    } catch (e) {
+      console.warn('[SessionManager] loadSessions failed:', e);
+      return [];
+    }
+  },
+
+  loadSessionMessages: async function(sessionId) {
+    try {
+      var resp = await fetch('/api/sessions/' + encodeURIComponent(sessionId));
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      var data = await resp.json();
+      return data.messages || [];
+    } catch (e) {
+      console.warn('[SessionManager] loadSessionMessages failed:', e);
+      return [];
+    }
+  }
+};
+
 window.AiPanel = (() => {
   let panel          = null;
   let geminiLive     = null;
@@ -117,6 +169,12 @@ window.AiPanel = (() => {
             <span class="ai-pn-status-text">${escapeHtml(t("ai.active"))}</span>
           </div>
         </div>
+        <button class="ai-pn-btn-history" title="Lịch sử chat" aria-label="Lịch sử">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </button>
+        <button class="ai-pn-btn-new" title="Tạo chat mới" aria-label="Chat mới">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
         <button class="ai-pn-x" aria-label="${escapeHtml(t("ai.close"))}">✕</button>
       </div>
       <div class="ai-pn-body">
@@ -134,6 +192,7 @@ window.AiPanel = (() => {
           ${"<span></span>".repeat(24)}
         </div>
       </div>
+      <div class="ai-session-list" style="display:none;"></div>
     `;
     document.body.appendChild(panel);
     bindShell();
@@ -142,6 +201,8 @@ window.AiPanel = (() => {
 
   function bindShell() {
     panel.querySelector(".ai-pn-x").addEventListener("click", close);
+    panel.querySelector(".ai-pn-btn-new").addEventListener("click", startNewChat);
+    panel.querySelector(".ai-pn-btn-history").addEventListener("click", toggleSessionList);
     const input = panel.querySelector(".ai-pn-input");
     const send  = panel.querySelector(".ai-pn-send");
     const mic   = panel.querySelector(".ai-pn-mic");
@@ -237,28 +298,39 @@ window.AiPanel = (() => {
     });
   }
 
-  /* ─── Gemini Live connection ─────────────────────────── */
   /* ─── WS URL builder (fetches short-lived token if configured) ───────── */
   async function _buildWsUrl() {
     const base = (typeof window.AI_BACKEND_WS !== "undefined")
       ? window.AI_BACKEND_WS
       : (location.protocol === "https:" ? "wss:" : "ws:") + "//" + location.hostname + ":8000/ws";
     const cfg = window.AI_CONFIG;
-    if (!cfg || !cfg.wsTokenEndpoint) return base;
-    try {
-      const resp = await fetch(cfg.wsTokenEndpoint, { method: "POST" });
-      if (!resp.ok) throw new Error("HTTP " + resp.status);
-      const data = await resp.json();
-      if (data && data.token) {
-        const sep = base.indexOf("?") === -1 ? "?" : "&";
-        return base + sep + "token=" + encodeURIComponent(data.token);
+    let url = base;
+    // Append ws-token
+    if (cfg && cfg.wsTokenEndpoint) {
+      try {
+        const resp = await fetch(cfg.wsTokenEndpoint, { method: "POST" });
+        if (!resp.ok) throw new Error("HTTP " + resp.status);
+        const data = await resp.json();
+        if (data && data.token) {
+          const sep = url.indexOf("?") === -1 ? "?" : "&";
+          url = url + sep + "token=" + encodeURIComponent(data.token);
+        }
+      } catch (e) {
+        console.warn("[AiPanel] Failed to fetch ws-token, connecting without token:", e);
       }
-    } catch (e) {
-      console.warn("[AiPanel] Failed to fetch ws-token, connecting without token:", e);
     }
-    return base;
+    // Append session_id and client_id
+    const sid = SessionManager.getCurrentSessionId();
+    const cid = SessionManager.getClientId();
+    const sep2 = url.indexOf("?") === -1 ? "?" : "&";
+    url = url + sep2 + "client_id=" + encodeURIComponent(cid);
+    if (sid) {
+      url = url + "&session_id=" + encodeURIComponent(sid);
+    }
+    return url;
   }
 
+  /* ─── Gemini Live connection ─────────────────────────── */
   async function _ensureGeminiLive() {
     if (geminiLive && geminiLive.isConnected()) return geminiLive;
 
@@ -279,6 +351,13 @@ window.AiPanel = (() => {
       onMessage: (role, text /*, audioUrl */) => {
         if (text && text.trim()) {
           appendBubble(role === "gemini" ? "bot" : "user", text);
+        }
+      },
+
+      onEvent: (evt) => {
+        /* Capture session_id assigned by server */
+        if (evt && evt.type === "session_info" && evt.session_id) {
+          SessionManager.setCurrentSessionId(evt.session_id);
         }
       },
 
@@ -427,11 +506,106 @@ window.AiPanel = (() => {
     }
   }
 
+  /* ─── Session management ─────────────────────────────── */
+  function startNewChat() {
+    if (voiceActive) exitVoiceMode();
+    if (geminiLive) { geminiLive.disconnect(); geminiLive = null; }
+    SessionManager.clearCurrentSession();
+    sessionHistory.length = 0;
+    renderHistory();
+    // Hide session list if open
+    if (panel) {
+      const sl = panel.querySelector(".ai-session-list");
+      if (sl) sl.style.display = "none";
+    }
+  }
+
+  function _formatDate(isoStr) {
+    if (!isoStr) return "";
+    try {
+      const d = new Date(isoStr);
+      return d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
+    } catch (e) { return ""; }
+  }
+
+  function toggleSessionList() {
+    if (!panel) return;
+    const sl = panel.querySelector(".ai-session-list");
+    if (!sl) return;
+    if (sl.style.display !== "none") {
+      sl.style.display = "none";
+      return;
+    }
+    sl.style.display = "flex";
+    sl.innerHTML = `<div class="ai-session-loading">Đang tải…</div>`;
+    const currentSid = SessionManager.getCurrentSessionId();
+    SessionManager.loadSessions().then(function(sessions) {
+      if (!sessions || sessions.length === 0) {
+        sl.innerHTML = `<div class="ai-session-empty">Chưa có lịch sử chat</div>`;
+        return;
+      }
+      sl.innerHTML = sessions.map(function(s) {
+        const active = s.session_id === currentSid ? " ai-session-active" : "";
+        return `<div class="ai-session-item${active}" data-sid="${escapeHtml(s.session_id)}">
+          <div class="ai-session-title">${escapeHtml(s.title || s.session_id)}</div>
+          <div class="ai-session-meta">${s.message_count || 0} tin nhắn · ${_formatDate(s.updated_at)}</div>
+        </div>`;
+      }).join("") + `<div class="ai-session-item ai-session-new-btn">+ Tạo chat mới</div>`;
+
+      sl.querySelectorAll(".ai-session-item[data-sid]").forEach(function(el) {
+        el.addEventListener("click", function() {
+          const sid = el.getAttribute("data-sid");
+          sl.style.display = "none";
+          _loadSessionIntoPanel(sid);
+        });
+      });
+      const newBtn = sl.querySelector(".ai-session-new-btn");
+      if (newBtn) newBtn.addEventListener("click", function() {
+        sl.style.display = "none";
+        startNewChat();
+      });
+    }).catch(function(e) {
+      console.warn("[AiPanel] session list error:", e);
+      sl.innerHTML = `<div class="ai-session-empty">Không thể tải lịch sử</div>`;
+    });
+  }
+
+  function _loadSessionIntoPanel(sid) {
+    if (voiceActive) exitVoiceMode();
+    if (geminiLive) { geminiLive.disconnect(); geminiLive = null; }
+    SessionManager.setCurrentSessionId(sid);
+    sessionHistory.length = 0;
+    SessionManager.loadSessionMessages(sid).then(function(messages) {
+      messages.forEach(function(m) {
+        sessionHistory.push({ role: m.role === "assistant" ? "bot" : m.role, text: m.text });
+      });
+      renderHistory();
+    }).catch(function(e) {
+      console.warn("[AiPanel] load session messages error:", e);
+    });
+  }
+
   /* ─── Public API ─────────────────────────────────────── */
   function open() {
     buildShell();
     _initVRBridge();
     renderHistory();
+    // Restore previous session messages if a session is stored
+    if (sessionHistory.length === 0) {
+      const sid = SessionManager.getCurrentSessionId();
+      if (sid) {
+        SessionManager.loadSessionMessages(sid).then(function(messages) {
+          if (messages && messages.length > 0) {
+            messages.forEach(function(m) {
+              sessionHistory.push({ role: m.role === "assistant" ? "bot" : m.role, text: m.text });
+            });
+            renderHistory();
+          }
+        }).catch(function(e) {
+          console.warn("[AiPanel] restore session failed:", e);
+        });
+      }
+    }
     requestAnimationFrame(() => {
       panel.classList.add("open");
       document.body.classList.add("ai-panel-open");
