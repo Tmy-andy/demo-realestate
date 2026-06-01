@@ -1620,7 +1620,7 @@ function bindSmartHide() {
     /* Modal/overlay/popup nằm ngoài #ui vẫn phải được coi là UI để không
        kích hoạt smart-hide khi user thao tác trong chúng. */
     if (target.closest(
-      "#masterplan-overlay, #modal-backdrop, .modal, .modal-backdrop, " +
+      "#masterplan-overlay, #modal-backdrop, #ai-panel, .modal, .modal-backdrop, " +
       ".mp-overlay, .adv-overlay, .fpv-overlay, .gallery-overlay, " +
       ".lightbox, .image-viewer, .video-viewer, " +
       ".popup, .popover, .dropdown, .menu, [role='dialog'], " +

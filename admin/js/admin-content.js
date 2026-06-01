@@ -625,10 +625,63 @@ function galleryStoredFolders() {
   return (S.galleryTab === 'video' ? store.video : store.image) || [];
 }
 function galleryFolders() {
+  // Trả về tất cả path thư mục (gồm cả path cha suy ra từ path con).
+  // Path dùng '/' để phân cấp: "Cha/Con/Cháu".
   const set = new Set();
-  galleryListByTab().forEach(({g}) => { if (g.folder) set.add(g.folder); });
-  galleryStoredFolders().forEach(n => { if (n) set.add(n); });
+  const addWithAncestors = (path) => {
+    const parts = folderParts(path);
+    for (let k = 1; k <= parts.length; k++) set.add(parts.slice(0, k).join('/'));
+  };
+  galleryListByTab().forEach(({g}) => { if (g.folder) addWithAncestors(g.folder); });
+  galleryStoredFolders().forEach(n => { if (n) addWithAncestors(n); });
   return [...set].sort((a,b) => a.localeCompare(b, 'vi'));
+}
+
+/* ---------- Folder path utils (phân cấp bằng '/') ---------- */
+function folderParts(path)  { return String(path||'').split('/').map(s => s.trim()).filter(Boolean); }
+function folderDepth(path)  { return folderParts(path).length; }
+function folderName(path)   { const p = folderParts(path); return p[p.length-1] || ''; }
+function folderParent(path) { const p = folderParts(path); p.pop(); return p.join('/'); }
+function folderJoin(parent, name) { return [parent, name].filter(Boolean).map(s => String(s).trim()).filter(Boolean).join('/'); }
+/* path con/cháu của parent (không tính chính nó) */
+function folderIsDescendant(path, parent) {
+  if (!parent) return true;
+  return path === parent ? false : path.startsWith(parent + '/');
+}
+
+/* Dựng cây từ danh sách path phẳng. Trả về mảng node {path,name,children}. */
+function galleryFolderTree() {
+  const all = galleryFolders();
+  const roots = [];
+  const byPath = new Map();
+  for (const path of all) {
+    const node = { path, name: folderName(path), children: [] };
+    byPath.set(path, node);
+    const parent = folderParent(path);
+    if (parent && byPath.has(parent)) byPath.get(parent).children.push(node);
+    else roots.push(node);
+  }
+  return roots;
+}
+
+/* Số mục (gồm cả thư mục con) trong một path. */
+function galleryFolderDeepCount(path) {
+  return galleryListByTab().filter(({g}) =>
+    g.folder === path || folderIsDescendant(g.folder || '', path)).length;
+}
+
+/* State mở/đóng của các thư mục trên sidebar (theo path). */
+S.galleryOpenFolders ??= {};
+function galleryFolderIsOpen(path) {
+  // Mặc định mở; nhớ trạng thái khi user đóng/mở. Tự mở nếu đang chọn nằm bên trong.
+  if (S.galleryOpenFolders[path] !== undefined) return S.galleryOpenFolders[path];
+  const cur = S.galleryFolder;
+  if (cur && cur !== '__all' && cur !== '__none' && folderIsDescendant(cur, path)) return true;
+  return false;
+}
+function galleryToggleFolder(path) {
+  S.galleryOpenFolders[path] = !galleryFolderIsOpen(path);
+  go('gallery');
 }
 function galleryFilteredIndexes() {
   const f = S.galleryFolder;
@@ -678,7 +731,6 @@ function renderGalleryPage(el) {
   const all = galleryListAll();
   const imgCount = all.filter(g => g.type !== 'video').length;
   const vidCount = all.filter(g => g.type === 'video').length;
-  const folders = galleryFolders();
   const filtered = galleryFilteredIndexes();
   const cur = S.galleryFolder;
   const tab = S.galleryTab;
@@ -712,12 +764,15 @@ function renderGalleryPage(el) {
 
       <!-- Folder sidebar -->
       <div class="card" style="position:sticky;top:16px">
-        <div class="card-header"><span class="card-title">${ico('folder',14)} Thư mục ${tabLabel}</span></div>
+        <div class="card-header">
+          <span class="card-title">${ico('folder',14)} Thư mục ${tabLabel}</span>
+          <button class="act-btn" title="Thư mục gốc mới" onclick="galleryNewFolder('')" style="padding:2px;background:none;border:none;cursor:pointer;color:var(--muted)">${ico('plus',14)}</button>
+        </div>
         <div style="padding:8px">
-          ${folderRow('__all', 'Tất cả', 'navpanel', cur)}
-          ${folderRow('__none', 'Chưa phân loại', tab === 'video' ? 'video' : 'image', cur)}
-          ${folders.length ? `<div style="height:1px;background:var(--border);margin:6px 4px"></div>` : ''}
-          ${folders.map(f => folderRow(f, f, 'folder', cur, true)).join('')}
+          ${folderSpecialRow('__all', 'Tất cả', 'navpanel', cur)}
+          ${folderSpecialRow('__none', 'Chưa phân loại', tab === 'video' ? 'video' : 'image', cur)}
+          ${galleryFolderTree().length ? `<div style="height:1px;background:var(--border);margin:6px 4px"></div>` : ''}
+          ${galleryFolderTree().map(node => folderTreeRow(node, cur, 0)).join('')}
         </div>
       </div>
 
@@ -776,7 +831,8 @@ function setupGalleryLazyLoad() {
   imgs.forEach(img => _galleryIO.observe(img));
 }
 
-function folderRow(value, label, iconName, current, deletable=false) {
+/* Hàng đặc biệt: "Tất cả" / "Chưa phân loại" (không phải path thật). */
+function folderSpecialRow(value, label, iconName, current) {
   const active = current === value;
   const count = galleryFolderCount(value);
   return `
@@ -785,9 +841,37 @@ function folderRow(value, label, iconName, current, deletable=false) {
       <span style="display:inline-flex;width:16px;height:16px;align-items:center;justify-content:center">${ico(iconName,14)}</span>
       <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(label)}</span>
       <span style="font-size:11px;color:var(--muted);background:var(--surface2);padding:2px 7px;border-radius:10px">${count}</span>
-      ${deletable ? `<button class="act-btn" title="Đổi tên" onclick="event.stopPropagation();galleryRenameFolder('${value.replace(/'/g,"\\'")}')" style="padding:2px;background:none;border:none;cursor:pointer;color:var(--muted)">${ico('edit',12)}</button>
-      <button class="act-btn" title="Xoá thư mục" onclick="event.stopPropagation();galleryDeleteFolder('${value.replace(/'/g,"\\'")}')" style="padding:2px;background:none;border:none;cursor:pointer;color:var(--muted)">${ico('trash',12)}</button>` : ''}
     </div>`;
+}
+
+/* Hàng cây thư mục (đệ quy) — kiểu VS Code: caret thu gọn/mở rộng + thụt lề theo cấp. */
+function folderTreeRow(node, current, depth) {
+  const { path, name, children } = node;
+  const active = current === path;
+  const hasChildren = children.length > 0;
+  const open = galleryFolderIsOpen(path);
+  const count = galleryFolderCount(path);
+  const pj = path.replace(/'/g,"\\'");
+  const indent = 8 + depth * 14;
+  const caret = hasChildren
+    ? `<span onclick="event.stopPropagation();galleryToggleFolder('${pj}')"
+            style="display:inline-flex;width:16px;height:16px;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);transition:transform .12s;${open?'transform:rotate(90deg)':''}">${ico('chevron-right',12)}</span>`
+    : `<span style="display:inline-block;width:16px"></span>`;
+  const row = `
+    <div onclick="galleryPickFolder('${pj}')"
+         style="display:flex;align-items:center;gap:6px;padding:6px 10px 6px ${indent}px;border-radius:8px;cursor:pointer;font-size:13px;${active?'background:var(--primary-soft);color:var(--primary);font-weight:600':'color:var(--text)'}">
+      ${caret}
+      <span style="display:inline-flex;width:16px;height:16px;align-items:center;justify-content:center">${ico(open&&hasChildren?'folder-open':'folder',14)}</span>
+      <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(path)}">${esc(name)}</span>
+      <span style="font-size:11px;color:var(--muted);background:var(--surface2);padding:2px 7px;border-radius:10px">${count}</span>
+      <button class="act-btn" title="Thư mục con mới" onclick="event.stopPropagation();galleryNewFolder('${pj}')" style="padding:2px;background:none;border:none;cursor:pointer;color:var(--muted)">${ico('plus',12)}</button>
+      <button class="act-btn" title="Đổi tên" onclick="event.stopPropagation();galleryRenameFolder('${pj}')" style="padding:2px;background:none;border:none;cursor:pointer;color:var(--muted)">${ico('edit',12)}</button>
+      <button class="act-btn" title="Xoá thư mục" onclick="event.stopPropagation();galleryDeleteFolder('${pj}')" style="padding:2px;background:none;border:none;cursor:pointer;color:var(--muted)">${ico('trash',12)}</button>
+    </div>`;
+  const childrenHtml = (hasChildren && open)
+    ? children.map(c => folderTreeRow(c, current, depth + 1)).join('')
+    : '';
+  return row + childrenHtml;
 }
 
 function mediaCardHTML(g, i) {
@@ -835,53 +919,83 @@ function galleryPickFolder(name) {
   S.galleryFolder = name;
   go('gallery');
 }
-function galleryNewFolder() {
-  showPanel('Thư mục mới', `
+function galleryNewFolder(parent = '') {
+  // parent: '' = thư mục gốc; nếu undefined (gọi từ nút header cũ) → dùng thư mục đang chọn.
+  if (parent === undefined) parent = defaultFolderForNew();
+  const parentLabel = parent ? `Bên trong: <b>${esc(parent)}</b>` : 'Thư mục gốc (không có thư mục cha)';
+  showPanel(parent ? 'Thư mục con mới' : 'Thư mục mới', `
     <div class="form-group">
       <label class="form-label">Tên thư mục *</label>
       <input class="form-control" id="gf-name" placeholder="VD: Mặt tiền, Nội thất…" autofocus>
-      <small class="c-muted">Thư mục sẽ được thêm vào danh sách. Mở thư mục để tải ảnh/video vào.</small>
+      <small class="c-muted">${parentLabel}. Dùng dấu <code>/</code> để tạo nhiều cấp cùng lúc.</small>
     </div>
   `, () => {
-    const n = (document.getElementById('gf-name').value || '').trim();
-    if (!n) { toast('Nhập tên thư mục', 'warn'); return; }
-    if (galleryFolders().includes(n)) { toast('Thư mục đã tồn tại', 'warn'); return; }
+    const raw = (document.getElementById('gf-name').value || '').trim();
+    if (!raw) { toast('Nhập tên thư mục', 'warn'); return; }
+    const path = folderJoin(parent, raw);
+    if (!path) { toast('Tên thư mục không hợp lệ', 'warn'); return; }
+    if (galleryFolders().includes(path)) { toast('Thư mục đã tồn tại', 'warn'); return; }
     const list = galleryStoredFolders();
-    list.push(n);
-    S.galleryFolder = n;
-    saveData(`Đã tạo thư mục "${n}"`);
+    list.push(path);
+    S.galleryFolder = path;
+    if (parent) S.galleryOpenFolders[parent] = true; // mở cha để thấy con mới
+    saveData(`Đã tạo thư mục "${path}"`);
     closePanel();
     go('gallery');
   });
 }
-function galleryRenameFolder(oldName) {
-  uiPrompt(`Đổi tên thư mục "${oldName}" thành:`, oldName, (next) => {
+function galleryRenameFolder(oldPath) {
+  // Chỉ đổi phần tên cuối; path cha giữ nguyên. Áp dụng đệ quy cho cả con/cháu.
+  uiPrompt(`Đổi tên thư mục "${folderName(oldPath)}" thành:`, folderName(oldPath), (next) => {
     if (!next) return false;
-    const n = next.trim();
-    if (!n || n === oldName) return true;
-    if (galleryFolders().includes(n)) { toast('Tên thư mục đã tồn tại', 'warn'); return false; }
+    const newName = next.trim();
+    if (!newName || newName === folderName(oldPath)) return true;
+    if (newName.includes('/')) { toast('Tên thư mục không được chứa dấu /', 'warn'); return false; }
+    const newPath = folderJoin(folderParent(oldPath), newName);
+    if (galleryFolders().includes(newPath)) { toast('Tên thư mục đã tồn tại', 'warn'); return false; }
+    // Hàm ánh xạ path cũ → mới (cho chính nó và mọi con)
+    const remap = (p) => {
+      if (p === oldPath) return newPath;
+      if (folderIsDescendant(p, oldPath)) return newPath + p.slice(oldPath.length);
+      return p;
+    };
     let changed = 0;
-    (S.data.gallery || []).forEach(g => { if (g.folder === oldName) { g.folder = n; changed++; } });
-    const list = galleryStoredFolders();
-    const idx = list.indexOf(oldName);
-    if (idx >= 0) list[idx] = n;
-    if (S.galleryFolder === oldName) S.galleryFolder = n;
-    saveData(`Đã đổi tên thư mục thành "${n}"${changed?` (${changed} mục)`:''}`);
+    (S.data.gallery || []).forEach(g => {
+      if (!g.folder) return;
+      const m = remap(g.folder);
+      if (m !== g.folder) { g.folder = m; changed++; }
+    });
+    // Cập nhật stored folders (cả ảnh & video)
+    const store = galleryFolderStore();
+    ['image','video'].forEach(k => { store[k] = (store[k]||[]).map(remap); });
+    // Cập nhật state mở/đóng + filter đang chọn
+    const openNext = {};
+    Object.keys(S.galleryOpenFolders).forEach(k => { openNext[remap(k)] = S.galleryOpenFolders[k]; });
+    S.galleryOpenFolders = openNext;
+    if (S.galleryFolder && S.galleryFolder !== '__all' && S.galleryFolder !== '__none') {
+      S.galleryFolder = remap(S.galleryFolder);
+    }
+    saveData(`Đã đổi tên thư mục thành "${newName}"${changed?` (${changed} mục)`:''}`);
     go('gallery');
   }, { title:'Đổi tên thư mục', okText:'Lưu' });
 }
-function galleryDeleteFolder(name) {
-  const count = (S.data.gallery || []).filter(g => g.folder === name).length;
-  const msg = count
-    ? `Thư mục "${name}" đang chứa ${count} mục. Xoá thư mục sẽ chuyển các mục về "Chưa phân loại". Tiếp tục?`
-    : `Xoá thư mục rỗng "${name}"?`;
+function galleryDeleteFolder(path) {
+  const isInside = (p) => p === path || folderIsDescendant(p || '', path);
+  const itemCount = (S.data.gallery || []).filter(g => isInside(g.folder)).length;
+  const subCount  = galleryFolders().filter(p => folderIsDescendant(p, path)).length;
+  const parts = [];
+  if (subCount)  parts.push(`${subCount} thư mục con`);
+  if (itemCount) parts.push(`${itemCount} mục`);
+  const msg = (itemCount || subCount)
+    ? `Thư mục "${path}" đang chứa ${parts.join(' và ')}. Xoá sẽ chuyển toàn bộ mục về "Chưa phân loại" và xoá các thư mục con. Tiếp tục?`
+    : `Xoá thư mục rỗng "${path}"?`;
   uiConfirm(msg, () => {
-    (S.data.gallery || []).forEach(g => { if (g.folder === name) delete g.folder; });
-    const list = galleryStoredFolders();
-    const idx = list.indexOf(name);
-    if (idx >= 0) list.splice(idx, 1);
-    if (S.galleryFolder === name) S.galleryFolder = '__all';
-    saveData(`Đã xoá thư mục "${name}"`);
+    (S.data.gallery || []).forEach(g => { if (isInside(g.folder)) delete g.folder; });
+    const store = galleryFolderStore();
+    ['image','video'].forEach(k => { store[k] = (store[k]||[]).filter(p => !isInside(p)); });
+    Object.keys(S.galleryOpenFolders).forEach(k => { if (isInside(k)) delete S.galleryOpenFolders[k]; });
+    if (S.galleryFolder && isInside(S.galleryFolder)) S.galleryFolder = '__all';
+    saveData(`Đã xoá thư mục "${path}"`);
     go('gallery');
   }, { title:'Xoá thư mục', okText:'Xoá', okClass:'btn-danger' });
 }
@@ -1009,7 +1123,10 @@ function galleryForm(g, idx) {
   const folders = galleryFolders();
   const folderOptions = `
     <option value="">— Chưa phân loại —</option>
-    ${folders.map(f => `<option value="${esc(f)}" ${g.folder===f?'selected':''}>${esc(f)}</option>`).join('')}
+    ${folders.map(f => {
+      const indent = '    '.repeat(Math.max(0, folderDepth(f) - 1));
+      return `<option value="${esc(f)}" ${g.folder===f?'selected':''}>${indent}${esc(folderName(f))}</option>`;
+    }).join('')}
     <option value="__new__">+ Tạo thư mục mới…</option>`;
 
   const imageFields = `
