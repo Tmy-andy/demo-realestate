@@ -1302,7 +1302,7 @@ function buildGallery() {
 
     // Hàng con: thụt lề + nhãn breadcrumb, chip kiểu khác hẳn cha.
     const childRow = childFolders.length
-      ? `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:2px;padding:8px 0 4px 16px;border-left:2px solid rgba(59,130,246,.35)">`
+      ? `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:2px;padding:8px 0 4px">`
         + `<span style="display:inline-flex;align-items:center;gap:5px;color:rgba(255,255,255,.4);font-size:11px;font-weight:500;letter-spacing:.02em">`
         +   `<i data-lucide="corner-down-right" width="13" height="13"></i>${galFolderName(activeRoot)}</span>`
         + childFolders.map(f => {
