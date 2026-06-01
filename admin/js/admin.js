@@ -2830,6 +2830,9 @@ function renderSettings(el) {
   if (S.settingsTab === 'upload') {
     fetch(API_BASE + '/api/settings/upload').then(r => r.ok ? r.json() : null).then(j => {
       if (!j) return;
+      // Cập nhật cache global để lần render sau ra đúng số ngay (không chờ fetch).
+      if (Number(j.imageMaxMb) > 0) window.UPLOAD_IMAGE_MAXMB = Number(j.imageMaxMb);
+      if (Number(j.maxMb)      > 0) window.UPLOAD_FILE_MAXMB  = Number(j.maxMb);
       const f = document.getElementById('sp-upload-file-maxmb');
       const i = document.getElementById('sp-upload-image-maxmb');
       if (f && !f.dataset.touched) f.value = j.maxMb || 100;
@@ -2954,13 +2957,13 @@ function settingsTabHTML(p) {
         <div class="form-group">
           <label class="form-label">Giới hạn ảnh (MB / ảnh)</label>
           <input class="form-control" type="number" min="1" max="1024" id="sp-upload-image-maxmb"
-            value="10" placeholder="10" oninput="this.dataset.touched=1">
+            value="${window.UPLOAD_IMAGE_MAXMB || 10}" placeholder="10" oninput="this.dataset.touched=1">
           <small class="c-muted">Áp dụng cho thư viện ảnh và logo. Mặc định 10 MB / ảnh.</small>
         </div>
         <div class="form-group">
           <label class="form-label">Giới hạn file tài liệu (MB / file)</label>
           <input class="form-control" type="number" min="1" max="10240" id="sp-upload-file-maxmb"
-            value="100" placeholder="100" oninput="this.dataset.touched=1">
+            value="${window.UPLOAD_FILE_MAXMB || 100}" placeholder="100" oninput="this.dataset.touched=1">
           <small class="c-muted">Áp dụng cho PDF, video, file lớn. Mặc định 100 MB / file.</small>
         </div>
         <div style="display:flex;justify-content:flex-end">

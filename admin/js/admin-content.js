@@ -249,6 +249,10 @@ function esc(v) {
 // ===== IMAGE UPLOAD HELPERS =====
 // 10MB / ảnh — giá trị mặc định; admin có thể đổi trong Cài Đặt → Tải lên.
 let MAX_IMG_BYTES = 10 * 1024 * 1024;
+// Cache giá trị MB đã fetch để form Cài Đặt render đồng bộ đúng số ngay,
+// không phải chờ fetch async (tránh F5 nhảy về giá trị hardcode).
+window.UPLOAD_IMAGE_MAXMB = 10;
+window.UPLOAD_FILE_MAXMB  = 100;
 
 // Promise đảm bảo limit đã được fetch trước khi check. Refresh được khi cần.
 let _uploadLimitsPromise = null;
@@ -259,6 +263,10 @@ function refreshUploadLimits() {
     .then(j => {
       if (j && j.imageMaxMb && Number(j.imageMaxMb) > 0) {
         MAX_IMG_BYTES = Number(j.imageMaxMb) * 1024 * 1024;
+        window.UPLOAD_IMAGE_MAXMB = Number(j.imageMaxMb);
+      }
+      if (j && j.maxMb && Number(j.maxMb) > 0) {
+        window.UPLOAD_FILE_MAXMB = Number(j.maxMb);
       }
       return MAX_IMG_BYTES;
     })
