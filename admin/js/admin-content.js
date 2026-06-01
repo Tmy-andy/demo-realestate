@@ -284,13 +284,37 @@ async function resizeImageFile(file) {
   if (file.type === 'image/svg+xml' || file.type === 'image/gif') return file;
   if (file.size < MIN_RESIZE_BYTES) return file;
 
-  const bitmap = await createImageBitmap(file).catch(() => null);
-  if (!bitmap) return file; // browser không decode được → upload raw
+  // Đọc kích thước trước để biết tỉ lệ thu nhỏ. Decode thẳng xuống kích thước
+  // đích bằng resizeWidth/Height — ảnh siêu lớn (vượt giới hạn ~16384px/cạnh
+  // của canvas) vẫn xử lý được vì trình duyệt không dựng bitmap full-res.
+  const probe = await createImageBitmap(file).catch(() => null);
+  let w, h;
+  if (probe) {
+    ({ width: w, height: h } = probe);
+    probe.close && probe.close();
+  } else {
+    // Không probe được full-res (ảnh quá khổ) → đo qua <img> để lấy kích thước thật.
+    const dim = await imageDimViaTag(file).catch(() => null);
+    if (!dim) {
+      // Trình duyệt không decode nổi kiểu ảnh này → đừng upload raw (sẽ không hiển thị).
+      throw new Error('Không đọc được ảnh này. Có thể ảnh quá lớn hoặc định dạng không hỗ trợ — hãy giảm kích thước rồi thử lại.');
+    }
+    ({ w, h } = dim);
+  }
 
-  const { width: w, height: h } = bitmap;
   const scale = Math.min(1, RESIZE_MAX_DIM / Math.max(w, h));
-  const newW = Math.round(w * scale);
-  const newH = Math.round(h * scale);
+  const newW = Math.max(1, Math.round(w * scale));
+  const newH = Math.max(1, Math.round(h * scale));
+
+  // Decode kèm thu nhỏ — tránh dựng bitmap full-res với ảnh siêu phân giải.
+  const bitmap = await createImageBitmap(file, {
+    resizeWidth: newW,
+    resizeHeight: newH,
+    resizeQuality: 'high',
+  }).catch(() => null);
+  if (!bitmap) {
+    throw new Error('Ảnh quá lớn để xử lý trong trình duyệt — hãy giảm kích thước (khuyến nghị cạnh dài ≤ 8000px) rồi thử lại.');
+  }
 
   const canvas = document.createElement('canvas');
   canvas.width = newW;
@@ -302,13 +326,33 @@ async function resizeImageFile(file) {
   // PNG có alpha → giữ PNG, không alpha → ép JPEG (nhẹ hơn rất nhiều)
   const outType = file.type === 'image/png' ? 'image/jpeg' : (file.type || 'image/jpeg');
   const blob = await new Promise(res => canvas.toBlob(res, outType, RESIZE_QUALITY));
-  if (!blob || blob.size >= file.size) return file; // resize không hiệu quả
+  if (!blob) {
+    throw new Error('Không nén được ảnh sau khi thu nhỏ — hãy thử lại với ảnh khác.');
+  }
+  if (blob.size >= file.size) return file; // resize không hiệu quả → giữ file gốc
 
   // Đổi extension nếu chuyển PNG → JPEG
   const newName = outType === 'image/jpeg' && /\.png$/i.test(file.name)
     ? file.name.replace(/\.png$/i, '.jpg')
     : file.name;
   return new File([blob], newName, { type: outType, lastModified: Date.now() });
+}
+
+/* Đo kích thước ảnh bằng thẻ <img> — fallback khi createImageBitmap full-res
+   thất bại (ảnh vượt giới hạn bitmap). <img> chỉ cần metadata nên chịu được
+   ảnh lớn hơn. Trả { w, h } hoặc ném lỗi nếu không load được. */
+function imageDimViaTag(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const w = img.naturalWidth, h = img.naturalHeight;
+      URL.revokeObjectURL(url);
+      if (w && h) resolve({ w, h }); else reject(new Error('no dim'));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('load fail')); };
+    img.src = url;
+  });
 }
 
 /* Upload 1 file ảnh lên Cloudflare R2 qua presigned URL.
