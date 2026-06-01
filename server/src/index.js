@@ -672,6 +672,13 @@ app.get('/api/settings/upload', async (_req, res) => {
     );
     const flags = parseFlags(r.rows[0]?.feature_flags_json);
     const cfg = flags.upload || {};
+    // [DEBUG upload-limit] tạm log để truy lỗi giá trị không persist trên prod.
+    console.log('[upload-limit GET]', JSON.stringify({
+      pid,
+      rowExists: !!r.rows[0],
+      rawType: typeof r.rows[0]?.feature_flags_json,
+      uploadCfg: flags.upload || null,
+    }));
     res.json({
       maxMb:      Number(cfg.maxMb)      || 100,
       imageMaxMb: Number(cfg.imageMaxMb) || 10,
@@ -692,12 +699,23 @@ app.put('/api/settings/upload', async (req, res) => {
     );
     const flags = parseFlags(r.rows[0]?.feature_flags_json);
     flags.upload = { ...(flags.upload || {}), maxMb, imageMaxMb };
-    await query(
+    const w = await query(
       `INSERT INTO project_settings (project_id, feature_flags_json)
        VALUES (?, ?)
        ON DUPLICATE KEY UPDATE feature_flags_json = VALUES(feature_flags_json)`,
       [pid, JSON.stringify(flags)]
     );
+    // [DEBUG upload-limit] đọc lại ngay để xác nhận đã persist trong cùng DB.
+    const back = await query(
+      'SELECT feature_flags_json FROM project_settings WHERE project_id=?',
+      [pid]
+    );
+    console.log('[upload-limit PUT]', JSON.stringify({
+      pid,
+      wrote: flags.upload,
+      affectedRows: w.affectedRows,
+      readBack: parseFlags(back.rows[0]?.feature_flags_json).upload || null,
+    }));
     res.json({ ok: true, maxMb, imageMaxMb });
   } catch (err) {
     console.error(err);
