@@ -537,14 +537,19 @@ window.AiPanel = (() => {
       return;
     }
     sl.style.display = "flex";
-    sl.innerHTML = `<div class="ai-session-loading">Đang tải…</div>`;
+    sl.innerHTML = `<div class="ai-session-header"><span class="ai-session-header-title">Lịch sử chat</span><button class="ai-session-close-btn" title="Đóng">✕</button></div><div class="ai-session-loading">Đang tải…</div>`;
+    sl.querySelector(".ai-session-close-btn").addEventListener("click", function() {
+      sl.style.display = "none";
+    });
     const currentSid = SessionManager.getCurrentSessionId();
     SessionManager.loadSessions().then(function(sessions) {
+      var headerHtml = `<div class="ai-session-header"><span class="ai-session-header-title">Lịch sử chat</span><button class="ai-session-close-btn" title="Đóng">✕</button></div>`;
       if (!sessions || sessions.length === 0) {
-        sl.innerHTML = `<div class="ai-session-empty">Chưa có lịch sử chat</div>`;
+        sl.innerHTML = headerHtml + `<div class="ai-session-empty">Chưa có lịch sử chat</div>`;
+        sl.querySelector(".ai-session-close-btn").addEventListener("click", function() { sl.style.display = "none"; });
         return;
       }
-      sl.innerHTML = sessions.map(function(s) {
+      sl.innerHTML = headerHtml + sessions.map(function(s) {
         const active = s.session_id === currentSid ? " ai-session-active" : "";
         return `<div class="ai-session-item${active}" data-sid="${escapeHtml(s.session_id)}">
           <div class="ai-session-title">${escapeHtml(s.title || s.session_id)}</div>
@@ -552,6 +557,7 @@ window.AiPanel = (() => {
         </div>`;
       }).join("") + `<div class="ai-session-item ai-session-new-btn">+ Tạo chat mới</div>`;
 
+      sl.querySelector(".ai-session-close-btn").addEventListener("click", function() { sl.style.display = "none"; });
       sl.querySelectorAll(".ai-session-item[data-sid]").forEach(function(el) {
         el.addEventListener("click", function() {
           const sid = el.getAttribute("data-sid");
@@ -566,7 +572,9 @@ window.AiPanel = (() => {
       });
     }).catch(function(e) {
       console.warn("[AiPanel] session list error:", e);
-      sl.innerHTML = `<div class="ai-session-empty">Không thể tải lịch sử</div>`;
+      var headerHtml = `<div class="ai-session-header"><span class="ai-session-header-title">Lịch sử chat</span><button class="ai-session-close-btn" title="Đóng">✕</button></div>`;
+      sl.innerHTML = headerHtml + `<div class="ai-session-empty">Không thể tải lịch sử</div>`;
+      sl.querySelector(".ai-session-close-btn").addEventListener("click", function() { sl.style.display = "none"; });
     });
   }
 
