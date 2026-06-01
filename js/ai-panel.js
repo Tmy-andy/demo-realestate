@@ -32,7 +32,8 @@ var SessionManager = {
   loadSessions: async function() {
     try {
       var clientId = this.getClientId();
-      var resp = await fetch('/api/sessions?client_id=' + encodeURIComponent(clientId));
+      var base = (window.AI_CONFIG && window.AI_CONFIG.apiBase) || '';
+      var resp = await fetch(base + '/api/sessions?client_id=' + encodeURIComponent(clientId));
       if (!resp.ok) throw new Error('HTTP ' + resp.status);
       return await resp.json();
     } catch (e) {
@@ -43,7 +44,8 @@ var SessionManager = {
 
   loadSessionMessages: async function(sessionId) {
     try {
-      var resp = await fetch('/api/sessions/' + encodeURIComponent(sessionId));
+      var base = (window.AI_CONFIG && window.AI_CONFIG.apiBase) || '';
+      var resp = await fetch(base + '/api/sessions/' + encodeURIComponent(sessionId));
       if (!resp.ok) throw new Error('HTTP ' + resp.status);
       var data = await resp.json();
       return data.messages || [];
@@ -249,9 +251,25 @@ window.AiPanel = (() => {
     if (!text || !text.trim()) return;
     sessionHistory.push({ role, text });
     if (!panel) return;
+    hideTypingIndicator();
     const chat = panel.querySelector(".ai-pn-chat");
     chat.insertAdjacentHTML("beforeend", bubbleHtml(role, text));
     scrollChatToEnd();
+  }
+
+  function showTypingIndicator() {
+    if (!panel) return;
+    hideTypingIndicator();
+    const chat = panel.querySelector(".ai-pn-chat");
+    chat.insertAdjacentHTML("beforeend",
+      `<div class="ai-pn-bubble bot ai-typing" id="ai-typing-dot"><span></span><span></span><span></span></div>`);
+    scrollChatToEnd();
+  }
+
+  function hideTypingIndicator() {
+    if (!panel) return;
+    const el = panel.querySelector("#ai-typing-dot");
+    if (el) el.remove();
   }
 
   /* ─── Status bar ────────────────────────────────────── */
@@ -351,6 +369,8 @@ window.AiPanel = (() => {
       onMessage: (role, text /*, audioUrl */) => {
         if (text && text.trim()) {
           appendBubble(role === "gemini" ? "bot" : "user", text);
+        } else {
+          hideTypingIndicator();
         }
       },
 
@@ -377,9 +397,11 @@ window.AiPanel = (() => {
       onRecordingStop: () => {
         setVoiceState("thinking");
         stopWaveform();
+        showTypingIndicator();
       },
 
       onInterrupted: () => {
+        hideTypingIndicator();
         setVoiceState("listening");
       },
 
@@ -438,6 +460,7 @@ window.AiPanel = (() => {
   /* ─── Text input ─────────────────────────────────────── */
   async function sendTextQuestion(text) {
     appendBubble("user", text);
+    showTypingIndicator();
     if (!window.GeminiLive) return;
     if (geminiLive && geminiLive.isConnected()) {
       geminiLive.sendText(text);
@@ -454,6 +477,7 @@ window.AiPanel = (() => {
       },
       onMessage: (role, t2) => {
         if (t2 && t2.trim()) appendBubble(role === "gemini" ? "bot" : "user", t2);
+        else hideTypingIndicator();
       },
       onNavigate: (nodeId) => {
         if (window.VRBridge) window.VRBridge.navigateTo(nodeId);
