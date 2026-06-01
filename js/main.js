@@ -1166,12 +1166,42 @@ function galItemInFolder(g, folder) {
   return g.folder === folder || galIsDescendant(g.folder || '', folder);
 }
 
+/* Chuẩn hoá tên phân khu/thư mục để so khớp: bỏ dấu, hạ thường, bỏ tiền tố
+   "pk" / "phan khu", gộp khoảng trắng. Nhờ vậy folder gốc "PK Đảo Ngọc" khớp
+   với phân khu "Phân khu Đảo Ngọc", và "PK Tinh Vân" khớp "Phân khu Tịnh Vân"
+   (folder thiếu dấu). */
+function galNormName(s) {
+  return String(s || '')
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')   // bỏ dấu tiếng Việt
+    .replace(/đ/gi, 'd')
+    .toLowerCase()
+    .replace(/^\s*(pk|phan khu)\s+/, '')                 // bỏ tiền tố
+    .replace(/\s+/g, ' ').trim();
+}
+
+/* Tên (label) của phân khu theo id/key. */
+function subKeyLabel(key) {
+  const s = subdivisionList().find(s => String(s.id) === String(key));
+  return s ? _tr(s.label) : '';
+}
+
+/* Ảnh g có thuộc phân khu `key` không?
+   - Khớp trực tiếp subdivision_code, HOẶC
+   - Folder gốc của ảnh khớp tên phân khu (logic cây thư mục cha–con của ảnh,
+     vì nhiều ảnh có subdivision_code = NULL nhưng được gom vào "PK <tên>"). */
+function galItemInSub(g, key, keyNorm) {
+  if ((g.subdivision || null) === key) return true;
+  const root = galFolderParts(g.folder || '')[0] || '';
+  return !!root && keyNorm && galNormName(root) === keyNorm;
+}
+
 /* Ảnh/video của phân khu đang chọn. Tab "Tất cả" (__all) = toàn bộ gallery. */
 function galleryItemsBySub() {
   const key = effectiveSubKey(gallerySubKey);
   const all = (DATA.gallery || []).map(g => ({ type: 'image', ...g }));
   if (key === '__all') return all;
-  return all.filter(g => (g.subdivision || null) === key);
+  const keyNorm = galNormName(subKeyLabel(key)) || galNormName(key);
+  return all.filter(g => galItemInSub(g, key, keyNorm));
 }
 
 function galleryItemsByTab() {
@@ -1236,9 +1266,14 @@ function buildGallery() {
   });
   const rootFolders = [...allPaths].filter(p => !galFolderParent(p)).sort((a,b)=>a.localeCompare(b,'vi'));
   // Cha cấp gốc đang chọn (để biết có hiện hàng con không).
-  const activeRoot = (galleryFolderFilter !== '__all' && galleryFolderFilter !== '__none')
+  // Khi đang ở "Tất cả" mà chỉ có đúng 1 thư mục gốc (vd. chọn phân khu →
+  // chỉ còn "PK Vịnh Mây"), tự coi nó là gốc đang mở để bung luôn hàng con.
+  let activeRoot = (galleryFolderFilter !== '__all' && galleryFolderFilter !== '__none')
     ? galFolderParts(galleryFolderFilter)[0] || ''
     : '';
+  if (!activeRoot && galleryFolderFilter === '__all' && rootFolders.length === 1) {
+    activeRoot = rootFolders[0];
+  }
   const childFolders = activeRoot
     ? [...allPaths].filter(p => galFolderParent(p) === activeRoot).sort((a,b)=>a.localeCompare(b,'vi'))
     : [];
