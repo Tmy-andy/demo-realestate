@@ -1261,25 +1261,21 @@ function onVideoUrlInput(url) {
   _videoTitleTimer = setTimeout(() => autofillVideoTitle(url), 400);
 }
 
-/* Lấy tiêu đề video qua oEmbed (YouTube/Vimeo) và điền vào ô tiêu đề nếu trống. */
+/* Lấy tiêu đề video và điền vào ô tiêu đề nếu trống.
+   Gọi server (/api/video/title) để né CORS và hỗ trợ cả Google Drive
+   (đọc og:title của trang xem) lẫn YouTube/Vimeo (oEmbed). */
 async function autofillVideoTitle(url) {
   const titleEl = document.getElementById('g-title');
   if (!titleEl || titleEl.value.trim()) return; // không ghi đè tiêu đề đã có
 
-  let oembed = null;
-  const yt = youtubeId(url);
-  const vm = vimeoId(url);
-  if (yt) oembed = `https://www.youtube.com/oembed?format=json&url=${encodeURIComponent('https://www.youtube.com/watch?v=' + yt)}`;
-  else if (vm) oembed = `https://vimeo.com/api/oembed.json?url=${encodeURIComponent('https://vimeo.com/' + vm)}`;
-  if (!oembed) return;
-
+  const base = (typeof API_BASE !== 'undefined' && API_BASE) ? API_BASE : '';
   try {
-    const r = await fetch(oembed);
+    const r = await fetch(base + '/api/video/title?url=' + encodeURIComponent(url));
     if (!r.ok) return;
     const j = await r.json();
     // người dùng có thể đã gõ tiêu đề trong lúc fetch → kiểm tra lại
     if (j && j.title && !titleEl.value.trim()) titleEl.value = j.title;
-  } catch { /* mạng lỗi / CORS — bỏ qua, để user tự nhập */ }
+  } catch { /* mạng lỗi — bỏ qua, để user tự nhập */ }
 }
 
 function videoDzEnter(e) {

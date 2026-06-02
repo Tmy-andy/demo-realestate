@@ -10,7 +10,8 @@
       "Bash(node:*)",
       "Bash(grep -r \"AURORA\\\\|brand-mark\\\\|brand-logo\\\\|loader-mark\" /c/Users/ASUS/OneDrive/Desktop/BDS/*.html)",
       "Bash(python -c \"from PIL import Image; print\\('Pillow OK'\\)\")",
-      "Bash(python -c ':*)"
+      "Bash(python -c ':*)",
+      "Bash(curl -sL -A \"Mozilla/5.0 \\(compatible; HaiVanBayBot/1.0\\)\" \"https://drive.google.com/file/d/167cIQJFOsU_Ps3gBGW5NyAOCl986jQr_/view\")"
     ]
   }
 }

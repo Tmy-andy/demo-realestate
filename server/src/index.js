@@ -721,6 +721,68 @@ app.post('/api/upload/presign', async (req, res) => {
 });
 
 // =====================================================================
+// Đọc tiêu đề video từ URL — server fetch giúp (tránh CORS phía trình duyệt).
+//  • YouTube/Vimeo: dùng oEmbed.
+//  • Google Drive: lấy <meta og:title> / <title> của trang xem công khai.
+//  • URL khác: lấy thẻ <title>.
+// GET /api/video/title?url=...  ->  { title }
+// =====================================================================
+function decodeHtmlEntities(s) {
+  return String(s || '')
+    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&#0?39;/g, "'")
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)));
+}
+
+function driveFileIdFrom(url) {
+  let m;
+  if ((m = url.match(/\/file\/d\/([\w-]+)/))) return m[1];
+  if ((m = url.match(/[?&]id=([\w-]+)/))) return m[1];
+  return null;
+}
+
+app.get('/api/video/title', async (req, res) => {
+  const url = String(req.query.url || '').trim();
+  if (!url) return res.status(400).json({ error: 'Thiếu url' });
+  try {
+    // 1) YouTube / Vimeo qua oEmbed
+    let oembed = null;
+    const yt = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{6,})/);
+    const vm = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+    if (yt) oembed = `https://www.youtube.com/oembed?format=json&url=${encodeURIComponent('https://www.youtube.com/watch?v=' + yt[1])}`;
+    else if (vm) oembed = `https://vimeo.com/api/oembed.json?url=${encodeURIComponent('https://vimeo.com/' + vm[1])}`;
+    if (oembed) {
+      const r = await fetch(oembed);
+      if (r.ok) {
+        const j = await r.json();
+        if (j && j.title) return res.json({ title: j.title });
+      }
+    }
+
+    // 2) Google Drive — đọc trang xem công khai, lấy og:title (đã gồm tên file)
+    const driveId = driveFileIdFrom(url);
+    const pageUrl = driveId ? `https://drive.google.com/file/d/${driveId}/view` : url;
+    const r = await fetch(pageUrl, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; HaiVanBayBot/1.0)' },
+      redirect: 'follow',
+    });
+    if (!r.ok) return res.json({ title: '' });
+    const html = await r.text();
+    let title = '';
+    let m = html.match(/<meta\s+property=["']og:title["']\s+content=["']([^"']+)["']/i)
+         || html.match(/<meta\s+content=["']([^"']+)["']\s+property=["']og:title["']/i)
+         || html.match(/<title>([^<]+)<\/title>/i);
+    if (m) title = decodeHtmlEntities(m[1]).trim();
+    // Drive gắn đuôi " - Google Drive" vào <title>
+    title = title.replace(/\s*-\s*Google Drive\s*$/i, '').trim();
+    res.json({ title });
+  } catch (err) {
+    console.error('[video/title]', err.message);
+    res.json({ title: '' }); // lỗi mềm — để FE tự nhập tay
+  }
+});
+
+// =====================================================================
 // Auth — đăng nhập / đăng xuất / phiên hiện tại
 // =====================================================================
 app.post('/api/auth/login', async (req, res) => {
