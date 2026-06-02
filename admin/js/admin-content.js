@@ -1126,7 +1126,7 @@ function galleryForm(g, idx) {
     </div>
     <div class="form-group" id="g-url-wrap">
       <label class="form-label">URL video *</label>
-      <input class="form-control" id="g-src" value="${esc(g.src||'')}" placeholder="VD: https://www.youtube.com/watch?v=...">
+      <input class="form-control" id="g-src" value="${esc(g.src||'')}" placeholder="VD: https://www.youtube.com/watch?v=..." oninput="onVideoUrlInput(this.value)">
       <small class="c-muted" id="g-url-hint">Dán link YouTube/Vimeo/mp4. Hệ thống sẽ tự chuyển sang embed.</small>
     </div>
     <div class="form-group" id="g-upload-wrap">
@@ -1234,6 +1234,52 @@ function onVideoSourceChange() {
     : vs === 'vimeo'   ? 'Dán link Vimeo (vimeo.com/123456). Tự chuyển sang player.vimeo.com/video/...'
     : vs === 'drive'   ? 'Dán link file Google Drive (drive.google.com/file/d/…). File cần ở chế độ chia sẻ công khai. Thumbnail tự đọc.'
     :                    'Dán URL file .mp4 / .webm truy cập công khai.';
+}
+
+/* Nhận diện nguồn video từ URL: youtube | vimeo | drive | mp4 (mặc định). */
+function detectVideoSource(url) {
+  if (youtubeId(url)) return 'youtube';
+  if (vimeoId(url)) return 'vimeo';
+  if (adminDriveFileId(url)) return 'drive';
+  return 'mp4';
+}
+
+let _videoTitleTimer = null;
+/* Khi dán/nhập URL: tự chọn Nguồn video, và tự điền Tiêu đề (nếu đang trống)
+   bằng oEmbed của YouTube/Vimeo. Không ghi đè tiêu đề người dùng đã nhập. */
+function onVideoUrlInput(url) {
+  url = (url || '').trim();
+  const vsource = document.getElementById('g-vsource');
+  if (url && vsource) {
+    vsource.value = detectVideoSource(url);
+    onVideoSourceChange();
+  }
+
+  clearTimeout(_videoTitleTimer);
+  if (!url) return;
+  // debounce nhẹ để khỏi gọi oEmbed liên tục khi đang gõ
+  _videoTitleTimer = setTimeout(() => autofillVideoTitle(url), 400);
+}
+
+/* Lấy tiêu đề video qua oEmbed (YouTube/Vimeo) và điền vào ô tiêu đề nếu trống. */
+async function autofillVideoTitle(url) {
+  const titleEl = document.getElementById('g-title');
+  if (!titleEl || titleEl.value.trim()) return; // không ghi đè tiêu đề đã có
+
+  let oembed = null;
+  const yt = youtubeId(url);
+  const vm = vimeoId(url);
+  if (yt) oembed = `https://www.youtube.com/oembed?format=json&url=${encodeURIComponent('https://www.youtube.com/watch?v=' + yt)}`;
+  else if (vm) oembed = `https://vimeo.com/api/oembed.json?url=${encodeURIComponent('https://vimeo.com/' + vm)}`;
+  if (!oembed) return;
+
+  try {
+    const r = await fetch(oembed);
+    if (!r.ok) return;
+    const j = await r.json();
+    // người dùng có thể đã gõ tiêu đề trong lúc fetch → kiểm tra lại
+    if (j && j.title && !titleEl.value.trim()) titleEl.value = j.title;
+  } catch { /* mạng lỗi / CORS — bỏ qua, để user tự nhập */ }
 }
 
 function videoDzEnter(e) {
