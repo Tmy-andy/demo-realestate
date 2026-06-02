@@ -1122,7 +1122,7 @@ function galleryForm(g, idx) {
         <option value="vimeo"   ${g.videoSource==='vimeo'?'selected':''}>Vimeo</option>
         <option value="drive"   ${g.videoSource==='drive'?'selected':''}>Google Drive</option>
         <option value="mp4"     ${g.videoSource==='mp4'?'selected':''}>URL mp4/webm trực tiếp</option>
-        <option value="upload"  ${g.videoSource==='upload'?'selected':''}>Upload file (tạm thời, mất khi reload)</option>
+        <option value="upload"  ${g.videoSource==='upload'?'selected':''}>Tải file video lên (mp4/webm…)</option>
       </select>
     </div>
     <div class="form-group" id="g-url-wrap">
@@ -1131,9 +1131,31 @@ function galleryForm(g, idx) {
       <small class="c-muted" id="g-url-hint">Dán link YouTube/Vimeo/mp4. Hệ thống sẽ tự chuyển sang embed.</small>
     </div>
     <div class="form-group" id="g-upload-wrap" style="display:none">
-      <label class="form-label">Chọn file video</label>
-      <input class="form-control" type="file" id="g-file" accept="video/*" onchange="onVideoFilePick(event)">
-      <small class="c-muted">File chỉ tồn tại trong phiên hiện tại (chưa có lưu trữ backend).</small>
+      <label class="form-label">Tải file video lên</label>
+      <div class="dropzone" id="g-vid-dz"
+           onclick="document.getElementById('g-file').click()"
+           ondragenter="videoDzEnter(event)"
+           ondragover="videoDzEnter(event)"
+           ondragleave="videoDzLeave(event)"
+           ondrop="videoDzDrop(event)">
+        <div class="dz-icon">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect width="14" height="12" x="2" y="6" rx="2" ry="2"/></svg>
+        </div>
+        <div class="dz-title">Kéo & thả video vào đây</div>
+        <div class="dz-sub">hoặc <span class="dz-browse">chọn file từ máy</span></div>
+        <div class="dz-meta" id="g-vid-dz-meta">MP4 · WebM · MOV — file lưu trên server</div>
+      </div>
+      <input type="file" id="g-file" accept="video/*" style="display:none" onchange="onVideoFilePick(event)">
+      <div id="g-vid-progress" style="display:none;margin-top:10px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:4px">
+          <span id="g-vid-progress-label">Đang tải lên…</span>
+          <span id="g-vid-progress-pct">0%</span>
+        </div>
+        <div style="height:6px;background:var(--surface2);border-radius:3px;overflow:hidden">
+          <div id="g-vid-progress-bar" style="height:100%;width:0%;background:var(--primary);transition:width .15s"></div>
+        </div>
+      </div>
+      <div id="g-vid-info" style="display:none;margin-top:10px" class="dz-fileinfo"></div>
     </div>
     ${imageField('g-poster', 'Ảnh thumbnail (tuỳ chọn)', g.poster||'')}
   `;
@@ -1222,20 +1244,122 @@ function onVideoSourceChange() {
   }
 }
 
+function videoDzEnter(e) {
+  e.preventDefault(); e.stopPropagation();
+  document.getElementById('g-vid-dz')?.classList.add('dragover');
+}
+function videoDzLeave(e) {
+  e.preventDefault(); e.stopPropagation();
+  document.getElementById('g-vid-dz')?.classList.remove('dragover');
+}
+function videoDzDrop(e) {
+  e.preventDefault(); e.stopPropagation();
+  document.getElementById('g-vid-dz')?.classList.remove('dragover');
+  const file = e.dataTransfer?.files?.[0];
+  if (file) galleryUploadVideoFile(file);
+}
+
 function onVideoFilePick(ev) {
   const f = ev.target.files && ev.target.files[0];
-  if (!f) return;
-  const url = URL.createObjectURL(f);
-  // Stash blob URL into hidden #g-src so existing save flow picks it up
-  let srcInput = document.getElementById('g-src');
-  if (!srcInput) {
-    srcInput = document.createElement('input');
-    srcInput.type = 'hidden';
-    srcInput.id = 'g-src';
-    ev.target.parentElement.appendChild(srcInput);
+  if (f) galleryUploadVideoFile(f);
+}
+
+/* Upload thật file video lên R2 → lưu public URL vào #g-src, đặt nguồn = mp4
+   để sau khi reload vẫn phát được (không còn dùng blob URL tạm thời). */
+async function galleryUploadVideoFile(file) {
+  if (!file.type.startsWith('video/')) { toast('File không phải video', 'err'); return; }
+  if (_uploadLimitsPromise) { try { await _uploadLimitsPromise; } catch {} }
+  const maxBytes = (window.UPLOAD_FILE_MAXMB || 100) * 1024 * 1024;
+  if (file.size > maxBytes) {
+    toast(`Video vượt giới hạn ${window.UPLOAD_FILE_MAXMB || 100}MB`, 'err');
+    return;
   }
-  srcInput.value = url;
-  toast(`Đã chọn file ${f.name}`, 'ok');
+
+  const progressBox = document.getElementById('g-vid-progress');
+  const progressBar = document.getElementById('g-vid-progress-bar');
+  const progressPct = document.getElementById('g-vid-progress-pct');
+  const progressLabel = document.getElementById('g-vid-progress-label');
+  const infoBox = document.getElementById('g-vid-info');
+  const srcInput = document.getElementById('g-src');
+  const vsource = document.getElementById('g-vsource');
+
+  if (progressBox) {
+    progressBox.style.display = 'block';
+    progressBar.style.width = '0%';
+    progressBar.style.background = 'var(--primary)';
+    progressPct.textContent = '0%';
+    progressLabel.textContent = `Đang tải ${file.name}`;
+  }
+  if (infoBox) infoBox.style.display = 'none';
+
+  try {
+    const publicUrl = await uploadVideoToR2(file, {
+      folder: 'gallery/video',
+      onProgress: pct => {
+        if (progressBar) progressBar.style.width = pct + '%';
+        if (progressPct) progressPct.textContent = pct + '%';
+      },
+    });
+    // Lưu URL công khai; coi như nguồn mp4 trực tiếp để player phát <video>.
+    if (srcInput) srcInput.value = publicUrl;
+    if (vsource) vsource.value = 'mp4';
+
+    if (progressBox) progressBox.style.display = 'none';
+    if (infoBox) {
+      infoBox.style.display = 'block';
+      infoBox.innerHTML = `
+        <div class="dz-info-row" style="display:flex;align-items:center;gap:10px">
+          <div style="width:36px;height:36px;border-radius:8px;background:var(--primary-soft);color:var(--primary);display:flex;align-items:center;justify-content:center;flex-shrink:0">${ico('check',18)}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;font-size:13px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(file.name)}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px"><span class="badge badge-ok">VIDEO</span> ${fmtBytes(file.size)} · đã lưu trên server</div>
+          </div>
+          <button type="button" class="act-btn" title="Tải video khác" onclick="document.getElementById('g-file').click()">${ico('refresh-cw',14)}</button>
+        </div>`;
+    }
+    toast('Đã tải video lên', 'ok');
+  } catch (err) {
+    if (progressBar) progressBar.style.background = 'var(--danger, #ef4444)';
+    if (progressPct) progressPct.textContent = 'Lỗi';
+    if (progressLabel) progressLabel.textContent = err.message;
+    toast('Upload video thất bại: ' + err.message, 'err');
+  }
+}
+
+/* Upload 1 file video lên R2 (không resize). Trả public URL. */
+async function uploadVideoToR2(file, { folder = 'gallery/video', onProgress } = {}) {
+  const base = (typeof API_BASE !== 'undefined' && API_BASE) ? API_BASE : '';
+  const presignRes = await fetch(base + '/api/upload/presign', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      filename: file.name,
+      contentType: file.type || 'video/mp4',
+      folder,
+    }),
+  });
+  if (!presignRes.ok) {
+    const msg = (await presignRes.json().catch(() => ({}))).error || presignRes.statusText;
+    throw new Error('Không xin được presigned URL: ' + msg);
+  }
+  const { uploadUrl, publicUrl, headers } = await presignRes.json();
+  await new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('PUT', uploadUrl);
+    Object.entries(headers || {}).forEach(([k, v]) => xhr.setRequestHeader(k, v));
+    xhr.upload.onprogress = ev => {
+      if (ev.lengthComputable && typeof onProgress === 'function') {
+        onProgress(Math.round(ev.loaded / ev.total * 100));
+      }
+    };
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) resolve();
+      else reject(new Error('R2 trả ' + xhr.status));
+    };
+    xhr.onerror = () => reject(new Error('Lỗi mạng khi upload lên R2'));
+    xhr.send(file);
+  });
+  return publicUrl;
 }
 
 function galleryDel(i) {
