@@ -1121,8 +1121,7 @@ function galleryForm(g, idx) {
         <option value="youtube" ${g.videoSource==='youtube'?'selected':''}>YouTube</option>
         <option value="vimeo"   ${g.videoSource==='vimeo'?'selected':''}>Vimeo</option>
         <option value="drive"   ${g.videoSource==='drive'?'selected':''}>Google Drive</option>
-        <option value="mp4"     ${g.videoSource==='mp4'?'selected':''}>URL mp4/webm trực tiếp</option>
-        <option value="upload"  ${g.videoSource==='upload'?'selected':''}>Tải file video lên (mp4/webm…)</option>
+        <option value="mp4"     ${(g.videoSource==='mp4'||g.videoSource==='upload')?'selected':''}>URL mp4/webm trực tiếp</option>
       </select>
     </div>
     <div class="form-group" id="g-url-wrap">
@@ -1130,8 +1129,8 @@ function galleryForm(g, idx) {
       <input class="form-control" id="g-src" value="${esc(g.src||'')}" placeholder="VD: https://www.youtube.com/watch?v=...">
       <small class="c-muted" id="g-url-hint">Dán link YouTube/Vimeo/mp4. Hệ thống sẽ tự chuyển sang embed.</small>
     </div>
-    <div class="form-group" id="g-upload-wrap" style="display:none">
-      <label class="form-label">Tải file video lên</label>
+    <div class="form-group" id="g-upload-wrap">
+      <label class="form-label">Hoặc tải file video lên</label>
       <div class="dropzone" id="g-vid-dz"
            onclick="document.getElementById('g-file').click()"
            ondragenter="videoDzEnter(event)"
@@ -1225,23 +1224,16 @@ function onFolderSelectChange() {
 }
 
 function onVideoSourceChange() {
+  // Dropzone tải file luôn hiển thị (không gắn với lựa chọn nguồn nữa).
+  // Hàm này chỉ đổi gợi ý cho ô URL theo nguồn đang chọn.
   const vs   = document.getElementById('g-vsource')?.value;
-  const urlW = document.getElementById('g-url-wrap');
-  const upW  = document.getElementById('g-upload-wrap');
   const hint = document.getElementById('g-url-hint');
-  if (!vs || !urlW || !upW) return;
-  if (vs === 'upload') {
-    urlW.style.display = 'none';
-    upW.style.display = '';
-  } else {
-    urlW.style.display = '';
-    upW.style.display = 'none';
-    if (hint) hint.textContent =
+  if (!vs || !hint) return;
+  hint.textContent =
       vs === 'youtube' ? 'Dán link YouTube (watch?v=, youtu.be/, shorts/…). Tự chuyển sang embed.'
     : vs === 'vimeo'   ? 'Dán link Vimeo (vimeo.com/123456). Tự chuyển sang player.vimeo.com/video/...'
     : vs === 'drive'   ? 'Dán link file Google Drive (drive.google.com/file/d/…). File cần ở chế độ chia sẻ công khai. Thumbnail tự đọc.'
     :                    'Dán URL file .mp4 / .webm truy cập công khai.';
-  }
 }
 
 function videoDzEnter(e) {
@@ -1267,7 +1259,11 @@ function onVideoFilePick(ev) {
 /* Upload thật file video lên R2 → lưu public URL vào #g-src, đặt nguồn = mp4
    để sau khi reload vẫn phát được (không còn dùng blob URL tạm thời). */
 async function galleryUploadVideoFile(file) {
-  if (!file.type.startsWith('video/')) { toast('File không phải video', 'err'); return; }
+  // Một số định dạng (.mov/.mkv/.avi) trình duyệt báo MIME rỗng hoặc lạ →
+  // chấp nhận theo cả phần mở rộng, tránh từ chối nhầm file video hợp lệ.
+  const VIDEO_EXT = /\.(mp4|webm|mov|mkv|avi|m4v|ogv|ogg|3gp|wmv|flv|mpeg|mpg)$/i;
+  const looksVideo = (file.type && file.type.startsWith('video/')) || VIDEO_EXT.test(file.name || '');
+  if (!looksVideo) { toast('File không phải video', 'err'); return; }
   if (_uploadLimitsPromise) { try { await _uploadLimitsPromise; } catch {} }
   const maxBytes = (window.UPLOAD_FILE_MAXMB || 100) * 1024 * 1024;
   if (file.size > maxBytes) {
