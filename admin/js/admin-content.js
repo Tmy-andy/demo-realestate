@@ -1857,11 +1857,20 @@ function resourcesSlice() {
   return subSlice('resources', 'resources', {});
 }
 
+/* Slice cấp dự án (__all) — bí kíp tư vấn cho sale luôn ở cấp này,
+   không phụ thuộc phân khu đang chọn. */
+function projectResourcesSlice() {
+  ensureSubShape('resources', {});
+  return S.data.resources.__all || (S.data.resources.__all = {});
+}
+
 function renderResourcesPage(el) {
   const res = resourcesSlice();
-  const keys = Object.keys(res);
+  // 'salesKit' có card cố định riêng (Bí Kíp Tư Vấn) → không liệt kê lại ở đây.
+  const keys = Object.keys(res).filter(k => k !== 'salesKit');
   const withUrl = keys.filter(k => res[k]?.url).length;
   el.innerHTML = pageHeader(['Dashboard','Nội Dung VR'], 'Tài Liệu')
+  + salesKitCard()
   + subSelectorBar('resources') + `
     <div class="card" style="margin-bottom:16px">
       <div class="card-header">
@@ -2127,6 +2136,106 @@ function resourceClear(key) {
   confirmDel('Xoá tài liệu?', item.title || key, () => {
     delete resourcesSlice()[key];
     markSubDirty('resources'); saveData('Đã xoá tài liệu'); go('resources');
+  });
+}
+
+/* ============================================================
+   BÍ KÍP TƯ VẤN (SALES) — card cố định, cấp dự án.
+   Ghi vào key 'salesKit' trong slice __all; trang Sales đọc đúng chỗ này.
+   ============================================================ */
+function salesKitCard() {
+  const kit = projectResourcesSlice().salesKit || {};
+  const has = !!kit.url;
+  const title = kit.title || 'Bộ Bí Kíp Tư Vấn';
+  const type = (kit.type || 'folder').toUpperCase();
+  return `
+    <div class="card" style="margin-bottom:16px;border:1px solid var(--primary-dim);background:var(--primary-soft)">
+      <div style="padding:18px 20px;display:flex;gap:16px;align-items:flex-start">
+        <div style="width:48px;height:48px;border-radius:10px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18v13H3z"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:15px;color:var(--text);margin-bottom:4px">Bí Kíp Tư Vấn (dành riêng Sales)</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:10px">
+            Tài liệu nội bộ. Đội Sales xem ở trang <b>Bí Kíp Tư Vấn</b>. Đây là bộ chung cho cả dự án.
+          </div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:${has ? '10px' : '0'}">
+            ${has
+              ? `<span class="badge badge-ok">${esc(type)}</span> <b style="color:var(--text)">${esc(title)}</b> — đã cập nhật`
+              : `<span class="badge badge-muted">Chưa có</span> Sales đang thấy "Liên hệ quản lý". Hãy thêm tài liệu.`}
+          </div>
+          ${has ? `<div style="font-size:11px;color:var(--muted);padding:6px 8px;background:var(--surface);border-radius:6px;margin-bottom:10px;word-break:break-all;font-family:monospace">${esc(kit.url)}</div>` : ''}
+          <div style="display:flex;gap:8px">
+            ${has ? `<a href="${esc(kit.url)}" target="_blank" rel="noopener" class="btn btn-secondary btn-sm" style="text-decoration:none">${ico('globe',12)} Mở</a>` : ''}
+            <button class="btn btn-primary btn-sm" onclick="salesKitEdit()">${ico('edit',12)} ${has ? 'Sửa / Thay tài liệu' : 'Thêm tài liệu'}</button>
+            ${has ? `<button class="act-btn danger" title="Xoá" onclick="salesKitClear()">${ico('trash')}</button>` : ''}
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function salesKitEdit() {
+  const kit = projectResourcesSlice().salesKit || { title: 'Bộ Bí Kíp Tư Vấn', url: '', type: 'folder' };
+  showPanel('Bí Kíp Tư Vấn (Sales)', `
+    <div class="form-group">
+      <label class="form-label">Tiêu đề hiển thị *</label>
+      <input class="form-control" id="res-title" value="${esc(kit.title || 'Bộ Bí Kíp Tư Vấn')}" placeholder="VD: Bộ Bí Kíp Tư Vấn">
+    </div>
+    <div class="form-group">
+      <label class="form-label">URL / Link Drive *</label>
+      <input class="form-control" id="res-url" value="${esc(kit.url || '')}" placeholder="https://drive.google.com/...">
+      <small class="c-muted">Dán link Google Drive (thư mục), OneDrive hoặc URL trực tiếp.</small>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Hoặc tải file từ máy</label>
+      <div class="dropzone" id="res-dz"
+           onclick="document.getElementById('res-file').click()"
+           ondragenter="resDzEnter(event)"
+           ondragover="resDzEnter(event)"
+           ondragleave="resDzLeave(event)"
+           ondrop="resDzDrop(event)">
+        <div class="dz-icon">${ico('upload',24)}</div>
+        <div class="dz-title">Kéo & thả file vào đây</div>
+        <div class="dz-sub">hoặc <span class="dz-browse">chọn từ máy</span></div>
+        <div class="dz-meta" id="res-dz-meta">Mọi định dạng · file lưu trên server</div>
+        <input type="file" id="res-file" style="display:none" onchange="resourceUploadFile(this.files && this.files[0])">
+      </div>
+      <div id="res-upload-progress" style="display:none;margin-top:10px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:4px">
+          <span id="res-progress-label">Đang tải lên…</span>
+          <span id="res-progress-pct">0%</span>
+        </div>
+        <div style="height:6px;background:var(--surface2);border-radius:3px;overflow:hidden">
+          <div id="res-progress-bar" style="height:100%;width:0%;background:var(--primary);transition:width .15s"></div>
+        </div>
+      </div>
+      <div id="res-upload-info" style="display:none;margin-top:10px" class="dz-fileinfo"></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Loại</label>
+      <select class="form-control" id="res-type">
+        ${RESOURCE_TYPES.map(([v,l]) => `<option value="${v}" ${(kit.type || 'folder') === v ? 'selected' : ''}>${l}</option>`).join('')}
+      </select>
+    </div>
+  `, () => {
+    const url = document.getElementById('res-url').value.trim();
+    const title = document.getElementById('res-title').value.trim() || 'Bộ Bí Kíp Tư Vấn';
+    if (!url) { toast('Cần nhập URL hoặc upload file', 'warn'); return false; }
+    const slice = projectResourcesSlice();
+    slice.salesKit = { title, url, type: document.getElementById('res-type').value };
+    // saveData() đẩy toàn bộ snapshot lên PUT /api/project, server ghi __all.salesKit
+    // với subdivision_code = NULL. Không dùng cơ chế dirty của từng phân khu ở đây.
+    saveData('Đã lưu bí kíp tư vấn'); closePanel(); go('resources');
+  });
+}
+
+function salesKitClear() {
+  const slice = projectResourcesSlice();
+  if (!slice.salesKit) return;
+  confirmDel('Xoá bí kíp tư vấn?', slice.salesKit.title || 'Bộ Bí Kíp Tư Vấn', () => {
+    delete slice.salesKit;
+    saveData('Đã xoá bí kíp tư vấn'); go('resources');
   });
 }
 

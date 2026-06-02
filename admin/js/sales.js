@@ -1438,7 +1438,9 @@ function vrLink(sceneId) {
 
 function renderSalesKit(el) {
   const res = (S.data && S.data.resources) || {};
-  const kit = res.salesKit || {};
+  // resources được server trả theo phân khu: { __all:{...}, 'pk-...':{...} }.
+  // Bí kíp tư vấn nằm ở cấp dự án → đọc từ slice __all (fallback dạng cũ phẳng).
+  const kit = (res.__all && res.__all.salesKit) || res.salesKit || {};
   const has = !!kit.url;
   const title = kit.title || 'Bộ Bí Kíp Tư Vấn';
   const type = (kit.type || 'folder').toUpperCase();
